@@ -1,0 +1,50 @@
+#
+.DEFAULT_GOAL := help
+
+.PHONY: help default init distclean deinit
+
+# # help is defined in 
+# # https://gist.github.com/rcmachado/af3db315e31383502660
+help:
+	$(info --------------------------------------- )	
+	$(info Make Targets)
+	$(info --------------------------------------- )
+	$(QUIET) awk '/^[a-zA-Z\-\_0-9]+:/ {            \
+	  nb = sub( /^## /, "", helpMsg );              \
+	  if(nb == 0) {                                 \
+	    helpMsg = $$0;                              \
+	    nb = sub( /^[^:]*:.* ## /, "", helpMsg );   \
+	  }                                             \
+	  if (nb)                                       \
+	    print  $$1 "\t" helpMsg;                    \
+	}                                               \
+	{ helpMsg = $$0 }'                              \
+	$(MAKEFILE_LIST) | column -ts:
+
+
+default: help
+
+
+## Clone Source
+init:
+	$(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
+
+deinit: distclean
+## Clean Source
+distclean:
+	$(call distclean, $(SRC_PATH))
+
+.PHONY: build conf
+
+## Build Source
+build:
+	echo "mvn $(MVN_OPTS) -f $(SRC_PATH) clean install -Dmaven.test.skip=true"
+	$(QUIET) mvn $(MVN_OPTS) -f $(SRC_PATH) clean install -Dmaven.test.skip=true
+
+## Copy the site specific files into sources
+conf:
+	$(QUIET)sed -e "s:_KEYSTORE_:$(KEYSTORE_FILENAME):g" \
+		    -e "s:_CFLDIF_:$(CFLDIF_FILENAME):g" \
+		    < $(SITE_TEMPLATE_PATH)/application.properties.in \
+		    > $(SITE_TEMPLATE_PATH)/application.properties
+	$(QUIET)cp $(SITE_TEMPLATE_PATH)/application.properties $(SITE_SPECIFIC_FILES_PATH)/

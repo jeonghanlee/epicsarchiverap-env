@@ -1,0 +1,26 @@
+
+# .PHONY: es_install es_start es_status es_mapping es_mapping_clean es_all
+
+# ## Build Source for Debian 10
+# es_install:
+# 	$(QUIET) wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.3.1.deb
+# 	$(QUIET)$(SUDO) dpkg -i elasticsearch-6.3.1.deb
+# 	$(QUIET)$(SUDO) systemctl enable elasticsearch
+
+# es_start:
+# 	$(QUIET)$(SUDO) systemctl start elasticsearch
+
+# es_status:	
+# 	$(QUIET)systemctl status -l elasticsearch | cat
+
+# ## Create the ES indexes and set up their mapping
+# es_mapping:
+# 	$(QUIET)bash $(SITE_TEMPLATE_PATH)/mapping_definitions.bash
+
+# ## Clean all ES indexes and their mapping
+# es_mapping_clean:
+# 	$(QUIET)bash $(SITE_TEMPLATE_PATH)/clean_mapping_definitions.bash
+
+
+# es_all: es_install es_start es_start es_mapping
+	

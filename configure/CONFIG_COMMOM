@@ -1,0 +1,20 @@
+
+
+
+JAVA_PATH=/usr/bin
+
+## Elasticsearch Server
+#ES_HOST:=localhost
+#ES_PORT:=9200
+
+
+#CF_PRTO:=http
+#CF_HOST:=localhost
+#CF_PORT:=8080
+#
+#
+
+# These allow developers to override the variable
+-include $(TOP)/../CONFIG_COMMON.local
+-include $(TOP)/configure/CONFIG_COMMON.local
+

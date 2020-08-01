@@ -1,0 +1,28 @@
+
+### channelfinder installation location
+INSTALL_LOCATION=/opt/${APPNAME}
+
+
+# ### Placeholder
+# ### This variable will be replaced by reading a pom.xml file or others
+# ### It may be linked with SRC_VERSION in RELEASE file
+# ### 
+JAR_FILENAME:=${APPNAME}.jar
+
+
+# ### Default JAVA path and its options
+# JAVA_PATH:=/usr/bin
+JAVA_OPTS:=-Xms512m -Xmx512m
+# # Two more potential interesting options are
+# # JAVA_OPTS=-XX:MaxMetaspaceSize=256M -XX:+UseG1GC -Xms2G -Xmx2G
+
+MVN_OPTS:=
+
+SYSTEMD_PATH:=/etc/systemd/system
+SYSTEMD_FILENAME:=${APPNAME}.service
+
+# These allow developers to override the CONFIG_SITE variable
+# settings without having to modify the configure/CONFIG_SITE
+# file itself.
+-include $(TOP)/../CONFIG_SITE.local
+-include $(TOP)/configure/CONFIG_SITE.local

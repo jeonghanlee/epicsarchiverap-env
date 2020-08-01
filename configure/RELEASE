@@ -1,0 +1,19 @@
+
+APPNAME:=env-template
+
+## Where the Source repository SRC_URL/SRC_NAME
+##
+SRC_URL:=https://github.com/jeonghanlee
+SRC_NAME:=${APPNAME}
+
+
+## Which the source tag / branch / hash id would like to use
+## 2020-04-21
+SRC_TAG:=master
+
+## Placeholder for the site-specific version control 
+SRC_VERSION:=master
+
+
+-include $(TOP)/../RELEASE.local
+-include $(TOP)/configure/RELEASE.local

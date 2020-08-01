@@ -1,0 +1,63 @@
+# hash id is the full length
+define make_p0_patch
+	printf "\nCreating a p0 patch file in $(TOP)/patch\\n";
+	cd $(SRC_PATH) && git diff --no-prefix > $(TOP)/patch/$$(git rev-parse HEAD).p0.patch
+endef
+
+define patch_src
+for i in $(wildcard $(TOP)/patch/$(SRC_TAG)*.p0.patch); do\
+	printf "\nPatching %s with the file : %s\n" "$(SRC_PATH)" "$$i";\
+	patch -d $(SRC_PATH) --ignore-whitespace -p0 < $$i;\
+done
+endef
+
+
+define revert_patch_src
+for i in $(wildcard $(TOP)/patch/$(SRC_TAG)*.p0.patch); do\
+	printf "\nReverting applied patch %s with the file : %s\n" "$(SRC_PATH)" "$$i";\
+	patch -R -d $(SRC_PATH) --ignore-whitespace -p0 < $$i;\
+done
+endef
+
+GIT_VERSION:=$(lastword $(shell git --version))
+
+define gitclone
+$(if $(wildcard $(2)), @echo "Directory $(2) exist. Please remove it first.", git clone  $(1) $(2); git -C $(2) checkout $(3))
+endef
+
+define distclean
+$(if $(wildcard $(1)), @rm -rf $(1), @echo "There is no source path at $(1).")
+endef
+
+# it may be useful for git with older than 1.8.5, which doesn't have -C option.
+define gitclone2
+	git clone  $(1) $(2) 
+	cd $(2) && git checkout $(3)
+endef
+
+define checkfile
+$(if $(wildcard $(1)), @echo "There is no source path at $(1).",@echo ">>> Found exist$(1) will be deleted." && rm -f $(1) )
+endef
+
+
+ifndef VERBOSE
+  QUIET := @
+endif
+
+
+ifdef DEBUG_SHELL
+  SHELL = /bin/sh -x
+endif
+
+
+### Exclude the following variables to display
+VARS_EXCLUDES+=make_p0_patch
+VARS_EXCLUDES+=patch_src
+VARS_EXCLUDES+=revert_patch_src
+VARS_EXCLUDES+=QUIET
+VARS_EXCLUDES+=SHELL
+VARS_EXCLUDES+=gitclone
+VARS_EXCLUDES+=gitclone2
+VARS_EXCLUDES+=distclean
+VARS_EXCLUDES+=checkfile
+

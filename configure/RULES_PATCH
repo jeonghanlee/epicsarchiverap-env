@@ -1,0 +1,13 @@
+.PHONY: patch.apply patch.revert patch.make
+
+## Apply Patch Files
+patch.apply:
+	$(QUIET) $(call patch_src)
+
+## Revert Patch Files
+patch.revert:
+	$(QUIET) $(call revert_patch_src)
+
+patch.make:
+	$(QUIET) mkdir -p $(TOP)/patch
+	$(QUIET) $(call make_p0_patch)

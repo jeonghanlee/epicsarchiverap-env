@@ -1,0 +1,55 @@
+VARS_EXCLUDES+=.SHELLSTATUS
+VARS_EXCLUDES+=INIT_SRC
+VARS_EXCLUDES+=FILTER
+VARS_EXCLUDES+=LEVEL
+VARS_EXCLUDES+=$(filter JAVA_%, $(.VARIABLES))
+VARS_EXCLUDES+=$(filter JAR_%, $(.VARIABLES))
+
+LEVEL?=1
+FILTER?=1
+
+ifeq "$(FILTER)" "1"
+SRC_VARIABLES:=$(sort $(filter-out $(VARS_EXCLUDES) VARS_EXCLUDES,$(.VARIABLES)))
+else
+SRC_VARIABLES:=$(filter $(FILTER)%, $(sort $(filter-out $(VARS_EXCLUDES) VARS_EXCLUDES,$(.VARIABLES))))
+endif
+
+.PHONY : env vars header
+
+env: vars
+## Print interesting VARIABLES : also make PRINT.$(EACH_VARIABLE)
+vars: _header
+	$(foreach v, $(SRC_VARIABLES), $(info $(v) = $($(v)))) @#noop
+
+_header:
+	$(QUIET)echo ""
+	$(QUIET)echo "------------------------------------------------------------"
+	$(QUIET)echo ">>>>          Current Envrionment Variables             <<<<"
+	$(QUIET)echo "------------------------------------------------------------"
+	$(QUIET)echo ""
+
+# https://www.cmcrossroads.com/article/printing-value-makefile-variable
+PRINT.%:
+	$(QUIET)echo $* = $($*)
+	$(QUIET)echo $*\'s origin is $(origin $*)
+
+print-%:
+	$(QUIET)echo $* = $($*)
+	$(QUIET)echo $*\'s origin is $(origin $*)
+
+FORCE:
+
+.PHONY : exist
+
+exist:
+ifeq (, $(shell which tree))
+	$(if $(wildcard $(INSTALL_LOCATION)), @ ls -d $(INSTALL_LOCATION) && find $(INSTALL_LOCATION)/ -maxdepth $(LEVEL) | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/:---\1/")
+else
+	$(if $(wildcard $(INSTALL_LOCATION)), tree -aL $(LEVEL) $(INSTALL_LOCATION), $(QUIET)echo "No $(INSTALL_LOCATION)")
+endif
+
+
+.DELETE_ON_ERROR:
+
+.NOTPARALLEL:
+

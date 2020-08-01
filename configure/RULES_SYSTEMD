@@ -1,0 +1,47 @@
+#
+#
+.PHONY: sd_config sd_install sd_status sd_start sd_stop sd_restart sd_clean sd_enable sd_disable
+#
+#
+sd_config:
+	$(QUIET)sed -e "s:@TARGET_NAME@:$(APPNAME):g" \
+		-e "s:@JAVA_PATH@:$(JAVA_PATH):g" \
+		-e "s:@USERID@:$(USERID):g"      \
+		-e "s:@GROUPID@:$(GROUPID):g"    \
+		-e "s|@DOCURL@|$(DOCURL)|g"      \
+		-e "s:@INSTALL_LOCATION@:$(INSTALL_LOCATION):g" \
+		< $(SITE_TEMPLATE_PATH)/systemd.service.in > $(SITE_TEMPLATE_PATH)/$(SYSTEMD_FILENAME)
+#
+#	
+sd_install: sd_config
+	$(QUIET)$(SUDO) $(INSTALL_DATA) -b $(SITE_TEMPLATE_PATH)/$(SYSTEMD_FILENAME) $(SYSTEMD_PATH)/
+	$(QUIET)$(SUDO) systemctl daemon-reload
+#
+#	
+sd_status:
+	$(QUIET) systemctl status -l $(SYSTEMD_FILENAME) | cat -b
+#
+#
+sd_start:
+	$(QUIET)$(SUDO) systemctl start $(SYSTEMD_FILENAME)
+#
+# We ignore its error
+sd_stop:
+	-$(QUIET)$(SUDO) systemctl stop $(SYSTEMD_FILENAME)
+#
+#
+sd_restart:
+	$(QUIET)$(SUDO) systemctl restart $(SYSTEMD_FILENAME)
+#
+# We ignore its error
+sd_clean:
+	$(if $(wildcard $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)), $(QUIET)$(SUDO) rm -f $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME))
+#
+#
+sd_enable:
+	$(if $(wildcard $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)), $(SUDO) systemctl enable $(SYSTEMD_FILENAME))
+#
+#
+sd_disable:
+	$(if $(wildcard $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)), $(SUDO) systemctl disable $(SYSTEMD_FILENAME))
+#
