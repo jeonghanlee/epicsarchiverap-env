@@ -1,20 +1,35 @@
 
 
+JAVA_HOME:=/usr/lib/jvm/java-11-openjdk-amd64
+ANT_HOME:=/usr/share/ant
+MAVEN_HOME:=/usr/share/maven
+TOMCAT_HOME:=/usr/share/tomcat9
 
-JAVA_PATH=/usr/bin
-
-## Elasticsearch Server
-#ES_HOST:=localhost
-#ES_PORT:=9200
+JAVA_LOCAL:=$(TOP)/JAVA
+JAVA_LOCAL_VER:=11
 
 
-#CF_PRTO:=http
-#CF_HOST:=localhost
-#CF_PORT:=8080
-#
-#
+## MariaDB configuration example
+## Users in the HOSTS can access the SQL server with DB_ADMIN permission
+DB_ADMIN_HOSTS="localhost 127.0.0.1 10.0.0.200"
+## SQL Server 
+DB_HOST_IPADDR=127.0.0.1
+DB_HOST_PORT=3306
+DB_HOST_NAME=localhost
+## SQL server ADMIN user, because we don't use root
+DB_ADMIN=admin
+DB_ADMIN_PASS=admin
+## User for the Database DB_NAME
+DB_NAME=archappl
+DB_USER=archappl
+DB_USER_PASS=archappl
+DB_BACKUP_PATH=db
+
+ARCHAPPL_HOST_IPADDR=127.0.0.1
 
 # These allow developers to override the variable
 -include $(TOP)/../CONFIG_COMMON.local
 -include $(TOP)/configure/CONFIG_COMMON.local
-
+-include $(TOP)/configure/CONFIG_COMMON_JDK.local
+-include $(TOP)/configure/CONFIG_COMMON_ANT.local
+-include $(TOP)/configure/CONFIG_COMMON_MAVEN.local

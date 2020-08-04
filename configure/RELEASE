@@ -1,18 +1,17 @@
 
-APPNAME:=env-template
+APPNAME:=epicsarchiverap
 
 ## Where the Source repository SRC_URL/SRC_NAME
 ##
-SRC_URL:=https://github.com/jeonghanlee
+SRC_URL:=https://github.com/slacmshankar
 SRC_NAME:=${APPNAME}
 
 
 ## Which the source tag / branch / hash id would like to use
-## 2020-04-21
-SRC_TAG:=master
+SRC_TAG:=6945c32
 
 ## Placeholder for the site-specific version control 
-SRC_VERSION:=master
+SRC_VERSION:=6945c32
 
 
 -include $(TOP)/../RELEASE.local

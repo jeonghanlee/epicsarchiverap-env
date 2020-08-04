@@ -1,12 +1,21 @@
+RULES_VARS+=$(foreach v, $(filter %_RULES,$(.VARIABLES)), $(v))
+RULES_VARS+=$(foreach v, $(filter %_RULES_NAMES,$(.VARIABLES)), $(v))
+
 VARS_EXCLUDES+=.SHELLSTATUS
 VARS_EXCLUDES+=INIT_SRC
 VARS_EXCLUDES+=FILTER
 VARS_EXCLUDES+=LEVEL
 VARS_EXCLUDES+=$(filter JAVA_%, $(.VARIABLES))
 VARS_EXCLUDES+=$(filter JAR_%, $(.VARIABLES))
+VARS_EXCLUDES+=$(RULES_VARS)
+VARS_EXCLUDES+=RULES_VARS
+
+.PHONY: $(RULES_VARS)
 
 LEVEL?=1
 FILTER?=1
+LSOPTS?="-lta"
+
 
 ifeq "$(FILTER)" "1"
 SRC_VARIABLES:=$(sort $(filter-out $(VARS_EXCLUDES) VARS_EXCLUDES,$(.VARIABLES)))
@@ -36,6 +45,15 @@ PRINT.%:
 print-%:
 	$(QUIET)echo $* = $($*)
 	$(QUIET)echo $*\'s origin is $(origin $*)
+
+ls.%:
+	$(QUIET) ls $(LSOPTS) $($*)
+
+tree.%:
+	$(QUIET) tree -aL $(LEVEL) $($*)
+
+cat.%:
+	$(QUIET) cat -b $($*)
 
 FORCE:
 

@@ -1,26 +1,85 @@
+# -*- mode: Makefile;-*-
 
-# .PHONY: es_install es_start es_status es_mapping es_mapping_clean es_all
-
-# ## Build Source for Debian 10
-# es_install:
-# 	$(QUIET) wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.3.1.deb
-# 	$(QUIET)$(SUDO) dpkg -i elasticsearch-6.3.1.deb
-# 	$(QUIET)$(SUDO) systemctl enable elasticsearch
-
-# es_start:
-# 	$(QUIET)$(SUDO) systemctl start elasticsearch
-
-# es_status:	
-# 	$(QUIET)systemctl status -l elasticsearch | cat
-
-# ## Create the ES indexes and set up their mapping
-# es_mapping:
-# 	$(QUIET)bash $(SITE_TEMPLATE_PATH)/mapping_definitions.bash
-
-# ## Clean all ES indexes and their mapping
-# es_mapping_clean:
-# 	$(QUIET)bash $(SITE_TEMPLATE_PATH)/clean_mapping_definitions.bash
+req_RULES_NAMES:=pkgs jdk ant maven java.all
+req_install_RULES:=$(filter-out %.java.all %.pkgs, $(addprefix install., $(req_RULES_NAMES)) )
+req_conf_RULES:=$(filter-out %.java.all %.pkgs, $(addprefix conf., $(req_RULES_NAMES)) )
 
 
-# es_all: es_install es_start es_start es_mapping
-	
+install.pkgs: required_pkgs.sh
+	$(QUIET)sudo -E bash -c "$<"
+
+install.java.all: $(req_install_RULES)
+
+conf.java.all: $(req_conf_RULES)
+
+## JDK
+install.jdk: install_java_pkgs_local.bash | $(JAVA_LOCAL)
+	$(QUIET)echo "OpenJDK will be in $(JAVA_LOCAL)/openjdk$(JAVA_LOCAL_VER)"
+	$(QUIET)bash $< "jdk$(JAVA_LOCAL_VER)" "$(JAVA_LOCAL)"
+
+conf.jdk: CONFIG_COMMON_JDK.local
+	$(QUIET)echo ">>> Generating $<"
+	$(QUIET)-rm -f $<
+	$(QUIET)echo "JAVA_HOME:=$(JAVA_LOCAL)/openjdk$(JAVA_LOCAL_VER)"      > $<
+	$(QUIET)echo "JAVA_PATH:=$(JAVA_LOCAL)/openjdk$(JAVA_LOCAL_VER)/bin" >> $<
+	$(QUIET)cat -b $<
+
+install.ant: install_java_pkgs_local.bash  | $(JAVA_LOCAL)
+	$(QUIET)echo "ANT be in $(JAVA_LOCAL)/ant"
+	$(QUIET)bash $< "ant" "$(JAVA_LOCAL)"
+
+conf.ant: CONFIG_COMMON_ANT.local
+	$(QUIET)echo ">>> Generating $<"
+	-rm -f $<
+	$(QUIET)echo "ANT_HOME:=$(JAVA_LOCAL)/ant"      > $<
+	$(QUIET)echo "ANT_PATH:=$(JAVA_LOCAL)/ant/bin" >> $<
+	$(QUIET)cat -b $<
+
+install.maven: install_java_pkgs_local.bash  | $(JAVA_LOCAL)
+	$(QUIET)echo "MAVEN be in $(JAVA_LOCAL)/maven"
+	$(QUIET)bash $< "maven" "$(JAVA_LOCAL)"
+
+conf.maven: CONFIG_COMMON_MAVEN.local
+	$(QUIET)echo ">>> Generating $<"
+	-rm -f $<
+	$(QUIET)echo "MAVEN_HOME:=$(JAVA_LOCAL)/maven"      > $<
+	$(QUIET)echo "MAVEN_PATH:=$(JAVA_LOCAL)/maven/bin" >> $<
+	$(QUIET)cat -b $<
+
+ $(JAVA_LOCAL):
+	@mkdir -p $@
+
+.PHONY: get.jdbc clean.jdbc install.jdbc
+get.jdbc:
+	$(QUIET)echo "Downloading JDBC connector ... "
+	$(QUIET)bash install_java_pkgs_local.bash "jdbc"
+
+ifneq ($(wildcard mariadb-java-*.jar),)
+clean.jdbc: 
+	$(QUIET) rm -rf mariadb-java-*.jar
+
+install.jdbc:
+	$(QUIET) echo "Copying $(wildcard mariadb-java-*.jar) to $(TOMCAT_HOME)/lib/"
+	$(QUIET) sudo $(INSTALL_755) mariadb-java-*.jar $(TOMCAT_HOME)/lib/
+else
+
+clean.jdbc:
+
+install.jdbc:
+
+endif
+
+req_stroage_RULES_NAMES:=build show rm
+req_stroage_RULES:=$(addprefix stroage., $(req_stroage_RULES_NAMES))
+
+stroage.build:
+	@echo ">> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
+	@sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(ARCHAPPL_SHORT_TERM_FOLDER)
+	@sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(ARCHAPPL_MEDIUM_TERM_FOLDER)
+	@sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(ARCHAPPL_LONG_TERM_FOLDER)	
+
+stroage.show:
+	@tree -pugL  $(LEVEL)  $(ARCHAPPL_STORAGE_TOP);
+
+stroage.rm:
+	-rm -rf $(ARCHAPPL_STORAGE_TOP)

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+# This script is a modification version of the original one of recsync/debian/recceiver.postrm
+# in order to use it in Debian and CentOS together.
+# The file follows the orignal licence in recsync/LICENSE, and its COPYRIGHT. 
+#
+# 
+# author  : Jeong Han Lee
+# email   : JeongLee@lbl.gov
+# Date    : Friday, May  1 15:34:46 PDT 2020
+# version : 0.0.1
+
+set -e
+
+if [ "$1" = "purge" ]; then
+    USERID="$2"
+    if grep -q "^${USERID}:" /etc/passwd; then
+	echo "Removing user ${USERID} ... "
+	userdel ${USERID} || echo "WARNING: problem removing user ${USERID}"
+    else
+	echo "${USERID} doesn't exist"
+    fi
+    
+fi

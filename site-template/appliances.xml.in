@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  Took the contents from single\_machine\_install.sh, and modified 
+  them according to our configuration. 
+-->
+<appliances>
+   <appliance>
+     <identity>@ARCHAPPL_SINGLE_IDENTITY@</identity>
+     <cluster_inetport>@ARCHAPPL_CLUSTER_INETPORT@</cluster_inetport>
+     <mgmt_url>@ARCHAPPL_MGMT_URL@</mgmt_url>
+     <engine_url>@ARCHAPPL_ENGINE_URL@</engine_url>
+     <etl_url>@ARCHAPPL_ETL_URL@</etl_url>
+     <retrieval_url>@ARCHAPPL_RETRIEVAL_URL@</retrieval_url>
+     <data_retrieval_url>@ARCHAPPL_DATA_RETRIEVAL_URL@</data_retrieval_url>
+   </appliance>
+</appliances>
+

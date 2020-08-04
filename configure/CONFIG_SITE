@@ -1,5 +1,5 @@
 
-### channelfinder installation location
+### ArchiverAppliance Configuration Path
 INSTALL_LOCATION=/opt/${APPNAME}
 
 
@@ -9,14 +9,36 @@ INSTALL_LOCATION=/opt/${APPNAME}
 # ### 
 JAR_FILENAME:=${APPNAME}.jar
 
+ARCHAPPL_VERSION:=ALSU-$(SRC_VERSION)
 
-# ### Default JAVA path and its options
-# JAVA_PATH:=/usr/bin
-JAVA_OPTS:=-Xms512m -Xmx512m
-# # Two more potential interesting options are
-# # JAVA_OPTS=-XX:MaxMetaspaceSize=256M -XX:+UseG1GC -Xms2G -Xmx2G
+ARCHAPPL_SITEID:=
 
-MVN_OPTS:=
+ANT_OPTS:=additionalparam="-Xdoclint:none -Xmaxerrs 10 -Xmaxwarns 10"
+MAVEN_OPTS:=
+JAVA_OPTS:= 
+
+JAVA_HEAPSIZE="512M"
+JAVA_MAXMETASPACE="256M"
+JAVA_OPTS="-XX:MaxMetaspaceSize=${JAVA_MAXMETASPACE} -XX:+UseG1GC -Xms${JAVA_HEAPSIZE} -Xmx${JAVA_HEAPSIZE} -ea"
+
+USERID:=tomcat
+GROUPID:=$(USERID)
+
+## appliances.xml 
+ARCHAPPL_STORAGE_TOP:=/ArchiverAppliance
+ARCHAPPL_SHORT_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/sts
+ARCHAPPL_MEDIUM_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/mts
+ARCHAPPL_LONG_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/lts
+
+## archappl.properties
+## We only have three variables for the space holder for the future expansion
+## 
+ARCHAPPL_MINIMUM_SAMPLING_PERIOD:=0.1
+ARCHAPPL_SECONDS_TO_BUFFER:=10
+ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT:=1.0
+
+
+PATH:=$(MAVEN_PATH):$(ANT_PATH):$(JAVA_PATH):${PATH}
 
 SYSTEMD_PATH:=/etc/systemd/system
 SYSTEMD_FILENAME:=${APPNAME}.service

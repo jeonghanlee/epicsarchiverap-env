@@ -8,7 +8,7 @@ INSTALL_755:=$(INSTALL) -m 755
 # IF INSTALL_LOCATIOIN is not WRITABLE, SUDO and SUDOBASH should be used 
 # SUDO_INFO 1 : SUDO is needed (NOT writable)
 # SUDO_INFO 0 : SUDO is not needed
-SUDO_INFO := $(shell test -w $(INSTALL_LOCATIOIN) 1>&2 2> /dev/null; echo $$?)
+SUDO_INFO := $(shell test -w $(INSTALL_LOCATION) 1>&2 2> /dev/null; echo $$?)
 SUDO_CMD := $(shell which sudo)
 
 # For CentOS, devtoolset-{7,8} has -E option within sudo shell
@@ -25,6 +25,31 @@ endif
 #
 SITE_TEMPLATE_PATH:=$(TOP)/site-template
 #
+
+ANT_CMD:=$(ANT_PATH)/ant
+MAVEN_CMD:=$(MAVE_PATH)/mvn
+JAVA_CMD:=$(JAVA_PATH)/java 
+
+
+
+
+## log4j_properties located in $(TOMCAT_HOME)/lib 
+ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
+
+ARCHAPPL_SINGLE_IDENTITY=appliance0
+## The following three files will in $(INSTALL_LOCATION)
+ARCHAPPL_APPLIANCES:=appliances.xml
+ARCHAPPL_POLICIES:=policies.py
+ARCHAPPL_PROPERTIES=archappl.properties
+
+ARCHAPPL_CLUSTER_INETPORT:=$(ARCHAPPL_HOST_IPADDR):16670
+ARCHAPPL_MGMT_URL:=http://$(ARCHAPPL_HOST_IPADDR):17665/mgmt/bpl
+ARCHAPPL_ENGINE_URL:=http://$(ARCHAPPL_HOST_IPADDR):17666/engine/bpl
+ARCHAPPL_ETL_URL:=http://$(ARCHAPPL_HOST_IPADDR):17667/etl/bpl
+ARCHAPPL_RETRIEVAL_URL:=http://$(ARCHAPPL_HOST_IPADDR):17668/retrieval/bpl
+ARCHAPPL_DATA_RETRIEVAL_URL:=http://$(ARCHAPPL_HOST_IPADDR):17668/retrieval
+
+
 #
 VARS_EXCLUDES+=SRC_PATH_INFO
 VARS_EXCLUDES+=INSTALL

@@ -46,3 +46,12 @@ auto_positions.sav*
 \#*
 .versions
 *-src
+JAVA/*
+*.tar.gz
+*.tar
+appliances.xml
+archappl.properties
+mariadb.conf
+policies.py
+*.war
+*.jar

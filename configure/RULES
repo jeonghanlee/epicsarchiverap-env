@@ -1,4 +1,10 @@
 
+vpath %.in $(SITE_TEMPLATE_PATH)
+vpath %.bash $(TOP)/scripts
+vpath %.sh $(TOP)/scripts
+vpath %.war $(TOP)
+vpath %.jar $(TOP)
+vpath %.local $(TOP)/configure
 
 include $(TOP)/configure/RULES_FUNC
 include $(TOP)/configure/RULES_PATCH
@@ -7,5 +13,7 @@ include $(TOP)/configure/RULES_SRC
 include $(TOP)/configure/RULES_INSTALL
 include $(TOP)/configure/RULES_SYSTEMD
 -include $(TOP)/configure/RULES_DOCKER
+include $(TOP)/configure/RULES_SQL
+include $(TOP)/configure/RULES_PROPERTIES
 include $(TOP)/configure/RULES_VARS
 

@@ -1,0 +1,48 @@
+
+
+
+## log4j_properties located in $(TOMCAT_HOME)/lib 
+#ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
+
+#ARCHAPPL_SINGLE_IDENTITY=appliance0
+## The following three files will in $(INSTALL_LOCATION)
+#ARCHAPPL_APPLIANCES:=appliances.xml
+#ARCHAPPL_POLICIES:=policies.py
+#ARCHAPPL_PROPERTIES=archappl.properties
+
+properties_RULES_NAMES:=appliances properties policies
+conf_properties_RULES:=$(addprefix conf., $(properties_RULES_NAMES))
+show_properties_RULES:=$(addsuffix .show, $(properties_RULES_NAMES))
+
+conf.appliances: $(ARCHAPPL_APPLIANCES).in
+	$(QUIET)sed -e "s|@ARCHAPPL_SINGLE_IDENTITY@|$(ARCHAPPL_SINGLE_IDENTITY)|g" \
+	            -e "s|@ARCHAPPL_CLUSTER_INETPORT@|$(ARCHAPPL_CLUSTER_INETPORT)|g" \
+	            -e "s|@ARCHAPPL_MGMT_URL@|$(ARCHAPPL_MGMT_URL)|g" \
+	            -e "s|@ARCHAPPL_ENGINE_URL@|$(ARCHAPPL_ENGINE_URL)|g" \
+	            -e "s|@ARCHAPPL_ETL_URL@|$(ARCHAPPL_ETL_URL)|g" \
+                -e "s|@ARCHAPPL_RETRIEVAL_URL@|$(ARCHAPPL_RETRIEVAL_URL)|g" \
+                -e "s|@ARCHAPPL_DATA_RETRIEVAL_URL@|$(ARCHAPPL_DATA_RETRIEVAL_URL)|g" \
+                < $< > $(basename $<)
+
+conf.appliances.show: $(ARCHAPPL_APPLIANCES)
+	@cat -b $<
+
+conf.properties: $(ARCHAPPL_PROPERTIES).in
+	$(QUIET)sed -e "s|@ARCHAPPL_MINIMUM_SAMPLING_PERIOD@|$(ARCHAPPL_MINIMUM_SAMPLING_PERIOD)|g" \
+				-e "s|@ARCHAPPL_SECONDS_TO_BUFFER@|$(ARCHAPPL_SECONDS_TO_BUFFER)|g" \
+				-e "s|@ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT@|$(ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT)|g" \
+                < $< > $(basename $<)
+
+conf.properties.show: $(ARCHAPPL_PROPERTIES)
+	@cat -b $<
+
+
+conf.policies: $(ARCHAPPL_POLICIES).in
+	$(QUIET)sed -e "s|@ARCHAPPL_HOST_IPADDR@|$(ARCHAPPL_HOST_IPADDR)|g" \
+				-e "s|@ARCHAPPL_SHORT_TERM_FOLDER@|$(ARCHAPPL_SHORT_TERM_FOLDER)|g" \
+				-e "s|@ARCHAPPL_MEDIUM_TERM_FOLDER@|$(ARCHAPPL_MEDIUM_TERM_FOLDER)|g" \
+				-e "s|@ARCHAPPL_LONG_TERM_FOLDER@|$(ARCHAPPL_LONG_TERM_FOLDER)|g" \
+                < $< > $(basename $<)
+
+conf.policies.show: $(ARCHAPPL_POLICIES)
+	@cat -b $<

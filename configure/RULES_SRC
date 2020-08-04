@@ -34,17 +34,22 @@ deinit: distclean
 distclean:
 	$(call distclean, $(SRC_PATH))
 
-.PHONY: build conf
+.PHONY: 
 
-## Build Source
-build:
-	echo "mvn $(MVN_OPTS) -f $(SRC_PATH) clean install -Dmaven.test.skip=true"
-	$(QUIET) mvn $(MVN_OPTS) -f $(SRC_PATH) clean install -Dmaven.test.skip=true
+info.ant:
+	$(QUIET)echo "-------------------------------------------------------------"
+	$(QUIET)echo ">>> Ant  information"
+	$(QUIET)echo "Ant : $(ANT_PATH)/ant"	
+	$(QUIET)$(ANT_PATH)/ant -version
+	$(QUIET)echo "-------------------------------------------------------------"
+	$(QUIET)echo ">>> JAVA information"
+	$(QUIET)echo "JAVA : $(JAVA_PATH)/java"
+	$(QUIET)$(JAVA_PATH)/java -version
+	$(QUIET)echo "-------------------------------------------------------------"
 
-## Copy the site specific files into sources
-conf:
-	$(QUIET)sed -e "s:_KEYSTORE_:$(KEYSTORE_FILENAME):g" \
-		    -e "s:_CFLDIF_:$(CFLDIF_FILENAME):g" \
-		    < $(SITE_TEMPLATE_PATH)/application.properties.in \
-		    > $(SITE_TEMPLATE_PATH)/application.properties
-	$(QUIET)cp $(SITE_TEMPLATE_PATH)/application.properties $(SITE_SPECIFIC_FILES_PATH)/
+clean.ant: info.ant
+	BUILDS_ALL_TIME=$(ARCHAPPL_VERSION) TOMCAT_HOME=$(TOMCAT_HOME) JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS) clean
+
+build.ant: info.ant
+	BUILDS_ALL_TIME=$(ARCHAPPL_VERSION) TOMCAT_HOME=$(TOMCAT_HOME) JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS)
+

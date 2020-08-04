@@ -5,3 +5,4 @@ include $(TOP)/configure/RELEASE
 include $(TOP)/configure/CONFIG_SITE
 include $(TOP)/configure/CONFIG_VARS
 include $(TOP)/configure/CONFIG_SRC
+include $(TOP)/configure/CONFIG_SQL
