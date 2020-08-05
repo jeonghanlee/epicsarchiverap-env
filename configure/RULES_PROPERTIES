@@ -1,20 +1,27 @@
 
+## ---> $(TOMCAT_HOME)/lib 
+## ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
+## ---> $(INSTALL_LOCATION)
+## ARCHAPPL_APPLIANCES:=appliances.xml
+## ARCHAPPL_POLICIES:=policies.py
+## ARCHAPPL_PROPERTIES:=archappl.properties
+## ---> $(INSTALL_LOCATION)/*/conf 
+## ARCHAPPL_CONTEXT_XML:=context.xml
+## ARCHAPPL_TOMCAT_CONF:=tomcat.conf
 
 
-## log4j_properties located in $(TOMCAT_HOME)/lib 
-#ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
-
-#ARCHAPPL_SINGLE_IDENTITY=appliance0
-## The following three files will in $(INSTALL_LOCATION)
-#ARCHAPPL_APPLIANCES:=appliances.xml
-#ARCHAPPL_POLICIES:=policies.py
-#ARCHAPPL_PROPERTIES=archappl.properties
-
-properties_RULES_NAMES:=appliances properties policies
+properties_RULES_NAMES:=appliances properties policies context tomcat
 conf_properties_RULES:=$(addprefix conf., $(properties_RULES_NAMES))
-show_properties_RULES:=$(addsuffix .show, $(properties_RULES_NAMES))
+show_properties_RULES:=$(addsuffix .show, $(conf_properties_RULES))
+
+RULES_VARS+=conf.archapplproperties conf.archapplproperties.show
+
+conf.archapplproperties: $(conf_properties_RULES)
+
+conf.archapplproperties.show: $(show_properties_RULES)
 
 conf.appliances: $(ARCHAPPL_APPLIANCES).in
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_SINGLE_IDENTITY@|$(ARCHAPPL_SINGLE_IDENTITY)|g" \
 	            -e "s|@ARCHAPPL_CLUSTER_INETPORT@|$(ARCHAPPL_CLUSTER_INETPORT)|g" \
 	            -e "s|@ARCHAPPL_MGMT_URL@|$(ARCHAPPL_MGMT_URL)|g" \
@@ -24,25 +31,57 @@ conf.appliances: $(ARCHAPPL_APPLIANCES).in
                 -e "s|@ARCHAPPL_DATA_RETRIEVAL_URL@|$(ARCHAPPL_DATA_RETRIEVAL_URL)|g" \
                 < $< > $(basename $<)
 
-conf.appliances.show: $(ARCHAPPL_APPLIANCES)
-	@cat -b $<
+conf.appliances.show: $(ARCHAPPL_APPLIANCES).in
+	@cat -b $(basename $<)
 
 conf.properties: $(ARCHAPPL_PROPERTIES).in
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_MINIMUM_SAMPLING_PERIOD@|$(ARCHAPPL_MINIMUM_SAMPLING_PERIOD)|g" \
 				-e "s|@ARCHAPPL_SECONDS_TO_BUFFER@|$(ARCHAPPL_SECONDS_TO_BUFFER)|g" \
 				-e "s|@ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT@|$(ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT)|g" \
                 < $< > $(basename $<)
 
-conf.properties.show: $(ARCHAPPL_PROPERTIES)
-	@cat -b $<
+conf.properties.show: $(ARCHAPPL_PROPERTIES).in
+	@cat -b $(basename $<)
 
 
 conf.policies: $(ARCHAPPL_POLICIES).in
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_HOST_IPADDR@|$(ARCHAPPL_HOST_IPADDR)|g" \
 				-e "s|@ARCHAPPL_SHORT_TERM_FOLDER@|$(ARCHAPPL_SHORT_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_MEDIUM_TERM_FOLDER@|$(ARCHAPPL_MEDIUM_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_LONG_TERM_FOLDER@|$(ARCHAPPL_LONG_TERM_FOLDER)|g" \
                 < $< > $(basename $<)
 
-conf.policies.show: $(ARCHAPPL_POLICIES)
-	@cat -b $<
+conf.policies.show: $(ARCHAPPL_POLICIES).in
+	@cat -b $(basename $<)
+
+conf.context: $(ARCHAPPL_CONTEXT_XML).in 
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)sed -e "s:@JDBC_DATASOURCE_CLASSNAME@:$(JDBC_DATASOURCE_CLASSNAME):g" \
+		    -e "s:@JDBC_RES_TYPE@:$(JDBC_RES_TYPE):g" \
+			-e "s:@JDBC_DB_USER@:$(JDBC_DB_USER):g" \
+			-e "s:@JDBC_DB_USER_PASS@:$(JDBC_DB_USER_PASS):g" \
+			-e "s:@JDBC_DB_TYPE@:$(JDBC_DB_TYPE):g" \
+			-e "s:@JDBC_DB_HOSTNAME@:$(JDBC_DB_HOSTNAME):g" \
+			-e "s:@JDBC_DB_PORTNUM@:$(JDBC_DB_PORTNUM):g" \
+			-e "s:@JDBC_DB_NAME@:$(JDBC_DB_NAME):g" \
+			< $< > $(basename $<)
+
+conf.context.show: $(ARCHAPPL_CONTEXT_XML).in 
+	@cat -b $(basename $<)
+
+conf.tomcat: $(ARCHAPPL_TOMCAT_CONF).in 
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(INSTALL_LOCATION):g" \
+			 -e "s:@ARCHAPPL_APPLIANCES@:$(ARCHAPPL_APPLIANCES):g" \
+			 -e "s:@ARCHAPPL_PROPERTIES@:$(ARCHAPPL_PROPERTIES):g" \
+			 -e "s:@ARCHAPPL_POLICIES@:$(ARCHAPPL_POLICIES):g" \
+			 -e "s:@ARCHAPPL_SINGLE_IDENTITY@:$(ARCHAPPL_SINGLE_IDENTITY):g" \
+			 -e "s:@ARCHAPPL_SHORT_TERM_FOLDER@:$(ARCHAPPL_SHORT_TERM_FOLDER):g" \
+			 -e "s:@ARCHAPPL_MEDIUM_TERM_FOLDER@:$(ARCHAPPL_MEDIUM_TERM_FOLDER):g" \
+			 -e "s:@ARCHAPPL_LONG_TERM_FOLDER@:$(ARCHAPPL_LONG_TERM_FOLDER):g" \
+			< $< > $(basename $<)
+
+conf.tomcat.show: $(ARCHAPPL_TOMCAT_CONF).in 
+	@cat -b $(basename $<)

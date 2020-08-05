@@ -1,6 +1,44 @@
-.PHONY: install uninstall src_install
 
-install: src_install sd_install sd_enable
+SERVICES_INSTALL_RULES:=
+$(call buildrules_BUILDER,$(USERID),$(INSTALL_LOCATION),$(INSTALL_LOCATION_SERVICES),SERVICES_INSTALL_RULES)
+conf_RULES_NAMES:=log4j appliances properties policies serverxml
+conf_install_RULES:=$(addsuffix .install, $(conf_RULES_NAMES))
+
+.PHONY: install services.install 
+
+install:  src_install services.install
+#src_install sd_install sd_enable
+
+services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES)
+
+log4j.install: log4j.properties
+	@echo ">>> Install $< into $(TOMCAT_HOME)/lib/"
+	@sudo install $< $(TOMCAT_HOME)/lib/
+
+appliances.install: $(ARCHAPPL_APPLIANCES)
+	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	@sudo install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
+
+properties.install: $(ARCHAPPL_PROPERTIES)
+	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	@sudo install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
+
+policies.install: $(ARCHAPPL_POLICIES)
+	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	@sudo install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
+
+# all other ports are disable by default from $(TOMCAT_HOME)/skel/conf/server.xml
+serverxml.install:
+	@echo ">>> Update  $(INSTALL_LOCATION)/*/conf/server.xml to use the proper port numbers to match $(ARCHAPPL_APPLIANCES)"
+	@sudo sed -i -e 's|Connector port="8080"|Connector port="17665"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="8010" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/mgmt/conf/server.xml
+	@sudo sed -i -e 's|Connector port="8080"|Connector port="17666"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="8011" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/engine/conf/server.xml
+	@sudo sed -i -e 's|Connector port="8080"|Connector port="17667"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="8012" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/etl/conf/server.xml
+	@sudo sed -i -e 's|Connector port="8080"|Connector port="17668"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="8013" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/retrieval/conf/server.xml
+
+sh.install:
+
+
+
 
 src_install: src_version src_preinst
 	$(if $(wildcard $(INSTALL_LOCATION)), $(QUIET)$(SUDO) mv $(INSTALL_LOCATION) $(INSTALL_LOCATION)_backup_$$(date +%Y%m%d-%H%M%S))
@@ -9,15 +47,17 @@ src_install: src_version src_preinst
 #	$(QUIET)$(SUDO) cp -rp $(SRC_PATH)/appserver/distributions/payara/target/stage/payara5/*  $(INSTALL_LOCATION)/
 	$(QUIET)$(SUDO)	chown -R $(USERID):$(GROUPID) $(INSTALL_LOCATION)
 
-uninstall: sd_stop sd_disable sd_clean src_postrm
+#uninstall: sd_stop sd_disable sd_clean src_postrm
+uninstall:
 	$(QUIET)echo "Removing $(INSTALL_LOCATION)..."
 	$(QUIET)$(SUDO) rm -rf $(INSTALL_LOCATION)/
 
 
 .PHONY: src_version src_preinst src_postrm clean
 
+# Tomcat Service is already in the system
 src_preinst:
-	$(QUIET)$(SUDO) bash $(SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
+#	$(QUIET)$(SUDO) bash $(SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
 
 # Tomcat Service is already in the system
 src_postrm: 

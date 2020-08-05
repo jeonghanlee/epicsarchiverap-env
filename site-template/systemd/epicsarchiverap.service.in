@@ -1,0 +1,16 @@
+[Unit]
+Description=EPICS Archiver Appliance
+Documentation=@DOCURL@
+Requires=network.target tomcat@mgmt.service tomcat@engine.service tomcat@etl.service
+After=network.target tomcat@mgmt.service tomcat@engine.service tomcat@etl.servicetomcat.target mysql.service
+Wants=tomcat@retrieval.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+
+[Install]
+WantedBy=multi-user.target
+Alias=archappl.service

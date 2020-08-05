@@ -26,8 +26,19 @@ default: help
 
 
 ## Clone Source
-init:
+init: clone update
 	$(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
+
+
+# gitclone use '-C' option, so git version should be more than 1.8.5. CentOS7 git is imcompatiable.
+#
+clone:
+	$(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
+
+
+update:
+	$(QUIET)git -C $(SRC_PATH) submodule update --init ./
+	
 
 deinit: distclean
 ## Clean Source
@@ -52,4 +63,10 @@ clean.ant: info.ant
 
 build.ant: info.ant
 	BUILDS_ALL_TIME=$(ARCHAPPL_VERSION) TOMCAT_HOME=$(TOMCAT_HOME) JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS)
+
+.PHONY: conf build
+
+build: conf build.ant
+
+conf: conf.archapplproperties conf.storage
 

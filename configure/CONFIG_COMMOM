@@ -6,7 +6,7 @@ MAVEN_HOME:=/usr/share/maven
 TOMCAT_HOME:=/usr/share/tomcat9
 
 JAVA_LOCAL:=$(TOP)/JAVA
-JAVA_LOCAL_VER:=11
+JAVA_LOCAL_VER:=12
 
 
 ## MariaDB configuration example

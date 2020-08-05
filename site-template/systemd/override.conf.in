@@ -1,0 +1,3 @@
+# /etc/systemd/system/tomcat9.service.d/
+[Service]
+ReadWritePaths=@INSTALL_LOCATION@/

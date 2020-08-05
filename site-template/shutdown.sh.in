@@ -1,0 +1,4 @@
+#!/bin/sh
+export CATALINA_BASE="@INSTALL_LOCATION@"
+@TOMCAT_HOME@/bin/shutdown.sh
+echo "Archiver Appliance Service @SERVICE_NAME@ stopped"

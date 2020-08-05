@@ -53,5 +53,10 @@ appliances.xml
 archappl.properties
 mariadb.conf
 policies.py
+context.xml
 *.war
 *.jar
+test*
+*.service
+override.conf
+

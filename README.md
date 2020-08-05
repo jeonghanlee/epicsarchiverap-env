@@ -2,6 +2,10 @@
 
 ## Configuration
 
+```bash
+make init
+```
+
 ## Requirements
 
 * Debian 10
@@ -28,15 +32,18 @@ Copying mariadb-java-client-2.3.0.jar to /usr/share/tomcat9/lib/
 
 See [docs/README.javapkgs.md](docs/README.javapkgs.md)
 
-### Stroage
+## Build
+
+* Generate all configuration files, and prepare the storage space, and build the archiver appliance
 
 ```bash
-$ make stroage.build
-$ make stroage.show
-/home/jhlee/ArchiverAppliance
-├── [drwxr-xr-x tomcat   tomcat  ]  lts
-├── [drwxr-xr-x tomcat   tomcat  ]  mts
-└── [drwxr-xr-x tomcat   tomcat  ]  sts
+make build
 ```
 
-## Build
+which contains three rules such as `conf.archapplproperties`, `conf.storage`, and `build.ant`
+
+## Install
+
+```bash
+make install
+```

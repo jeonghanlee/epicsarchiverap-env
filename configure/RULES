@@ -1,10 +1,16 @@
 
 vpath %.in $(SITE_TEMPLATE_PATH)
+vpath %.xml $(SITE_TEMPLATE_PATH)
+vpath %.properties $(SITE_TEMPLATE_PATH)
+vpath %.py $(SITE_TEMPLATE_PATH)
 vpath %.bash $(TOP)/scripts
 vpath %.sh $(TOP)/scripts
 vpath %.war $(TOP)
 vpath %.jar $(TOP)
 vpath %.local $(TOP)/configure
+vpath %.war $(TOP)
+vpath %.in $(SITE_TEMPLATE_PATH)/systemd
+vpath %.service $(SITE_TEMPLATE_PATH)/systemd
 
 include $(TOP)/configure/RULES_FUNC
 include $(TOP)/configure/RULES_PATCH

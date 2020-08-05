@@ -13,13 +13,23 @@ ARCHAPPL_VERSION:=ALSU-$(SRC_VERSION)
 
 ARCHAPPL_SITEID:=
 
-ANT_OPTS:=additionalparam="-Xdoclint:none -Xmaxerrs 10 -Xmaxwarns 10"
+ANT_OPTS:=
 MAVEN_OPTS:=
-JAVA_OPTS:= 
 
-JAVA_HEAPSIZE="512M"
-JAVA_MAXMETASPACE="256M"
-JAVA_OPTS="-XX:MaxMetaspaceSize=${JAVA_MAXMETASPACE} -XX:+UseG1GC -Xms${JAVA_HEAPSIZE} -Xmx${JAVA_HEAPSIZE} -ea"
+
+# export JAVA_OPTS="-XX:MaxPermSize=128M -XX:+UseG1GC -Xmx4G -Xms4G -ea"
+#
+#  -XX:MaxPermSize=size  This option was deprecated in JDK 8, 
+#   and superseded by the -XX:MaxMetaspaceSize option.
+#
+# The physical memory  :  64G, so I use 8G instead of 4G, since we don't have any other application on the server.
+# Set MaxMetaspaceSize : 256M, so it reduces the GC execution to compare with the original option.
+JAVA_HEAPSIZE="512m"
+JAVA_MAXMETASPACE="256m"
+# For slow startup of Tomcat installed  in a virtual machine (VPS)
+JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
+CATALINA_OPTS="-XX:MaxMetaspaceSize=$(JAVA_MAXMETASPACE) -XX:+UseG1GC -Xms$(JAVA_HEAPSIZE) -Xmx$(JAVA_HEAPSIZE) -ea"
+
 
 USERID:=tomcat
 GROUPID:=$(USERID)
@@ -41,7 +51,17 @@ ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT:=1.0
 PATH:=$(MAVEN_PATH):$(ANT_PATH):$(JAVA_PATH):${PATH}
 
 SYSTEMD_PATH:=/etc/systemd/system
-SYSTEMD_FILENAME:=${APPNAME}.service
+
+
+SYSTEMD_OVERRIDE_FILENAME:=override.conf
+
+SYSTEMD0_FILENAME:=${APPNAME}.service
+SYSTEMD1_FILENAME:=tomcat@mgmt.service
+SYSTEMD2_FILENAME:=tomcat@etl.service
+SYSTEMD3_FILENAME:=tomcat@engine.service
+SYSTEMD4_FILENAME:=tomcat@retrieval.service
+
+
 
 # These allow developers to override the CONFIG_SITE variable
 # settings without having to modify the configure/CONFIG_SITE

@@ -69,17 +69,17 @@ install.jdbc:
 
 endif
 
-req_stroage_RULES_NAMES:=build show rm
-req_stroage_RULES:=$(addprefix stroage., $(req_stroage_RULES_NAMES))
+req_storage_RULES_NAMES:=storage storage.show storage.rm 
+req_storage_RULES:=$(addprefix conf., $(req_storage_RULES_NAMES))
 
-stroage.build:
+conf.storage:
 	@echo ">> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
 	@sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(ARCHAPPL_SHORT_TERM_FOLDER)
 	@sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(ARCHAPPL_MEDIUM_TERM_FOLDER)
 	@sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(ARCHAPPL_LONG_TERM_FOLDER)	
 
-stroage.show:
+conf.storage.show:
 	@tree -pugL  $(LEVEL)  $(ARCHAPPL_STORAGE_TOP);
 
-stroage.rm:
+conf.storage.rm:
 	-rm -rf $(ARCHAPPL_STORAGE_TOP)
