@@ -8,6 +8,7 @@ SRC_NAME:=${APPNAME}
 
 
 ## Which the source tag / branch / hash id would like to use
+# latest master
 SRC_TAG:=6945c32
 
 ## Placeholder for the site-specific version control 

@@ -1,0 +1,9 @@
+
+
+SYSTEMD_PATH:=/etc/systemd/system
+SYSTEMD_OVERRIDE_FILENAME:=override.conf
+SYSTEMD0_FILENAME:=${APPNAME}.service
+SYSTEMD1_FILENAME:=tomcat@mgmt.service
+SYSTEMD2_FILENAME:=tomcat@etl.service
+SYSTEMD3_FILENAME:=tomcat@engine.service
+SYSTEMD4_FILENAME:=tomcat@retrieval.service

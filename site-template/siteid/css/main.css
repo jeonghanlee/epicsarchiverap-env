@@ -1,0 +1,108 @@
+/* site_header */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap');
+
+
+html {
+  background: white;
+}
+
+body {
+    color: black;
+    margin: 0 auto;
+    padding-bottom: 20px;
+    font-family: 'Open Sans', sans-serif, Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
+    font-size: 12px;
+    
+}
+
+.page {
+    min-height: 400px;
+}
+
+.pageheader {
+    height: 60px;
+    background-color: #00313c;
+}
+
+
+.apptitle {
+    padding-left: 0.8em;
+    padding-top: 0.5em;
+    font-family: 'Open Sans', sans-serif, Helvetica,sans-serif;
+    color: white;
+    font-size: 2.0em;
+    display: inline-block;
+    font-weight: bold;
+}
+
+#siteimages{
+    float: right;
+    padding-top: 0em;
+}
+
+/* site_navbar */
+
+.navbar{
+    background-color: #00313c;
+}
+
+.nav {
+    border-top-style: solid;
+    border-top-color: white;
+    border-top-width: 0.1em;
+    border-bottom-style: solid;
+    border-bottom-color: white;
+    border-bottom-width: 0.1em;
+    
+}
+
+ul.mainmenu {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+
+}
+
+/* Float the list items side by side */
+ul.mainmenu li {
+    float: left;
+}
+
+
+
+/* Style the links inside the list items */
+ul.mainmenu li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 0.7em 1em;
+    text-decoration: none;
+    transition: 0.8s;
+    font-size: 0.9em;
+}
+
+
+/* Change background color of links on hover */
+ul.mainmenu li a:hover {
+    background-color:#E8927C;
+}
+
+ul.mainmenu li a.active {
+    border-style: solid;
+    border-color: white;
+    border-width: 0.06em;
+}
+
+
+/* Hide the list item that contains the link that should open and close the topnav on small screens */
+ul.mainmenu li.icon {
+    display: none;
+}
+
+
+    
+.page p {
+    font-size: 1em;
+    text-align: justify;
+}

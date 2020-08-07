@@ -98,10 +98,8 @@ function drop_procedures
             # Ignore all table orders, drop all
             dropCmd+="DROP PROCEDURE IF EXISTS ${output}"
             dropCmd+=";\"";
-            if [ "$VERBOSE" == "YES" ]; then
-                printf ". %24s was found. Droping .... \n" "${output}"
-            fi
-	        commandPrn "$dropCmd"
+            printf ". %24s was found. Droping .... \n" "${output}"
+            commandPrn "$dropCmd"
             eval "${dropCmd}"
         done
     fi
@@ -138,9 +136,8 @@ function drop_triggers
             # Ignore all table orders, drop all
             dropCmd+="DROP TRIGGER IF EXISTS ${output}"
             dropCmd+=";\"";
-            if [ "$VERBOSE" == "YES" ]; then
-                printf ". %24s was found. Droping .... \n" "${output}"
-            fi
+            printf ". %24s was found. Droping .... \n" "${output}"
+
 	        commandPrn "$dropCmd"
             eval "${dropCmd}"
         done

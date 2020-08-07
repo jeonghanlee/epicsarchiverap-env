@@ -5,6 +5,11 @@ ANT_HOME:=/usr/share/ant
 MAVEN_HOME:=/usr/share/maven
 TOMCAT_HOME:=/usr/share/tomcat9
 
+JAVA_PATH:=$(JAVA_HOME)/bin
+ANT_PATH:=$(ANT_HOME)/bin
+MAVEN_PATH:=$(MAVEN_HOME)/bin
+
+
 JAVA_LOCAL:=$(TOP)/JAVA
 JAVA_LOCAL_VER:=12
 
@@ -25,7 +30,8 @@ DB_USER=archappl
 DB_USER_PASS=archappl
 DB_BACKUP_PATH=db
 
-ARCHAPPL_HOST_IPADDR=127.0.0.1
+ARCHAPPL_HOST_IPADDR=localhost
+
 
 # These allow developers to override the variable
 -include $(TOP)/../CONFIG_COMMON.local

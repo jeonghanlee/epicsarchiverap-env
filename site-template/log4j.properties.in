@@ -1,0 +1,11 @@
+# Set root logger level to DEBUG and its only appender to A1.
+log4j.rootLogger=@ARCHAPPL_ROOT_LOGGER_LEVEL@, A1
+log4j.logger.config.org.epics.archiverappliance=INFO
+log4j.logger.org.apache.http=INFO, A1
+# A1 is set to be a DailyRollingFileAppender
+log4j.appender.A1=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.A1.File=logs/archappl_service.log
+log4j.appender.A1.DatePattern='.'yyyy-MM-dd
+# A1 uses PatternLayout.
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n

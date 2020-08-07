@@ -12,10 +12,11 @@ SQL_AA_UPDATE_SQL:=$(SQL_SITE_PATH)/archappl_mysql_updated.sql
 
 ## https://mariadb.com/kb/en/about-mariadb-connector-j/
 # For MySQL : com.mysql.jdbc.Driver
+# We only need to put the JDBC driver into mgmt/WEP_INF/lib
 JDBC_DATASOURCE_CLASSNAME=org.mariadb.jdbc.Driver
 # For MySQL : mysql 
 JDBC_DB_TYPE=mariadb
-
+# Shouldn't change it, beceause mgmt/WEP_INF/web.xml has the hard-coded RES_TYPE
 JDBC_RES_TYPE=javax.sql.DataSource
 JDBC_DB_USER=$(DB_USER)
 JDBC_DB_USER_PASS=$(DB_USER_PASS)

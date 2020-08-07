@@ -11,6 +11,7 @@ vpath %.local $(TOP)/configure
 vpath %.war $(TOP)
 vpath %.in $(SITE_TEMPLATE_PATH)/systemd
 vpath %.service $(SITE_TEMPLATE_PATH)/systemd
+vpath %.conf $(SITE_TEMPLATE_PATH)
 
 include $(TOP)/configure/RULES_FUNC
 include $(TOP)/configure/RULES_PATCH

@@ -1,4 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+set -a
+# shellcheck source=/dev/null
+. "@ARCHAPPL_TOP@/archappl.conf"
+set +a
+
 export CATALINA_BASE="@INSTALL_LOCATION@"
-@TOMCAT_HOME@/bin/startup.sh
-echo "Archiver Appliance Service @SERVICE_NAME@ started"
+export CATALINA_PID="@INSTALL_LOCATION@/temp/@SERVICE_NAME@.pid"
+"${CATALINA_HOME}/bin/startup.sh" "$@"
+printf ">>> Archiver Appliance Service @SERVICE_NAME@ started\n"

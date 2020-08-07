@@ -2,20 +2,22 @@
 ### ArchiverAppliance Configuration Path
 INSTALL_LOCATION=/opt/${APPNAME}
 
+WARS_TARGET:=$(TOP)/wars
 
-# ### Placeholder
-# ### This variable will be replaced by reading a pom.xml file or others
-# ### It may be linked with SRC_VERSION in RELEASE file
-# ### 
-JAR_FILENAME:=${APPNAME}.jar
 
-ARCHAPPL_VERSION:=ALSU-$(SRC_VERSION)
+ARCHAPPL_TOP:=$(INSTALL_LOCATION)
+ARCHAPPL_SITEID:=als
+ARCHAPPL_VERSION:=$(SRC_VERSION)-$(ARCHAPPL_SITEID)
+ARCHAPPL_WARS_TARGET_PATH:=$(TOP)/wars
+ARCHAPPL_SITEID_TEMPATE_PATH:=$(TOP)/site-template/siteid
+ARCHAPPL_SITEID_CLASSPATHFILES_PATH:=$(ARCHAPPL_SITEID_TEMPATE_PATH)/classpathfiles
 
-ARCHAPPL_SITEID:=
+ANT_OPTS:=-Dver=$(ARCHAPPL_VERSION)
+ANT_OPTS+=-Dwardest=$(ARCHAPPL_WARS_TARGET_PATH)
+ANT_OPTS+=-Dtomcathome=$(TOMCAT_HOME)
+ANT_OPTS+=-Darchapplsite=$(ARCHAPPL_SITEID)
 
-ANT_OPTS:=
 MAVEN_OPTS:=
-
 
 # export JAVA_OPTS="-XX:MaxPermSize=128M -XX:+UseG1GC -Xmx4G -Xms4G -ea"
 #
@@ -28,17 +30,21 @@ JAVA_HEAPSIZE="512m"
 JAVA_MAXMETASPACE="256m"
 # For slow startup of Tomcat installed  in a virtual machine (VPS)
 JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
-CATALINA_OPTS="-XX:MaxMetaspaceSize=$(JAVA_MAXMETASPACE) -XX:+UseG1GC -Xms$(JAVA_HEAPSIZE) -Xmx$(JAVA_HEAPSIZE) -ea"
-
+##
+CATALINA_OPTS="-XX:MaxMetaspaceSize=$(JAVA_MAXMETASPACE)"
+CATALINA_OPTS+="-Xms$(JAVA_HEAPSIZE)"
+CATALINA_OPTS+="-Xmx$(JAVA_HEAPSIZE)"
+CATALINA_OPTS+="-XX:+UseG1GC"
+CATALINA_OPTS+="-ea"
 
 USERID:=tomcat
 GROUPID:=$(USERID)
 
 ## appliances.xml 
-ARCHAPPL_STORAGE_TOP:=/ArchiverAppliance
-ARCHAPPL_SHORT_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/sts
-ARCHAPPL_MEDIUM_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/mts
-ARCHAPPL_LONG_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/lts
+ARCHAPPL_STORAGE_TOP:=/arch
+ARCHAPPL_SHORT_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore
+ARCHAPPL_MEDIUM_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore
+ARCHAPPL_LONG_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore
 
 ## archappl.properties
 ## We only have three variables for the space holder for the future expansion
@@ -48,19 +54,18 @@ ARCHAPPL_SECONDS_TO_BUFFER:=10
 ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT:=1.0
 
 
-PATH:=$(MAVEN_PATH):$(ANT_PATH):$(JAVA_PATH):${PATH}
-
-SYSTEMD_PATH:=/etc/systemd/system
-
-
-SYSTEMD_OVERRIDE_FILENAME:=override.conf
-
-SYSTEMD0_FILENAME:=${APPNAME}.service
-SYSTEMD1_FILENAME:=tomcat@mgmt.service
-SYSTEMD2_FILENAME:=tomcat@etl.service
-SYSTEMD3_FILENAME:=tomcat@engine.service
-SYSTEMD4_FILENAME:=tomcat@retrieval.service
-
+## log4j_properties located in $(TOMCAT_HOME)/lib 
+ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
+ARCHAPPL_SINGLE_IDENTITY=appliance0
+## The following three files will in $(INSTALL_LOCATION)
+ARCHAPPL_APPLIANCES:=appliances.xml
+ARCHAPPL_POLICIES:=policies.py
+ARCHAPPL_PROPERTIES:=archappl.properties
+ARCHAPPL_CONF:=archappl.conf
+## $(INSTALL_LOCATION)/*/conf 
+ARCHAPPL_CONTEXT_XML:=context.xml
+ARCHAPPL_TOMCAT_STARTUP:=startup.sh
+ARCHAPPL_TOMCAT_SHUTDOWN:=shutdown.sh
 
 
 # These allow developers to override the CONFIG_SITE variable

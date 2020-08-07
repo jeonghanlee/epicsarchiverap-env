@@ -1,16 +1,14 @@
 
 ## ---> $(TOMCAT_HOME)/lib 
 ## ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
-## ---> $(INSTALL_LOCATION)
-## ARCHAPPL_APPLIANCES:=appliances.xml
-## ARCHAPPL_POLICIES:=policies.py
-## ARCHAPPL_PROPERTIES:=archappl.properties
 ## ---> $(INSTALL_LOCATION)/*/conf 
 ## ARCHAPPL_CONTEXT_XML:=context.xml
-## ARCHAPPL_TOMCAT_CONF:=tomcat.conf
+
+## ---> $(INSTALL_LOCATION)
+## ARCHAPPL_CONF:=archappl.conf
 
 
-properties_RULES_NAMES:=appliances properties policies context tomcat
+properties_RULES_NAMES:=appliances properties policies context archappl log4j
 conf_properties_RULES:=$(addprefix conf., $(properties_RULES_NAMES))
 show_properties_RULES:=$(addsuffix .show, $(conf_properties_RULES))
 
@@ -21,7 +19,7 @@ conf.archapplproperties: $(conf_properties_RULES)
 conf.archapplproperties.show: $(show_properties_RULES)
 
 conf.appliances: $(ARCHAPPL_APPLIANCES).in
-	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)echo ">>> Generate $(call classpathfile_output, $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_SINGLE_IDENTITY@|$(ARCHAPPL_SINGLE_IDENTITY)|g" \
 	            -e "s|@ARCHAPPL_CLUSTER_INETPORT@|$(ARCHAPPL_CLUSTER_INETPORT)|g" \
 	            -e "s|@ARCHAPPL_MGMT_URL@|$(ARCHAPPL_MGMT_URL)|g" \
@@ -30,29 +28,36 @@ conf.appliances: $(ARCHAPPL_APPLIANCES).in
                 -e "s|@ARCHAPPL_RETRIEVAL_URL@|$(ARCHAPPL_RETRIEVAL_URL)|g" \
                 -e "s|@ARCHAPPL_DATA_RETRIEVAL_URL@|$(ARCHAPPL_DATA_RETRIEVAL_URL)|g" \
                 < $< > $(basename $<)
+	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"
+	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
 
 conf.appliances.show: $(ARCHAPPL_APPLIANCES).in
 	@cat -b $(basename $<)
 
 conf.properties: $(ARCHAPPL_PROPERTIES).in
-	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_MINIMUM_SAMPLING_PERIOD@|$(ARCHAPPL_MINIMUM_SAMPLING_PERIOD)|g" \
 				-e "s|@ARCHAPPL_SECONDS_TO_BUFFER@|$(ARCHAPPL_SECONDS_TO_BUFFER)|g" \
 				-e "s|@ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT@|$(ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT)|g" \
                 < $< > $(basename $<)
+	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"
+	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
 
 conf.properties.show: $(ARCHAPPL_PROPERTIES).in
+#	@cat -b $(call classpathfile_output, $<)
 	@cat -b $(basename $<)
 
-
 conf.policies: $(ARCHAPPL_POLICIES).in
-	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET) echo ">>> Generate $(call classpathfile_output, $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_HOST_IPADDR@|$(ARCHAPPL_HOST_IPADDR)|g" \
 				-e "s|@ARCHAPPL_SHORT_TERM_FOLDER@|$(ARCHAPPL_SHORT_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_MEDIUM_TERM_FOLDER@|$(ARCHAPPL_MEDIUM_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_LONG_TERM_FOLDER@|$(ARCHAPPL_LONG_TERM_FOLDER)|g" \
                 < $< > $(basename $<)
-
+	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"
+	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
+	
+	
 conf.policies.show: $(ARCHAPPL_POLICIES).in
 	@cat -b $(basename $<)
 
@@ -71,7 +76,7 @@ conf.context: $(ARCHAPPL_CONTEXT_XML).in
 conf.context.show: $(ARCHAPPL_CONTEXT_XML).in 
 	@cat -b $(basename $<)
 
-conf.tomcat: $(ARCHAPPL_TOMCAT_CONF).in 
+conf.archappl: $(ARCHAPPL_CONF).in 
 	$(QUIET) echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(INSTALL_LOCATION):g" \
 			 -e "s:@ARCHAPPL_APPLIANCES@:$(ARCHAPPL_APPLIANCES):g" \
@@ -81,7 +86,17 @@ conf.tomcat: $(ARCHAPPL_TOMCAT_CONF).in
 			 -e "s:@ARCHAPPL_SHORT_TERM_FOLDER@:$(ARCHAPPL_SHORT_TERM_FOLDER):g" \
 			 -e "s:@ARCHAPPL_MEDIUM_TERM_FOLDER@:$(ARCHAPPL_MEDIUM_TERM_FOLDER):g" \
 			 -e "s:@ARCHAPPL_LONG_TERM_FOLDER@:$(ARCHAPPL_LONG_TERM_FOLDER):g" \
+			 -e "s:@JAVA_HOME@:$(JAVA_HOME):g" -e "s|@JAVA_OPTS@|$(JAVA_OPTS)|g" \
+			 -e "s:@TOMCAT_HOME@:$(TOMCAT_HOME):g" -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
 			< $< > $(basename $<)
 
-conf.tomcat.show: $(ARCHAPPL_TOMCAT_CONF).in 
+conf.archappl.show: $(ARCHAPPL_CONF).in 
+	@cat -b $(basename $<)
+
+conf.log4j: log4j.properties.in
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)sed -e "s:@ARCHAPPL_ROOT_LOGGER_LEVEL@:$(ARCHAPPL_ROOT_LOGGER_LEVEL):g" \
+			< $< > $(basename $<)
+
+conf.log4j.show: log4j.properties.in 
 	@cat -b $(basename $<)

@@ -47,3 +47,11 @@ which contains three rules such as `conf.archapplproperties`, `conf.storage`, an
 ```bash
 make install
 ```
+
+## TL;DR
+
+```bash
+make init
+make build
+make install
+```

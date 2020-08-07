@@ -1,7 +1,7 @@
 #
 .DEFAULT_GOAL := help
 
-.PHONY: help default init distclean deinit
+.PHONY: help default
 
 # # help is defined in 
 # # https://gist.github.com/rcmachado/af3db315e31383502660
@@ -24,7 +24,7 @@ help:
 
 default: help
 
-
+PHONY: init clone update deinit distclean
 ## Clone Source
 init: clone update
 	$(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
@@ -35,7 +35,6 @@ init: clone update
 clone:
 	$(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
 
-
 update:
 	$(QUIET)git -C $(SRC_PATH) submodule update --init ./
 	
@@ -45,7 +44,7 @@ deinit: distclean
 distclean:
 	$(call distclean, $(SRC_PATH))
 
-.PHONY: 
+.PHONY: info.ant clean.ant  build.ant copy.sitespecific mkdir.wars
 
 info.ant:
 	$(QUIET)echo "-------------------------------------------------------------"
@@ -59,10 +58,24 @@ info.ant:
 	$(QUIET)echo "-------------------------------------------------------------"
 
 clean.ant: info.ant
-	BUILDS_ALL_TIME=$(ARCHAPPL_VERSION) TOMCAT_HOME=$(TOMCAT_HOME) JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS) clean
+	JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS) clean
 
-build.ant: info.ant
-	BUILDS_ALL_TIME=$(ARCHAPPL_VERSION) TOMCAT_HOME=$(TOMCAT_HOME) JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS)
+build.ant: info.ant copy.sitespecific | mkdir.wars
+	JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS)
+
+build.site: info.ant copy.sitespecific | mkdir.wars
+	JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS) sitespecificbuild
+
+copy.sitespecific: | FORCE
+	$(QUIET)echo "-------------------------------------------------------------"
+	$(QUIET)echo ">>> We are copying the site specific source to  $(ARCHAPPL_SITEID_TARGET_PATH)"
+	rm -rf $(ARCHAPPL_SITEID_TARGET_PATH)
+	$(QUIET)cp -rf $(ARCHAPPL_SITEID_TEMPATE_PATH) $(ARCHAPPL_SITEID_TARGET_PATH)
+	$(QUIET)echo "-------------------------------------------------------------"
+
+
+mkdir.wars:
+	@mkdir -p $(ARCHAPPL_WARS_TARGET_PATH)
 
 .PHONY: conf build
 

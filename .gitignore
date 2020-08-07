@@ -59,4 +59,8 @@ context.xml
 test*
 *.service
 override.conf
+wars
+log4j.properties
+shutdown.sh
+startup.sh
 
