@@ -40,8 +40,12 @@ db.show: mariadb_setup.bash db.conf
 
 #sed "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" ${aa_deploy_db_tables} > ${aa_deploy_db_tables_new};
 
-sql_sql_RULES_NAMES:=update update.show table.fill table.show table.drop
+sql_sql_RULES_NAMES:=fill show update update.show table.fill table.show table.drop
 sql_sql_RULES:=$(addprefix sql., $(sql_db_RULES_NAMES))
+
+sql.fill: sql.update sql.table.fill
+
+sql.show: sql.table.show
 
 sql.update:
 	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" < $(SQL_AA_ORIG_SQL) > $(SQL_AA_UPDATE_SQL)

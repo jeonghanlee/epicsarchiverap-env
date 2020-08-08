@@ -45,13 +45,13 @@ def getFieldsArchivedAsPartOfStream():
 
 
 # We use the environment variables ARCHAPPL_SHORT_TERM_FOLDER and ARCHAPPL_MEDIUM_TERM_FOLDER to determine the location of the STS and the MTS in the appliance
-hour01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=PARTITION_HOUR&consolidateOnShutdown=true'
-day01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=8&gather=1'
-day03_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=4&gather=1'
-day07_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=8&gather=1'
-day14_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=15&gather=1'
-year01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=PARTITION_YEAR'
-blackhole_plugin_url = 'blackhole://@ARCHAPPL_HOST_IPADDR@?name=LTS'
+h01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=PARTITION_HOUR&consolidateOnShutdown=true'
+d01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=8&gather=1'
+d03_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=4&gather=1'
+d07_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=8&gather=1'
+d14_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=15&gather=1'
+y01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=PARTITION_YEAR'
+bkh_plugin_url = 'blackhole://@ARCHAPPL_HOST_IPADDR@?name=LTS'
 
 
 def determinePolicy(pvInfoDict):
@@ -64,19 +64,19 @@ def determinePolicy(pvInfoDict):
 	if userPolicyOverride == '2HzPVs' or (userPolicyOverride == '' and pvInfoDict['eventRate'] > 2.0):
 		pvPolicyDict['samplingPeriod'] = 1.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
-		pvPolicyDict['dataStores'] = [
-			hour01_plugin_url, 
-			day14_plugin_url, 
-			year01_plugin_url
+		pvPolicyDict['dataStores'] = [ 
+			h01_plugin_url, 
+			d14_plugin_url, 
+			y01_plugin_url 
 			]
 		pvPolicyDict['policyName'] = '2HzPVs';
 	elif userPolicyOverride == 'Default' or (userPolicyOverride == '' and pvInfoDict['pvName'] == 'mshankar:arch:sine'):
 		pvPolicyDict['samplingPeriod'] = 1.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
-		pvPolicyDict['dataStores'] = [
-           	hour_plugin_url, 
-			day14_plugin_url, 
-			year1_plugin_url + "&pp=firstSample&pp=firstSample_3600"
+		pvPolicyDict['dataStores'] = [ 
+			h01_plugin_url, 
+			d14_plugin_url, 
+			y01_plugin_url + "&pp=firstSample&pp=firstSample_3600"
 			]
 		pvPolicyDict['policyName'] = 'Default';
 	elif userPolicyOverride == 'BPMS' or (userPolicyOverride == '' and pvInfoDict['pvName'].startswith('BPMS') and pvInfoDict['storageRate'] > 35):
@@ -84,28 +84,28 @@ def determinePolicy(pvInfoDict):
 		# We reduce the sampling rate (and hence increase the sampling period) to cater to this. 
 		pvPolicyDict['samplingPeriod'] = pvInfoDict['storageRate']/(35*pvInfoDict['eventRate'])
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
-		pvPolicyDict['dataStores'] = [
-            hour_plugin_url, 
-			day14_plugin_url, 
-			year1_plugin_ur
+		pvPolicyDict['dataStores'] = [ 
+			h01_plugin_url, 
+			d14_plugin_url, 
+			y01_plugin_url 
 			]
 		pvPolicyDict['policyName'] = 'BPMS';
 	elif userPolicyOverride == '3DaysMTSOnly':
 		pvPolicyDict['samplingPeriod'] = 1.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
-		pvPolicyDict['dataStores'] = [
-			hour_plugin_url, 
-			day14_plugin_url,
-			blackhole_plugin_url
+		pvPolicyDict['dataStores'] = [ 
+			h01_plugin_url, 
+			d14_plugin_url, 
+			y01_plugin_url 
 			]
 		pvPolicyDict['policyName'] = '2HzPVs';
 	else:
 		pvPolicyDict['samplingPeriod'] = 1.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
-		pvPolicyDict['dataStores'] = [
-			hour_plugin_url, 
-			day14_plugin_url, 
-			year1_plugin_url
+		pvPolicyDict['dataStores'] = [ 
+			h01_plugin_url, 
+			d14_plugin_url, 
+			y01_plugin_url 
 			]
 		pvPolicyDict['policyName'] = 'Default';
 	 

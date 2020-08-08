@@ -38,12 +38,13 @@ policies.install: $(ARCHAPPL_POLICIES)
 	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
 	@sudo install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
 
-# all other ports are disable by default from $(TOMCAT_HOME)/skel/conf/server.xml
+# all other ports are disable by default from $(TOMCAT_HOME)/skel/conf/server.
+# mgmt, engine, bpl, and retrieval 
 serverxml.install:
 	@echo ">>> Update  $(INSTALL_LOCATION)/*/conf/server.xml to use the proper port numbers to match $(ARCHAPPL_APPLIANCES)"
 	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_MGMT_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_MGMT_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/mgmt/conf/server.xml
-	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ETL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ETL_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/engine/conf/server.xml
-	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ENGINE_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ENGINE_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/etl/conf/server.xml
+	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ENGINE_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ETL_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/engine/conf/server.xml
+	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ETL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ENGINE_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/etl/conf/server.xml
 	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_RETRIEVAL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_RETRIEVAL_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/retrieval/conf/server.xml
 
 serverxml.show:

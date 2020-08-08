@@ -37,13 +37,13 @@
 
 #archstats th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #archstats tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #reportchooselabel {
@@ -71,16 +71,17 @@
 	text-align: left;
 	font-weight: bold;
 	padding-right: 1.5em;
+	padding-top: 0.8em;
+	padding-left: 0.8em;
+	padding-bottom: 0.8em;
 }
 
-
-
 .reporttable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 .reporttable tbody tr.rtbleven { 
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 .reporttable tbody tr td a img {
@@ -141,19 +142,19 @@
 }
 
 .archtabl_asc {
-	background: #99cedb url('../comm/img/sort_asc.png') no-repeat center right;
+	background: #b1b3b3 url('../comm/img/sort_asc.png') no-repeat center right;
 }
 
 .archtabl_desc {
-	background: #99cedb url('../comm/img/sort_desc.png') no-repeat center right;
+	background: #b1b3b3 url('../comm/img/sort_desc.png') no-repeat center right;
 }
 
 .archtabl_unsorted { 
-	background: #99cedb url('../comm/img/sort_both.png') no-repeat center right;
+	background: #b1b3b3 url('../comm/img/sort_both.png') no-repeat center right;
 }
 
 .archtabl_nosort { 
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 .detailsviewheader {
@@ -169,7 +170,7 @@ img.imgintable {
 }
 
 img.imginlist {
-	height: 20px;
+/*	height: 20px; */
 	display: inline;
 	padding-left: 0.10em;
 	margin-left: auto;
@@ -199,13 +200,13 @@ img.disabled {
 
 #pvDetailsTable th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #pvDetailsTable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #pvDetailsName {
@@ -289,13 +290,13 @@ img.disabled {
 
 #metricsappliancestable th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #metricsappliancestable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #metricsappliancedetailsdiv {
@@ -312,20 +313,20 @@ img.disabled {
 
 #metricsappliancedetailstable th, td{
 	border: thin solid black;
-	padding: 0.25em;
+	padding: 0.4em;
 	font-weight: normal;
 	font-size: small;
 }
 
 #metricsappliancedetailstable th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #metricsappliancedetailstable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #metricsapplianceName {
@@ -355,7 +356,7 @@ img.disabled {
 	padding-bottom: 0.5em;
 	margin-top: 0.5em;	
 	margin-bottom: 0.5em;
-s}
+}
 
 #addchannelarchiverurlokdiv {
 	margin-top: 100px;	
@@ -436,13 +437,13 @@ s}
 
 #storageappliancestable th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #storageappliancestable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #storageappliancedetailsdiv {
@@ -460,20 +461,20 @@ s}
 
 #storageappliancedetailstable th, td{
 	border: thin solid black;
-	padding: 0.25em;
+	padding: 0.4em;
 	font-weight: normal;
 	font-size: small;
 }
 
 #storageappliancedetailstable th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #storageappliancedetailstable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #storageapplianceName {
@@ -499,13 +500,13 @@ s}
 
 #instanceappliancestable th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #instanceappliancestable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #instanceappliancedetailsdiv {
@@ -530,13 +531,13 @@ s}
 
 #instanceappliancedetailstable th {
 	text-align: left;
-	background: #99cedb;
+	background: #b1b3b3;
 	font-weight: bold;
 }
 
 
 #instanceappliancedetailstable tbody tr:nth-child(2n) {
-	background: #99cedb;
+	background: #b1b3b3;
 }
 
 #instanceapplianceName {

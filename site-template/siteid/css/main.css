@@ -1,59 +1,66 @@
-/* site_header */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap');
-
-
 html {
   background: white;
+  font-size: 100%;
 }
 
+/* site_header */
+
 body {
-    color: black;
+    width: 98%; 
+    text-align: left;
     margin: 0 auto;
-    padding-bottom: 20px;
     font-family: 'Open Sans', sans-serif, Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
-    font-size: 12px;
-    
+   	line-height: 1;
+    -moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+    background: #ffffff;
+    background: -moz-linear-gradient(top,  #ffffff 0%, #fcfcfc 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#fcfcfc));
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#fcfcfc 100%); 
+    background: -o-linear-gradient(top,  #ffffff 0%,#fcfcfc 100%);
+    background: -ms-linear-gradient(top,  #ffffff 0%,#fcfcfc 100%);
+    background: linear-gradient(bottom,  #ffffff 0%,#fcfcfc 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#fcfcfc',GradientType=0 );
 }
 
 .page {
-    min-height: 400px;
+    min-height: 600px;
 }
 
 .pageheader {
-    height: 60px;
-    background-color: #00313c;
+    height: 96px;
+    background-color: #00313C;
 }
 
 
 .apptitle {
-    padding-left: 0.8em;
-    padding-top: 0.5em;
+    padding-left: 1.2em;
+    padding-top: 1em;
     font-family: 'Open Sans', sans-serif, Helvetica,sans-serif;
     color: white;
-    font-size: 2.0em;
-    display: inline-block;
-    font-weight: bold;
+    font-size: 2em;
+    font-weight: 720 !important;
+    float:left;
 }
 
 #siteimages{
     float: right;
-    padding-top: 0em;
 }
 
 /* site_navbar */
 
 .navbar{
-    background-color: #00313c;
+    background-color: #00313C;
 }
 
 .nav {
     border-top-style: solid;
-    border-top-color: white;
-    border-top-width: 0.1em;
+    border-top-color: #007681;
+    border-top-width: 0.01em;
     border-bottom-style: solid;
-    border-bottom-color: white;
-    border-bottom-width: 0.1em;
-    
+    border-bottom-color: #007681;
+    border-bottom-width: 0.01em;
 }
 
 ul.mainmenu {
@@ -69,29 +76,30 @@ ul.mainmenu li {
     float: left;
 }
 
-
-
 /* Style the links inside the list items */
 ul.mainmenu li a {
     display: block;
     color: white;
     text-align: center;
-    padding: 0.7em 1em;
+    padding: 0.82em 0.74em;
+    font-weight: 680 !important;
     text-decoration: none;
-    transition: 0.8s;
-    font-size: 0.9em;
+    -moz-transition: all 0.6s ease-in-out;
+	-webkit-transition: all 0.6s ease-in-out;
+	transition: all 0.6s ease-in-out;
+    font-size: 1em;
 }
 
 
 /* Change background color of links on hover */
 ul.mainmenu li a:hover {
-    background-color:#E8927C;
+    background-color:#007681;
 }
 
 ul.mainmenu li a.active {
     border-style: solid;
     border-color: white;
-    border-width: 0.06em;
+    border-width: 0.01em;
 }
 
 
@@ -100,9 +108,22 @@ ul.mainmenu li.icon {
     display: none;
 }
 
-
     
 .page p {
     font-size: 1em;
+    line-height: 1.25em;
+    margin: 1.25em 1.25em 1em 0em;
     text-align: justify;
 }
+
+
+/* .page p:first-letter { */
+/*     font-size: 3.5em; */
+/*     line-height: 1em; */
+/* } */
+
+/* .page p + p:first-letter { */
+/*     font-size: 1em; */
+/*     line-height: 1.25em; */
+/* } */
+

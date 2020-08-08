@@ -135,7 +135,7 @@ function create_db_and_user
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "CREATE DATABASE IF NOT EXISTS ${db_name} CHARACTER SET utf8mb4;" > "$temp_sql_file";
     for aHost in $db_admin_hosts;  do
-        echo "GRANT ALL PRIVILEGES ON ${db_name}.* TO '$db_user_name'@'$aHost' IDENTIFIED BY '$db_user_pass';" >> "$temp_sql_file";
+        echo "GRANT ALL PRIVILEGES ON ${db_name}.* TO '$db_user_name' IDENTIFIED BY '$db_user_pass';" >> "$temp_sql_file";
     done
     echo "FLUSH PRIVILEGES;" >> "${temp_sql_file}"; 
 #    echo "${temp_sql_file}"

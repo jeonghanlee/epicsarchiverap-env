@@ -1,16 +1,24 @@
 # -*- mode: Makefile;-*-
 
-req_RULES_NAMES:=pkgs jdk ant maven java.all
-req_install_RULES:=$(filter-out %.java.all %.pkgs, $(addprefix install., $(req_RULES_NAMES)) )
-req_conf_RULES:=$(filter-out %.java.all %.pkgs, $(addprefix conf., $(req_RULES_NAMES)) )
+req_RULES_NAMES:=pkgs jdk ant maven localjava.all
+req_install_RULES:=$(filter-out %java.all %.pkgs, $(addprefix install., $(req_RULES_NAMES)) )
+req_conf_RULES:=$(filter-out %java.all %.pkgs, $(addprefix conf., $(req_RULES_NAMES)) )
+clean_RULES_NAMES:=localjdk localant localmaven
+clean_conf_RULES:=$(addprefix clean., $(clean_RULES_NAMES))
+
+
 
 
 install.pkgs: required_pkgs.sh
 	$(QUIET)sudo -E bash -c "$<"
 
-install.java.all: $(req_install_RULES)
+install.localjava.all: $(req_install_RULES)
 
-conf.java.all: $(req_conf_RULES)
+conf.localjava.all: $(req_conf_RULES)
+
+.PHONY: clean.localjava.all
+
+clean.localjava.all: $(clean_conf_RULES)
 
 ## JDK
 install.jdk: install_java_pkgs_local.bash | $(JAVA_LOCAL)
@@ -24,6 +32,9 @@ conf.jdk:
 	$(QUIET)echo "JAVA_PATH:=$(JAVA_LOCAL)/openjdk$(JAVA_LOCAL_VER)/bin" >> $(TOP)/configure/CONFIG_COMMON_JDK.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON_JDK.local
 
+clean.localjdk:
+	$(QUIET)rm -f $(TOP)/configure/CONFIG_COMMON_JDK.local
+
 install.ant: install_java_pkgs_local.bash  | $(JAVA_LOCAL)
 	$(QUIET)echo "ANT be in $(JAVA_LOCAL)/ant"
 	$(QUIET)bash $< "ant" "$(JAVA_LOCAL)"
@@ -35,16 +46,23 @@ conf.ant:
 	$(QUIET)echo "ANT_PATH:=$(JAVA_LOCAL)/ant/bin" >> $(TOP)/configure/CONFIG_COMMON_ANT.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON_ANT.local
 
+clean.localant:
+	$(QUIET)rm -f $(TOP)/configure/CONFIG_COMMON_ANT.local
+
 install.maven: install_java_pkgs_local.bash  | $(JAVA_LOCAL)
 	$(QUIET)echo "MAVEN be in $(JAVA_LOCAL)/maven"
 	$(QUIET)bash $< "maven" "$(JAVA_LOCAL)"
 
-conf.maven: CONFIG_COMMON_MAVEN.local
-	$(QUIET)echo ">>> Generating $<"
-	-rm -f $<
-	$(QUIET)echo "MAVEN_HOME:=$(JAVA_LOCAL)/maven"      > $<
-	$(QUIET)echo "MAVEN_PATH:=$(JAVA_LOCAL)/maven/bin" >> $<
-	$(QUIET)cat -b $<
+conf.maven: 
+	$(QUIET)echo ">>> Generating CONFIG_COMMON_MAVEN.local"
+	-rm -f $(TOP)/configure/CONFIG_COMMON_MAVEN.local
+	$(QUIET)echo "MAVEN_HOME:=$(JAVA_LOCAL)/maven"      > $(TOP)/configure/CONFIG_COMMON_MAVEN.local
+	$(QUIET)echo "MAVEN_PATH:=$(JAVA_LOCAL)/maven/bin" >> $(TOP)/configure/CONFIG_COMMON_MAVEN.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON_MAVEN.local
+
+clean.localmaven:
+	$(QUIET)rm -f $(TOP)/configure/CONFIG_COMMON_MAVEN.local
+
 
  $(JAVA_LOCAL):
 	@mkdir -p $@
