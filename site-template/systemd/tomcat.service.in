@@ -1,0 +1,25 @@
+[Unit]
+Description=Apache Tomcat @TOMCAT_VER@ Server for CentOS 8
+After=network.target
+
+[Service]
+
+#
+User=@USERID@
+Group=@GROUPID@
+
+Environment='JAVA_HOME=@JAVA_HOME@' 
+Environment='JAVA_OPTS=-Djava.awt.headless=true @JAVA_OPTS@' 
+Environment=CATALINA_HOME=@TOMCAT_INSTALL_LOCATION@
+Environment=CATALINA_BASE=@TOMCAT_INSTALL_LOCATION@
+Environment=CATALINA_PID=@TOMCAT_INSTALL_LOCATION@/temp/tomcat9.pid
+Environment='CATALINA_OPTS=@CATALINA_OPTS@'
+
+ExecStart=@TOMCAT_INSTALL_LOCATION@/bin/catalina.sh start
+ExecStop=@TOMCAT_INSTALL_LOCATION@/bin/catalina.sh stop
+
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
+

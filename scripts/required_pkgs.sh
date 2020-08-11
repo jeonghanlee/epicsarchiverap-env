@@ -121,13 +121,9 @@ function centos_pkgs
 {
     yum update
     yum install -y \
-	    wget curl expect \
-	    git sed gawk unzip \
-	    make cmake autoconf automake gcc libgcc \
-	    zlib-devel openssl-devel openldap-devel readline-devel \
-	    mariadb-server mariadb-libs\
+	    wget sudo git unzip curl make \
+	    sed gcc libgcc epel-release\
 	    maven \
-        ant \
         tomcat \
         tomcat-webapps \
         tomcat-admin-webapps \

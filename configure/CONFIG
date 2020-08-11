@@ -7,4 +7,4 @@ include $(TOP)/configure/CONFIG_SYSTEMD
 include $(TOP)/configure/CONFIG_VARS
 include $(TOP)/configure/CONFIG_SRC
 include $(TOP)/configure/CONFIG_SQL
--include $(TOP)/configure/CONFIG_TOMCAT
+include $(TOP)/configure/CONFIG_TOMCAT

@@ -1,0 +1,88 @@
+# for .PHONY targets
+tomcat_RULES_NAMES:=get uninstall install src_install preinst postrm exist sd_install sd_conf sd_conf.show sd_status sd_start sd_stop sd_restart sd_clean sd_enable sd_disable
+all_tomcat_RULES:=$(addprefix tomcat., $(tomcat_RULES_NAMES))
+
+tomcat.get:
+	$(QUIET)echo "\n>>> Preparing $(TOMCAT_URL) .... "
+	$(QUIET)wget -c $(TOMCAT_URL)
+
+
+tomcat.uninstall: tomcat.sd_stop tomcat.sd_disable tomcat.sd_clean tomcat.postrm 
+	$(QUIET)echo "Removing $(TOMCAT_INSTALL_LOCATION)..."
+	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
+	$(QUIET)sudo systemctl daemon-reload
+
+tomcat.install: tomcat.src_install tomcat.sd_install tomcat.sd_enable
+
+tomcat.src_install: tomcat.preinst 
+	$(QUIET)sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
+	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+
+# Tomcat Service is already in the system
+tomcat.preinst:
+	$(QUIET)$(SUDO) bash $(SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
+
+# Tomcat Service is already in the system
+tomcat.postrm: 
+	$(QUIET)$(SUDO) bash $(SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(USERID)"
+
+
+tomcat.exist:
+ifeq (, $(shell which tree))
+	$(if $(wildcard $(TOMCAT_INSTALL_LOCATION)), @ ls -d $(TOMCAT_INSTALL_LOCATION) && find $(TOMCAT_INSTALL_LOCATION)/ -maxdepth $(LEVEL) | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/:---\1/")
+else
+	$(if $(wildcard $(TOMCAT_INSTALL_LOCATION)), tree -pugaL $(LEVEL) $(TOMCAT_INSTALL_LOCATION), $(QUIET)echo "No $(TOMCAT_INSTALL_LOCATION)")
+endif
+
+
+
+tomcat.sd_install: tomcat.sd_conf
+	$(QUIET)sudo $(INSTALL_DATA) -b $(SITE_TEMPLATE_PATH)/$(TOMCAT_SYSTEMD) $(SYSTEMD_PATH)/
+	$(QUIET)sudo systemctl daemon-reload
+
+tomcat.sd_conf: $(TOMCAT_SYSTEMD).in
+	$(QUIET)echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)sed -e "s:@USERID@:$(USERID):g" \
+				-e "s:@GROUPID@:$(GROUPID):g" \
+				-e "s:@TOMCAT_INSTALL_LOCATION@:$(TOMCAT_INSTALL_LOCATION):g" \
+				-e "s:@TOMCAT_VER@:$(TOMCAT_VER):g" \
+               	-e "s:@JAVA_HOME@:$(JAVA_HOME):g" \
+				-e "s|@JAVA_OPTS@|$(JAVA_OPTS)|g" \
+                -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
+                < $< > $(basename $<)
+
+tomcat.sd_conf.show: $(TOMCAT_SYSTEMD).in
+	@cat -b $(basename $<)
+
+
+
+#
+#	
+tomcat.sd_status:
+	$(QUIET) systemctl status -l $(TOMCAT_SYSTEMD) | cat -bs
+#
+#
+tomcat.sd_start:
+	$(QUIET)sudo systemctl start $(TOMCAT_SYSTEMD)
+#
+# We ignore its error
+tomcat.sd_stop:
+	-$(QUIET)sudo systemctl stop $(TOMCAT_SYSTEMD)
+#
+#
+tomcat.sd_restart:
+	$(QUIET)sudo systemctl restart $(TOMCAT_SYSTEMD)
+#
+# We ignore its error
+tomcat.sd_clean:
+	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), $(QUIET)sudo rm -f $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD))
+#
+#
+tomcat.sd_enable:
+	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), sudo systemctl enable $(TOMCAT_SYSTEMD))
+#
+#
+tomcat.sd_disable:
+	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), sudo systemctl disable $(TOMCAT_SYSTEMD))
+#

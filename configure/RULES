@@ -22,5 +22,6 @@ include $(TOP)/configure/RULES_SYSTEMD
 -include $(TOP)/configure/RULES_DOCKER
 include $(TOP)/configure/RULES_SQL
 include $(TOP)/configure/RULES_PROPERTIES
+include $(TOP)/configure/RULES_TOMCAT
 include $(TOP)/configure/RULES_VARS
 

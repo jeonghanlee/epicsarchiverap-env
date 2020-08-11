@@ -7,11 +7,25 @@ Configuration Environment for EPICS Archiver Appliance at <https://github.com/sl
 
 ## Requirements
 
+### Download source code first
+
+```bash
+make init
+```
+
+### Install required packages
+
 * Debian 10
 
 ```bash
 make install.pkgs
 ```
+
+### Tomcat 9
+
+* Debian 10 : tomcat9 will be installed through `make install.pkgs`
+
+* CentOS 8 : See  [docs/README.tomcat.md](docs/README.tomcat.md)
 
 ### MariaDB
 
@@ -28,10 +42,21 @@ With the admin account, create `db` and `user` for the archiver appliance.
 make db.create
 ```
 
+If one cannot get results properly by `make db.show`, please run `make addAdmin`. Thus, from scratch, one should do
+
+```bash
+make db.secure
+make addAdmin
+make db.show
+make db.create
+make db.show
+```
+
 * Create and fill the tables
 
 ```bash
 make sql.fill
+make sql.show
 ```
 
 Please see [docs/README.mariadb.md](docs/README.mariadb.md) for the further information.
@@ -45,7 +70,6 @@ See [docs/README.javapkgs.md](docs/README.javapkgs.md)
 ## TL;DR
 
 ```bash
-make init
 make build
 make install
 make sd_start
@@ -76,4 +100,9 @@ which contains three rules such as `conf.archapplproperties`, `conf.storage`, an
 make install
 ```
 
-### Rules
+### Systemd
+
+```bash
+make sd_start
+make sd_status
+```
