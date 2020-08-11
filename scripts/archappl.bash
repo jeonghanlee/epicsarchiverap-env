@@ -161,7 +161,7 @@ function status_stroage
     local all=$1; shift;
     printf "\n>>>> Stroage Status at %s\n\n" "${SC_TIME}";
     # ARCHAPPL_STORAGE_TOP is defined in archappl.conf
-    du --total --human-readable --time --"${all}" "${ARCHAPPL_STORAGE_TOP}";
+    sudo -E bash -c "du --total --human-readable --time --\"${all}\" \"${ARCHAPPL_STORAGE_TOP}\"";
     printf "\n";
 }
 
@@ -173,14 +173,14 @@ function usage
         echo "";
         echo "              possbile args";
         echo "";
-        echo "               startup   : ";
-        echo "               shutdown  : ";
-        echo "               restartup : ";
-        echo "               storage   : ";
-        echo "               status    : ";      
+        echo "               startup   : startup all services in order";
+        echo "               shutdown  : shutdown all services in order ";
+        echo "               restartup : shutdown and startup";
+        echo "               storage   : show the storage status";
+        echo "               status    : show summary for status";      
         echo "               h         : this screen";
         echo "";
-        echo " bash $0 -d "
+        echo " bash $0 startup "
         echo ""
     } 1>&2;
     exit 1;
@@ -204,8 +204,8 @@ case "$1" in
 	    ;;
     stroage)
 	    case "$2" in
-	        all) stroage_status "$2" ;;
-	    *)       stroage_status      ;;
+	        all) status_stroage "$2" ;;
+	    *)       status_stroage      ;;
 	    esac
 	    ;;
     h);;

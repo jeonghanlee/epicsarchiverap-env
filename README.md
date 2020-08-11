@@ -42,49 +42,11 @@ See [docs/README.javapkgs.md](docs/README.javapkgs.md)
 ## TL;DR
 
 ```bash
-$ make init
-$ make build
-$ make install
-$ make exist LEVEL=2
-tree -pugaL 2 /opt/epicsarchiverap
-/opt/epicsarchiverap
-├── [-rwxr-xr-x tomcat   tomcat  ]  appliances.xml
-├── [-rwxr-xr-x tomcat   tomcat  ]  archappl.conf
-├── [-rwxr-xr-x tomcat   tomcat  ]  archappl.properties
-├── [drwxr-xr-x tomcat   tomcat  ]  engine
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  bin
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  conf
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  logs
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  policy
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  temp
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  webapps
-│   └── [drwxr-xr-x tomcat   tomcat  ]  work
-├── [drwxr-xr-x tomcat   tomcat  ]  etl
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  bin
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  conf
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  logs
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  policy
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  temp
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  webapps
-│   └── [drwxr-xr-x tomcat   tomcat  ]  work
-├── [drwxr-xr-x tomcat   tomcat  ]  mgmt
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  bin
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  conf
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  logs
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  policy
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  temp
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  webapps
-│   └── [drwxr-xr-x tomcat   tomcat  ]  work
-├── [-rwxr-xr-x tomcat   tomcat  ]  policies.py
-├── [drwxr-xr-x tomcat   tomcat  ]  retrieval
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  bin
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  conf
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  logs
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  policy
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  temp
-│   ├── [drwxr-xr-x tomcat   tomcat  ]  webapps
-│   └── [drwxr-xr-x tomcat   tomcat  ]  work
-└── [-rw-r--r-- tomcat   tomcat  ]  .versions
+make init
+make build
+make install
+make sd_start
+make sd_status
 ```
 
 |![AAH](docs/images/home.png)|
