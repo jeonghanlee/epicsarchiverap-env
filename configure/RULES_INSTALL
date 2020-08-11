@@ -1,63 +1,71 @@
 
 SERVICES_INSTALL_RULES:=
 $(call buildrules_BUILDER,$(USERID),$(INSTALL_LOCATION),$(INSTALL_LOCATION_SERVICES),SERVICES_INSTALL_RULES)
-#conf_RULES_NAMES:=log4j appliances properties policies serverxml
-conf_RULES_NAMES:=log4j archapplconf appliances properties policies serverxml
+#conf_RULES_NAMES:=log4j appliances properties policies serverxml 
+conf_RULES_NAMES:=log4j archapplconf appliances properties policies serverxml archapplshell
 conf_install_RULES:=$(addsuffix .install, $(conf_RULES_NAMES))
+show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 
 .PHONY: install services.install 
 
-install:  src_install services.install
+install:  src_install services.install install.systemd 
 	$(QUIET)$(SUDO)	chown -R $(USERID):$(GROUPID) $(INSTALL_LOCATION)
-
-
-#src_install sd_install sd_enable
 
 services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES) 
 
 log4j.install: log4j.properties
-	@echo ">>> Install $< into $(TOMCAT_HOME)/lib/"
-	@sudo install $< $(TOMCAT_HOME)/lib/
+	$(QUIET)echo ">>> Install $< into $(TOMCAT_HOME)/lib/"
+	$(QUIET)sudo install $< $(TOMCAT_HOME)/lib/
 
 archapplconf.install: $(ARCHAPPL_CONF)
-	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
-	@sudo install $< $(INSTALL_LOCATION)/
+	$(QUIET)echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) install $< $(INSTALL_LOCATION)/
+
+archapplconf.show: $(ARCHAPPL_CONF)
+	$(QUIET)echo ">>> Show the installed $(INSTALL_LOCATION)/$(patsubst $(SITE_TEMPLATE_PATH)/%,%,$<) "
+	$(QUIET)cat -bs $(INSTALL_LOCATION)/$(patsubst $(SITE_TEMPLATE_PATH)/%,%,$<)
 
 # Three files are moved into $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH) 
 # before build.ant. So these files are locatedin war files automatically.
 # Thus, we don't need them  
 appliances.install: $(ARCHAPPL_APPLIANCES)
-	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
-	@sudo install $< $(INSTALL_LOCATION)/
+	$(QUIET)echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) install $< $(INSTALL_LOCATION)/
 
 properties.install: $(ARCHAPPL_PROPERTIES)
-	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
-	@sudo install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
+	$(QUIET)echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
 
 policies.install: $(ARCHAPPL_POLICIES)
-	@echo ">>> Install $< into $(INSTALL_LOCATION)/"
-	@sudo install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
+	$(QUIET)echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) install -o $(USERID) -g $(GROUPID) $< $(INSTALL_LOCATION)/
 
 # all other ports are disable by default from $(TOMCAT_HOME)/skel/conf/server.
 # mgmt, engine, bpl, and retrieval 
 serverxml.install:
-	@echo ">>> Update  $(INSTALL_LOCATION)/*/conf/server.xml to use the proper port numbers to match $(ARCHAPPL_APPLIANCES)"
-	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_MGMT_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_MGMT_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/mgmt/conf/server.xml
-	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ENGINE_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ETL_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/engine/conf/server.xml
-	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ETL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ENGINE_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/etl/conf/server.xml
-	@sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_RETRIEVAL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_RETRIEVAL_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/retrieval/conf/server.xml
+	$(QUIET)echo ">>> Update  $(INSTALL_LOCATION)/*/conf/server.xml to use the proper port numbers to match $(ARCHAPPL_APPLIANCES)"
+	$(QUIET)sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_MGMT_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_MGMT_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/mgmt/conf/server.xml
+	$(QUIET)sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ENGINE_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ETL_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/engine/conf/server.xml
+	$(QUIET)sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ETL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ENGINE_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/etl/conf/server.xml
+	$(QUIET)sudo sed -i -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_RETRIEVAL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_RETRIEVAL_PORT)" shutdown="SHUTDOWN"|g' $(INSTALL_LOCATION)/retrieval/conf/server.xml
 
 serverxml.show:
-	@cat -b $(INSTALL_LOCATION)/mgmt/conf/server.xml
-	@cat -b $(INSTALL_LOCATION)/engine/conf/server.xml
-	@cat -b $(INSTALL_LOCATION)/etl/conf/server.xml
-	@cat -b $(INSTALL_LOCATION)/retrieval/conf/server.xml
+	$(QUIET)cat -b $(INSTALL_LOCATION)/mgmt/conf/server.xml
+	$(QUIET)cat -b $(INSTALL_LOCATION)/engine/conf/server.xml
+	$(QUIET)cat -b $(INSTALL_LOCATION)/etl/conf/server.xml
+	$(QUIET)cat -b $(INSTALL_LOCATION)/retrieval/conf/server.xml
+
+archapplshell.install: $(ARCHAPPL_MAIN_SCRIPT)
+	$(QUIET)echo ">>> Install $< into $(INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) install $< $(INSTALL_LOCATION)/
+
+archapplshell.show: $(ARCHAPPL_MAIN_SCRIPT)
+	$(QUIET)cat -bs $(INSTALL_LOCATION)/$(patsubst $(TOP)/scripts/%,%,$<)
 
 src_install: src_version src_preinst
 #	$(if $(wildcard $(INSTALL_LOCATION)), $(QUIET)$(SUDO) mv $(INSTALL_LOCATION) $(INSTALL_LOCATION)_backup_$$(date +%Y%m%d-%H%M%S))
 	$(QUIET)$(SUDO) $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(INSTALL_LOCATION)
-	$(QUIET)$(SUDO) $(INSTALL_DATA) -b $(SITE_TEMPLATE_PATH)/.versions  $(INSTALL_LOCATION)/
-#	$(QUIET)$(SUDO) cp -rp $(SRC_PATH)/appserver/distributions/payara/target/stage/payara5/*  $(INSTALL_LOCATION)/
+
 
 #uninstall: sd_stop sd_disable sd_clean src_postrm
 uninstall:

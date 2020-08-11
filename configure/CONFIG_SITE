@@ -28,7 +28,8 @@ MAVEN_OPTS:=
 # Set MaxMetaspaceSize : 256M, so it reduces the GC execution to compare with the original option.
 JAVA_HEAPSIZE="512m"
 JAVA_MAXMETASPACE="256m"
-# For slow startup of Tomcat installed  in a virtual machine (VPS)
+## https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for
+## https://www.openssl.org/blog/blog/2017/08/12/random/
 JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
 ##
 CATALINA_OPTS="-XX:MaxMetaspaceSize=$(JAVA_MAXMETASPACE)"
@@ -66,6 +67,7 @@ ARCHAPPL_CONF:=archappl.conf
 ARCHAPPL_CONTEXT_XML:=context.xml
 ARCHAPPL_TOMCAT_STARTUP:=startup.sh
 ARCHAPPL_TOMCAT_SHUTDOWN:=shutdown.sh
+ARCHAPPL_MAIN_SCRIPT:=archappl.bash
 
 
 # These allow developers to override the CONFIG_SITE variable

@@ -1,15 +1,17 @@
 [Unit]
-Description=EPICS Archiver Appliance
+Description=EPICS Archiver Appliance for @ARCHAPPL_SITEID@
 Documentation=@DOCURL@
-Requires=network.target tomcat@mgmt.service tomcat@engine.service tomcat@etl.service
-After=network.target tomcat@mgmt.service tomcat@engine.service tomcat@etl.servicetomcat.target mysql.service
-Wants=tomcat@retrieval.service
+After=network.target
+SourcePath=@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@
 
 [Service]
-Type=oneshot
-ExecStart=/bin/true
-RemainAfterExit=yes
-
+#
+User=@USERID@
+Group=@GROUPID@
+#
+ExecStart=/bin/bash -c "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@ startup"
+ExecStop=/bin/bash -c "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@ shutdown"
+Type=forking
 
 [Install]
 WantedBy=multi-user.target
