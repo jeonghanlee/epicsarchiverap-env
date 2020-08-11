@@ -46,7 +46,7 @@ If one cannot get results properly by `make db.show`, please run `make addAdmin`
 
 ```bash
 make db.secure
-make addAdmin
+make db.addAdmin
 make db.show
 make db.create
 make db.show
@@ -77,13 +77,19 @@ TOMCAT_HOME:=/usr/share/tomcat9
 
 * CentOS 8 System
 
+Choose the JDK 11, instead of 8 via
+
+```bash
+sudo update-alternatives --config java
+```
+
 ```bash
 JAVA_HOME:=/usr/lib/jvm/java-11-openjdk-11.0.8.10-0.el8_2.x86_64/
 ANT_HOME:=/usr/share/ant
 TOMCAT_HOME:=/opt/tomcat9
 ```
 
-## TL;DR
+## TL;DR for Debian 10
 
 ```bash
 make build
@@ -98,7 +104,19 @@ make sd_status
 
 * Startup services
 
+```bash
+systemctl start epicsarchiverap.service
+```
+
 * Stop Services
+
+```bash
+systemctl stop epicsarchiverap.service
+```
+
+## CentOS 8
+
+See [docs/README.Centos8.md](docs/README.Centos8.md)
 
 ### Build
 

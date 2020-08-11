@@ -15,7 +15,10 @@ tomcat.uninstall: tomcat.sd_stop tomcat.sd_disable tomcat.sd_clean tomcat.postrm
 tomcat.install: tomcat.src_install tomcat.sd_install tomcat.sd_enable
 	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
-	
+	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
+	$(QUIET)sudo chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
+#	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
+
 tomcat.src_install: tomcat.preinst 
 	$(QUIET)sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
@@ -89,3 +92,11 @@ tomcat.sd_enable:
 tomcat.sd_disable:
 	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), sudo systemctl disable $(TOMCAT_SYSTEMD))
 #
+
+centos8.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_HOME:=/usr/lib/jvm/java-11-openjdk-11.0.8.10-0.el8_2.x86_64"      > $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_PATH:=/usr/lib/jvm/java-11-openjdk-11.0.8.10-0.el8_2.x86_64/bin" >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                                            >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
