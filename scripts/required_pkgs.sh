@@ -121,7 +121,7 @@ function centos_pkgs
 {
     yum update
     yum install -y \
-	    wget sudo git unzip curl make \
+	    wget sudo git unzip curl make tree \
 	    sed gcc libgcc epel-release sudo which \
 	    ant java-11-openjdk\
         unzip \

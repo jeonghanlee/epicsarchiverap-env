@@ -19,13 +19,14 @@ set -e
 if [ "$1" = "configure" ]; then
     USERID="$2";
     GROUPID="$3";
+	if ! grep -q "^${GROUPID}:" /etc/group; then
+		echo "Adding group ${GROUPID}"
+		groupadd "${GROUPID}"
+	else 
+		echo "Group ${GROUPID} exists"
+	fi
+	
     if ! grep -q "^${USERID}:" /etc/passwd; then
-		if ! grep -q "^${GROUPID}:" /etc/group; then
-			echo "Adding group ${GROUPID}"
-			groupadd "${GROUPID}"
-		else 
-			echo "Group ${GROUPID} exists"
-		fi
 		echo "Adding user ${USERID} with ${GROUPID}."
 		useradd --system --home-dir / -g "${GROUPID}" \
 			--no-create-home --shell /usr/sbin/nologin "${USERID}" > /dev/null 2>&1
