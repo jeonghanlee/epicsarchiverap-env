@@ -15,7 +15,7 @@ make init
 
 ### Install required packages
 
-* Debian 10
+* Debian 10 / CentOS 8
 
 ```bash
 make install.pkgs

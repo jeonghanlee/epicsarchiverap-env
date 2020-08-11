@@ -8,25 +8,28 @@
 # author  : Jeong Han Lee
 # email   : JeongLee@lbl.gov
 # Date    : Friday, May  1 15:34:46 PDT 2020
-# version : 0.0.1
+# version : 0.0.2
 #
 # Replace adduser with useradd in order to make the script running well
 # in Debian and CentOS together
 # CentOS7 /usr/sbin/adduser is a symbolic link of useradd
-
+# 
 set -e
 
 if [ "$1" = "configure" ]; then
     USERID="$2";
     GROUPID="$3";
     if ! grep -q "^${USERID}:" /etc/passwd; then
-	if ! grep -q "^${GROUPID}:" /etc/group; then
-	    GROUPID="65534"
-	fi
-	echo "Adding user ${USERID} with ${GROUPID}."
-	useradd --system --home-dir / -g ${GROUPID} \
-		--no-create-home --shell /usr/sbin/nologin ${USERID} > /dev/null 2>&1
+		if ! grep -q "^${GROUPID}:" /etc/group; then
+			echo "Adding group ${GROUPID}"
+			groupadd "${GROUPID}"
+		else 
+			echo "${GROUPID} exists"
+		fi
+		echo "Adding user ${USERID} with ${GROUPID}."
+		useradd --system --home-dir / -g "${GROUPID}" \
+			--no-create-home --shell /usr/sbin/nologin "${USERID}" > /dev/null 2>&1
     else
-	echo "${USERID} exists."
+		echo "${USERID} exists."
     fi
 fi

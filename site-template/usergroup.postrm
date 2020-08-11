@@ -15,10 +15,10 @@ set -e
 if [ "$1" = "purge" ]; then
     USERID="$2"
     if grep -q "^${USERID}:" /etc/passwd; then
-	echo "Removing user ${USERID} ... "
-	userdel ${USERID} || echo "WARNING: problem removing user ${USERID}"
+    	echo "Removing user ${USERID} ... "
+	    userdel "${USERID}" || echo "WARNING: problem removing user ${USERID}"
     else
-	echo "${USERID} doesn't exist"
+	    echo "${USERID} doesn't exist"
     fi
     
 fi
