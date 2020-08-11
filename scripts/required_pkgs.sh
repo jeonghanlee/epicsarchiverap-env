@@ -122,17 +122,13 @@ function centos_pkgs
     yum update
     yum install -y \
 	    wget sudo git unzip curl make \
-	    sed gcc libgcc epel-release\
-	    maven \
-        tomcat \
-        tomcat-webapps \
-        tomcat-admin-webapps \
-        apache-commons-daemon-jsvc \
-        tomcat-jsvc \
-        tomcat-lib \
+	    sed gcc libgcc epel-release sudo which \
+	    ant java-11-openjdk\
         unzip \
+        mariadb-server \
+        chrony
 
-    ln -sf "$(which mariadb_config)" /usr/bin/mysql_config  
+#    ln -sf "$(which mariadb_config)" /usr/bin/mysql_config  
 }
 
 
@@ -141,7 +137,7 @@ dist="$(find_dist)"
 case "$dist" in
     *Debian*) debian_pkgs ;;
     *Ubuntu*) debian_pkgs ;;
-#    *CentOS*) centos_pkgs ;;
+    *CentOS*) centos_pkgs ;;
 #    *RedHat*) centos_pkgs ;;
     *)
 	printf "\\n";
