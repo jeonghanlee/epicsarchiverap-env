@@ -69,7 +69,7 @@ install.$(patsubst $(2)/%,%,$(3)):
 	@sudo install -d $(3)/work
 	@sudo install -d $(3)/temp
 	@echo "    1) Copy all template from $(TOMCAT_HOME)/skel/* to $(3)/"
-	@sudo cp -r $(TOMCAT_HOME)/skel/* $(3)/
+	@sudo cp -r $(SITE_TEMPLATE_PATH)/skel/* $(3)/
 	@echo "    2) Extracting $(patsubst $(2)/%,%,$(3)).war into $(3)/webapps/$(patsubst $(2)/%,%,$(3))"
 	@sudo unzip -q -o $(WARS_TARGET)/$(patsubst $(2)/%,%,$(3)).war -d $(3)/webapps/$(patsubst $(2)/%,%,$(3))
 	@echo "    3) Install $(ARCHAPPL_CONTEXT_XML) into $(3)/conf/"

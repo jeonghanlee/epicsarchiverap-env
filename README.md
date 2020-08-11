@@ -67,6 +67,22 @@ We can use the local JAVA and Ant environments. The java 11/12 and Ant.
 
 See [docs/README.javapkgs.md](docs/README.javapkgs.md)
 
+* Debina 10 System
+
+```bash
+JAVA_HOME:=/usr/lib/jvm/java-11-openjdk-amd64
+ANT_HOME:=/usr/share/ant
+TOMCAT_HOME:=/usr/share/tomcat9
+```
+
+* CentOS 8 System
+
+```bash
+JAVA_HOME:=/usr/lib/jvm/java-11-openjdk-11.0.8.10-0.el8_2.x86_64/
+ANT_HOME:=/usr/share/ant
+TOMCAT_HOME:=/opt/tomcat9
+```
+
 ## TL;DR
 
 ```bash
