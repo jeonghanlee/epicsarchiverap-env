@@ -119,8 +119,9 @@ function debian_pkgs
 ## Do not test it yet Monday, June 29 15:09:24 PDT 2020
 function centos_pkgs
 {
-    yum update
-    yum install -y \
+    dnf config-manager --enable PowerTools
+    dnf update
+    dnf install -y \
 	    wget sudo git unzip curl make tree \
 	    sed gcc libgcc epel-release sudo which \
 	    ant java-11-openjdk\
