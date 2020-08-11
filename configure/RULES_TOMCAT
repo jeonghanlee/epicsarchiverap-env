@@ -19,7 +19,8 @@ tomcat.src_install: tomcat.preinst
 	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
 	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 
-# Tomcat Service is already in the system
+# Debian Tomcat Service is already in the system
+# This rule for CentOS 8
 tomcat.preinst:
 	$(QUIET)$(SUDO) bash $(SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
 
@@ -38,7 +39,7 @@ endif
 
 
 tomcat.sd_install: tomcat.sd_conf
-	$(QUIET)sudo $(INSTALL_DATA) -b $(SITE_TEMPLATE_PATH)/$(TOMCAT_SYSTEMD) $(SYSTEMD_PATH)/
+	$(QUIET)sudo $(INSTALL_DATA) -b $(SITE_TEMPLATE_PATH)/systemd/$(TOMCAT_SYSTEMD) $(SYSTEMD_PATH)/
 	$(QUIET)sudo systemctl daemon-reload
 
 tomcat.sd_conf: $(TOMCAT_SYSTEMD).in

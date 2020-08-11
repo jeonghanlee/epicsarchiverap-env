@@ -11,7 +11,8 @@
 # version : 0.0.1
 
 set -e
-
+# Even if we don't delete tomcat group, it will delete after removing tomcat
+# user
 if [ "$1" = "purge" ]; then
     USERID="$2"
     if grep -q "^${USERID}:" /etc/passwd; then
