@@ -12,13 +12,13 @@ jobs:
     steps:
       - name: Install the packages
         run: |
-          sudo apt update
-      - uses: actions/checkout@v1
+          sudo apt update -y 
+          sudo apt install -y curl openssl sed unzip make build-essential gcc libssl-dev libldap2-dev libsasl2-dev libcurses-ocaml-dev tomcat tomcat-common tomcat-admin tomcat-user libtomcat-java jsvc
+        - uses: actions/checkout@v1
       - name: Init
         run: make init
       - name: Configure
         run: |
-          make install.pkgs
           make install.jdk
           make conf.jdk
           make install.ant
