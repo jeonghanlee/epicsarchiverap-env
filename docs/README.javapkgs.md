@@ -1,5 +1,13 @@
 # JAVA Local Configuration
 
+## Requirements
+
+```bash
+apt install -y tree wget
+```
+
+## Usage
+
 ```bash
 Usage    : scripts/install_java_pkgs_local.bash <pkg> <dest>
 

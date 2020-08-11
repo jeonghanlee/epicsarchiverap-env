@@ -18,7 +18,7 @@ conf.archapplproperties: $(conf_properties_RULES)
 
 conf.archapplproperties.show: $(show_properties_RULES)
 
-conf.appliances: $(ARCHAPPL_APPLIANCES).in
+conf.appliances: $(ARCHAPPL_APPLIANCES).in | mkdir.sitesidpath
 	$(QUIET)echo ">>> Generate $(call classpathfile_output, $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_SINGLE_IDENTITY@|$(ARCHAPPL_SINGLE_IDENTITY)|g" \
 	            -e "s|@ARCHAPPL_CLUSTER_INETPORT@|$(ARCHAPPL_CLUSTER_INETPORT)|g" \
@@ -34,7 +34,7 @@ conf.appliances: $(ARCHAPPL_APPLIANCES).in
 conf.appliances.show: $(ARCHAPPL_APPLIANCES).in
 	@cat -b $(basename $<)
 
-conf.properties: $(ARCHAPPL_PROPERTIES).in
+conf.properties: $(ARCHAPPL_PROPERTIES).in  | mkdir.sitesidpath
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_MINIMUM_SAMPLING_PERIOD@|$(ARCHAPPL_MINIMUM_SAMPLING_PERIOD)|g" \
 				-e "s|@ARCHAPPL_SECONDS_TO_BUFFER@|$(ARCHAPPL_SECONDS_TO_BUFFER)|g" \
@@ -47,7 +47,7 @@ conf.properties.show: $(ARCHAPPL_PROPERTIES).in
 #	@cat -b $(call classpathfile_output, $<)
 	@cat -b $(basename $<)
 
-conf.policies: $(ARCHAPPL_POLICIES).in
+conf.policies: $(ARCHAPPL_POLICIES).in  | mkdir.sitesidpath
 	$(QUIET) echo ">>> Generate $(call classpathfile_output, $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_HOST_IPADDR@|$(ARCHAPPL_HOST_IPADDR)|g" \
 				-e "s|@ARCHAPPL_SHORT_TERM_FOLDER@|$(ARCHAPPL_SHORT_TERM_FOLDER)|g" \
@@ -101,3 +101,6 @@ conf.log4j: log4j.properties.in
 
 conf.log4j.show: log4j.properties.in 
 	@cat -b $(basename $<)
+
+mkdir.sitesidpath:
+	@mkdir -p $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)

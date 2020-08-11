@@ -1,6 +1,6 @@
 #
 #
-.PHONY: sd_status sd_start sd_stop sd_restart sd_clean sd_enable sd_disable
+.PHONY: sd_install sd_status sd_start sd_stop sd_restart sd_clean sd_enable sd_disable
 #
 #
 
@@ -10,6 +10,9 @@ show_systemd_RULES:=$(addsuffix .show, $(conf_systemd_RULES))
 install_systemd_RULES:=$(addprefix install., $(systemd_RULES_NAMES))
 show_install_systemd_RULES:=$(addsuffix .show, $(install_systemd_RULES))
 
+sd_install: conf.systemd install.systemd
+	$(QUIET)sudo systemctl daemon-reload
+
 .PHONY: conf.systemd conf.systemd.show
 
 conf.systemd: $(conf_systemd_RULES)
@@ -17,7 +20,6 @@ conf.systemd: $(conf_systemd_RULES)
 conf.systemd.show: $(show_systemd_RULES)
 
 install.systemd: $(install_systemd_RULES)
-	$(QUIET)sudo systemctl daemon-reload
 
 install.systemd.show: $(show_install_systemd_RULES)
 

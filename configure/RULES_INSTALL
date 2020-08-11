@@ -8,7 +8,7 @@ show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 
 .PHONY: install services.install 
 
-install:  src_install services.install install.systemd 
+install:  src_install services.install sd_install
 	$(QUIET)$(SUDO)	chown -R $(USERID):$(GROUPID) $(INSTALL_LOCATION)
 
 services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES) 
