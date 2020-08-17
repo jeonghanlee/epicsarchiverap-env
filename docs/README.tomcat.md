@@ -31,3 +31,24 @@ make tomcat.install
 make tomcat.sd_start
 make tomcat.sd_status
 ```
+
+## Tomcat Generic Service
+
+The Archiver Appliance uses the following port numbers
+
+```bash
+16670 : cluster inet port
+17665 : mgmt url
+17666 : engine url
+17667 : etl url
+```
+
+However, the genric tomcat stil uses 8080, which has the conflict with our another services, Payara and ChannelFinder services, so we would like to change it 8083.
+
+Debian 10, the generic `server.xml` is located in `/etc/tomcat9`, and replace `8080` with `8083`.
+
+```xml
+    <Connector port="8083" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+```
