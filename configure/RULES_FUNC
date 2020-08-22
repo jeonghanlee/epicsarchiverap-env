@@ -22,7 +22,7 @@ endef
 GIT_VERSION:=$(lastword $(shell git --version))
 
 define gitclone
-$(if $(wildcard $(2)), @echo"", git clone  $(1) $(2); git -C $(2) checkout $(3))
+$(if $(wildcard $(2)), @echo"", git clone  $(1) $(2); cd $(2) && git checkout $(3))
 endef
 
 define distclean
@@ -31,7 +31,7 @@ endef
 
 # it may be useful for git with older than 1.8.5, which doesn't have -C option.
 define gitclone2
-	git clone  $(1) $(2) 
+	git clone  $(1) $(2)
 	cd $(2) && git checkout $(3)
 endef
 
@@ -50,12 +50,12 @@ ifdef DEBUG_SHELL
 endif
 
 ##	tomcat9-instance-create create startup.sh and shutdown.sh
-##  This function will cover all functionatities except port number configuration 
-##  in conf/server.xml. The except steup will be covered at serverxml.install in 
+##  This function will cover all functionatities except port number configuration
+##  in conf/server.xml. The except steup will be covered at serverxml.install in
 ##  RULES_INSTALL
-##  
+##
 ## 1 : USERID (tomcat, is the same as groupid)
-## 2 : archappl INSTALL_LOCATION 
+## 2 : archappl INSTALL_LOCATION
 ## 3 : each service INSTALL_LOCATION_SERVICES
 ## 4 : RETURN
 define a_service_BUIDER
@@ -94,7 +94,7 @@ define buildrules_BUILDER
 $(foreach dir, $(3), $(eval $(call a_service_BUIDER,$(1),$(2),$(dir),$(4))))
 endef
 
-define classpathfile_output 
+define classpathfile_output
 $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(notdir $(basename $(1)))
 endef
 
