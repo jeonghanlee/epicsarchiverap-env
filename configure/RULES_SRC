@@ -3,10 +3,10 @@
 
 .PHONY: help default
 
-# # help is defined in 
+# # help is defined in
 # # https://gist.github.com/rcmachado/af3db315e31383502660
 help:
-	$(info --------------------------------------- )	
+	$(info --------------------------------------- )
 	$(info Make Targets)
 	$(info --------------------------------------- )
 	$(QUIET) awk '/^[a-zA-Z\-\_0-9]+:/ {            \
@@ -36,8 +36,8 @@ clone:
 	$(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
 
 update:
-	$(QUIET)git -C $(SRC_PATH) submodule update --init ./
-	
+	$(QUIET)cd $(SRC_PATH) && git submodule update --init ./
+
 
 deinit: distclean
 ## Clean Source
@@ -49,7 +49,7 @@ distclean:
 info.ant:
 	$(QUIET)echo "-------------------------------------------------------------"
 	$(QUIET)echo ">>> Ant  information"
-	$(QUIET)echo "Ant : $(ANT_PATH)/ant"	
+	$(QUIET)echo "Ant : $(ANT_PATH)/ant"
 	$(QUIET)$(ANT_PATH)/ant -version
 	$(QUIET)echo "-------------------------------------------------------------"
 	$(QUIET)echo ">>> JAVA information"
