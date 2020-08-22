@@ -35,6 +35,10 @@ define gitclone2
 	cd $(2) && git checkout $(3)
 endef
 
+define gitclone3
+$(if $(wildcard $(2)), @echo"", git clone  $(1) $(2); git -C $(2) checkout $(3))
+endef
+
 define checkfile
 $(if $(wildcard $(1)), @echo "There is no source path at $(1).",@echo ">>> Found exist$(1) will be deleted." && rm -f $(1) )
 endef
@@ -106,6 +110,6 @@ VARS_EXCLUDES+=QUIET
 VARS_EXCLUDES+=SHELL
 VARS_EXCLUDES+=gitclone
 VARS_EXCLUDES+=gitclone2
+VARS_EXCLUDES+=gitcloen3
 VARS_EXCLUDES+=distclean
 VARS_EXCLUDES+=checkfile
-
