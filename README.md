@@ -21,6 +21,12 @@ make init
 make install.pkgs
 ```
 
+Note that MariaDb should be started before further steps.
+
+```bash
+sudo systemctl start mariadb
+```
+
 ### Tomcat 9
 
 * Debian 10 : tomcat9 will be installed through `make install.pkgs`

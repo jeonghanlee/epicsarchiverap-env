@@ -104,12 +104,9 @@ endef
 
 ### Exclude the following variables to display
 VARS_EXCLUDES+=make_p0_patch
-VARS_EXCLUDES+=patch_src
-VARS_EXCLUDES+=revert_patch_src
+VARS_EXCLUDES+=%patch_src
 VARS_EXCLUDES+=QUIET
 VARS_EXCLUDES+=SHELL
-VARS_EXCLUDES+=gitclone
-VARS_EXCLUDES+=gitclone2
-VARS_EXCLUDES+=gitcloen3
+VARS_EXCLUDES+=gitclone%
 VARS_EXCLUDES+=distclean
 VARS_EXCLUDES+=checkfile

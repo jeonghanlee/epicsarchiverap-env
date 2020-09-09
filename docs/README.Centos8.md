@@ -14,13 +14,15 @@ make install.pkgs
 
 ## Step 1
 
-We may not need the default java version change due to local configuration `make centos8.conf`
+This step only be necessary if one would like to use the CentOS packages java environment. The default java version change due to local configuration `make centos8.conf`.
 
 ```bash
 echo 2 | sudo update-alternatives --config java
 ```
 
 * MariaDb
+
+Note that one should check the MariaDB status via `sudo systemctl start mariadb`.
 
 ```bash
 make db.secure
@@ -35,7 +37,7 @@ make sql.show
 * CentOS8 Specific Configuration
 
 ```bash
-make centos8.conf
+make centos8.conf         : only and if only one would like to use the CentOS8 java envrionment.
 make tomcat.get
 make tomcat.install
 make tomcat.sd_start
