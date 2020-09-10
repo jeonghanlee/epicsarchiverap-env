@@ -24,7 +24,7 @@ tomcat.src_install: tomcat.preinst
 	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
 
 tomcat.update:
-	$(QUIET)sudo sed -i -e "s|<Connector port="8080" |<Connector port="$(TOMCAT_DEFAULT_PORT)" |g" \
+	$(QUIET)sudo sed -i -e "s:<Connector port=\"8080\" |<Connector port=\"$(TOMCAT_DEFAULT_PORT)\" :g" \
 	$(TOMCAT_INSTALL_LOCATION)/conf/$(TOMCAT_DEFAULT_SERVER_XML)
 
 # Debian Tomcat Service is already in the system
