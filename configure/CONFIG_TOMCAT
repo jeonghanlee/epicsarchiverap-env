@@ -8,4 +8,7 @@ TOMCAT_VER:=$(TOMCAT_MAJOR_VER).$(TOMCAT_MINOR_VER)
 TOMCAT_SRC:=apache-tomcat-$(TOMCAT_VER).tar.gz
 TOMCAT_URL:="https://downloads.apache.org/tomcat/tomcat-$(TOMCAT_MAJOR_VER)/v$(TOMCAT_VER)/bin/$(TOMCAT_SRC)"
 
+TOMCAT_DEFAULT_PORT:=8083
+TOMCAT_DEFAULT_SERVER_XML:=server.xml
+
 TOMCAT_SYSTEMD:=tomcat.service

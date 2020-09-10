@@ -12,7 +12,7 @@ tomcat.uninstall: tomcat.sd_stop tomcat.sd_disable tomcat.sd_clean tomcat.postrm
 	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
 	$(QUIET)sudo systemctl daemon-reload
 
-tomcat.install: tomcat.src_install tomcat.sd_install tomcat.sd_enable
+tomcat.install: tomcat.src_install tomcat.update tomcat.sd_install tomcat.sd_enable
 	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
 	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
@@ -23,6 +23,9 @@ tomcat.src_install: tomcat.preinst
 	$(QUIET)sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
 
+tomcat.update:
+	$(QUIET)sudo sed -i -e "s|<Connector port="8080" |<Connector port="$(TOMCAT_DEFAULT_PORT)" |g" \
+	$(TOMCAT_INSTALL_LOCATION)/conf/$(TOMCAT_DEFAULT_SERVER_XML)
 
 # Debian Tomcat Service is already in the system
 # This rule for CentOS 8
