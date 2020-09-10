@@ -52,3 +52,18 @@ make install
 make sd_start
 make sd_status
 ```
+
+## Error Messages
+
+Local Ant and JAVA configuration returns the following error message:
+
+```bash
+>>> Ant  information
+Ant : /opt/java-env/ANT1108/bin/ant
+/usr/bin/build-classpath: Could not find jaxp_parser_impl Java extension for this JVM
+/usr/bin/build-classpath: Could not find xml-commons-apis Java extension for this JVM
+/usr/bin/build-classpath: error: Some specified jars were not found
+Apache Ant(TM) version 1.10.5 compiled on June 24 2019
+```
+
+This error may be ignored when we are running the archiver appliance.
