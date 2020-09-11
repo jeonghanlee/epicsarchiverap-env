@@ -2,7 +2,7 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.2
+#  version : 0.0.3
 
 SQL_ROOT_CMD="sudo mysql --user=root"
 # shellcheck disable=SC2153
@@ -66,7 +66,7 @@ EOF
 }
 
 
-# 1 : MariaDB Admin name      : 
+# 1 : MariaDB Admin name      :
 # 2 : MariaDB Admin password  :
 function add_admin_account_local
 {
@@ -86,6 +86,39 @@ EOF
 EOF
     printf "\\n"
 }
+
+
+# 1 : MariaDB Admin name      :
+# 2 : MariaDB Admin password  :
+# 3 : Hostname
+function add_admin_account_hostname
+{
+    local db_admin_name="$1"; shift;
+    local db_admin_pass="$1"; shift;
+    local db_hostname="$1"; shift;
+    # add admin user with the password via the environment variable $CDB_ADMIN_PWD
+    #
+    #
+    printf ">> Add %s user with GRANT ALL in the MariaDB \\n" "${db_admin_name}"
+    ${SQL_ROOT_CMD} <<EOF
+    GRANT ALL ON *.* TO '${db_admin_name}'@'${db_hostname}' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
+    FLUSH PRIVILEGES;
+EOF
+    printf "\\n"
+}
+
+
+# 1 : Hostname
+function remove_admin_account_hostname
+{
+    local db_hostname="$1"; shift;
+    ${SQL_ROOT_CMD} <<EOF
+    DROP USER 'admin'@'${db_hostname}';
+    FLUSH PRIVILEGES;
+EOF
+    printf "\\n"
+}
+
 
 function remove_admin_account_local
 {
@@ -135,7 +168,7 @@ function create_db_and_user
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "CREATE DATABASE IF NOT EXISTS ${db_name} CHARACTER SET utf8mb4;" > "$temp_sql_file";
     for aHost in $db_admin_hosts;  do
-        echo "GRANT ALL PRIVILEGES ON ${db_name}.* TO '$db_user_name' IDENTIFIED BY '$db_user_pass';" >> "$temp_sql_file";
+        echo "GRANT ALL PRIVILEGES ON ${db_name}.* TO '$db_user_name'@'$aHost' IDENTIFIED BY '$db_user_pass';" >> "$temp_sql_file";
     done
     echo "FLUSH PRIVILEGES;" >> "${temp_sql_file}"; 
 #    echo "${temp_sql_file}"
