@@ -69,7 +69,9 @@ Please see [docs/README.mariadb.md](docs/README.mariadb.md) for the further info
 
 ### JAVA and Ant
 
-We can use the local JAVA and Ant environments. The java 11/12 and Ant.
+For JAVA and Ant configuration, please look at the generic Java Environment [1].
+
+For the testing purpose, one can use the local JAVA and Ant environments. The java 11/12 and Ant.
 
 See [docs/README.javapkgs.md](docs/README.javapkgs.md)
 
@@ -146,3 +148,7 @@ make install
 make sd_start
 make sd_status
 ```
+
+## References
+
+[1] <https://github.com/jeonghanlee/java-env>
