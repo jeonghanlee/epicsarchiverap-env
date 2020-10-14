@@ -20,8 +20,9 @@ JDBC_DB_TYPE=mariadb
 JDBC_RES_TYPE=javax.sql.DataSource
 JDBC_DB_USER=$(DB_USER)
 JDBC_DB_USER_PASS=$(DB_USER_PASS)
-# We are using ip instead of hostname
-JDBC_DB_HOSTNAME=$(DB_HOST_IPADDR)
+# localhost is prefered
+# {}/conf/context.xml
+JDBC_DB_HOSTNAME=$(DB_HOST_NAME)
 JDBC_DB_PORTNUM=$(DB_HOST_PORT)
 JDBC_DB_NAME=$(DB_NAME)
 

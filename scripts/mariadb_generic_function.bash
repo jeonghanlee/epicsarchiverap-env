@@ -80,10 +80,10 @@ function add_admin_account_local
     GRANT ALL ON *.* TO '${db_admin_name}'@'localhost' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
     FLUSH PRIVILEGES;
 EOF
-    ${SQL_ROOT_CMD} <<EOF
-    GRANT ALL ON *.* TO '${db_admin_name}'@'127.0.0.1' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
-    FLUSH PRIVILEGES;
-EOF
+#    ${SQL_ROOT_CMD} <<EOF
+#    GRANT ALL ON *.* TO '${db_admin_name}'@'127.0.0.1' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
+#    FLUSH PRIVILEGES;
+#EOF
     printf "\\n"
 }
 
@@ -123,10 +123,10 @@ EOF
 function remove_admin_account_local
 {
     printf ">> Remove local admin user \\n"
-    ${SQL_ROOT_CMD} <<EOF
-    DROP USER 'admin'@'127.0.0.1';
-    FLUSH PRIVILEGES;
-EOF
+#    ${SQL_ROOT_CMD} <<EOF
+#    DROP USER 'admin'@'127.0.0.1';
+#    FLUSH PRIVILEGES;
+#EOF
     ${SQL_ROOT_CMD} <<EOF
     DROP USER 'admin'@'localhost';
     FLUSH PRIVILEGES;

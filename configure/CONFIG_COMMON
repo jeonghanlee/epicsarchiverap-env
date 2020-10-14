@@ -20,6 +20,7 @@ DB_ADMIN_HOSTS="localhost 127.0.0.1 10.0.0.200"
 ## SQL Server 
 DB_HOST_IPADDR=127.0.0.1
 DB_HOST_PORT=3306
+# localhost is prefered
 DB_HOST_NAME=localhost
 ## SQL server ADMIN user, because we don't use root
 DB_ADMIN=admin

@@ -247,24 +247,24 @@ case "$input" in
         ;;
     hostnameAdminAdd)
         # shellcheck disable=SC2153
-	add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
-	;;
+	    add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
+    	;;
     localAdminRemove)
         remove_admin_account_local;
         ;;
     hostnameAdminRemove)
-	remove_admin_account_hostname "${DB_HOST_NAME}";
-	;;
+	    remove_admin_account_hostname "${DB_HOST_NAME}";
+        ;;
     adminAdd)
-	# shellcheck disable=SC2153
+	    # shellcheck disable=SC2153
         add_admin_account_local "${DB_ADMIN}" "${DB_ADMIN_PASS}";
-	# shellcheck disable=SC2153
-	add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
-	;;
+	    ## shellcheck disable=SC2153
+	    # add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
+	    ;;
     adminRemove)
-	remove_admin_account_local;
-	remove_admin_account_hostname "${DB_HOST_NAME}";
-	;;
+	    remove_admin_account_local;
+	    #remove_admin_account_hostname "${DB_HOST_NAME}";
+	    ;;
     dbCreate)
         # shellcheck disable=SC2153
         create_db_and_user "${DB_NAME}" "${DB_ADMIN_HOSTS}" "${DB_USER}" "${DB_USER_PASS}";
