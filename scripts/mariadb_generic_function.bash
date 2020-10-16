@@ -2,20 +2,43 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.4
+#  version : 0.0.6
+
 
 SQL_ROOT_CMD="sudo mysql --user=root"
 # shellcheck disable=SC2153
 SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
 # shellcheck disable=SC2153
 SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
-# shellcheck disable=SC2153
-#SQL_BACKUP_CMD="mysqldump --user=${DB_USER_NAME} --password=${DB_USER_PASS} ${DB_NAME}"
+# shellcheck disable=SC2034
+SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
 
 EXIST=1
 NON_EXIST=0
 
 VERBOSE=YES
+
+function isDir
+{
+    local dir=$1; shift;
+    local result;
+    result="";
+    if [ ! -d "$dir" ]; then result=$NON_EXIST
+    else                     result=$EXIST
+    fi
+    echo "${result}"
+}
+
+function isVar() {
+
+    local var=$1; shift;
+    local result;
+    result=""
+    if [ -z "$var" ]; then result=$NON_EXIST
+    else                   result=$EXIST
+    fi
+    echo "${result}"
+}
 
 function noDbMessage
 {
@@ -163,15 +186,15 @@ function create_db_and_user
         echo "GRANT ALL PRIVILEGES ON ${db_name}.* TO '$db_user_name'@'$aHost' IDENTIFIED BY '$db_user_pass';" >> "$temp_sql_file";
     done
     echo "FLUSH PRIVILEGES;" >> "${temp_sql_file}"; 
-    echo "${temp_sql_file}"
+#    echo "${temp_sql_file}"
     admin_query_from_sql_file "${temp_sql_file}";
-#    rm -f "${temp_sql_file}"
+    rm -f "${temp_sql_file}"
     
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "SHOW databases;" >  "$temp_sql_file";
     echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
     admin_query_from_sql_file "${temp_sql_file}";
-#    rm -f "${temp_sql_file}"
+    rm -f "${temp_sql_file}"
 }
 
 function drop_db_and_user
@@ -249,7 +272,6 @@ DROP DATABASE IF EXISTS ${db_name};
 EOF
     printf "\\n"
 }
-
 
 function show_dbs
 {
