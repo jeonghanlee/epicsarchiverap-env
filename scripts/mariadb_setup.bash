@@ -265,7 +265,7 @@ function backup_db
 	if [[ $dbDir -ne "$EXIST" ]]; then
 	    mkdir -p "${db_backup_path}"
 	fi
-	${SQL_BACKUP_CMD} ${db_name} | gzip -9 > "${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
+	${SQL_BACKUP_CMD} "${db_name}" | gzip -9 > "${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
     fi
 }
 
@@ -281,7 +281,7 @@ function backup_db_list
 	exit;
     fi
 
-    ls --almost-all -m -o --author --human-readable --time-style=iso -v  ${db_backup_path}
+    ls --almost-all -m -o --author --human-readable --time-style=iso -v  "${db_backup_path}"
 }
 
 
