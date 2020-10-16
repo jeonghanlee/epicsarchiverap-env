@@ -34,9 +34,9 @@ MAVEN_VER=3.6.3
 MAVEN_SRC="apache-maven-${MAVEN_VER}-bin.tar.gz"
 MAVEN_URL="https://downloads.apache.org/maven/maven-3/${MAVEN_VER}/binaries/${MAVEN_SRC}"
 
-ANT_VER=1.10.8
+ANT_VER=1.10.9
 ANT_SRC="apache-ant-${ANT_VER}-bin.tar.gz"
-ANT_URL="https://downloads.apache.org/ant/binaries/${ANT_SRC}"
+ANT_URL="https://archive.apache.org/dist/ant/binaries/${ANT_SRC}"
 
 JDBC_VER=2.3.0
 JDBC_SRC="mariadb-java-client-${JDBC_VER}.jar"
@@ -96,6 +96,7 @@ case "$pkg" in
         wget -qc "$ANT_URL"
         rm -rf "$dest/apache-ant-*"
         tar -C "${dest}" -xzf ${ANT_SRC}
+        rm -f "$dest/ant"
         ln -sf "$dest/apache-ant-${ANT_VER}" "$dest/ant"
         tree -L 1 "${dest}"
         ;;
@@ -103,6 +104,7 @@ case "$pkg" in
         wget -qc "$MAVEN_URL"
         rm -rf "$dest/apache-maven-*"
         tar -C "${dest}" -xzf ${MAVEN_SRC}
+        rm -f "$dest/maven"
         ln -sf "$dest/apache-maven-${MAVEN_VER}" "$dest/maven"
         tree -L 1 "${dest}"
         ;;
@@ -110,6 +112,7 @@ case "$pkg" in
         wget -qc "$OPENJDK11_URL"
         rm -rf "$dest/jdk-11"
         tar -C "${dest}" -xzf ${OPENJDK11_SRC}
+        rm -f "$dest/openjdk11"
         ln -sf "$dest/jdk-11" "$dest/openjdk11"
         tree -L 1 "${dest}"
         ;;
@@ -117,6 +120,7 @@ case "$pkg" in
         wget -qc "$OPENJDK12_URL"
         rm -rf "$dest/jdk-12"
         tar -C "${dest}" -xzf ${OPENJDK12_SRC}
+        rm -f "$dest/openjdk12"
         ln -sf "$dest/jdk-12" "$dest/openjdk12"
         tree -L 1 "${dest}"
         ;;

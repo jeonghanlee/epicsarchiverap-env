@@ -1,5 +1,7 @@
 # MariaDB Configuration
 
+We use the `bind-address=localhost` in the mariadb configuration. Thus all connections are limited within `localhost`.
+
 ## Generic Configuration
 
 * Secure Setup and add administor : only need to do at the beginning of the MariaDB configuration. One has
@@ -12,6 +14,23 @@ make db.secure
 
 ```bash
 make db.addAdmin
+```
+
+It is better to check the result via the sql query `select user, host, password from mysql.user;`. For example,
+
+```bash
+MariaDB [(none)]> select user, host, password from mysql.user WHERE user = 'admin';
++-------+-----------+-------------------------------------------+
+| user  | host      | password                                  |
++-------+-----------+-------------------------------------------+
+| admin | localhost | *4ACFE3202A5FF5CF467898FC58AAB1D615029441 |
++-------+-----------+-------------------------------------------+
+```
+
+If one would like to check its grant and others, the following query is useful:
+
+```sql
+SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;
 ```
 
 One can remove it via `make db.rmAdmin`.
@@ -29,22 +48,20 @@ make db.conf
 ```bash
 $ make db.conf.show
      1  ## MariaDB configuration example
-     2  ## Users in the HOSTS can access the SQL server with DB_ADMIN permission
-     3  DB_ADMIN_HOSTS="localhost 127.0.0.1 10.0.0.200"
-     4  ## SQL Server
-     5  DB_HOST_IPADDR=127.0.0.1
-     6  DB_HOST_PORT=3306
-     7  DB_HOST_NAME=localhost
-     8  ## SQL server ADMIN user, because we don't use root
-     9  DB_ADMIN=admin
-    10  DB_ADMIN_PASS=admin
-    11  ## User for the Database DB_NAME
-    12  DB_NAME=archappl
-    13  DB_USER=archappl
-    14  DB_USER_PASS=archappl
+     2  DB_ADMIN_HOST="localhost"
+     3  DB_HOST_IPADDR=127.0.0.1
+     4  DB_HOST_PORT=3306
+     5  DB_HOST_NAME=localhost
+     6  ## SQL server ADMIN user, because we don't use root
+     7  DB_ADMIN=admin
+     8  DB_ADMIN_PASS=admin
+     9  ## User for the Database DB_NAME
+    10  DB_NAME=archappl
+    11  DB_USER=archappl
+    12  DB_USER_PASS=archappl
 ```
 
-* Create DB with DB user
+* Create DB `DB_NAME` with an associated user `DB_USER`.
 
 ```bash
 make db.create
@@ -56,7 +73,7 @@ make db.create
 make db.show
 ```
 
-* Drop DB and remove the DB user
+* Drop DB and remove the associated user `DB_USER`.
 
 ```bash
 make db.drop
@@ -67,13 +84,13 @@ make db.drop
 * Fill Tables from `SQL_AA_SQL`
 
 ```bash
-make sql.table.fill
+make sql.fill
 ```
 
 * Show Tables
 
 ```bash
-$ make sql.table.show
+$ make sql.show
 
 >>    1/   1/   4<<                        ArchivePVRequests
 >>    2/   2/   4<<                      ExternalDataServers
@@ -84,5 +101,5 @@ $ make sql.table.show
 * Drop Tables
 
 ```bash
-make sql.tables.drop
+make sql.drop
 ```

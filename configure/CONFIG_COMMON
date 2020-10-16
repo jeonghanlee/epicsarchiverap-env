@@ -15,13 +15,15 @@ JAVA_LOCAL_VER:=12
 
 
 ## MariaDB configuration example
-## Users in the HOSTS can access the SQL server with DB_ADMIN permission
-DB_ADMIN_HOSTS="localhost 127.0.0.1 10.0.0.200"
-## SQL Server 
+## Limited users (db users, and admin user) to use `localhost` instead of other hosts 
+## One would like to configure other hosts, should configure them manually.
+## We use the bind-address=localhost, so tcp connection only is allowed within localhost
+## 
+DB_ADMIN_HOST=localhost
 DB_HOST_IPADDR=127.0.0.1
 DB_HOST_PORT=3306
-# localhost is prefered
 DB_HOST_NAME=localhost
+##
 ## SQL server ADMIN user, because we don't use root
 DB_ADMIN=admin
 DB_ADMIN_PASS=admin

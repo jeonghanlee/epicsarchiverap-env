@@ -2,7 +2,7 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.4
+#  version : 0.0.5
 
 declare -g SC_SCRIPT;
 declare -g SC_TOP;
@@ -266,14 +266,23 @@ case "$input" in
 	    #remove_admin_account_hostname "${DB_HOST_NAME}";
 	    ;;
     dbCreate)
+        create_db "${DB_NAME}";
+        ;;
+    dbUserCreate)
         # shellcheck disable=SC2153
-        create_db_and_user "${DB_NAME}" "${DB_ADMIN_HOSTS}" "${DB_USER}" "${DB_USER_PASS}";
+        create_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
         ;;     
     dbShow)
         show_dbs;
         ;;
+    dbUserDrop)
+        drop_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}";
+        ;;
+    userDrop)
+      drop_user "${DB_HOST_NAME}" "${DB_USER}";
+      ;;
     dbDrop)
-        drop_db_and_user "${DB_NAME}" "${DB_ADMIN_HOSTS}" "${DB_USER}";
+        drop_db "${DB_NAME}"
         ;;  
     isDb)
         isDb "${DB_NAME}" "YES";
