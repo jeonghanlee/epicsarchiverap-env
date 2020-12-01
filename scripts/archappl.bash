@@ -2,7 +2,7 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.1
+#  version : 0.0.2
 
 
 declare -g SC_RPATH;
@@ -156,10 +156,10 @@ function status_archappl
 }
 
 
-function status_stroage
+function status_storage
 {
     local all=$1; shift;
-    printf "\n>>>> Stroage Status at %s\n\n" "${SC_TIME}";
+    printf "\n>>>> Storage Status at %s\n\n" "${SC_TIME}";
     # ARCHAPPL_STORAGE_TOP is defined in archappl.conf
     sudo -E bash -c "du --total --human-readable --time --\"${all}\" \"${ARCHAPPL_STORAGE_TOP}\"";
     printf "\n";
@@ -202,10 +202,10 @@ case "$1" in
     status)
 	    status_archappl 
 	    ;;
-    stroage)
+    storage)
 	    case "$2" in
-	        all) status_stroage "$2" ;;
-	    *)       status_stroage      ;;
+	        all) status_storage "$2" ;;
+	    *)       status_storage      ;;
 	    esac
 	    ;;
     h);;
