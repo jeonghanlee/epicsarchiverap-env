@@ -122,7 +122,13 @@ systemctl start epicsarchiverap.service
 systemctl stop epicsarchiverap.service
 ```
 
+## CentOS 7
+
+I think, at this moment, with the latest commit, it works because I removed some MariaDB (>= 10.1.1) related DB field in the dababase management bash script. Please let me know if there is any related bugs. I don't have resouces to test this environment with CentOS 7 now.
+
 ## CentOS 8
+
+CentOS 8 is going to somewhere in a different universe, where I don't want to be. Please use Debian 10 instead of CentOS 8. If one would like to use CentOS, please go to CentOS 7 or in near future to Rocky Linux.
 
 See [docs/README.Centos8.md](docs/README.Centos8.md)
 

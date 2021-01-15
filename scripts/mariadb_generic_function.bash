@@ -192,7 +192,10 @@ function create_db_and_user
     
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "SHOW databases;" >  "$temp_sql_file";
-    echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
+#   authentication_string, default_role, is_role are for MariaDB
+#   https://mariadb.com/kb/en/mysqluser-table/
+#   echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
+    echo "SELECT user, host, Password, Grant_priv, Show_db_priv FROM mysql.user;" >>  "$temp_sql_file";
     admin_query_from_sql_file "${temp_sql_file}";
     rm -f "${temp_sql_file}"
 }
