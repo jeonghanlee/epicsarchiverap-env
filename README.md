@@ -124,7 +124,7 @@ systemctl stop epicsarchiverap.service
 
 ## CentOS 7
 
-I think, at this moment, with the latest commit, it works because I removed some MariaDB (>= 10.1.1) related DB field in the dababase management bash script. Please let me know if there is any related bugs. I don't have resouces to test this environment with CentOS 7 now.
+I think, at this moment, with the latest commit, it works because I removed some MariaDB (>= 10.1.1) related DB field in the dababase management bash script. Please let me know if there is any related bugs. I don't have resouces to test this environment with CentOS 7 now. This repository doesn't support MySQL or MariaDB compatiable with MySQL 5.6 and lower version. Please upgrade the MariaDB through <https://mariadb.com/docs/deploy/upgrade-community-server-cs105-centos7/> or latest one.
 
 ## CentOS 8
 
