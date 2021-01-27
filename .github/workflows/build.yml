@@ -28,5 +28,6 @@ jobs:
           make build
           make install
       - name: Exist
-        run: make exist
-
+        run: |
+          make exist
+          make conf.archappl.show
