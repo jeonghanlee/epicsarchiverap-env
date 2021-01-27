@@ -97,6 +97,20 @@ ANT_HOME:=/usr/share/ant
 TOMCAT_HOME:=/opt/tomcat9
 ```
 
+## EPICS Environment Variables
+
+The default EPICS Environment Variables are defined as
+
+```bash
+% make vars FILTER=EPICS_
+
+EPICS_CA_ADDR_LIST = localhost
+EPICS_CA_AUTO_ADDR_LIST = YES
+EPICS_CA_MAX_ARRAY_BYTES = 16384
+```
+
+Please see `configure/CONFIG_EPICSENV`. After deployment, one changes `archappl.conf` file in `INSTALL_LOCATION`, and restart it through systemd service or its master script. Note all 4 services should be restarted.
+
 ## TL;DR for Debian 10
 
 ```bash

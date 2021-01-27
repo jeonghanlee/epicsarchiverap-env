@@ -27,8 +27,6 @@ default: help
 PHONY: init clone update deinit distclean
 ## Clone Source
 init: clone update
-	$(call gitclone,$(SRC_GITURL),$(SRC_PATH),$(SRC_TAG))
-
 
 # gitclone use '-C' option, so git version should be more than 1.8.5. CentOS7 git is imcompatiable.
 #
