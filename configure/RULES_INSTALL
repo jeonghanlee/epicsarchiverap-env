@@ -8,7 +8,7 @@ show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 
 .PHONY: install services.install 
 
-install:  src_install services.install sd_install
+install:  src_install services.install sd_install sd_enable
 	$(QUIET)$(SUDO)	chown -R $(USERID):$(GROUPID) $(INSTALL_LOCATION)
 
 services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES) 
@@ -67,10 +67,11 @@ src_install: src_version src_preinst
 	$(QUIET)$(SUDO) $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(INSTALL_LOCATION)
 
 
-#uninstall: sd_stop sd_disable sd_clean src_postrm
-uninstall:
+# Don't need to run src_postrm
+uninstall: sd_stop sd_disable sd_clean
 	$(QUIET)echo "Removing $(INSTALL_LOCATION)..."
 	$(QUIET)$(SUDO) rm -rf $(INSTALL_LOCATION)/
+	$(QUIET)sudo systemctl daemon-reload
 
 
 .PHONY: src_version src_preinst src_postrm clean

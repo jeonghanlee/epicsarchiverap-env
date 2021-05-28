@@ -13,6 +13,13 @@ SRC_PATH:=$(SRC_NAME)-src
 #DOCURL:=https://docs.payara.fish/community/docs/$(SRC_VERSION)/README.html
 DOCURL:=$(SRC_GITURL)
 
+# From CONFIG_SITE to decouple from JAVA_HEAPSIZE
+CATALINA_OPTS="-XX:MaxMetaspaceSize=$(JAVA_MAXMETASPACE)"
+CATALINA_OPTS+="-Xms$(JAVA_HEAPSIZE)"
+CATALINA_OPTS+="-Xmx$(JAVA_HEAPSIZE)"
+CATALINA_OPTS+="-XX:+UseG1GC"
+CATALINA_OPTS+="-ea"
+
 # These allow developers to override the variable
 -include $(TOP)/../CONFIG_VARS.local
 -include $(TOP)/configure/CONFIG_VARS.local
