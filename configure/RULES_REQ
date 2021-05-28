@@ -41,7 +41,7 @@ install.ant: install_java_pkgs_local.bash  | $(JAVA_LOCAL)
 
 conf.ant: 
 	$(QUIET)echo ">>> Generating CONFIG_COMMON_ANT.local"
-	-rm -f $(TOP)/configure/CONFIG_COMMON_ANT.local
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON_ANT.local
 	$(QUIET)echo "ANT_HOME:=$(JAVA_LOCAL)/ant"      > $(TOP)/configure/CONFIG_COMMON_ANT.local
 	$(QUIET)echo "ANT_PATH:=$(JAVA_LOCAL)/ant/bin" >> $(TOP)/configure/CONFIG_COMMON_ANT.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON_ANT.local
@@ -55,7 +55,7 @@ install.maven: install_java_pkgs_local.bash  | $(JAVA_LOCAL)
 
 conf.maven: 
 	$(QUIET)echo ">>> Generating CONFIG_COMMON_MAVEN.local"
-	-rm -f $(TOP)/configure/CONFIG_COMMON_MAVEN.local
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON_MAVEN.local
 	$(QUIET)echo "MAVEN_HOME:=$(JAVA_LOCAL)/maven"      > $(TOP)/configure/CONFIG_COMMON_MAVEN.local
 	$(QUIET)echo "MAVEN_PATH:=$(JAVA_LOCAL)/maven/bin" >> $(TOP)/configure/CONFIG_COMMON_MAVEN.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON_MAVEN.local

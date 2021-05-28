@@ -97,6 +97,20 @@ ANT_HOME:=/usr/share/ant
 TOMCAT_HOME:=/opt/tomcat9
 ```
 
+## EPICS Environment Variables
+
+The default EPICS Environment Variables are defined as
+
+```bash
+% make vars FILTER=EPICS_
+
+EPICS_CA_ADDR_LIST = localhost
+EPICS_CA_AUTO_ADDR_LIST = YES
+EPICS_CA_MAX_ARRAY_BYTES = 16384
+```
+
+Please see `configure/CONFIG_EPICSENV`. After deployment, one changes `archappl.conf` file in `INSTALL_LOCATION`, and restart it through systemd service or its master script. Note all 4 services should be restarted.
+
 ## TL;DR for Debian 10
 
 ```bash
@@ -122,7 +136,13 @@ systemctl start epicsarchiverap.service
 systemctl stop epicsarchiverap.service
 ```
 
+## CentOS 7
+
+I think, at this moment, with the latest commit, it works because I removed some MariaDB (>= 10.1.1) related DB field in the dababase management bash script. Please let me know if there is any related bugs. I don't have resouces to test this environment with CentOS 7 now. This repository doesn't support MySQL or MariaDB compatiable with MySQL 5.6 and lower version. Please upgrade the MariaDB through <https://mariadb.com/docs/deploy/upgrade-community-server-cs105-centos7/> or latest one.
+
 ## CentOS 8
+
+CentOS 8 is going to somewhere in a different universe, where I don't want to be. Please use Debian 10 instead of CentOS 8. If one would like to use CentOS, please go to CentOS 7 or in near future to Rocky Linux.
 
 See [docs/README.Centos8.md](docs/README.Centos8.md)
 

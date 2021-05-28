@@ -2,16 +2,17 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.4
+#  version : 0.0.8
 
 declare -g SC_SCRIPT;
 declare -g SC_TOP;
+declare -g LOGDATE;
 declare -g ENV_TOP;
 
 SC_SCRIPT="$(realpath "$0")";
 #SC_SCRIPTNAME=${0##*/};
 SC_TOP="${SC_SCRIPT%/*}"
-#LOGDATE="$(date +%y%m%d%H%M)"
+LOGDATE="$(date +%y%m%d%H%M)"
 ENV_TOP="${SC_TOP}/.."
  
 # shellcheck disable=SC1090
@@ -19,38 +20,52 @@ ENV_TOP="${SC_TOP}/.."
 # shellcheck disable=SC1090
 . "${SC_TOP}/mariadb_generic_function.bash"
 
+
+declare -g DEFAULT_DB_BACKUP_PATH;
+# shellcheck disable=SC2153
+DEFAULT_DB_BACKUP_PATH="${ENV_TOP}/${DB_NAME}_sql_backup";
+
 function usage
 {
     {
 	echo "";
 	echo "Usage    : $0 <arg>";
 	echo "";
-    echo "          <arg>              : info";
+	echo "          <arg>              : info";
 	echo "";
 	echo "          secureSetup        : mariaDB secure installation";
-    echo "          adminAdd           : add the admin account";
+	echo "          adminAdd           : add the admin account";
+	echo "";
+	# shellcheck disable=SC2153
+	echo "          dbCreate           : create the DB -${DB_NAME}- at -${DB_HOST_NAME}-";
+	echo "          dbDrop             : drop   the DB -${DB_NAME}- at -${DB_HOST_NAME}-";
+	echo "          dbShow             : show all dbs exist";
     echo "";
-    # shellcheck disable=SC2153 
-    echo "          dbCreate           : create the DB -${DB_NAME}- at -${DB_HOST_NAME}-";
-    echo "          dbDrop             : drop   the DB -${DB_NAME}- at -${DB_HOST_NAME}-";
-    echo "          dbShow             : show all dbs exist";
-    echo "          tableCreate        : create the tables";
-    echo "          tableDrop          : drop   the tables";
-    echo "          tableShow          : show   the tables";
-    echo "          viewCreate         : create the views";
-    echo "          viewDrop           : drop   the views";
-    echo "          viewShow           : show   the views";
-    echo "          sProcCreate        : create the stored_procedures";
-    echo "          sProcDrop          : drop   the stored_procedures";
-    echo "          sProcShow          : show   the stored_procedures";
-    echo "";
-    echo "          allCreate          : create the tables, views, and stored_procedures";
-    echo "          allViews           : show the tables, views, and stored_procedures";
-    echo "          allDrop            : drop the tables, views, and stored_procedures";
-    echo "";
-    echo "          query \"sql query\"    : Send any sql query to DB -${DB_NAME}-"
-    echo "          queryFile \"sql file\" : Send a query through a sql file to DB -${DB_NAME}-";
-    echo "";
+ 	echo "          dbUserCreate       : create the DB -${DB_NAME}- with ${DB_USER} at -${DB_HOST_NAME}-";
+	echo "          dbUserDrop         : drop   the DB -${DB_NAME}- with ${DB_USER} at -${DB_HOST_NAME}-";
+ 
+	echo "";
+	echo "          dbBackup           : back up the DB -${DB_NAME}- at default -${DEFAULT_DB_BACKUP_PATH}.";
+	echo "          dbBackupList       : show all backup DB list at default -${DEFAULT_DB_BACKUP_PATH}.";
+	echo "          dbRestore          : restore the DB into the running sql at default -${DEFAULT_DB_BACKUP_PATH}.";
+	echo "";
+	echo "          tableCreate        : create the tables";
+	echo "          tableDrop          : drop   the tables";
+	echo "          tableShow          : show   the tables";
+	echo "          viewCreate         : create the views";
+	echo "          viewDrop           : drop   the views";
+	echo "          viewShow           : show   the views";
+	echo "          sProcCreate        : create the stored_procedures";
+	echo "          sProcDrop          : drop   the stored_procedures";
+	echo "          sProcShow          : show   the stored_procedures";
+	echo "";
+	echo "          allCreate          : create the tables, views, and stored_procedures";
+	echo "          allViews           : show the tables, views, and stored_procedures";
+	echo "          allDrop            : drop the tables, views, and stored_procedures";
+	echo "";
+	echo "          query \"sql query\"    : Send any sql query to DB -${DB_NAME}-"
+	echo "          queryFile \"sql file\" : Send a query through a sql file to DB -${DB_NAME}-";
+	echo "";
     } 1>&2;
     exit 1;
 }
@@ -137,8 +152,7 @@ function drop_triggers
             dropCmd+="DROP TRIGGER IF EXISTS ${output}"
             dropCmd+=";\"";
             printf ". %24s was found. Droping .... \n" "${output}"
-
-	        commandPrn "$dropCmd"
+	    commandPrn "$dropCmd"
             eval "${dropCmd}"
         done
     fi
@@ -151,8 +165,10 @@ function generate_admin_local_password
     local db_user_name="$1"; shift;
     local local_password="$1"; shift;
     local python_path="$1";shift;
+    local python_cmd="$1"; shift;   
+
     local db_exist;
-    local python_cmd;
+    local cmd;
     
     local adminWithLocalPassword;
 
@@ -168,9 +184,9 @@ function generate_admin_local_password
             printf ">>> We've found there is the CDB admin user %s with a local password.\n" "$db_user_name"
             printf "    Updating ........ \n"
 #           echo "$db_name, $db_user_name, $local_password, $python_path"
-#            python_cmd="PYTHONPATH=${python_path} python -c \"from cdb.common.utility.cryptUtility import CryptUtility; print CryptUtility.cryptPasswordWithPbkdf2('${local_password}')\""
-#            echo "$python_cmd"
-            adminCryptPassword=$(get_admin_crypt_password  "${db_name}" "$local_password" "${python_path}")
+#            cmd="PYTHONPATH=${python_path} ${python_cmd} -c \"from cdb.common.utility.cryptUtility import CryptUtility; print CryptUtility.cryptPasswordWithPbkdf2('${local_password}')\""
+#            echo "$cmd"
+            adminCryptPassword=$(get_admin_crypt_password  "${db_name}" "$local_password" "${python_path}" "${python_cmd}")
 #            echo $adminCryptPassword
             ## we have to create a temp file to handle this crypt password, because bash cannot handle these special character well within 
             ##
@@ -192,8 +208,9 @@ function get_admin_crypt_password
     local db_name="$1"; shift;
     local local_password="$1"; shift;
     local python_path="$1";shift;
+    local python_cmd="$1"; shift;
     local db_exist;
-    local python_cmd;
+    local cmd;
     
     local adminWithLocalPassword;
 
@@ -204,8 +221,8 @@ function get_admin_crypt_password
 	    noDbMessage "${db_name}";
 	    exit;
     else
-        python_cmd="PYTHONPATH=${python_path} python -c \"from cdb.common.utility.cryptUtility import CryptUtility; print CryptUtility.cryptPasswordWithPbkdf2('${local_password}')\""
-        adminCryptPassword=$(eval "$python_cmd")
+        cmd="PYTHONPATH=${python_path} ${python_cmd} -c \"from cdb.common.utility.cryptUtility import CryptUtility; print CryptUtility.cryptPasswordWithPbkdf2('${local_password}')\""
+        adminCryptPassword=$(eval "$cmd")
         echo "$adminCryptPassword"
     fi
 }
@@ -231,9 +248,77 @@ function get_admin_crypt_password
 #${SQL_ADMIN_CMD} -e "SELECT SCHEMA_NAME 'database', default_character_set_name 'charset', DEFAULT_COLLATION_NAME 'collation' FROM information_schema.SCHEMATA;"
 
 
+function backup_db
+{
+    local db_name="$1"; shift;
+    local db_backup_path="$1"; shift;
+    local dbDir;
+    local db_exist;
+
+    db_exist=$(isDb "${db_name}");
+
+    if [[ $db_exist -ne "$EXIST" ]]; then
+	    noDbMessage "${db_name}";
+	    exit;
+    else
+	dbDir=$(isDir "${db_backup_path}")
+	if [[ $dbDir -ne "$EXIST" ]]; then
+	    mkdir -p "${db_backup_path}"
+	fi
+	${SQL_BACKUP_CMD} "${db_name}" | gzip -9 > "${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
+    fi
+}
+
+
+function backup_db_list
+{
+    local db_backup_path="$1"; shift;
+    local dbDir;
+
+    dbDir=$(isDir "${db_backup_path}");
+    if [[ $dbDir -ne "$EXIST" ]]; then
+	printf "\nThere is no >> %s << directory, please check your enviornment.\n\n" "${db_backup_path}"
+	exit;
+    fi
+
+    ls --almost-all -m -o --author --human-readable --time-style=iso -v  "${db_backup_path}"
+}
+
+
+
+function restore_db
+{
+    local date="$1"; shift;
+    local db_backup_path="$1"; shift;
+    local dbDir;
+    local dbDate;
+    local cmd;
+
+    dbDate=$(isVar "${date}")
+
+    if [[ $dbDate -ne "$EXIST" ]]; then
+	printf "\nDate is missing, please check the backup data file name.\n\n"
+	exit;
+    fi
+
+    dbDir=$(isDir "${db_backup_path}")
+
+    if [[ $dbDir -ne "$EXIST" ]]; then
+	printf "\nThere is no >> %s << directory, please check your enviornment.\n\n" "${db_backup_path}"
+	exit;
+    fi
+
+    db_backup_file="${DB_NAME}_${date}.sql.gz"
+    cmd="${SQL_ADMIN_CMD} ${DB_NAME}";
+
+    gunzip < "${db_backup_path}/${db_backup_file}" | ${cmd} ;
+}
+
+
+
 
 input="$1";
-additional_input="$2"; 
+additional_input="$2";
 
 
 case "$input" in
@@ -247,36 +332,67 @@ case "$input" in
         ;;
     hostnameAdminAdd)
         # shellcheck disable=SC2153
-	add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
-	;;
+        add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
+	    ;;
     localAdminRemove)
         remove_admin_account_local;
         ;;
     hostnameAdminRemove)
-	remove_admin_account_hostname "${DB_HOST_NAME}";
-	;;
+        remove_admin_account_hostname "${DB_HOST_NAME}";
+        ;;
     adminAdd)
-	# shellcheck disable=SC2153
+        #shellcheck disable=SC2153
         add_admin_account_local "${DB_ADMIN}" "${DB_ADMIN_PASS}";
-	# shellcheck disable=SC2153
-	add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
-	;;
+        ##shellcheck disable=SC2153
+        #add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
+	    ;;
     adminRemove)
-	remove_admin_account_local;
-	remove_admin_account_hostname "${DB_HOST_NAME}";
-	;;
+        remove_admin_account_local;
+        #remove_admin_account_hostname "${DB_HOST_NAME}";
+	    ;;
     dbCreate)
+        create_db "${DB_NAME}";
+        ;;
+    dbUserCreate)
         # shellcheck disable=SC2153
-        create_db_and_user "${DB_NAME}" "${DB_ADMIN_HOSTS}" "${DB_USER}" "${DB_USER_PASS}";
-        ;;     
+        create_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
+        ;;
     dbShow)
         show_dbs;
         ;;
+    dbUserDrop)
+        drop_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}";
+        ;;
+    userDrop)
+      drop_user "${DB_HOST_NAME}" "${DB_USER}";
+        ;;
     dbDrop)
-        drop_db_and_user "${DB_NAME}" "${DB_ADMIN_HOSTS}" "${DB_USER}";
-        ;;  
+        drop_db "${DB_NAME}"
+        ;;
     isDb)
         isDb "${DB_NAME}" "YES";
+        ;;
+    dbBackup)
+	    backup_path="$additional_input"
+	    if [ -z "${backup_path}" ]; then
+            backup_path="${DEFAULT_DB_BACKUP_PATH}"
+        fi
+	    backup_db "${DB_NAME}" "${backup_path}";
+        ;;
+    dbBackupList)
+	    backup_path="$additional_input"
+	    if [ -z "${backup_path}" ]; then
+            backup_path="${DEFAULT_DB_BACKUP_PATH}"
+        fi
+        backup_db_list "${backup_path}"
+        ;;
+    dbRestore)
+        date="$additional_input";
+	    backup_path="$3"
+	    if [ -z "${backup_path}" ]; then
+            backup_path="${DEFAULT_DB_BACKUP_PATH}"
+        fi
+        restore_db "${date}" "${backup_path}";
         ;;
     tableCreate)
         if [ -z "${additional_input}" ]; then
@@ -374,16 +490,18 @@ case "$input" in
         ;;
     updateCDBAdminPassword)
         python_path="$additional_input"
+        # local python command instead of the system-wide
+        python_cmd="$3"
         if [ -z "${python_path}" ]; then
              python_path="${ENV_TOP}/ComponentDB-src/src/python"
         fi
-        generate_admin_local_password  "${DB_NAME}" "${CDB_USER}" "${CDB_USER_PASS}" "$python_path"
+        generate_admin_local_password  "${DB_NAME}" "${CDB_USER}" "${CDB_USER_PASS}" "$python_path" "$3"
         ;;
     showAdminCryptPassword)
         get_admin_crypt_password  "${DB_NAME}" "$additional_input" "$3"
         ;;
     *)
         usage;
-    ;;
+        ;;
 
 esac

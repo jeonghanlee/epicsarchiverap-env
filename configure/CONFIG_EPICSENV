@@ -1,0 +1,32 @@
+# #2
+# https://docs.epics-controls.org/en/latest/specs/IOCInit.html#environment-variables
+# https://epics.anl.gov/tech-talk/2020/msg01936.php
+# https://epics.anl.gov/tech-talk/2021/msg00121.php
+# 
+
+# Don't need to use ", please see the examples below
+EPICS_CA_ADDR_LIST=localhost
+# EPICS_CA_ADDR_LIST=localhost 10.0.0.100:100000
+# EPICS_CA_ADDR_LIST=1.2.3.255 4.5.6.255:10000
+# 1.2.3.255 : default to EPICS_CA_SERVER_PORT
+# 4.5.6.255 : EPICS_CA_SERVER_PORT=10000 in Server (Note that Arachappl is a client.)
+#
+# YES or NO
+EPICS_CA_AUTO_ADDR_LIST=YES
+#
+# It determines the maximum array that it will send or receive.
+# 16384 byte network  buffers
+EPICS_CA_MAX_ARRAY_BYTES=16384
+#
+# Reserved the following EPICS variables according to src/main/org/epics/archiverappliance/engine/epics/JCAConfigGen.java
+# EPICS_CA_CONN_TMO=
+# EPICS_CAS_BEACON_PERIOD=
+# EPICS_CA_REPEATER_PORT=
+# EPICS_CA_SERVER_PORT=
+
+
+# These allow developers to override the CONFIG_EPICSENV variable
+# settings without having to modify the configure/CONFIG_EPICSENV
+# file itself.
+-include $(TOP)/../CONFIG_EPICSENV.local
+-include $(TOP)/configure/CONFIG_EPICSENV.local

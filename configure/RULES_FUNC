@@ -19,7 +19,7 @@ for i in $(wildcard $(TOP)/patch/$(SRC_TAG)*.p0.patch); do\
 done
 endef
 
-GIT_VERSION:=$(lastword $(shell git --version))
+GIT_VERSION:=$(lastword $(shell git --version) )
 
 define gitclone
 $(if $(wildcard $(2)), @echo"", git clone  $(1) $(2); cd $(2) && git checkout $(3))

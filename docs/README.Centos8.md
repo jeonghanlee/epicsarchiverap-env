@@ -1,5 +1,7 @@
 # CentOS 8
 
+Please don't use CentOS 8, which is going to end its role. I will update this if I see the Rocky Linux Distribution officially <https://rockylinux.org/>.
+
 ## Step 0
 
 ```bash
@@ -37,8 +39,8 @@ make sql.show
 * CentOS8 Specific Configuration
 
 ```bash
-make centos8.conf         : only and if only one would like to use the CentOS8 java envrionment.
-make tomcat.get
+make centos8.conf         : Only and if Only one would like to use the CentOS 8 java envrionment.
+make tomcat.get           : Download the selected Tomcat 9 version. Please check `configure/CONFIG_TOMCAT` for other version.  
 make tomcat.install       : This also changes the Tomcat default server port to 8083.
 make tomcat.sd_start
 make tomcat.sd_status

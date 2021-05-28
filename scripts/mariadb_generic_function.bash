@@ -2,20 +2,43 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.3
+#  version : 0.0.6
+
 
 SQL_ROOT_CMD="sudo mysql --user=root"
 # shellcheck disable=SC2153
 SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
 # shellcheck disable=SC2153
 SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
-# shellcheck disable=SC2153
-#SQL_BACKUP_CMD="mysqldump --user=${DB_USER_NAME} --password=${DB_USER_PASS} ${DB_NAME}"
+# shellcheck disable=SC2034
+SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
 
 EXIST=1
 NON_EXIST=0
 
 VERBOSE=YES
+
+function isDir
+{
+    local dir=$1; shift;
+    local result;
+    result="";
+    if [ ! -d "$dir" ]; then result=$NON_EXIST
+    else                     result=$EXIST
+    fi
+    echo "${result}"
+}
+
+function isVar() {
+
+    local var=$1; shift;
+    local result;
+    result=""
+    if [ -z "$var" ]; then result=$NON_EXIST
+    else                   result=$EXIST
+    fi
+    echo "${result}"
+}
 
 function noDbMessage
 {
@@ -80,10 +103,6 @@ function add_admin_account_local
     GRANT ALL ON *.* TO '${db_admin_name}'@'localhost' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
     FLUSH PRIVILEGES;
 EOF
-    ${SQL_ROOT_CMD} <<EOF
-    GRANT ALL ON *.* TO '${db_admin_name}'@'127.0.0.1' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
-    FLUSH PRIVILEGES;
-EOF
     printf "\\n"
 }
 
@@ -124,10 +143,6 @@ function remove_admin_account_local
 {
     printf ">> Remove local admin user \\n"
     ${SQL_ROOT_CMD} <<EOF
-    DROP USER 'admin'@'127.0.0.1';
-    FLUSH PRIVILEGES;
-EOF
-    ${SQL_ROOT_CMD} <<EOF
     DROP USER 'admin'@'localhost';
     FLUSH PRIVILEGES;
 EOF
@@ -160,14 +175,14 @@ function admin_query_from_sql_file
 function create_db_and_user 
 {
     local db_name="$1"; shift;
-    local db_admin_hosts="$1"; shift;
+    local db_hosts="$1"; shift;
     local db_user_name="$1"; shift;
     local db_user_pass="$1";shift;
 
     local temp_sql_file="";
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "CREATE DATABASE IF NOT EXISTS ${db_name} CHARACTER SET utf8mb4;" > "$temp_sql_file";
-    for aHost in $db_admin_hosts;  do
+    for aHost in $db_hosts;  do
         echo "GRANT ALL PRIVILEGES ON ${db_name}.* TO '$db_user_name'@'$aHost' IDENTIFIED BY '$db_user_pass';" >> "$temp_sql_file";
     done
     echo "FLUSH PRIVILEGES;" >> "${temp_sql_file}"; 
@@ -177,7 +192,10 @@ function create_db_and_user
     
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "SHOW databases;" >  "$temp_sql_file";
-    echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
+#   authentication_string, default_role, is_role are for MariaDB
+#   https://mariadb.com/kb/en/mysqluser-table/
+#   echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
+    echo "SELECT user, host, Password, Grant_priv, Show_db_priv FROM mysql.user;" >>  "$temp_sql_file";
     admin_query_from_sql_file "${temp_sql_file}";
     rm -f "${temp_sql_file}"
 }
@@ -185,16 +203,16 @@ function create_db_and_user
 function drop_db_and_user
 {
     local db_name="$1"; shift;
-    local db_admin_hosts="$1"; shift;
+    local db_hosts="$1"; shift;
     local db_user_name="$1"; shift;
 
     printf ">> Drop the Database -%s- \\n" "${db_name}";
-    printf ">> Drop the user -%s- at -%s- \\n" "${db_user_name}" "${db_admin_hosts[@]}"
+    printf ">> Drop the user -%s- at -%s- \\n" "${db_user_name}" "${db_hosts[@]}"
     
     local temp_sql_file="";
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "DROP DATABASE IF EXISTS ${db_name};" > "$temp_sql_file";
-    for aHost in $db_admin_hosts;  do
+    for aHost in $db_hosts;  do
         echo "DROP USER '$db_user_name'@'$aHost';" >> "$temp_sql_file";
     done
     echo "${temp_sql_file}"
@@ -207,7 +225,42 @@ function drop_db_and_user
     rm -f "${temp_sql_file}"
 }
 
-# Not use anymore
+
+function drop_user
+{
+    local db_hosts="$1"; shift;
+    local db_user_name="$1"; shift;
+
+    printf ">> Drop the user -%s- at -%s- \\n" "${db_user_name}" "${db_hosts[@]}"
+    
+    local temp_sql_file="";
+    temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
+    for aHost in $db_hosts;  do
+        echo "DROP USER '$db_user_name'@'$aHost';" >> "$temp_sql_file";
+    done
+    echo "${temp_sql_file}"
+    admin_query_from_sql_file "${temp_sql_file}";
+
+    temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
+    echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
+    admin_query_from_sql_file "${temp_sql_file}";
+    rm -f "${temp_sql_file}"
+}
+
+# 1 : MariaDB Database name 
+# SQL_ADMIN_CMD contains host information which the command can be executed.
+function create_db
+{
+   local db_name="$1"; shift;
+   if [ "$verbose" == "YES" ]; then
+       printf ">> Create the Database %s \\n" "${db_name}";
+   fi
+   ${SQL_ADMIN_CMD} <<EOF
+CREATE DATABASE IF NOT EXISTS ${db_name} CHARACTER SET utf8mb4;
+EOF
+   printf "\\n"  
+}
+
 # 1 : MariaDB Database name 
 # SQL_ADMIN_CMD contains host information which the command can be executed. 
 function drop_db
@@ -222,7 +275,6 @@ DROP DATABASE IF EXISTS ${db_name};
 EOF
     printf "\\n"
 }
-
 
 function show_dbs
 {
