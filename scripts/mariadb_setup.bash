@@ -14,10 +14,10 @@ SC_SCRIPT="$(realpath "$0")";
 SC_TOP="${SC_SCRIPT%/*}"
 LOGDATE="$(date +%y%m%d%H%M)"
 ENV_TOP="${SC_TOP}/.."
- 
-# shellcheck disable=SC1090
+
+# shellcheck disable=SC1091
 . "${ENV_TOP}/site-template/mariadb.conf"
-# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 . "${SC_TOP}/mariadb_generic_function.bash"
 
 
@@ -40,10 +40,10 @@ function usage
 	echo "          dbCreate           : create the DB -${DB_NAME}- at -${DB_HOST_NAME}-";
 	echo "          dbDrop             : drop   the DB -${DB_NAME}- at -${DB_HOST_NAME}-";
 	echo "          dbShow             : show all dbs exist";
-    echo "";
+	echo "";
  	echo "          dbUserCreate       : create the DB -${DB_NAME}- with ${DB_USER} at -${DB_HOST_NAME}-";
 	echo "          dbUserDrop         : drop   the DB -${DB_NAME}- with ${DB_USER} at -${DB_HOST_NAME}-";
- 
+
 	echo "";
 	echo "          dbBackup           : back up the DB -${DB_NAME}- at default -${DEFAULT_DB_BACKUP_PATH}.";
 	echo "          dbBackupList       : show all backup DB list at default -${DEFAULT_DB_BACKUP_PATH}.";
@@ -90,9 +90,9 @@ function drop_procedures
         cmd+="${db_name}";
         cmd+=" ";
         cmd+="-N";
-        cmd+=" ";   
+        cmd+=" ";
         cmd+="--silent"
-        cmd+=" ";   
+        cmd+=" ";
         cmd+="--execute=\"";
         # The following cmd contains only mysql standard query
         # It is ok to get all table and views, because we only use DROP TABEL query
@@ -211,7 +211,7 @@ function get_admin_crypt_password
     local python_cmd="$1"; shift;
     local db_exist;
     local cmd;
-    
+
     local adminWithLocalPassword;
 
     db_exist=$(isDb "${db_name}");
