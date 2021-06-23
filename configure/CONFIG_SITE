@@ -29,8 +29,8 @@ MAVEN_OPTS:=
 #
 # The physical memory  :  64G, so I use 8G instead of 4G, since we don't have any other application on the server.
 # Set MaxMetaspaceSize : 256M, so it reduces the GC execution to compare with the original option.
-JAVA_HEAPSIZE="512m"
-JAVA_MAXMETASPACE="256m"
+JAVA_HEAPSIZE="1G"
+JAVA_MAXMETASPACE="256M"
 ## https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for
 ## https://www.openssl.org/blog/blog/2017/08/12/random/
 JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
