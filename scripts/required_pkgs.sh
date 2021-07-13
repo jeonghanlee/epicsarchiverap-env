@@ -53,19 +53,12 @@ function debian_pkgs
     apt install -y \
     	wget \
         curl \
-#       expect \
     	git \
-#       openssl \
     	sed \
         gawk \
         unzip \
         make \
-        build-essential \
         gcc \
-#        libssl-dev \
-#        libldap2-dev \
-#        libsasl2-dev \
-#        libcurses-ocaml-dev \
     	mariadb-server \
         mariadb-client  \
         libmariadbclient-dev \
@@ -79,17 +72,6 @@ function debian_pkgs
         jsvc \
         unzip \
         chrony 
-#        python-setuptools \
-#        python-click \
-#        python2.7-ldap \
-#        python-pip \
-#        python-sphinx \
-#        twine \
-#        python-cherrypy \
-#        python-routes \
-#        python-sqlalchemy \
-#        python-mysqldb \
-#        python-suds 
     
     ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
     # MySQL-python-1.2.5 doesn't work with mariadb 
