@@ -5,9 +5,6 @@ Please don't use CentOS 8, which is going to end its role. I will update this if
 ## Step 0
 
 ```bash
-dnf config-manager --enable PowerTools
-dnf update
-
 git clone https://github.com/jeonghanlee/epicsarchiverap-env
 
 make init
