@@ -51,12 +51,12 @@ jobs:
           dnf install -y git make sudo
           make init
           make install.pkgs
-          make install.jdk
-          make conf.jdk
-          make install.ant
-          make conf.ant
+          echo 2 | sudo update-alternatives --config java
+          make rocky8.conf
+          make tomcat.get
+          make tomcat.src_nstall
+          make tomcat.update
           make build
-          make src_preinst
           make src_install
           make services.install
           make exist
