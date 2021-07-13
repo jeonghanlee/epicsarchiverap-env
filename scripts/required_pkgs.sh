@@ -48,38 +48,24 @@ function define_python_path
 
 function debian_pkgs
 {
-    ## The following packages are listed in install_python_packages.sh via `make support`
-    ## ComponentDB-src/support/bin/install_python_packages.sh 
-    ## python-setuptools \
-    ## python-click \
-    ## python2.7-ldap \
-    ## python-pip \
-    ## python-sphinx \
-    ## twine \
-    ## python-cherrypy \
-    ## python-routes \
-    ## python-sqlalchemy \
-    ## python-mysqldb \
-    ## python-suds 
-    ## ---------------------
     ## Debian 10
     apt update -y
     apt install -y \
     	wget \
         curl \
-        expect \
+ #       expect \
     	git \
-        openssl \
+ #       openssl \
     	sed \
         gawk \
         unzip \
         make \
         build-essential \
         gcc \
-        libssl-dev \
-        libldap2-dev \
-        libsasl2-dev \
-        libcurses-ocaml-dev \
+#        libssl-dev \
+#        libldap2-dev \
+#        libsasl2-dev \
+#        libcurses-ocaml-dev \
     	mariadb-server \
         mariadb-client  \
         libmariadbclient-dev \
@@ -93,17 +79,17 @@ function debian_pkgs
         jsvc \
         unzip \
         chrony \
-        python-setuptools \
-        python-click \
-        python2.7-ldap \
-        python-pip \
-        python-sphinx \
-        twine \
-        python-cherrypy \
-        python-routes \
-        python-sqlalchemy \
-        python-mysqldb \
-        python-suds 
+#        python-setuptools \
+#        python-click \
+#        python2.7-ldap \
+#        python-pip \
+#        python-sphinx \
+#        twine \
+#        python-cherrypy \
+#        python-routes \
+#        python-sqlalchemy \
+#        python-mysqldb \
+#        python-suds 
     
     ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
     # MySQL-python-1.2.5 doesn't work with mariadb 
@@ -147,6 +133,7 @@ function rocky8_pkgs
         chrony
 
 }
+
 
 dist="$(find_dist)"
 
