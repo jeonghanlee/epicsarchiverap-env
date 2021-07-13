@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           sudo apt update -y
-          sudo apt install -y curl openssl sed wget sudo tree unzip make build-essential gcc tomcat9 tomcat9-common tomcat9-admin tomcat9-user libtomcat9-java jsvc
+          sudo apt install -y curl git openssl sed wget sudo tree unzip make build-essential gcc tomcat9 tomcat9-common tomcat9-admin tomcat9-user libtomcat9-java jsvc
           make init
           make install.jdk
           make conf.jdk
@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           apt update -y
-          apt install -y curl openssl sed wget sudo tree unzip make build-essential gcc tomcat9 tomcat9-common tomcat9-admin tomcat9-user libtomcat9-java jsvc
+          apt install -y curl openssl git sed wget sudo tree unzip make build-essential gcc tomcat9 tomcat9-common tomcat9-admin tomcat9-user libtomcat9-java jsvc
           make init
           make install.jdk
           make conf.jdk
