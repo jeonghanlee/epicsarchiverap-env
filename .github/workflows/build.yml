@@ -11,7 +11,6 @@ on:
 jobs:
   Ubuntu:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - run: |
@@ -27,6 +26,7 @@ jobs:
           make install
           make exist
           make conf.archappl.show
+          
       name: Run on Runner ubuntu-latest
     
   Debian10:
@@ -47,8 +47,7 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-      name: Test on Debian Docker
-
+      
   CentOS7:
     runs-on: ubuntu-latest
     container: centos:7
@@ -67,8 +66,7 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-      name: Test on CentOS7 Docker
-
+      
   Rocky8:
     runs-on: ubuntu-latest
     container: rockylinux/rockylinux
@@ -87,5 +85,4 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-      name: Test on Rocky8 Docker
- 
+      
