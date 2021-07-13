@@ -26,8 +26,6 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-          
-      name: Run on Runner ubuntu-latest
     
   Debian10:
     runs-on: ubuntu-latest
