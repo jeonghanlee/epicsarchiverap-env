@@ -77,27 +77,11 @@ function debian_pkgs
     # MySQL-python-1.2.5 doesn't work with mariadb 
     # https://lists.launchpad.net/maria-developers/msg10744.html
     # https://github.com/DefectDojo/django-DefectDojo/issues/407
-    
+
     if [ ! -f /usr/include/mariadb/mysql.h.bkp ]; then
         sed '/st_mysql_options options;/a unsigned int reconnect;' /usr/include/mariadb/mysql.h -i.bkp
     fi
 
-}
-
-## Do not test it yet Monday, June 29 15:09:24 PDT 2020
-function centos_pkgs
-{
-    dnf config-manager --enable PowerTools
-    dnf update
-    dnf install -y \
-	    wget sudo git unzip curl make tree \
-	    sed gcc libgcc epel-release sudo which \
-	    ant java-11-openjdk\
-        unzip \
-        mariadb-server \
-        chrony
-
-#    ln -sf "$(which mariadb_config)" /usr/bin/mysql_config  
 }
 
 
@@ -109,7 +93,7 @@ function rocky8_pkgs
     dnf update -y;
     dnf install -y epel-release;
     dnf update -y;
-    dnf install -y gcc libgcc wget sudo git unzip curl make tree sed \
+    dnf install -y gcc libgcc wget sudo git unzip curl make tree sed which\
         java-11-openjdk ant \
         mariadb-server \
         chrony
@@ -122,7 +106,7 @@ dist="$(find_dist)"
 case "$dist" in
     *Debian*) debian_pkgs ;;
     *Ubuntu*) debian_pkgs ;;
-    *CentOS*) centos_pkgs ;;
+    *CentOS*) echo "Use Rocky, don't support CentOS" ;;
     *Rocky*)  rocky8_pkgs ;;
 #    *RedHat*) centos_pkgs ;;
     *)
@@ -130,8 +114,8 @@ case "$dist" in
 	printf "Doesn't support the detected %s\\n" "$dist";
 	printf "Please contact jeonghan.lee@gmail.com\\n";
 	printf "\\n";
-	exit;
 	;;
 esac
 
+exit;
 #define_python_path "$1"
