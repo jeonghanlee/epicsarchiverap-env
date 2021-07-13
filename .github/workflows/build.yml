@@ -54,7 +54,7 @@ jobs:
           echo 2 | sudo update-alternatives --config java
           make rocky8.conf
           make tomcat.get
-          make tomcat.src_nstall
+          make tomcat.src_install
           make tomcat.update
           make build
           make src_install
