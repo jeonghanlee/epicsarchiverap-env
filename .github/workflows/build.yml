@@ -27,7 +27,7 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-        name: Run on Runner ubuntu-latest
+      name: Run on Runner ubuntu-latest
     
   Debian10:
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-        name: Test on Debian Docker
+      name: Test on Debian Docker
 
   CentOS7:
     runs-on: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-        name: Test on CentOS7 Docker
+      name: Test on CentOS7 Docker
 
   Rocky8:
     runs-on: ubuntu-latest
@@ -87,5 +87,5 @@ jobs:
           make install
           make exist
           make conf.archappl.show
-        name: Test on Rocky8 Docker
+      name: Test on Rocky8 Docker
  
