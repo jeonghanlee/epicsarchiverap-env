@@ -1,7 +1,6 @@
 # EPICS Archiver Appliance Configuration Environment
-
-![Build](https://github.com/jeonghanlee/epicsarchiverap-env/workflows/Build/badge.svg)
-![Linter Run](https://github.com/jeonghanlee/epicsarchiverap-env/workflows/Linter%20Run/badge.svg)
+[![Build](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/build.yml/badge.svg)](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/build.yml)
+[![Linter Run](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/linter.yml/badge.svg)](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/linter.yml)
 
 Configuration Environment for EPICS Archiver Appliance at <https://github.com/slacmshankar/epicsarchiverap>
 
