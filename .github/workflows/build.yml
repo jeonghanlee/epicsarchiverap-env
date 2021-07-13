@@ -36,7 +36,8 @@ jobs:
           make install.ant
           make conf.ant
           make build
-          make install
+          make src_install
+          make services.install
           make exist
           make conf.archappl.show
       
@@ -55,7 +56,9 @@ jobs:
           make install.ant
           make conf.ant
           make build
-          make install
+          make src_preinst
+          make src_install
+          make services.install
           make exist
           make conf.archappl.show
       
