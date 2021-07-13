@@ -103,7 +103,7 @@ centos8.conf: rocky8.conf
 rocky8.conf:
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_HOME:=/usr/lib/jvm/jre-11-openjdk"      > $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_PATH:=/usr/lib/jvm/jre-11-openjdk" >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                                            >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_HOME:=/usr/lib/jvm/jre-11-openjdk"  > $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_PATH:=/usr/lib/jvm/jre-11-openjdk/bin" >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"              >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
