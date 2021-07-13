@@ -53,9 +53,9 @@ function debian_pkgs
     apt install -y \
     	wget \
         curl \
- #       expect \
+#       expect \
     	git \
- #       openssl \
+#       openssl \
     	sed \
         gawk \
         unzip \
@@ -78,7 +78,7 @@ function debian_pkgs
         libtomcat9-java \
         jsvc \
         unzip \
-        chrony \
+        chrony 
 #        python-setuptools \
 #        python-click \
 #        python2.7-ldap \
