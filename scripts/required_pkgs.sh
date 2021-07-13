@@ -133,12 +133,28 @@ function centos_pkgs
 }
 
 
+function rocky8_pkgs
+{
+    dnf -y install dnf-plugins-core;
+    dnf update;
+    dnf config-manager --set-enabled powertools
+    dnf update;
+    dnf install -y epel-release;
+    dnf update;
+    dnf install -y gcc libgcc wget sudo git unzip curl make tree sed \
+        java-11-openjdk ant \
+        mariadb-server \
+        chrony
+
+}
+
 dist="$(find_dist)"
 
 case "$dist" in
     *Debian*) debian_pkgs ;;
     *Ubuntu*) debian_pkgs ;;
     *CentOS*) centos_pkgs ;;
+    *Rocky*)  rocky8_pkgs ;;
 #    *RedHat*) centos_pkgs ;;
     *)
 	printf "\\n";
