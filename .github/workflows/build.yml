@@ -48,8 +48,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          sudo yum update -y
-          sudo yum install -y git make sudo
+          yum update -y
+          yum install -y git make sudo
           make init
           make install.pkgs
           make install.jdk
@@ -67,8 +67,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          sudo dnf update -y
-          sudo dnf install -y git make sudo
+          dnf update -y
+          dnf install -y git make sudo
           make init
           make install.pkgs
           make install.jdk
