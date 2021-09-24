@@ -142,7 +142,7 @@ function rocky8_pkgs
 
 dist="$(find_dist)"
 
-echo $dist
+echo "$dist"
 
 
 case "$dist" in
