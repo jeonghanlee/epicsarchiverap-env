@@ -46,7 +46,7 @@ function define_python_path
     
 }
 
-function debian_pkgs
+function debian10_pkgs
 {
     ## Debian 10
     apt update -y
@@ -61,7 +61,7 @@ function debian_pkgs
         gcc \
     	mariadb-server \
         mariadb-client  \
-        libmariadbclient-dev \
+        libmariadbclient-dlibmariadb-dev\
         maven \
         ant \
         tomcat9 \
@@ -85,6 +85,45 @@ function debian_pkgs
 }
 
 
+function debian11_pkgs
+{
+    ## Debian 11
+    apt update -y
+    apt install -y \
+    	wget \
+        curl \
+    	git \
+    	sed \
+        gawk \
+        unzip \
+        make \
+        gcc \
+    	mariadb-server \
+        mariadb-client  \
+        libmariadb-dev \
+        libmariadb-dev-compat \
+        maven \
+        ant \
+        tomcat9 \
+        tomcat9-common \
+        tomcat9-admin \
+        tomcat9-user \
+        libtomcat9-java \
+        jsvc \
+        unzip \
+        chrony 
+    
+    ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
+    # MySQL-python-1.2.5 doesn't work with mariadb 
+    # https://lists.launchpad.net/maria-developers/msg10744.html
+    # https://github.com/DefectDojo/django-DefectDojo/issues/407
+
+    if [ ! -f /usr/include/mariadb/mysql.h.bkp ]; then
+        sed '/st_mysql_options options;/a unsigned int reconnect;' /usr/include/mariadb/mysql.h -i.bkp
+    fi
+
+}
+
 function rocky8_pkgs
 {
     dnf -y install dnf-plugins-core;
@@ -103,10 +142,13 @@ function rocky8_pkgs
 
 dist="$(find_dist)"
 
+echo $dist
+
+
 case "$dist" in
-    *Debian*) debian_pkgs ;;
-    *Ubuntu*) debian_pkgs ;;
-    *CentOS*) echo "Use Rocky, don't support CentOS" ;;
+    *buster*)   debian10_pkgs ;;
+    *bullseye*) debian11_pkgs ;;
+#    *CentOS*) echo "Use Rocky, don't support CentOS" ;;
     *Rocky*)  rocky8_pkgs ;;
 #    *RedHat*) centos_pkgs ;;
     *)

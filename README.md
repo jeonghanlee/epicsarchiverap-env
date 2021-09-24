@@ -14,7 +14,7 @@ make init
 
 ### Install required packages
 
-* Debian 10 / CentOS 8
+* Debian 10/11
 
 ```bash
 make install.pkgs
@@ -28,9 +28,9 @@ sudo systemctl start mariadb
 
 ### Tomcat 9
 
-* Debian 10 : tomcat9 will be installed through `make install.pkgs`
+* Debian 10/11 : tomcat9 will be installed through `make install.pkgs`
 
-* CentOS 8 : See  [docs/README.tomcat.md](docs/README.tomcat.md)
+* Others : See  [docs/README.tomcat.md](docs/README.tomcat.md)
 
 ### MariaDB
 
