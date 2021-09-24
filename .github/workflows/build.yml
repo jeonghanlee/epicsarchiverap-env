@@ -22,7 +22,7 @@ jobs:
           make exist
           make conf.archappl.show
 
- Debian11:
+  Debian11:
     runs-on: ubuntu-latest
     container: debian:buster
     steps:
