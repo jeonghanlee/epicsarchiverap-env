@@ -1,5 +1,5 @@
 [Unit]
-Description=Apache Tomcat @TOMCAT_VER@ Server for CentOS 8
+Description=Apache Tomcat @TOMCAT_VER@ Server for Rocky8/CentOS8
 After=network.target
 
 [Service]

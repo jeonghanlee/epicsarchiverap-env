@@ -2,6 +2,8 @@
 tomcat_RULES_NAMES:=get uninstall install src_install preinst postrm exist sd_install sd_conf sd_conf.show sd_status sd_start sd_stop sd_restart sd_clean sd_enable sd_disable
 all_tomcat_RULES:=$(addprefix tomcat., $(tomcat_RULES_NAMES))
 
+tomcat: tomcat.get tomcat.install tomcat.update
+
 tomcat.get:
 	$(QUIET)echo "\n>>> Preparing $(TOMCAT_URL) .... "
 	$(QUIET)wget -c $(TOMCAT_URL)
@@ -53,13 +55,13 @@ tomcat.sd_install: tomcat.sd_conf
 tomcat.sd_conf: $(TOMCAT_SYSTEMD).in
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s:@USERID@:$(USERID):g" \
-				-e "s:@GROUPID@:$(GROUPID):g" \
-				-e "s:@TOMCAT_INSTALL_LOCATION@:$(TOMCAT_INSTALL_LOCATION):g" \
-				-e "s:@TOMCAT_VER@:$(TOMCAT_VER):g" \
-               	-e "s:@JAVA_HOME@:$(JAVA_HOME):g" \
-				-e "s|@JAVA_OPTS@|$(JAVA_OPTS)|g" \
-                -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
-                < $< > $(basename $<)
+	            -e "s:@GROUPID@:$(GROUPID):g" \
+	            -e "s:@TOMCAT_INSTALL_LOCATION@:$(TOMCAT_INSTALL_LOCATION):g" \
+	            -e "s:@TOMCAT_VER@:$(TOMCAT_VER):g" \
+                    -e "s:@JAVA_HOME@:$(JAVA_HOME):g" \
+	            -e "s|@JAVA_OPTS@|$(JAVA_OPTS)|g" \
+                    -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
+                    < $< > $(basename $<)
 
 tomcat.sd_conf.show: $(TOMCAT_SYSTEMD).in
 	@cat -b $(basename $<)

@@ -136,7 +136,7 @@ function rocky8_pkgs
         java-11-openjdk ant \
         mariadb-server \
         chrony
-
+    echo 2 | update-alternatives --config java
 }
 
 
