@@ -28,8 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          apt update -y
-          apt install -y curl openssl git sed wget sudo tree unzip make build-essential gcc tomcat9 tomcat9-common tomcat9-admin tomcat9-user libtomcat9-java jsvc
+          make install.pkgs
           make init
           make install.jdk
           make conf.jdk
@@ -47,8 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          apt update -y
-          apt install -y curl openssl git sed wget sudo tree unzip make build-essential gcc tomcat9 tomcat9-common tomcat9-admin tomcat9-user libtomcat9-java jsvc
+          make install.pkgs
           make init
           make install.jdk
           make conf.jdk
@@ -70,11 +68,8 @@ jobs:
           dnf install -y git make sudo which
           make init
           make install.pkgs
-          echo 2 | sudo update-alternatives --config java
           make rocky8.conf
-          make tomcat.get
-          make tomcat.src_install
-          make tomcat.update
+          make tomcat
           make build
           make src_install
           make services.install
