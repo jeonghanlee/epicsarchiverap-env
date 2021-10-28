@@ -61,7 +61,8 @@ function debian10_pkgs
         gcc \
     	mariadb-server \
         mariadb-client  \
-        libmariadbclient-dlibmariadb-dev\
+        libmariadbclient-dev \
+        libmariadb-dev\
         maven \
         ant \
         tomcat9 \
