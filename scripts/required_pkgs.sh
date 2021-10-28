@@ -59,6 +59,7 @@ function debian10_pkgs
         unzip \
         make \
         gcc \
+        tree \
     	mariadb-server \
         mariadb-client  \
         libmariadbclient-dev \
@@ -99,6 +100,7 @@ function debian11_pkgs
         unzip \
         make \
         gcc \
+        tree \
     	mariadb-server \
         mariadb-client  \
         libmariadb-dev \
@@ -133,10 +135,22 @@ function rocky8_pkgs
     dnf update -y;
     dnf install -y epel-release;
     dnf update -y;
-    dnf install -y gcc libgcc wget sudo git unzip curl make tree sed which\
-        java-11-openjdk ant \
-        mariadb-server \
-        chrony
+    dnf install -y gcc \
+                   libgcc \
+                   wget \
+                   sudo \
+                   git \
+                   unzip \
+                   curl \
+                   make \
+                   tree \
+                   sed \
+                   which \
+                   java-11-openjdk \ 
+                   ant \
+                   mariadb-server \
+                   chrony
+
     echo 2 | update-alternatives --config java
 }
 
