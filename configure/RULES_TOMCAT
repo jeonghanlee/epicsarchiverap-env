@@ -4,6 +4,8 @@ all_tomcat_RULES:=$(addprefix tomcat., $(tomcat_RULES_NAMES))
 
 tomcat: tomcat.get tomcat.install tomcat.update
 
+tomcat.action: tomcat.get tomcat.installaction tomcat.update
+
 tomcat.get:
 	$(QUIET)echo "\n>>> Preparing $(TOMCAT_URL) .... "
 	$(QUIET)wget -c $(TOMCAT_URL)
@@ -13,6 +15,12 @@ tomcat.uninstall: tomcat.sd_stop tomcat.sd_disable tomcat.sd_clean tomcat.postrm
 	$(QUIET)echo "Removing $(TOMCAT_INSTALL_LOCATION)..."
 	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
 	$(QUIET)sudo systemctl daemon-reload
+
+tomcat.installaction: tomcat.src_install tomcat.update tomcat.sd_install
+	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
+	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
+	$(QUIET)sudo chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 
 tomcat.install: tomcat.src_install tomcat.update tomcat.sd_install tomcat.sd_enable
 	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)

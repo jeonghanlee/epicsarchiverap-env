@@ -2,8 +2,8 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  date    : Monday, June 29 14:02:20 PDT 2020
-#  version : 0.0.1
+#  date    : Thu Oct 28 14:14:18 PDT 2021
+#  version : 0.0.2
 
 
 declare -g SC_SCRIPT;
@@ -63,7 +63,7 @@ function debian10_pkgs
     	mariadb-server \
         mariadb-client  \
         libmariadbclient-dev \
-        libmariadb-dev\
+        libmariadb-dev \
         maven \
         ant \
         tomcat9 \
@@ -146,7 +146,7 @@ function rocky8_pkgs
                    tree \
                    sed \
                    which \
-                   java-11-openjdk \ 
+                   java-11-openjdk \
                    ant \
                    mariadb-server \
                    chrony

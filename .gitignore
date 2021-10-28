@@ -64,4 +64,5 @@ log4j.properties
 shutdown.sh
 startup.sh
 archappl.conf
+*.swp
 

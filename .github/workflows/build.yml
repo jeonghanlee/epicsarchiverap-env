@@ -73,7 +73,7 @@ jobs:
           make init
           make install.pkgs
           make rocky8.conf
-          make tomcat
+          make tomcat.action
           make build
           make src_install
           make services.install
