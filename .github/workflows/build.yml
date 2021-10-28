@@ -28,6 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
+          apt update -y
+          apt install -y git make sudo which
           make install.pkgs
           make init
           make install.jdk
@@ -46,6 +48,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
+          apt update -y
+          apt install -y git make sudo which
           make install.pkgs
           make init
           make install.jdk
