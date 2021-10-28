@@ -16,7 +16,7 @@ tomcat.uninstall: tomcat.sd_stop tomcat.sd_disable tomcat.sd_clean tomcat.postrm
 	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
 	$(QUIET)sudo systemctl daemon-reload
 
-tomcat.installaction: tomcat.src_install tomcat.update tomcat.sd_install
+tomcat.installaction: tomcat.src_install tomcat.update
 	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
 	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
