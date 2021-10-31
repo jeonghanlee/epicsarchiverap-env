@@ -106,7 +106,9 @@ tomcat.sd_disable:
 	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), sudo systemctl disable $(TOMCAT_SYSTEMD))
 #
 
-.PHONY: centos8.conf rocky8.conf
+.PHONY: centos8.conf rocky8.conf centos7.conf
+
+centos7.conf: rocky8.conf
 
 centos8.conf: rocky8.conf
 

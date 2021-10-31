@@ -121,9 +121,13 @@ systemctl start epicsarchiverap.service
 systemctl stop epicsarchiverap.service
 ```
 
+## CentOS7
+
+See [docs/README.centos7.md](docs/README.centos7.md)
+
 ## Rocky8.4
 
-See [docs/README.rocky8.md](docs/README.rocky8.md)
+See [docs/README.rocky8.md](docs/README.rocky8.md). This instruction may work with CentOS8.
 
 ### Build
 
