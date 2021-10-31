@@ -127,6 +127,31 @@ function debian11_pkgs
 
 }
 
+function centos7_pkgs
+{
+    yum update -y;
+    yum install -y epel-release;
+    yum update -y;
+    yum install -y gcc \
+                   libgcc \
+                   sudo \
+                   git \
+                   unzip \
+                   curl \
+                   make \
+                   tree \
+                   sed \
+                   which \
+                   java-11-openjdk \
+                   ant \
+                   mariadb-server \
+                   chrony
+
+    echo 2 | update-alternatives --config java
+
+
+}
+
 function rocky8_pkgs
 {
     dnf -y install dnf-plugins-core;
