@@ -1,6 +1,6 @@
 
-
-JAVA_HOME:=/usr/lib/jvm/java-11-openjdk-amd64
+# Debian
+JAVA_HOME:=/usr/lib/jvm/default-java
 ANT_HOME:=/usr/share/ant
 MAVEN_HOME:=/usr/share/maven
 TOMCAT_HOME:=/usr/share/tomcat9
