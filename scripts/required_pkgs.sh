@@ -53,37 +53,34 @@ function define_python_path
     echo "PYTHONPATH=${pythonpath}" > "${SC_TOP}/.sourceme"
     echo "export PYTHONPATH"       >> "${SC_TOP}/.sourceme"
     chmod +x "${SC_TOP}/.sourceme"
-    
 }
 
 function debian10_pkgs
 {
     ## Debian 10
     apt update -y
-    apt install -y \
-    	wget \
-        curl \
-    	git \
-    	sed \
-        gawk \
-        unzip \
-        make \
-        gcc \
-        tree \
-    	mariadb-server \
-        mariadb-client  \
-        libmariadbclient-dev \
-        libmariadb-dev \
-        openjdk-11-jdk \
-        ant \
-        tomcat9 \
-        tomcat9-common \
-        tomcat9-admin \
-        tomcat9-user \
-        libtomcat9-java \
-        jsvc \
-        unzip \
-        chrony 
+    apt install -y wget \
+                   curl \
+    	           git \
+    	           sed \
+                   gawk \
+                   unzip \
+                   make \
+                   gcc \
+                   tree \
+    	           mariadb-server \
+                   mariadb-client  \
+                   libmariadbclient-dev \
+                   libmariadb-dev \
+                   openjdk-11-jdk \
+                   ant \
+                   tomcat9 \
+                   tomcat9-common \
+                   tomcat9-admin \
+                   tomcat9-user \
+                   libtomcat9-java \
+                   jsvc \
+                   chrony 
     
     ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
     # MySQL-python-1.2.5 doesn't work with mariadb 
@@ -93,7 +90,6 @@ function debian10_pkgs
     if [ ! -f /usr/include/mariadb/mysql.h.bkp ]; then
         sed '/st_mysql_options options;/a unsigned int reconnect;' /usr/include/mariadb/mysql.h -i.bkp
     fi
-
 }
 
 
@@ -101,30 +97,28 @@ function debian11_pkgs
 {
     ## Debian 11
     apt update -y
-    apt install -y \
-    	wget \
-        curl \
-    	git \
-    	sed \
-        gawk \
-        unzip \
-        make \
-        gcc \
-        tree \
-    	mariadb-server \
-        mariadb-client  \
-        libmariadb-dev \
-        libmariadb-dev-compat \
-        openjdk-11-jdk \
-        ant \
-        tomcat9 \
-        tomcat9-common \
-        tomcat9-admin \
-        tomcat9-user \
-        libtomcat9-java \
-        jsvc \
-        unzip \
-        chrony 
+    apt install -y wget \
+                   curl \
+    	           git \
+    	           sed \
+                   gawk \
+                   unzip \
+                   make \
+                   gcc \
+                   tree \
+    	           mariadb-server \
+                   mariadb-client  \
+                   libmariadb-dev \
+                   libmariadb-dev-compat \
+                   openjdk-11-jdk \
+                   ant \
+                   tomcat9 \
+                   tomcat9-common \
+                   tomcat9-admin \
+                   tomcat9-user \
+                   libtomcat9-java \
+                   jsvc \
+                   chrony 
     
     ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
     # MySQL-python-1.2.5 doesn't work with mariadb 
@@ -134,7 +128,6 @@ function debian11_pkgs
     if [ ! -f /usr/include/mariadb/mysql.h.bkp ]; then
         sed '/st_mysql_options options;/a unsigned int reconnect;' /usr/include/mariadb/mysql.h -i.bkp
     fi
-
 }
 
 function centos7_pkgs
@@ -159,8 +152,6 @@ function centos7_pkgs
                    chrony
 
     echo 2 | update-alternatives --config java
-
-
 }
 
 function rocky8_pkgs
@@ -195,7 +186,6 @@ dist="$(find_dist)"
 
 echo "$dist"
 
-
 case "$dist" in
     *buster*)   debian10_pkgs ;;
     *bullseye*) debian11_pkgs ;;
@@ -222,4 +212,3 @@ case "$dist" in
 esac
 
 exit;
-#define_python_path "$1"
