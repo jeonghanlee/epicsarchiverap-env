@@ -74,7 +74,7 @@ function debian10_pkgs
         mariadb-client  \
         libmariadbclient-dev \
         libmariadb-dev \
-        maven \
+        openjdk-11-jdk \
         ant \
         tomcat9 \
         tomcat9-common \
