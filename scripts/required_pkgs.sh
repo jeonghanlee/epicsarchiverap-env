@@ -22,7 +22,9 @@ function popd  { builtin popd  > /dev/null || exit; }
 function centos_dist
 {
     local VERSION_ID
+    # shellcheck disable=SC2046 disable=SC2002
     eval $(cat /etc/os-release | grep -E "^(VERSION_ID)=")
+    # shellcheck disable=SC2086
     echo ${VERSION_ID}
 }
 
@@ -37,9 +39,10 @@ function find_dist
      	dist_rs=$(lsb_release -rs)
      	echo "$dist_id" "${dist_cn}" "${dist_rs}"
     else
-        #shellcheck disable=SC2046 disable=SC2002
+        # shellcheck disable=SC2046 disable=SC2002
      	eval $(cat /etc/os-release | grep -E "^(PRETTY_NAME)=")
-	    echo "${PRETTY_NAME}"
+        # shellcheck disable=SC2086
+        echo "${PRETTY_NAME}"
     fi
 }
 
