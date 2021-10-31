@@ -44,4 +44,4 @@ $ make sd_status
 
 ## Warning
 
-Please change the default user account and its passowrd  for MariaDB, and so on.
+Please change the default user account and its password for MariaDB, and so on.

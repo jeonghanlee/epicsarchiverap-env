@@ -4,26 +4,68 @@
 
 Configuration Environment for EPICS Archiver Appliance at <https://github.com/slacmshankar/epicsarchiverap>
 
-## Requirements
+## Pre-requirement packages
 
-### Download source code first
+```bash
+git make sudo which
+```
+
+## Debian 10/11
+
+### Preparation
 
 ```bash
 make init
-```
-
-### Install required packages
-
-* Debian 10/11
-
-```bash
 make install.pkgs
 ```
 
-Note that MariaDb should be started before further steps.
+### MariaDB
+
+I assume that Debian 10 is the fresh instalation version
 
 ```bash
 sudo systemctl start mariadb
+sudo systemctl status mariadb
+#
+make db.secure
+make db.addAdmin
+make db.show
+make db.create
+make db.show
+make sql.fill
+make sql.show
+```
+
+### Build, install, and Service
+
+```
+make build
+make install
+make exist
+#
+make sd_start
+make sd_status
+```
+
+## CentOS7
+
+See [docs/README.centos7.md](docs/README.centos7.md)
+
+## CentOS8
+
+See [docs/README.centos8.md](docs/README.centos8.md). 
+
+## Rocky8.4
+
+See [docs/README.rocky8.md](docs/README.rocky8.md).
+
+
+## Descriptions
+
+### Install required packages
+
+```bash
+make install.pkgs
 ```
 
 ### Tomcat 9
@@ -74,15 +116,7 @@ For the testing purpose, one can use the local JAVA and Ant environments. The ja
 
 See [docs/README.javapkgs.md](docs/README.javapkgs.md)
 
-* Debina 10 System
-
-```bash
-JAVA_HOME:=/usr/lib/jvm/java-11-openjdk-amd64
-ANT_HOME:=/usr/share/ant
-TOMCAT_HOME:=/usr/share/tomcat9
-```
-
-## EPICS Environment Variables
+### EPICS Environment Variables
 
 The default EPICS Environment Variables are defined as
 
@@ -96,14 +130,6 @@ EPICS_CA_MAX_ARRAY_BYTES = 16384
 
 Please see `configure/CONFIG_EPICSENV`. After deployment, one changes `archappl.conf` file in `INSTALL_LOCATION`, and restart it through systemd service or its master script. Note all 4 services should be restarted.
 
-## TL;DR for Debian 11
-
-```bash
-make build
-make install
-make sd_start
-make sd_status
-```
 
 |![AAH](docs/images/home.png)|
 | :---: |
@@ -120,14 +146,6 @@ systemctl start epicsarchiverap.service
 ```bash
 systemctl stop epicsarchiverap.service
 ```
-
-## CentOS7
-
-See [docs/README.centos7.md](docs/README.centos7.md)
-
-## Rocky8.4
-
-See [docs/README.rocky8.md](docs/README.rocky8.md). This instruction may work with CentOS8.
 
 ### Build
 
