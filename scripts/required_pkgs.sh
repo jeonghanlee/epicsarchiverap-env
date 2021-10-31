@@ -141,6 +141,7 @@ function centos7_pkgs
     yum update -y;
     yum install -y gcc \
                    libgcc \
+                   wget \
                    sudo \
                    git \
                    unzip \
