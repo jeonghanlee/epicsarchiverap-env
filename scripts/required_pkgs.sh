@@ -2,8 +2,8 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  date    : Thu Oct 28 14:14:18 PDT 2021
-#  version : 0.0.2
+#  date    : Sat Oct 30 22:21:16 PDT 2021
+#  version : 0.0.3
 
 
 declare -g SC_SCRIPT;
@@ -18,6 +18,13 @@ SC_TOP="${SC_SCRIPT%/*}"
 
 function pushd { builtin pushd "$@" > /dev/null || exit; }
 function popd  { builtin popd  > /dev/null || exit; }
+
+function centos_dist
+{
+    local VERSION_ID
+    eval $(cat /etc/os-release | grep -E "^(VERSION_ID)=")
+    echo ${VERSION_ID}
+}
 
 function find_dist
 {
@@ -188,9 +195,20 @@ echo "$dist"
 case "$dist" in
     *buster*)   debian10_pkgs ;;
     *bullseye*) debian11_pkgs ;;
-#    *CentOS*) echo "Use Rocky, don't support CentOS" ;;
+    *CentOS* | *Scientific* ) 
+        centos_version=$(centos_dist)
+        if [ "$centos_version" == "7" ]; then
+            centos7_pkgs
+        elif [ "$centos_version" == "8" ]; then
+            rocky8_pkgs
+        else
+	    printf "\\n";
+	    printf "Sorry, we don't support CentOS anymore\\n";
+	    printf "Please use Rocky or other variant\\n";
+	    printf "\\n";
+        fi
+        ;;
     *Rocky*)  rocky8_pkgs ;;
-#    *RedHat*) centos_pkgs ;;
     *)
 	printf "\\n";
 	printf "Doesn't support the detected %s\\n" "$dist";

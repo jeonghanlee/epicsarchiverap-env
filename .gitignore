@@ -66,3 +66,4 @@ startup.sh
 archappl.conf
 *.swp
 
+.DS_Store
