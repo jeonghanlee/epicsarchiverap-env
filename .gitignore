@@ -65,5 +65,5 @@ shutdown.sh
 startup.sh
 archappl.conf
 *.swp
-
+apache-tomcat*
 .DS_Store
