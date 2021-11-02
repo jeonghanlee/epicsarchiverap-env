@@ -16,20 +16,25 @@ tomcat.uninstall: tomcat.sd_stop tomcat.sd_disable tomcat.sd_clean tomcat.postrm
 	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
 	$(QUIET)sudo systemctl daemon-reload
 
+
+tomcat.uninstallaction:
+	$(QUIET)echo "Removing $(TOMCAT_INSTALL_LOCATION)..."
+	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
+
 tomcat.installaction: tomcat.src_install tomcat.update
 	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
 	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
 	$(QUIET)sudo chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 
-tomcat.install: tomcat.src_install tomcat.update tomcat.sd_install tomcat.sd_enable
+tomcat.install: tomcat.src_install tomcat.preinst tomcat.update tomcat.sd_install tomcat.sd_enable
 	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
 	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
 	$(QUIET)sudo chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 #	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
 
-tomcat.src_install: tomcat.preinst 
+tomcat.src_install:
 	$(QUIET)sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
 
@@ -119,3 +124,22 @@ rocky8.conf:
 	$(QUIET)echo "JAVA_PATH:=/usr/lib/jvm/jre-11-openjdk/bin" >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"              >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
+
+macos.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_HOME:=/Library/Java/JavaVirtualMachines/openjdk11-zulu/Contents/Home"      > $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_PATH:=/Library/Java/JavaVirtualMachines/openjdk11-zulu/Contents/Home/bin" >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "ANT_HOME:=/opt/local/share/java/apache-ant"                                    >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "ANT_PATH:=/opt/local/share/java/apache-ant/bin"                                >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                                                     >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "USERID:=${USER}"                     > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "GROUPID:=20"                        >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=${HOME}/arch" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local

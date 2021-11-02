@@ -54,48 +54,50 @@ ifdef DEBUG_SHELL
 endif
 
 ##	tomcat9-instance-create create startup.sh and shutdown.sh
-##  This function will cover all functionatities except port number configuration
-##  in conf/server.xml. The except steup will be covered at serverxml.install in
+##  This function will cover all functionalities except port number configuration
+##  in conf/server.xml. The except setup will be covered at serverxml.install in
 ##  RULES_INSTALL
 ##
 ## 1 : USERID (tomcat, is the same as groupid)
-## 2 : archappl INSTALL_LOCATION
-## 3 : each service INSTALL_LOCATION_SERVICES
-## 4 : RETURN
+## 2 : GROUPID
+## 3 : archappl INSTALL_LOCATION
+## 4 : each service INSTALL_LOCATION_SERVICES
+## 5 : RETURN
 define a_service_BUIDER
-install.$(patsubst $(2)/%,%,$(3)):
-	@echo ">>> Installing $(patsubst $(2)/%,%,$(3))"
-	@echo "    0) Creating $(3)/{conf,logs,webapps,work,temp}"
-	@sudo install -d $(3)
-	@sudo install -d $(3)/conf
-	@sudo install -d $(3)/logs
-	@sudo install -d $(3)/webapps
-	@sudo install -d $(3)/work
-	@sudo install -d $(3)/temp
-	@echo "    1) Copy all template from $(TOMCAT_HOME)/skel/* to $(3)/"
-	@sudo cp -r $(SITE_TEMPLATE_PATH)/skel/* $(3)/
-	@echo "    2) Extracting $(patsubst $(2)/%,%,$(3)).war into $(3)/webapps/$(patsubst $(2)/%,%,$(3))"
-	@sudo unzip -q -o $(WARS_TARGET)/$(patsubst $(2)/%,%,$(3)).war -d $(3)/webapps/$(patsubst $(2)/%,%,$(3))
-	@echo "    3) Install $(ARCHAPPL_CONTEXT_XML) into $(3)/conf/"
-	@sudo install -m 644 $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_CONTEXT_XML) $(3)/conf/
-	@echo "    4) Install $(ARCHAPPL_TOMCAT_STARTUP) and $(ARCHAPPL_TOMCAT_SHUTDOWN) in $(3)/bin"
-	@sudo -E bash -c "sed -e 's|@INSTALL_LOCATION@|$(3)|g' -e 's|@SERVICE_NAME@|$(patsubst $(2)/%,%,$(3))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_STARTUP).in > $(3)/bin/$(ARCHAPPL_TOMCAT_STARTUP)"
-	@sudo -E bash -c "sed -e 's|@INSTALL_LOCATION@|$(3)|g' -e 's|@SERVICE_NAME@|$(patsubst $(2)/%,%,$(3))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_SHUTDOWN).in > $(3)/bin/$(ARCHAPPL_TOMCAT_SHUTDOWN)"
-	@sudo chmod +x $(3)/bin/*
-	@echo "    5) Change $(3) permission with $(1):$(1)"
-	@sudo chown -R $(1):$(1) $(3)
+install.$(patsubst $(3)/%,%,$(4)):
+	@echo ">>> Installing $(patsubst $(3)/%,%,$(4))"
+	@echo "    0) Creating $(4)/{conf,logs,webapps,work,temp}"
+	@sudo install -d $(4)
+	@sudo install -d $(4)/conf
+	@sudo install -d $(4)/logs
+	@sudo install -d $(4)/webapps
+	@sudo install -d $(4)/work
+	@sudo install -d $(4)/temp
+	@echo "    1) Copy all template from $(TOMCAT_HOME)/skel/* to $(4)/"
+	@sudo cp -r $(SITE_TEMPLATE_PATH)/skel/* $(4)/
+	@echo "    2) Extracting $(patsubst $(3)/%,%,$(4)).war into $(4)/webapps/$(patsubst $(3)/%,%,$(4))"
+	@sudo unzip -q -o $(WARS_TARGET)/$(patsubst $(3)/%,%,$(4)).war -d $(4)/webapps/$(patsubst $(3)/%,%,$(4))
+	@echo "    3) Install $(ARCHAPPL_CONTEXT_XML) into $(4)/conf/"
+	@sudo install -m 644 $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_CONTEXT_XML) $(4)/conf/
+	@echo "    4) Install $(ARCHAPPL_TOMCAT_STARTUP) and $(ARCHAPPL_TOMCAT_SHUTDOWN) in $(4)/bin"
+	@sudo -E bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_STARTUP).in > $(4)/bin/$(ARCHAPPL_TOMCAT_STARTUP)"
+	@sudo -E bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_SHUTDOWN).in > $(4)/bin/$(ARCHAPPL_TOMCAT_SHUTDOWN)"
+	@sudo chmod +x $(4)/bin/*
+	@echo "    5) Change $(4) permission with $(1):$(2)"
+	@sudo chown -R $(1):$(2) $(4)
 	@sudo echo ""
 
-$(4)+=install.$(patsubst $(2)/%,%,$(3))
+$(5)+=install.$(patsubst $(3)/%,%,$(4))
 endef
 
 
 # 1 : USERID
-# 2 : INSTALL_LOCATION
-# 3 : INSTALL_LOCATION_SERVICES
-# 4 : RETURN
+# 2 : GROUPID
+# 3 : INSTALL_LOCATION
+# 4 : INSTALL_LOCATION_SERVICES
+# 5 : RETURN
 define buildrules_BUILDER
-$(foreach dir, $(3), $(eval $(call a_service_BUIDER,$(1),$(2),$(dir),$(4))))
+$(foreach dir, $(4), $(eval $(call a_service_BUIDER,$(1),$(2),$(3),$(dir),$(5))))
 endef
 
 define classpathfile_output
