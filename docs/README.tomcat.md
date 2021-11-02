@@ -28,6 +28,12 @@ TOMCAT_VER = 9.0.37
 ```bash
 make tomcat.get
 make tomcat.install
+```
+
+### Tomcat service
+The Tomcat service itself isn't necessary for the Archiver Appliance.
+
+```
 make tomcat.sd_start
 make tomcat.sd_status
 ```

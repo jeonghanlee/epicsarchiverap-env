@@ -21,7 +21,7 @@ make install.pkgs
 
 ### MariaDB
 
-I assume that Debian 10 is the fresh instalation version
+I assume that Debian 10/11 are the fresh installation version.
 
 ```bash
 sudo systemctl start mariadb
