@@ -1,6 +1,6 @@
 # Archiver Appliance for ONLY macOS 11.6.1
 
-This is the macOS 11.6.1 specific installation guide (WIP).  
+This is the macOS 11.6.1 specific installation guide.  
 
 ## Init
 
