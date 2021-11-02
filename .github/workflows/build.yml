@@ -124,8 +124,8 @@ jobs:
       - run: |
           make init
 #          make install.pkgs
-          make macos.conf
-          make tomcat.action
+#          make macos.conf
+#          make tomcat.action
 #          make build
 #          make src_install
 #          make services.install
