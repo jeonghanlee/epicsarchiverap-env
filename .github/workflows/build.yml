@@ -122,6 +122,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
+          brew install tree wget unzip curl nmap ant openjdk
           make init
 #          make install.pkgs
 #          make macos.conf
