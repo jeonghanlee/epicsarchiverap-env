@@ -122,16 +122,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          mkdir -p /opt/mports
+          sudo mkdir -p /opt/mports
           pushd /opt/mports
           git clone https://github.com/macports/macports-base.git
           cd macports-base
           git checkout v2.7.1
           pushd /opt/mports/macports-base
           ./configure --enable-readline
-          make
+          sudo make
           sudo make install
-          make distclean
+          sudo make distclean
           popd
           popd
           make init
