@@ -118,8 +118,7 @@ jobs:
           make conf.archappl.show
 
   macOS11:
-    runs-on: ubuntu-latest
-    container: macos-11
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
       - run: |
