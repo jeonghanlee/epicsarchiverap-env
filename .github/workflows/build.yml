@@ -114,4 +114,31 @@ jobs:
           make services.install
           make exist
           make conf.archappl.show
-      
+
+  macOS11:
+    runs-on: ubuntu-latest
+    container: macos-11
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          mkdir -p /opt/mports
+          pushd /opt/mports
+          git clone https://github.com/macports/macports-base.git
+          cd macports-base
+          git checkout v2.7.1
+          pushd /opt/mports/macports-base
+          ./configure --enable-readline
+          make
+          sudo make install
+          make distclean
+          popd
+          popd
+          make init
+          make install.pkgs
+          make macos.conf
+          make tomcat.action
+          make build
+          make src_install
+          make services.install
+          make exist
+          make conf.archappl.show
