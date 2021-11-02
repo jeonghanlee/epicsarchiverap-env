@@ -122,24 +122,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          sudo mkdir -p /opt/mports
-          pushd /opt/mports
-          git clone https://github.com/macports/macports-base.git
-          cd macports-base
-          git checkout v2.7.1
-          pushd /opt/mports/macports-base
-          ./configure --enable-readline
-          sudo make
-          sudo make install
-          sudo make distclean
-          popd
-          popd
           make init
-          make install.pkgs
+#          make install.pkgs
           make macos.conf
           make tomcat.action
-          make build
-          make src_install
-          make services.install
-          make exist
-          make conf.archappl.show
+#          make build
+#          make src_install
+#          make services.install
+#          make exist
+#          make conf.archappl.show
