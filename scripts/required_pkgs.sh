@@ -197,6 +197,7 @@ function macos_pkgs
                  unzip \
                  curl \
                  mariadb-10.5 \
+                 mariadb-10.5-server \
                  apache-ant
 }
 
