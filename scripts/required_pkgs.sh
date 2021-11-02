@@ -32,17 +32,24 @@ function find_dist
 {
 
     local dist_id dist_cn dist_rs PRETTY_NAME
-    
-    if [[ -f /usr/bin/lsb_release ]] ; then
-     	dist_id=$(lsb_release -is)
-     	dist_cn=$(lsb_release -cs)
-     	dist_rs=$(lsb_release -rs)
-     	echo "$dist_id" "${dist_cn}" "${dist_rs}"
+    local name version
+
+    if [[ $OSTYPE == 'darwin'* ]]; then
+        name=$(sw_vers -productName)
+        version=$(sw_vers -productVersion)
+        echo "$name" "$version"
     else
-        # shellcheck disable=SC2046 disable=SC2002
-     	eval $(cat /etc/os-release | grep -E "^(PRETTY_NAME)=")
-        # shellcheck disable=SC2086
-        echo "${PRETTY_NAME}"
+        if [[ -f /usr/bin/lsb_release ]] ; then
+     	    dist_id=$(lsb_release -is)
+     	    dist_cn=$(lsb_release -cs)
+     	    dist_rs=$(lsb_release -rs)
+     	    echo "$dist_id" "${dist_cn}" "${dist_rs}"
+        else 
+            # shellcheck disable=SC2046 disable=SC2002
+     	    eval $(cat /etc/os-release | grep -E "^(PRETTY_NAME)=")
+            # shellcheck disable=SC2086
+            echo "${PRETTY_NAME}"
+        fi
     fi
 }
 
@@ -182,6 +189,19 @@ function rocky8_pkgs
 }
 
 
+function macos_pkgs
+{
+    port install openjdk17-zulu \
+                 tree \
+                 wget \
+                 unzip \
+                 curl \
+                 mariadb-10.5 \
+                 mariadb-10.5-server \
+                 apache-ant \
+                 nmap
+}
+
 dist="$(find_dist)"
 
 echo "$dist"
@@ -202,7 +222,8 @@ case "$dist" in
 	    printf "\\n";
         fi
         ;;
-    *Rocky*)  rocky8_pkgs ;;
+    *Rocky*) rocky8_pkgs ;;
+    *macOS*) macos_pkgs ;;
     *)
 	printf "\\n";
 	printf "Doesn't support the detected %s\\n" "$dist";

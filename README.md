@@ -59,6 +59,9 @@ See [docs/README.centos8.md](docs/README.centos8.md).
 
 See [docs/README.rocky8.md](docs/README.rocky8.md).
 
+## macOS (BigSur 11.6.1, 20G224)
+
+See [docs/README.macos.md](docs/README.macos.md).
 
 ## Descriptions
 
