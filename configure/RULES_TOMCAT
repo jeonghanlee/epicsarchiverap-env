@@ -39,7 +39,7 @@ tomcat.src_install:
 	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
 
 tomcat.update:
-	$(QUIET)sudo sed -i -e "s:<Connector port=\"8080\" :<Connector port=\"$(TOMCAT_DEFAULT_PORT)\" :g" \
+	$(QUIET)sudo sed -i .bak -e "s:<Connector port=\"8080\" :<Connector port=\"$(TOMCAT_DEFAULT_PORT)\" :g" \
 	$(TOMCAT_INSTALL_LOCATION)/conf/$(TOMCAT_DEFAULT_SERVER_XML)
 
 # Debian Tomcat Service is already in the system
@@ -128,8 +128,8 @@ rocky8.conf:
 macos.conf:
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_HOME:=/Library/Java/JavaVirtualMachines/openjdk11-zulu/Contents/Home"      > $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_PATH:=/Library/Java/JavaVirtualMachines/openjdk11-zulu/Contents/Home/bin" >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_HOME:=/Library/Java/JavaVirtualMachines/openjdk17-zulu/Contents/Home"      > $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_PATH:=/Library/Java/JavaVirtualMachines/openjdk17-zulu/Contents/Home/bin" >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "ANT_HOME:=/opt/local/share/java/apache-ant"                                    >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "ANT_PATH:=/opt/local/share/java/apache-ant/bin"                                >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                                                     >> $(TOP)/configure/CONFIG_COMMON.local

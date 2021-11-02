@@ -23,14 +23,18 @@ $ sudo port unload mariadb-10.5-server
 $ sudo vi /opt/local/etc/mariadb-10.5/my.cnf
 # Use default MacPorts settings
 !include /opt/local/etc/mariadb-10.5/macports-default.cnf
-
-[mysqld]
-skip-networking=0
-bind-address=localhost
+[mariadb]
+skip-networking = 0
+bind-address = 127.0.0.1
+port = 3306
+$ sudo port load mariadb-10.5-server
+$ netstat -an |grep LISTEN
+$ nmap -sT -sV localhost -p 3306
 ```
 
+### Update DB for Archiver Appliance
+
 ```bash
-$ sudo port load mariadb-10.5-server 
 $ make db.secure
 $ make db.addAdmin
 $ make db.show
@@ -38,8 +42,6 @@ $ make db.create
 $ make db.show
 $ make sql.fill
 $ make sql.show
-
-
 #
 $ make macos.conf
 $ make tomcat.action
@@ -55,12 +57,18 @@ $ make services.install
 $ make exist
 ```
 
-## Run
+## Run, status, and stop
 
 ```bash
-sudo bash /opt/epicsarchiverap/archappl.bash startup
-sudo bash /opt/epicsarchiverap/archappl.bash status
+bash /opt/epicsarchiverap/archappl.bash startup
+bash /opt/epicsarchiverap/archappl.bash status
+bash /opt/epicaarchiverap/archappl.bash stop
 ```
+
+|![AAZ](images/macos.png)|
+| :---: |
+|**Figure 1** Archiver Appliance Home Page Screenshot on macOS.|
+
 
 ## Warning
 

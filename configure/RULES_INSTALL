@@ -66,6 +66,9 @@ src_install: src_version src_preinst
 #	$(if $(wildcard $(INSTALL_LOCATION)), $(QUIET)$(SUDO) mv $(INSTALL_LOCATION) $(INSTALL_LOCATION)_backup_$$(date +%Y%m%d-%H%M%S))
 	$(QUIET)$(SUDO) $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(INSTALL_LOCATION)
 
+src_uninstall:
+	$(QUIET)echo "Removing $(INSTALL_LOCATION)..."
+	$(QUIET)$(SUDO) rm -rf $(INSTALL_LOCATION)/
 
 # Don't need to run src_postrm
 uninstall: sd_stop sd_disable sd_clean

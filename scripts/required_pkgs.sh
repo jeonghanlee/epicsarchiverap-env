@@ -191,14 +191,15 @@ function rocky8_pkgs
 
 function macos_pkgs
 {
-    port install openjdk11-zulu \
+    port install openjdk17-zulu \
                  tree \
                  wget \
                  unzip \
                  curl \
                  mariadb-10.5 \
                  mariadb-10.5-server \
-                 apache-ant
+                 apache-ant \
+                 nmap
 }
 
 dist="$(find_dist)"
