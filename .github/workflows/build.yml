@@ -2,7 +2,6 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
 
 jobs:
   Ubuntu:
@@ -73,6 +72,7 @@ jobs:
           make init
           make install.pkgs
           make rocky8.conf
+          make tomcat.preinst
           make tomcat.action
           make build
           make src_install
@@ -91,6 +91,7 @@ jobs:
           make init
           make install.pkgs
           make rocky8.conf
+          make tomcat.preinst
           make tomcat.action
           make build
           make src_install
@@ -108,10 +109,26 @@ jobs:
           make init
           make install.pkgs
           make rocky8.conf
+          make tomcat.preinst
           make tomcat.action
           make build
           make src_install
           make services.install
           make exist
           make conf.archappl.show
-      
+
+  macOS11:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          brew install tree wget unzip curl nmap ant openjdk
+          make init
+#          make install.pkgs
+#          make macos.conf
+#          make tomcat.action
+#          make build
+#          make src_install
+#          make services.install
+#          make exist
+#          make conf.archappl.show
