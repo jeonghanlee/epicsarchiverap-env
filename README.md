@@ -2,7 +2,7 @@
 [![Build](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/build.yml/badge.svg)](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/build.yml)
 [![Linter Run](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/linter.yml/badge.svg)](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/linter.yml)
 
-Configuration Environment for [EPICS Archiver Appliance](https://github.com/slacmshankar/epicsarchiverap) for [the Advanced Light Source Upgrade (ALS-U) Project](https://als.lbl.gov/als-u/overview/) at [Lawrence Berkeley National Laboratory](https://lbl.gov)
+Configuration Environment for [EPICS Archiver Appliance](https://github.com/slacmshankar/epicsarchiverap) for [the Advanced Light Source Upgrade (ALS-U) Project](https://als.lbl.gov/als-u/overview/) at [Lawrence Berkeley National Laboratory](https://lbl.gov). Please check [the latest discussions for your own customizations.](https://github.com/jeonghanlee/epicsarchiverap-env/discussions/14)
  
 ## Pre-requirement packages
 
