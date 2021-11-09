@@ -1,11 +1,13 @@
 # Archiver Appliance for ONLY CentOS 8 
 
-This is the CentOS 8 specific installation guide. One may need to check Rocky 8 instead of CentOS 8.
+**CentOS Linux 8 will reach End of Life (EOL) on December 31st, 2021. Please decide which OS you should use wisely.**
+
+This is the CentOS 8 specific installation guide.
 
 ## Prerequirements
 
 ```bash
-dnf install -y sudo which git make
+dnf install -y sudo which git make wget
 ```
 
 ## Init
@@ -33,8 +35,6 @@ $ make sql.show
 #
 $ make centos8.conf
 $ make tomcat
-$ make tomcat.sd_start
-$ make tomcat.sd_status
 ```
 
 ## Build, Install, and Systemd services 
