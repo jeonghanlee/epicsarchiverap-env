@@ -10,7 +10,7 @@ Configuration Environment for [EPICS Archiver Appliance](https://github.com/slac
 git make sudo which
 ```
 
-## Debian 10/11
+## Debian 10/11 (EOL: 2024-06-01/2026-08-15)
 
 ### Preparation
 
@@ -47,15 +47,15 @@ make sd_start
 make sd_status
 ```
 
-## CentOS7
+## CentOS7 (EOL: 2024-06-30)
 
 See [docs/README.centos7.md](docs/README.centos7.md)
 
-## CentOS8
+## CentOS8 (EOL: 2021-12-31)
 
 See [docs/README.centos8.md](docs/README.centos8.md). 
 
-## Rocky8.4
+## Rocky8 (EOL: 2029-05-31)
 
 See [docs/README.rocky8.md](docs/README.rocky8.md).
 
