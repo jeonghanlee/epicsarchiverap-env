@@ -27,8 +27,6 @@ $ make sql.show
 #
 $ make rocky8.conf
 $ make tomcat
-$ make tomcat.sd_start
-$ make tomcat.sd_status
 ```
 
 ## Build, Install, and Systemd services 
