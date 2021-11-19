@@ -3,7 +3,15 @@
 [![Linter Run](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/linter.yml/badge.svg)](https://github.com/jeonghanlee/epicsarchiverap-env/actions/workflows/linter.yml)
 
 Configuration Environment for [EPICS Archiver Appliance](https://github.com/slacmshankar/epicsarchiverap) for [the Advanced Light Source Upgrade (ALS-U) Project](https://als.lbl.gov/als-u/overview/) at [Lawrence Berkeley National Laboratory](https://lbl.gov). Please check [the latest discussions for your own customizations.](https://github.com/jeonghanlee/epicsarchiverap-env/discussions/14)
- 
+
+## Please
+
+To understand how the archiver appliance works, one should understand that 
+- This reposiotry is a tool to help users to setup, maintain, and upgrade easily. 
+- each user should understand every single configuration very well.
+- archiving data is a very unique asset, which one has to handle seriously. 
+- I do not understant them all, but I want, and I am learning it continously still today.
+
 ## Pre-requirement packages
 
 ```bash
