@@ -6,10 +6,10 @@ Configuration Environment for [EPICS Archiver Appliance](https://github.com/slac
 
 ## Please
 
-To understand how the archiver appliance works, one should understand that 
-- This reposiotry is a tool to help users to setup, maintain, and upgrade easily. 
-- each user should understand every single configuration very well.
-- archiving data is a very unique asset, which one has to handle seriously. 
+One should understand that 
+- This reposiotry is a **simple tool** to help users to setup, maintain, and upgrade EPICS archiver appliance easily.
+- This repository does **NOT** support multiple archiver instances.
+- Archiving data is a very unique asset, which one has to handle seriously. 
 - I do not understant them all, but I want, and I am learning it continously still today.
 
 ## Pre-requirement packages
