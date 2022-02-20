@@ -19,8 +19,11 @@ $ bash scripts/required_pkgs.sh
 ### Configure MariaDB
 
 ```bash
+#
 $ sudo port unload mariadb-10.5-server
 $ sudo vi /opt/local/etc/mariadb-10.5/my.cnf
+#
+$ sudo vi /opt/homebrew/etc/my.cnf
 # Use default MacPorts settings
 !include /opt/local/etc/mariadb-10.5/macports-default.cnf
 [mariadb]
