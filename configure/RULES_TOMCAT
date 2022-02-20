@@ -141,7 +141,7 @@ rocky8.conf:
 	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"              >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 
-macos.conf:
+macport.conf:
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "JAVA_HOME:=/Library/Java/JavaVirtualMachines/openjdk17-zulu/Contents/Home"      > $(TOP)/configure/CONFIG_COMMON.local
@@ -155,6 +155,28 @@ macos.conf:
 	$(QUIET)echo "USERID:=${USER}"                     > $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "GROUPID:=20"                        >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=${HOME}/arch" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
+
+
+macos.conf: macbrew.conf
+
+macbrew.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_HOME:=/opt/homebrew/opt/openjdk"      > $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_PATH:=/opt/homebrew/opt/openjdk/bin" >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "ANT_HOME:=/opt/homebrew/opt/ant"          >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "ANT_PATH:=/opt/homebrew/opt/ant/bin"      >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "USERID:=${USER}"                     > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "GROUPID:=204"                       >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/Volumes/arch" >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local

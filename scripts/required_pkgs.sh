@@ -191,15 +191,27 @@ function rocky8_pkgs
 
 function macos_pkgs
 {
-    port install openjdk17-zulu \
-                 tree \
-                 wget \
-                 unzip \
-                 curl \
-                 mariadb-10.5 \
-                 mariadb-10.5-server \
-                 apache-ant \
-                 nmap
+    if command -v brew &> /dev/null
+    then
+	brew install openjdk tree wget unzip mariadb ant nmap
+ 
+    elif command -v port &> /dev/null
+    then
+	echo "Port"
+	exit
+	sudo port install openjdk17-zulu \
+        	     tree \
+               	     wget \
+                     unzip \
+                     curl \
+                     mariadb-10.5 \
+                     mariadb-10.5-server \
+                     apache-ant \
+                     nmap
+    else
+	echo "Please install port or brew first";
+	exit
+    fi
 }
 
 dist="$(find_dist)"

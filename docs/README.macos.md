@@ -10,10 +10,10 @@ $ make init
 
 ## Packages, and MariaDB, and Tomcat
 
-The default **port** package management shall be used. 
+The **port** and **brew** package management shall be used. 
 
 ```bash
-$ make install.pkgs
+$ bash scripts/required_pkgs.sh
 ```
 
 ### Configure MariaDB
@@ -27,7 +27,13 @@ $ sudo vi /opt/local/etc/mariadb-10.5/my.cnf
 skip-networking = 0
 bind-address = 127.0.0.1
 port = 3306
+# 
+# Select one of port or brew
+#
 $ sudo port load mariadb-10.5-server
+#
+$ brew services restart mariadb
+#
 $ netstat -an |grep LISTEN
 $ nmap -sT -sV localhost -p 3306
 ```
@@ -43,7 +49,12 @@ $ make db.show
 $ make sql.fill
 $ make sql.show
 #
-$ make macos.conf
+# Select one of port or brew
+# port
+$ make macport.conf
+# brew
+$ make macbrew.conf
+#
 $ make tomcat.action
 $ make tomcat.exit
 ```

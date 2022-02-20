@@ -24,7 +24,7 @@ git make sudo which
 
 ```bash
 make init
-make install.pkgs
+scripts/required_pkgs.sh
 ```
 
 ### MariaDB

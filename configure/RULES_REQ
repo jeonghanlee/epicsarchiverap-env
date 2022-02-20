@@ -9,8 +9,8 @@ clean_conf_RULES:=$(addprefix clean., $(clean_RULES_NAMES))
 
 
 
-install.pkgs: required_pkgs.sh
-	$(QUIET)sudo -E bash -c "$<"
+install.pkgs:
+	$(QUIET)echo "Please run bash scripts/required_pkgs.sh"
 
 install.localjava.all: $(req_install_RULES)
 
