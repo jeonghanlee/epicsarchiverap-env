@@ -1,4 +1,4 @@
-# Archiver Appliance for ONLY macOS 11.6.1
+``# Archiver Appliance for ONLY macOS 11.6.1
 
 This is the macOS 11.6.1 specific installation guide.  
 
@@ -18,25 +18,34 @@ $ bash scripts/required_pkgs.sh
 
 ### Configure MariaDB
 
+* port
+
 ```bash
 #
 $ sudo port unload mariadb-10.5-server
 $ sudo vi /opt/local/etc/mariadb-10.5/my.cnf
-#
-$ sudo vi /opt/homebrew/etc/my.cnf
 # Use default MacPorts settings
 !include /opt/local/etc/mariadb-10.5/macports-default.cnf
 [mariadb]
 skip-networking = 0
 bind-address = 127.0.0.1
 port = 3306
-# 
-# Select one of port or brew
-#
 $ sudo port load mariadb-10.5-server
-#
+```
+
+* brew
+
+```bash
+$ sudo vi /opt/homebrew/etc/my.cnf
+[mariadb]
+skip-networking = 0
+bind-address = 127.0.0.1
+port = 3306
 $ brew services restart mariadb
-#
+```
+* Check its status
+
+```bash
 $ netstat -an |grep LISTEN
 $ nmap -sT -sV localhost -p 3306
 ```
