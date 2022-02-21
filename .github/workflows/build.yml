@@ -89,7 +89,7 @@ jobs:
           dnf update -y
           dnf install -y git make sudo which
           make init
-          bash scripts/required_pkg.sh
+          bash scripts/required_pkgs.sh
           make rocky8.conf
           make tomcat.preinst
           make tomcat.action
