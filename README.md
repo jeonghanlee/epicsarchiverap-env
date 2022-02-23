@@ -57,11 +57,11 @@ make sd_status
 
 ## CentOS7 (EOL: 2024-06-30)
 
-See [docs/README.centos7.md](docs/README.centos7.md)
+See [docs/README.centos7.md](docs/README.centos7.md).
 
-## CentOS8 (EOL: 2021-12-31)
+## ~~CentOS8 (EOL: 2021-12-31)~~
 
-See [docs/README.centos8.md](docs/README.centos8.md). 
+~~See [docs/README.centos8.md](docs/README.centos8.md).~~
 
 ## Rocky8 (EOL: 2029-05-31)
 
@@ -76,7 +76,7 @@ See [docs/README.macos.md](docs/README.macos.md).
 ### Install required packages
 
 ```bash
-make install.pkgs
+scripts/required_pkgs.sh
 ```
 
 ### Tomcat 9
