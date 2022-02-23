@@ -68,7 +68,7 @@ $ make macport.conf
 $ make macbrew.conf
 #
 $ make tomcat.action
-$ make tomcat.exit
+$ make tomcat.exist
 ```
 
 ## Build and Install 

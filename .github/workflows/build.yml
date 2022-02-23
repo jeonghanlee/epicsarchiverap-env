@@ -29,7 +29,7 @@ jobs:
       - run: |
           apt update -y
           apt install -y git make sudo
-          make install.pkgs
+          bash scripts/required_pkgs.sh
           make init
           make install.jdk
           make conf.jdk
@@ -49,7 +49,7 @@ jobs:
       - run: |
           apt update -y
           apt install -y git make sudo
-          make install.pkgs
+          bash scripts/required_pkgs.sh
           make init
           make install.jdk
           make conf.jdk
@@ -70,7 +70,7 @@ jobs:
           yum update -y
           yum install -y git make sudo which
           make init
-          make install.pkgs
+          bash scripts/required_pkgs.sh
           make rocky8.conf
           make tomcat.preinst
           make tomcat.action
@@ -80,24 +80,6 @@ jobs:
           make exist
           make conf.archappl.show
       
-  CentOS8:
-    runs-on: ubuntu-latest
-    container: centos:centos8
-    steps:
-      - uses: actions/checkout@v2
-      - run: |
-          dnf update -y
-          dnf install -y git make sudo which
-          make init
-          make install.pkgs
-          make rocky8.conf
-          make tomcat.preinst
-          make tomcat.action
-          make build
-          make src_install
-          make services.install
-          make exist
-          make conf.archappl.show
   Rocky8:
     runs-on: ubuntu-latest
     container: rockylinux/rockylinux
@@ -107,7 +89,7 @@ jobs:
           dnf update -y
           dnf install -y git make sudo which
           make init
-          make install.pkgs
+          bash scripts/required_pkgs.sh
           make rocky8.conf
           make tomcat.preinst
           make tomcat.action
@@ -122,13 +104,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          brew install tree wget unzip curl nmap ant openjdk
+          brew install tree wget curl bash
           make init
-#          make install.pkgs
-#          make macos.conf
-#          make tomcat.action
-#          make build
-#          make src_install
-#          make services.install
-#          make exist
-#          make conf.archappl.show
+          bash scripts/required_pkgs.sh
+          make macbrew.conf
+          make tomcat.action
+          make tomcat.exist
+          make build
+          make src_install
+          make services.install
+          make exist
+          make conf.archappl.show
+
