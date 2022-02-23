@@ -69,3 +69,4 @@ apache-tomcat*
 .DS_Store
 *.save
 .plist
+site-template/*.plist

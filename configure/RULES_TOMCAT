@@ -174,10 +174,10 @@ macbrew.conf:
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "USERID:=${USER}"                  > $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "GROUPID:=_appserveradm"          >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "USERID:=${USER}"                                          > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "GROUPID:=admin"                                          >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch"                         >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=/opt/arch/sts/ArchiverStore"  >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=/opt/arch/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=/opt/arch/lts/ArchiverStore"   >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
