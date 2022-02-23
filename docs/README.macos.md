@@ -1,4 +1,4 @@
-``# Archiver Appliance for ONLY macOS 11.6.1
+# Archiver Appliance for ONLY macOS 11.6.1
 
 This is the macOS 11.6.1 specific installation guide.  
 
@@ -92,6 +92,31 @@ bash /opt/epicaarchiverap/archappl.bash stop
 | :---: |
 |**Figure 1** Archiver Appliance Home Page Screenshot on macOS.|
 
+
+## Launchctrl
+
+Note that the following rules are developing and they do not work. Please don't use this.
+
+
+```bash
+make conf.launch
+make conf.launch.show
+make install.launch
+make install.launch.show
+make launchctl_load
+make launchctl_unload
+```
+
+* Check the launch service 
+
+```bash
+make stop
+make launchctl_unload
+make launchctl_load
+make status
+```
+
+Note that at this moment, start and stop are not intergrated fully. One can stop the service through `archappl.bash shutdown`.
 
 ## Warning
 

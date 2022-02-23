@@ -61,7 +61,7 @@ install.systemd0.show:
 #	
 sd_status:
 	$(QUIET) systemctl status -l $(SYSTEMD_FILENAME) | cat -b
-#
+
 #
 sd_start:
 	$(QUIET)sudo systemctl start $(SYSTEMD_FILENAME)
@@ -86,3 +86,39 @@ sd_enable:
 sd_disable:
 	$(if $(wildcard $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)), sudo systemctl disable $(SYSTEMD_FILENAME))
 #
+#
+# launchctl for MacOS
+conf.launch: $(LAUNCH_PLIST_FILENAME).in
+	$(QUIET)echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(INSTALL_LOCATION):g" \
+				-e "s:@ARCHAPPL_MAIN_SCRIPT@:$(ARCHAPPL_MAIN_SCRIPT):g" \
+				-e "s:@USERID@:$(USERID):g" \
+				-e "s:@GROUPID@:$(GROUPID):g" \
+                < $< > $(basename $<)
+
+conf.launch.show: $(LAUNCH_PLIST_FILENAME).in
+	@cat -b $(basename $<)
+
+install.launch: $(LAUNCH_PLIST_FILENAME).in
+	$(QUIET)sudo $(INSTALL_DATA) -b $(basename $<) $(LAUNCH_PATH)/
+
+install.launch.show:
+	$(QUIET)cat -b $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME)
+#
+launchctl_load:
+	$(QUIET) sudo launchctl bootstrap user/$(USERID) $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME) | cat -b
+#
+launchctl_unload:
+	$(QUIET) sudo launchctl bootout user/$(USERID) $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME) | cat -b
+#
+launchctl_print:
+	$(QUIET) sudo launchctl print system/org.epics.archappl
+
+start:
+	$(QUIET) $(INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) startup
+
+stop:
+	$(QUIET) $(INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) shutdown
+
+status:
+	$(QUIET) $(INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) status

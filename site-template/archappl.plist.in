@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Disabled</key>
+        <false/>
+        <key>EnvironmentVariables</key>
+        <dict>
+            <key>PATH</key>
+            <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin</string>
+        </dict>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>Label</key>
+        <string>org.epics.archappl</string>
+        <key>ProgramArguments</key>
+            <array>
+            <string>@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@</string>
+            <string>startup</string>
+            </array>
+        <key>WorkingDirectory</key>
+        <string>@INSTALL_LOCATION@</string>
+        <key>UserName</key>
+        <string>@USERID@</string>
+        <key>GroupName</key>
+        <string>@GROUPID@</string>
+        <key>InitGroups</key>
+        <true/>
+        <key>StandardOutPath</key>
+        <string>@INSTALL_LOCATION@/launchctl_std.log</string>
+        <key>StandardErrorPath</key>
+        <string>@INSTALL_LOCATION@launchctl_err.log</string>
+        <key>inetdCompatibility</key>
+            <dict>
+            <key>Wait</key>
+            <false/>
+            </dict>
+    </dict>
+</plist>

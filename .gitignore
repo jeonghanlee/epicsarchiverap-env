@@ -68,3 +68,4 @@ archappl.conf
 apache-tomcat*
 .DS_Store
 *.save
+.plist

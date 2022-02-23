@@ -91,14 +91,14 @@ req_storage_RULES_NAMES:=storage storage.show storage.rm
 req_storage_RULES:=$(addprefix conf., $(req_storage_RULES_NAMES))
 
 conf.storage:
-	@echo "\n>>> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
-	@sudo $(INSTALL) -d $(ARCHAPPL_SHORT_TERM_FOLDER)
-	@sudo $(INSTALL) -d $(ARCHAPPL_MEDIUM_TERM_FOLDER)
-	@sudo $(INSTALL) -d $(ARCHAPPL_LONG_TERM_FOLDER)	
-	@sudo chown -R $(USERID):$(GROUPID) $(ARCHAPPL_STORAGE_TOP)
+	$(QUIET) echo "\n>>> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
+	sudo $(INSTALL) -d $(ARCHAPPL_SHORT_TERM_FOLDER)
+	sudo $(INSTALL) -d $(ARCHAPPL_MEDIUM_TERM_FOLDER)
+	sudo $(INSTALL) -d $(ARCHAPPL_LONG_TERM_FOLDER)	
+	sudo chown -R $(USERID):$(GROUPID) $(ARCHAPPL_STORAGE_TOP)
 
 conf.storage.show:
 	@tree -pugL  $(LEVEL)  $(ARCHAPPL_STORAGE_TOP);
 
 conf.storage.rm:
-	-rm -rf $(ARCHAPPL_STORAGE_TOP)
+	$(QUIET) sudo -rm -rf $(ARCHAPPL_STORAGE_TOP)

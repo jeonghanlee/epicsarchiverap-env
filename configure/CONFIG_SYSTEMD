@@ -2,3 +2,6 @@
 SYSTEMD_PATH:=/etc/systemd/system
 SYSTEMD_OVERRIDE_FILENAME:=override.conf
 SYSTEMD_FILENAME:=${APPNAME}.service
+LAUNCH_PATH:=/Library/LaunchDaemons
+LAUNCH_PLIST_FILENAME:=archappl.plist
+
