@@ -9,10 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
+          brew install tree
           which java
           which ant
           ls -lta /usr/bin/java
           ls -lta /usr/local/bin/ant
           java -version
           ant -version
-
+          tree /usr/local/Cellar
