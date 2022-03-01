@@ -11,4 +11,8 @@ jobs:
       - run: |
           which java
           which ant
+          ls -lta /usr/bin/java
+          ls -lta /usr/loca/bin/ant
+          java --version
+          ant --version
 
