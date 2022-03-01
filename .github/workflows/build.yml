@@ -12,7 +12,7 @@ jobs:
           which java
           which ant
           ls -lta /usr/bin/java
-          ls -lta /usr/loca/bin/ant
+          ls -lta /usr/local/bin/ant
           java --version
           ant --version
 
