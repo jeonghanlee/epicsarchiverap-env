@@ -107,7 +107,7 @@ jobs:
           brew install tree wget curl bash
           make init
           bash scripts/required_pkgs.sh
-          make macbrew.conf
+          make githubmac.conf
           make tomcat.action
           make tomcat.exist
           make build
