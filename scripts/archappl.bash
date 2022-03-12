@@ -2,7 +2,7 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.2
+#  version : 0.0.3
 
 
 declare -g SC_RPATH;
@@ -161,7 +161,11 @@ function status_storage
     local all=$1; shift;
     printf "\n>>>> Storage Status at %s\n\n" "${SC_TIME}";
     # ARCHAPPL_STORAGE_TOP is defined in archappl.conf
-    sudo -E bash -c "du --total --human-readable --time --\"${all}\" \"${ARCHAPPL_STORAGE_TOP}\"";
+    if [[ $OSTYPE == 'darwin'* ]]; then
+        sudo du -c -h -a "${ARCHAPPL_STORAGE_TOP}"
+    else
+        sudo -E bash -c "du --total --human-readable --time --\"${all}\" \"${ARCHAPPL_STORAGE_TOP}\"";
+    fi
     printf "\n";
 }
 
