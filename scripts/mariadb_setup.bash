@@ -315,13 +315,11 @@ function restore_db
 }
 
 
-# 1 : table
-# 2 : Table name
+# 1 : Table name
 function show_archappl
 {
     local db_name=archappl;
     local table_name="$1"; shift;
-    local type="$1"; shift;
     local db_exist;
     local tables;
     local cmd;
