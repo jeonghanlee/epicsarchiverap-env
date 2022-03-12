@@ -64,3 +64,17 @@ sql.table.show: mariadb_setup.bash
 sql.table.drop: mariadb_setup.bash
 	$(QUIET)bash $< tableDrop
 
+#
+aa_tables_RULES:=PVRequests.show DataServers.show PVAliases.show PVTypeInfo.show
+
+PVRequests.show: mariadb_setup.bash
+	$(QUIET)bash $< "aaShow" "ArchivePVRequests"
+
+DataServers.show: mariadb_setup.bash
+	$(QUIET)bash $< "aaShow" "ExternalDataServers"
+
+PVAliases.show: mariadb_setup.bash
+	$(QUIET)bash $< "aaShow" "PVAliases"
+
+PVTypeInfo.show: mariadb_setup.bash
+	$(QUIET)bash $< "aaShow" "PVTypeInfo"

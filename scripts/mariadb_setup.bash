@@ -315,6 +315,50 @@ function restore_db
 }
 
 
+# 1 : table
+# 2 : Table name
+function show_archappl
+{
+    local db_name=archappl;
+    local table_name="$1"; shift;
+    local type="$1"; shift;
+    local db_exist;
+    local tables;
+    local cmd;
+    local i;
+    i=0;
+
+    db_exist=$(isDb "${db_name}");
+
+    if [[ $db_exist -ne "$EXIST" ]]; then
+	    noDbMessage "${db_name}";
+	    exit;
+    else
+        cmd+="$SQL_DBUSER_CMD";
+        cmd+=" ";
+        cmd+="${db_name}";
+        cmd+=" ";
+        cmd+="-N";
+        cmd+=" ";
+        cmd+="--execute=\"";
+        # The following cmd contains only mysql standard query
+        cmd+="SELECT * FROM ${table_name}"
+        cmd+=";\"";
+        commandPrn "$cmd"
+        tables=$(eval "${cmd}" | awk '{print $1}')
+        printf "\n";
+        # shellcheck disable=SC2206
+        declare -a  table_array=( ${tables} )
+        for table in $tables
+        do
+            ((++i))
+            ((++j))
+            printf ">> %4d/%4d/%4d<< %80s\\n" "$j" "$i" "${#table_array[@]}" "${table}"
+	    done
+    fi
+}
+
+
 
 
 input="$1";
@@ -406,6 +450,12 @@ case "$input" in
     tableDrop)
         drop_tables "${DB_NAME}" "BASE TABLE";
         ;; 
+    aaShow)
+        if [ -z "${additional_input}" ]; then
+            additional_input="PVTypeInfo"
+        fi
+        show_archappl "${additional_input}";
+        ;;
     viewCreate)
         if [ -z "${additional_input}" ]; then
             additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_views.sql"

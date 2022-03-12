@@ -103,3 +103,34 @@ $ make sql.show
 ```bash
 make sql.drop
 ```
+
+
+## Archiver Appliance Table Entries
+
+The archiver SQL has four tables, which we can see with `make sql.show`. Here we can see its entries in each table in a short forrmat.
+
+* `ArchivePVRequests` Table
+
+```
+make PVRequests.show
+```
+
+* `ExternalDataServers` Table
+
+```
+make DataServers.show
+```
+
+* `PVAliases` Table
+
+```bash
+make PVAliases.show
+```
+
+* `PVTypeInfo` Table
+
+``bash
+make PVTypeInfo.show
+```
+
+

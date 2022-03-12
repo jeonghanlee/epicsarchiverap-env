@@ -5,32 +5,35 @@
 #  version : 0.0.6
 
 
+DB_PROTOCOL="tcp";
+
+
 if [[ $OSTYPE == 'darwin'* ]]; then
     if hash port 2>/dev/null; then	
         SQL_ROOT_CMD="sudo /opt/local/lib/mariadb-10.5/bin/mysql --user=root"
-    	# shellcheck disable=SC2153
-    	SQL_ADMIN_CMD="/opt/local/lib/mariadb-10.5/bin/mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
-    	# shellcheck disable=SC2153
-    	SQL_DBUSER_CMD="/opt/local/lib/mariadb-10.5/bin/mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
-    	# shellcheck disable=SC2034
-    	SQL_BACKUP_CMD="/opt/local/lib/mariadb-10.5/bin/mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
+        # shellcheck disable=SC2153
+        SQL_ADMIN_CMD="/opt/local/lib/mariadb-10.5/bin/mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+        # shellcheck disable=SC2153
+        SQL_DBUSER_CMD="/opt/local/lib/mariadb-10.5/bin/mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+        # shellcheck disable=SC2034
+        SQL_BACKUP_CMD="/opt/local/lib/mariadb-10.5/bin/mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
     else
         SQL_ROOT_CMD="sudo mysql --user=root"
-    	# shellcheck disable=SC2153
-    	SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
-    	# shellcheck disable=SC2153
-    	SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
-    	# shellcheck disable=SC2034
-    	SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
+        # shellcheck disable=SC2153
+        SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+        # shellcheck disable=SC2153
+        SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+        # shellcheck disable=SC2034
+        SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
     fi
 else
     SQL_ROOT_CMD="sudo mysql --user=root"
     # shellcheck disable=SC2153
-    SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
+    SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
     # shellcheck disable=SC2153
-    SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
+    SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
     # shellcheck disable=SC2034
-    SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME}"
+    SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
 fi
 
 EXIST=1
