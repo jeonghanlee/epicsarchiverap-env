@@ -111,13 +111,13 @@ The archiver SQL has four tables, which we can see with `make sql.show`. Here we
 
 * `ArchivePVRequests` Table
 
-```
+```bash
 make PVRequests.show
 ```
 
 * `ExternalDataServers` Table
 
-```
+```bash
 make DataServers.show
 ```
 
@@ -129,7 +129,7 @@ make PVAliases.show
 
 * `PVTypeInfo` Table
 
-``bash
+```bash
 make PVTypeInfo.show
 ```
 
