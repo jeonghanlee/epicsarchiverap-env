@@ -185,8 +185,8 @@ macbrew.conf:
 githubmac.conf:
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_HOME:=/usr/local/Cellar/openjdk/17.0.2"       > $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_PATH:=/usr/local/Cellar/openjdk/17.0.2/bin"  >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_HOME:=/Library/Java/JavaVirtualMachines/openjdk-17.jdk"       > $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "JAVA_PATH:=/Library/Java/JavaVirtualMachines/openjdk-17.jdk/bin"  >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "ANT_HOME:=/usr/local/Cellar/ant/1.10.12"          >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "ANT_PATH:=/usr/local/Cellar/ant/1.10.12/bin"      >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                        >> $(TOP)/configure/CONFIG_COMMON.local
