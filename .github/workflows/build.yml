@@ -105,21 +105,3 @@ jobs:
           make services.install
           make exist
           make conf.archappl.show
-  Rocky9:
-    runs-on: ubuntu-latest
-    container: rockylinux/rockylinux:9
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          dnf update -y
-          dnf install -y git make sudo which
-          make init
-          bash scripts/required_pkgs.sh
-          make rocky8.conf
-          make tomcat.preinst
-          make tomcat.action
-          make build
-          make src_install
-          make services.install
-          make exist
-          make conf.archappl.show
