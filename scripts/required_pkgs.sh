@@ -11,9 +11,11 @@ declare -g SC_SCRIPT;
 declare -g SC_TOP;
 #declare -g LOGDATE;
 
-SC_SCRIPT="$(realpath "$0")";
+$SC_SCRIPT="${BASH_SOURCE[0]:-${0}}";
 #SC_SCRIPTNAME=${0##*/};
-SC_TOP="${SC_SCRIPT%/*}"
+#SC_TOP="${SC_SCRIPT%/*}"
+SC_TOP="$( cd -P "$( dirname "$SC_SCRIPT" )" && pwd )"
+
 #LOGDATE="$(date +%y%m%d%H%M)"
 
 function pushd { builtin pushd "$@" > /dev/null || exit; }
@@ -193,7 +195,7 @@ function macos_pkgs
 {
     if command -v brew &> /dev/null
     then
-	brew install tree wget unzip mariadb ant nmap realpath
+	brew install tree wget unzip mariadb ant nmap
  
     elif command -v port &> /dev/null
     then
