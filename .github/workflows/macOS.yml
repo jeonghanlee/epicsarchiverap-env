@@ -28,7 +28,7 @@ jobs:
         run: |
           make githubmac.conf
           make tomcat.action
-          make tomcat.exit
+          make tomcat.exist
       - name: Build Archiver Appliance
         run: |
           make build
