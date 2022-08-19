@@ -193,7 +193,7 @@ function macos_pkgs
 {
     if command -v brew &> /dev/null
     then
-	brew install openjdk tree wget unzip mariadb ant nmap
+	brew install tree wget unzip mariadb ant nmap realpath
  
     elif command -v port &> /dev/null
     then
