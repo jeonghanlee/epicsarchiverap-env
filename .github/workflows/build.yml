@@ -4,9 +4,6 @@ name: Build
 on:
   push:
     branches: [master]
-    paths:
-      - '.github/workflows/build.yml'
-
     paths-ignores:
       - '**.md'
       - '.github/workflows/macOS.yml'
