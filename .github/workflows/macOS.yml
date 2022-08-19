@@ -23,7 +23,7 @@ jobs:
           brew install tree wget curl bash
           make init
           bash scripts/required_pkgs.sh
-          tree /usr/local/Cellar
+          tree -L 2 /usr/local/Cellar
       - name: Configuration
         run: |
           make githubmac.conf
