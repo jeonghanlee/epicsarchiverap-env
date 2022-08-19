@@ -99,20 +99,4 @@ jobs:
           make exist
           make conf.archappl.show
 
-  macOS11:
-    runs-on: macos-11
-    steps:
-      - uses: actions/checkout@v2
-      - run: |
-          brew install tree wget curl bash
-          make init
-          bash scripts/required_pkgs.sh
-          make githubmac.conf
-          make tomcat.action
-          make tomcat.exist
-          make build
-          make src_install
-          make services.install
-          make exist
-          make conf.archappl.show
 

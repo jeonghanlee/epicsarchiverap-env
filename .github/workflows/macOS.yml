@@ -1,0 +1,47 @@
+name: macOS build
+
+on:
+  push:
+    branches: [master]
+      
+    paths-ignores:
+      - '**.md'
+
+  pull_request:
+    branches: [master]
+
+
+jobs:
+  macOS11:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+            distribution: 'zulu'
+            java-version: '17'
+
+      - name: Install required packages
+        run: |
+          brew install tree wget curl bash
+          make init
+          bash scripts/required_pkgs.sh
+        
+      - name: Configuration
+        run: |
+          make githubmac.conf
+          make tomcat.action
+          make tomcat.exit
+
+      - name: Build Archiver Appliance
+        run: |
+          make build
+          make src_install
+          make services.install
+ 
+      - name: Environment Check
+        run: |
+          make exist
+          make conf.archappl.show
+          
+

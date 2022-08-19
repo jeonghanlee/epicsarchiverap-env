@@ -200,14 +200,14 @@ function macos_pkgs
 	echo "Port"
 	exit
 	sudo port install openjdk17-zulu \
-        	     tree \
-               	     wget \
-                     unzip \
-                     curl \
-                     mariadb-10.5 \
-                     mariadb-10.5-server \
-                     apache-ant \
-                     nmap
+        	        tree \
+               	    wget \
+                    unzip \
+                    curl \
+                    mariadb-10.5 \
+                    mariadb-10.5-server \
+                    apache-ant \
+                    nmap
     else
 	echo "Please install port or brew first";
 	exit
