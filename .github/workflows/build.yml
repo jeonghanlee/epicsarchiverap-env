@@ -7,7 +7,7 @@ jobs:
   Ubuntu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           sudo apt update -y
           sudo apt install -y curl git openssl sed wget sudo tree unzip make build-essential gcc tomcat9 tomcat9-common tomcat9-admin tomcat9-user libtomcat9-java jsvc
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:bullseye
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           apt update -y
           apt install -y git make sudo
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:buster
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           apt update -y
           apt install -y git make sudo
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     container: centos:centos7
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           yum update -y
           yum install -y git make sudo which
@@ -82,9 +82,9 @@ jobs:
       
   Rocky8:
     runs-on: ubuntu-latest
-    container: rockylinux/rockylinux
+    container: rockylinux/rockylinux:8
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           dnf update -y
           dnf install -y git make sudo which
