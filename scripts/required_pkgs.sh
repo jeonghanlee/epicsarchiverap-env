@@ -117,7 +117,7 @@ function debian11_pkgs
                    mariadb-client  \
                    libmariadb-dev \
                    libmariadb-dev-compat \
-                   openjdk-11-jdk \
+                   openjdk-17-jdk \
                    ant \
                    tomcat9 \
                    tomcat9-common \
