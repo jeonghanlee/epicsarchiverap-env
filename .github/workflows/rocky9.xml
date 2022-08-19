@@ -12,7 +12,8 @@ on:
 
 jobs:
   rocky9:
-    runs-on: macos-11
+    runs-on: ubuntu-latest
+    container: rockylinux/rockylinux:9
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3

@@ -1,7 +1,14 @@
+---
 name: Build
 
 on:
   push:
+    branches: [master]
+    paths-ignores:
+      - '**.md'
+
+  pull_request:
+    branches: [master]
 
 jobs:
   Ubuntu:
@@ -98,5 +105,3 @@ jobs:
           make services.install
           make exist
           make conf.archappl.show
-
-
