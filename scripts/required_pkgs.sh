@@ -11,7 +11,7 @@ declare -g SC_SCRIPT;
 declare -g SC_TOP;
 #declare -g LOGDATE;
 
-$SC_SCRIPT="${BASH_SOURCE[0]:-${0}}";
+SC_SCRIPT="${BASH_SOURCE[0]:-${0}}";
 #SC_SCRIPTNAME=${0##*/};
 #SC_TOP="${SC_SCRIPT%/*}"
 SC_TOP="$( cd -P "$( dirname "$SC_SCRIPT" )" && pwd )"
