@@ -1,6 +1,8 @@
 
 ### ArchiverAppliance Configuration Path
-INSTALL_LOCATION=/opt/${APPNAME}
+
+INSTALL_PATH=/opt
+INSTALL_LOCATION=${INSTALL_PATH}/${APPNAME}
 
 WARS_TARGET:=$(TOP)/wars
 
