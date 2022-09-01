@@ -67,25 +67,25 @@ define a_service_BUIDER
 install.$(patsubst $(3)/%,%,$(4)):
 	@echo ">>> Installing $(patsubst $(3)/%,%,$(4))"
 	@echo "    0) Creating $(4)/{conf,logs,webapps,work,temp}"
-	@sudo install -d $(4)
-	@sudo install -d $(4)/conf
-	@sudo install -d $(4)/logs
-	@sudo install -d $(4)/webapps
-	@sudo install -d $(4)/work
-	@sudo install -d $(4)/temp
+	@$(SUDO) install -d $(4)
+	@$(SUDO) install -d $(4)/conf
+	@$(SUDO) install -d $(4)/logs
+	@$(SUDO) install -d $(4)/webapps
+	@$(SUDO) install -d $(4)/work
+	@$(SUDO) install -d $(4)/temp
 	@echo "    1) Copy all template from $(TOMCAT_HOME)/skel/* to $(4)/"
-	@sudo cp -r $(SITE_TEMPLATE_PATH)/skel/* $(4)/
+	@$(SUDO) cp -r $(SITE_TEMPLATE_PATH)/skel/* $(4)/
 	@echo "    2) Extracting $(patsubst $(3)/%,%,$(4)).war into $(4)/webapps/$(patsubst $(3)/%,%,$(4))"
-	@sudo unzip -q -o $(WARS_TARGET)/$(patsubst $(3)/%,%,$(4)).war -d $(4)/webapps/$(patsubst $(3)/%,%,$(4))
+	@$(SUDO) unzip -q -o $(WARS_TARGET)/$(patsubst $(3)/%,%,$(4)).war -d $(4)/webapps/$(patsubst $(3)/%,%,$(4))
 	@echo "    3) Install $(ARCHAPPL_CONTEXT_XML) into $(4)/conf/"
-	@sudo install -m 644 $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_CONTEXT_XML) $(4)/conf/
+	@$(SUDO) install -m 644 $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_CONTEXT_XML) $(4)/conf/
 	@echo "    4) Install $(ARCHAPPL_TOMCAT_STARTUP) and $(ARCHAPPL_TOMCAT_SHUTDOWN) in $(4)/bin"
-	@sudo -E bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_STARTUP).in > $(4)/bin/$(ARCHAPPL_TOMCAT_STARTUP)"
-	@sudo -E bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_SHUTDOWN).in > $(4)/bin/$(ARCHAPPL_TOMCAT_SHUTDOWN)"
-	@sudo chmod +x $(4)/bin/*
+	@$(SUDO) bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_STARTUP).in > $(4)/bin/$(ARCHAPPL_TOMCAT_STARTUP)"
+	@$(SUDO) bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_SHUTDOWN).in > $(4)/bin/$(ARCHAPPL_TOMCAT_SHUTDOWN)"
+	@$(SUDO) chmod +x $(4)/bin/*
 	@echo "    5) Change $(4) permission with $(1):$(2)"
-	@sudo chown -R $(1):$(2) $(4)
-	@sudo echo ""
+	@$(SUDO) chown -R $(1):$(2) $(4)
+	@$(SUDO) echo ""
 
 $(5)+=install.$(patsubst $(3)/%,%,$(4))
 endef
