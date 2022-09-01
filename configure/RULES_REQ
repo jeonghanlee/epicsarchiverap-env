@@ -1,13 +1,8 @@
-# -*- mode: Makefile;-*-
-
 req_RULES_NAMES:=pkgs jdk ant maven localjava.all
 req_install_RULES:=$(filter-out %java.all %.pkgs, $(addprefix install., $(req_RULES_NAMES)) )
 req_conf_RULES:=$(filter-out %java.all %.pkgs, $(addprefix conf., $(req_RULES_NAMES)) )
 clean_RULES_NAMES:=localjdk localant localmaven
 clean_conf_RULES:=$(addprefix clean., $(clean_RULES_NAMES))
-
-
-
 
 install.pkgs:
 	$(QUIET)echo "Please run bash scripts/required_pkgs.sh"
@@ -64,7 +59,7 @@ clean.localmaven:
 	$(QUIET)rm -f $(TOP)/configure/CONFIG_COMMON_MAVEN.local
 
 
- $(JAVA_LOCAL):
+$(JAVA_LOCAL):
 	@mkdir -p $@
 
 .PHONY: get.jdbc clean.jdbc install.jdbc
@@ -78,7 +73,7 @@ clean.jdbc:
 
 install.jdbc:
 	$(QUIET) echo "Copying $(wildcard mariadb-java-*.jar) to $(TOMCAT_HOME)/lib/"
-	$(QUIET) sudo $(INSTALL_755) mariadb-java-*.jar $(TOMCAT_HOME)/lib/
+	$(QUIET) $(SUDO) $(INSTALL_755) mariadb-java-*.jar $(TOMCAT_HOME)/lib/
 else
 
 clean.jdbc:
@@ -91,14 +86,14 @@ req_storage_RULES_NAMES:=storage storage.show storage.rm
 req_storage_RULES:=$(addprefix conf., $(req_storage_RULES_NAMES))
 
 conf.storage:
-	$(QUIET) echo "\n>>> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
-	sudo $(INSTALL) -d $(ARCHAPPL_SHORT_TERM_FOLDER)
-	sudo $(INSTALL) -d $(ARCHAPPL_MEDIUM_TERM_FOLDER)
-	sudo $(INSTALL) -d $(ARCHAPPL_LONG_TERM_FOLDER)	
-	sudo chown -R $(USERID):$(GROUPID) $(ARCHAPPL_STORAGE_TOP)
+	@echo "\n>>> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
+	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_SHORT_TERM_FOLDER)
+	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_MEDIUM_TERM_FOLDER)
+	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_LONG_TERM_FOLDER)	
+	@$(SUDO) chown -R $(USERID):$(GROUPID) $(ARCHAPPL_STORAGE_TOP)
 
 conf.storage.show:
-	@tree -pugL  $(LEVEL)  $(ARCHAPPL_STORAGE_TOP);
+	@tree -pugL $(LEVEL) $(ARCHAPPL_STORAGE_TOP);
 
 conf.storage.rm:
-	$(QUIET) sudo -rm -rf $(ARCHAPPL_STORAGE_TOP)
+	-rm -rf $(ARCHAPPL_STORAGE_TOP)
