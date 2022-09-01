@@ -2,7 +2,8 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.8
+#  version : 0.0.9
+#  date    : Thu 01 Sep 2022 04:44:08 PM PDT
 
 declare -g SC_SCRIPT;
 declare -g SC_TOP;
@@ -394,10 +395,12 @@ case "$input" in
 	    ;;
     dbCreate)
         create_db "${DB_NAME}";
+        create_db "${DB_NAME}_summary";
         ;;
     dbUserCreate)
         # shellcheck disable=SC2153
         create_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
+        create_db "${DB_NAME}_summary";
         ;;
     dbShow)
         show_dbs;

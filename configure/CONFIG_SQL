@@ -4,11 +4,18 @@ SQL_SITE_PATH:=$(SITE_TEMPLATE_PATH)/sql
 
 SQL_CONFIG_FILE:=mariadb.conf
 
+
+#
+# We use the hard-coded file name instead of $DB_NAME_mysql.sql
+# 
 SQL_AA_ORIG_SQL:=$(SQL_TOP_PATH)/archappl_mysql.sql
 
+# This file doesn't have any archappl (DB_NAME) within
 SQL_AA_UPDATE_SQL:=$(SQL_SITE_PATH)/archappl_mysql_updated.sql
 
-
+# This is a template which contains DB_NAME, will be replaced with DB_NAME
+#
+SQL_AA_ALS_SQL:=$(SQL_SITE_PATH)/archappl_summary_views.sql
 
 ## https://mariadb.com/kb/en/about-mariadb-connector-j/
 # For MySQL : com.mysql.jdbc.Driver

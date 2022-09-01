@@ -1,5 +1,5 @@
 
-sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show 
+sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show alsconf alsconf.show
 sql_db_RULES:=$(addprefix db., $(sql_db_RULES_NAMES))
 
 db.conf: $(SQL_CONFIG_FILE).in 
@@ -17,8 +17,25 @@ db.conf: $(SQL_CONFIG_FILE).in
 			-e "s|@DB_USER_PASS@|$(DB_USER_PASS)|g" \
 			< $< > $(basename $<)
 
-db.conf.show: 
+db.conf.show:
 	$(QUIET)cat -b $(SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)
+
+db.alsconf: $(SQL_AA_ALS_SQL).in
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)sed -e "s|@DB_ADMIN_HOST@|"$(DB_ADMIN_HOST)"|g" \
+			-e "s|@DB_ADMIN@|$(DB_ADMIN)|g" \
+			-e "s|@DB_ADMIN_PASS@|$(DB_ADMIN_PASS)|g" \
+			-e "s|@DB_HOST@|$(DB_HOST)|g" \
+			-e "s|@DB_HOST_NAME@|$(DB_HOST_NAME)|g" \
+			-e "s|@DB_HOST_IPADDR@|$(DB_HOST_IPADDR)|g" \
+			-e "s|@DB_NAME@|$(DB_NAME)|g" \
+			-e "s|@DB_HOST_PORT@|$(DB_HOST_PORT)|g" \
+			-e "s|@DB_USER@|$(DB_USER)|g" \
+			-e "s|@DB_USER_PASS@|$(DB_USER_PASS)|g" \
+			< $< > $(basename $<)
+
+db.alsconf.show: $(SQL_AA_ALS_SQL).in
+	$(QUIET)cat -b $(basename $<)
 
 db.secure: mariadb_setup.bash db.conf
 	$(QUIET)bash $< secureSetup
