@@ -4,6 +4,12 @@
 # https://epics.anl.gov/tech-talk/2021/msg00121.php
 # 
 
+
+
+# The following EPICS Environment Variables are used for the epics archiver appliance internally,
+# it uses the slightly different default values in several varialbes
+# Reserved the following EPICS variables according to src/main/org/epics/archiverappliance/engine/epics/JCAConfigGen.java
+#
 # Don't need to use ", please see the examples below
 EPICS_CA_ADDR_LIST=localhost
 # EPICS_CA_ADDR_LIST=localhost 10.0.0.100:100000
@@ -16,13 +22,23 @@ EPICS_CA_AUTO_ADDR_LIST=YES
 #
 # It determines the maximum array that it will send or receive.
 # 16384 byte network  buffers
+# i >= 16384 	Default [EPICS/Archiver] 16384/30.0
 EPICS_CA_MAX_ARRAY_BYTES=16384
 #
 # Reserved the following EPICS variables according to src/main/org/epics/archiverappliance/engine/epics/JCAConfigGen.java
-# EPICS_CA_CONN_TMO=
-# EPICS_CAS_BEACON_PERIOD=
-# EPICS_CA_REPEATER_PORT=
-# EPICS_CA_SERVER_PORT=
+# Disconnect Time Out Interval
+# For efficient operation it is recommended that EPICS_CA_CONN_TMO be set to no less than twice the value specified for EPICS_CA_BEACON_PERIOD.
+# r > 0.1 seconds 	Default [EPICS/Archiver] 30.0/30.0
+EPICS_CA_CONN_TMO=30.0
+#
+# r > 0.1 seconds 	Default [EPICS/Archiver] 15.0/30
+EPICS_CA_BEACON_PERIOD=15.0
+# CA Beacons (sent to CA repeater daemon)
+# i > 5000 	Default [EPICS/Archiver] 5065/5065
+EPICS_CA_REPEATER_PORT=5065
+# CA Server
+# i > 5000 	Default [EPICS/Arvhier] 5064/5064
+EPICS_CA_SERVER_PORT=5064
 
 
 # These allow developers to override the CONFIG_EPICSENV variable

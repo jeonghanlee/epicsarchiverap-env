@@ -91,6 +91,10 @@ conf.archappl: $(ARCHAPPL_CONF).in
 			 -e "s|@EPICS_CA_ADDR_LIST@|$(EPICS_CA_ADDR_LIST)|g" \
 			 -e "s:@EPICS_CA_AUTO_ADDR_LIST@:$(EPICS_CA_AUTO_ADDR_LIST):g" \
 			 -e "s:@EPICS_CA_MAX_ARRAY_BYTES@:$(EPICS_CA_MAX_ARRAY_BYTES):g" \
+			 -e "s|@EPICS_CA_BEACON_PERIOD@|$(EPICS_CA_BEACON_PERIOD)|g" \
+			 -e "s|@EPICS_CA_CONN_TMO@|$(EPICS_CA_CONN_TMO)|g" \
+			 -e "s:@EPICS_CA_REPEATER_PORT@:$(EPICS_CA_REPEATER_PORT):g" \
+			 -e "s:@EPICS_CA_SERVER_PORT@:$(EPICS_CA_SERVER_PORT):g" \
 			 -e "s:@TOMCAT_HOME@:$(TOMCAT_HOME):g" -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
 			< $< > $(basename $<)
 
