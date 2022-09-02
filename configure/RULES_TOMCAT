@@ -18,44 +18,44 @@ tomcat.get:
 
 tomcat.uninstall: tomcat.postrm
 	$(QUIET)echo "Removing $(TOMCAT_INSTALL_LOCATION)..."
-	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
+	$(QUIET)$(SUDO) rm -rf $(TOMCAT_INSTALL_LOCATION)/
 
 tomcat.uninstallall: tomcat.sd_stop tomcat.sd_disable tomcat.sd_clean tomcat.postrm
 	$(QUIET)echo "Removing $(TOMCAT_INSTALL_LOCATION)..."
-	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
-	$(QUIET)sudo systemctl daemon-reload
+	$(QUIET)$(SUDO) rm -rf $(TOMCAT_INSTALL_LOCATION)/
+	$(QUIET)$(SUDO) systemctl daemon-reload
 
 
 tomcat.uninstallaction:
 	$(QUIET)echo "Removing $(TOMCAT_INSTALL_LOCATION)..."
-	$(QUIET)sudo rm -rf $(TOMCAT_INSTALL_LOCATION)/
+	$(QUIET)$(SUDO) rm -rf $(TOMCAT_INSTALL_LOCATION)/
 
 tomcat.installaction: tomcat.src_install tomcat.update
-	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
-	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
-	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
-	$(QUIET)sudo chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
+	$(QUIET)$(SUDO) chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
+	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
+	$(QUIET)$(SUDO) chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 
 tomcat.install: tomcat.preinst tomcat.src_install tomcat.update
-	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
-	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
-	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
-	$(QUIET)sudo chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
-#	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
+	$(QUIET)$(SUDO) chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
+	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
+	$(QUIET)$(SUDO) chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
+#	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
 
 tomcat.installall: tomcat.preinst tomcat.src_install tomcat.update tomcat.sd_install tomcat.sd_enable
-	$(QUIET)sudo chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
-	$(QUIET)sudo chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
-	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
-	$(QUIET)sudo chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
-#	$(QUIET)sudo chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
+	$(QUIET)$(SUDO) chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
+	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
+	$(QUIET)$(SUDO) chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
+#	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
 
 tomcat.src_install:
-	$(QUIET)sudo $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(TOMCAT_INSTALL_LOCATION)
-	$(QUIET)sudo tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
+	$(QUIET)$(SUDO) $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
 
 tomcat.update:
-	$(QUIET)sudo sed -i.bak -e "s:<Connector port=\"8080\" :<Connector port=\"$(TOMCAT_DEFAULT_PORT)\" :g" \
+	$(QUIET)$(SUDO) sed -i.bak -e "s:<Connector port=\"8080\" :<Connector port=\"$(TOMCAT_DEFAULT_PORT)\" :g" \
 	$(TOMCAT_INSTALL_LOCATION)/conf/$(TOMCAT_DEFAULT_SERVER_XML)
 
 # Debian Tomcat Service is already in the system
@@ -78,8 +78,8 @@ endif
 
 
 tomcat.sd_install: tomcat.sd_conf
-	$(QUIET)sudo $(INSTALL_DATA) -b $(SITE_TEMPLATE_PATH)/systemd/$(TOMCAT_SYSTEMD) $(SYSTEMD_PATH)/
-	$(QUIET)sudo systemctl daemon-reload
+	$(QUIET)$(SUDO) $(INSTALL_DATA) -b $(SITE_TEMPLATE_PATH)/systemd/$(TOMCAT_SYSTEMD) $(SYSTEMD_PATH)/
+	$(QUIET)$(SUDO) systemctl daemon-reload
 
 tomcat.sd_conf: $(TOMCAT_SYSTEMD).in
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
@@ -104,27 +104,27 @@ tomcat.sd_status:
 #
 #
 tomcat.sd_start:
-	$(QUIET)sudo systemctl start $(TOMCAT_SYSTEMD)
+	$(QUIET)$(SUDO) systemctl start $(TOMCAT_SYSTEMD)
 #
 # We ignore its error
 tomcat.sd_stop:
-	-$(QUIET)sudo systemctl stop $(TOMCAT_SYSTEMD)
+	-$(QUIET)$(SUDO) systemctl stop $(TOMCAT_SYSTEMD)
 #
 #
 tomcat.sd_restart:
-	$(QUIET)sudo systemctl restart $(TOMCAT_SYSTEMD)
+	$(QUIET)$(SUDO) systemctl restart $(TOMCAT_SYSTEMD)
 #
 # We ignore its error
 tomcat.sd_clean:
-	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), $(QUIET)sudo rm -f $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD))
+	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), $(QUIET)$(SUDO) rm -f $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD))
 #
 #
 tomcat.sd_enable:
-	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), sudo systemctl enable $(TOMCAT_SYSTEMD))
+	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), $(SUDO) systemctl enable $(TOMCAT_SYSTEMD))
 #
 #
 tomcat.sd_disable:
-	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), sudo systemctl disable $(TOMCAT_SYSTEMD))
+	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), $(SUDO) systemctl disable $(TOMCAT_SYSTEMD))
 #
 
 .PHONY: centos8.conf rocky8.conf centos7.conf
@@ -141,7 +141,7 @@ rocky8.conf:
 	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"              >> $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 
-macport.conf:
+macos.conf:
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo "JAVA_HOME:=/Library/Java/JavaVirtualMachines/openjdk17-zulu/Contents/Home"      > $(TOP)/configure/CONFIG_COMMON.local
