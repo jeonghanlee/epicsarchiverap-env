@@ -30,12 +30,20 @@ import os
 
 # Generate a list of policy names. This is used to feed the dropdown in the UI.
 def getPolicyList():
-	pvPoliciesDict = {}
-	pvPoliciesDict['Default'] = 'The default policy'
-	pvPoliciesDict['BPMS'] = 'BPMS that generate more than 1GB a year'
-	pvPoliciesDict['2HzPVs'] = 'PVs with an event rate more than 2Hz'
-	pvPoliciesDict['3DaysMTSOnly'] = 'Store data for 3 days upto the MTS only.'
-	return pvPoliciesDict
+        pvPoliciesDict = {}
+        pvPoliciesDict['Default']i = '1 Hz monitor'
+        pvPoliciesDict['VeryFast'] = '10 hz monitor, LTS reduce to 10 sec, always archived'
+        pvPoliciesDict['Fast'] = '1 hz monitor, LTS reduce to 30 sec, always archived'
+        pvPoliciesDict['Medium'] = '10 sec monitor, LTS reduce to 60 sec, always archived'
+        pvPoliciesDict['Slow'] = '60 sec scan, LTS reduce to 180 sec, always archived'
+        pvPoliciesDict['VerySlow'] = '15 min scan, No LTS reduce, always archived'
+        pvPoliciesDict['VeryFastControlled'] = '10 hz monitor, LTS reduce to 10 sec, archived based on PV status'
+        pvPoliciesDict['FastControlled'] = '1 hz monitor, LTS reduce to 30 sec, archived based on PV status'
+        pvPoliciesDict['MediumControlled'] = '10 sec monitor, LTS reduce to 60 sec, archived based on PV status'
+        pvPoliciesDict['SlowControlled'] = '60 sec scan, LTS reduce to 180 sec, archived based on PV status'
+        pvPoliciesDict['VerySlowControlled'] = '15 min scan, No LTS reduce, archived based on PV status'
+        return pvPoliciesDict
+
 
 # Define a list of fields that will be archived as part of every PV.
 # The data for these fields will included in the stream for the PV.
@@ -43,15 +51,35 @@ def getPolicyList():
 def getFieldsArchivedAsPartOfStream():
 	 return ['HIHI','HIGH','LOW','LOLO','LOPR','HOPR','DRVH','DRVL'];
 
-
 # We use the environment variables ARCHAPPL_SHORT_TERM_FOLDER and ARCHAPPL_MEDIUM_TERM_FOLDER to determine the location of the STS and the MTS in the appliance
-h01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=PARTITION_HOUR&consolidateOnShutdown=true'
-d01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=8&gather=1'
-d03_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=4&gather=1'
-d07_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=8&gather=1'
-d14_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=15&gather=1'
-y01_plugin_url = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=PARTITION_YEAR'
-bkh_plugin_url = 'blackhole://@ARCHAPPL_HOST_IPADDR@?name=LTS'
+STS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=PARTITION_HOUR&hold=2&gather=1&consolidateOnShutdown=true'
+MTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_MONTH&hold=2&gather=1'
+LTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=PARTITION_YEAR'
+
+
+default_sts_plugin_url = '%s' % (STS_BASE_URL)
+default_mts_plugin_url = '%s' % (MTS_BASE_URL)
+default_lts_plugin_url = '%s' % (LTS_BASE_URL)
+
+veryfast_sts_plugin_url = '%s' % (STS_BASE_URL)
+veryfast_mts_plugin_url = '%s' % (MTS_BASE_URL)
+veryfast_lts_plugin_url = '%s&reducedata=lastSample_10' % (LTS_BASE_URL)
+
+fast_sts_plugin_url = '%s' % (STS_BASE_URL)
+fast_mts_plugin_url = '%s' % (MTS_BASE_URL)
+fast_lts_plugin_url = '%s&reducedata=lastSample_30' % (LTS_BASE_URL)
+
+medium_sts_plugin_url = '%s' % (STS_BASE_URL)
+medium_mts_plugin_url = '%s' % (MTS_BASE_URL)
+medium_lts_plugin_url = '%s&reducedata=lastSample_60' % (LTS_BASE_URL)
+
+slow_sts_plugin_url = '%s' % (STS_BASE_URL)
+slow_mts_plugin_url = '%s' % (MTS_BASE_URL)
+slow_lts_plugin_url = '%s&reducedata=lastSample_180' % (LTS_BASE_URL)
+
+veryslow_sts_plugin_url = '%s' % (STS_BASE_URL)
+veryslow_mts_plugin_url = '%s' % (MTS_BASE_URL)
+veryslow_lts_plugin_url = '%s' % (LTS_BASE_URL)
 
 
 def determinePolicy(pvInfoDict):
@@ -61,53 +89,65 @@ def determinePolicy(pvInfoDict):
 	if 'policyName' in pvInfoDict:
 		userPolicyOverride = pvInfoDict['policyName']
 
-	if userPolicyOverride == '2HzPVs' or (userPolicyOverride == '' and pvInfoDict['eventRate'] > 2.0):
+	if 'Controlled' in userPolicyOverride:
+		pvPolicyDict['controlPV'] = 'ALS:Archiver:Enable'
+
+	if 'VeryFast' in userPolicyOverride:
+		pvPolicyDict['samplingPeriod'] = 0.1
+		pvPolicyDict['samplingMethod'] = 'MONITOR'
+		pvPolicyDict['dataStores'] = [ 
+			veryfast_sts_plugin_url,
+			veryfast_mts_plugin_url,
+			veryfast_lts_plugin_url
+			]
+	elif 'Fast' in userPolicyOverride:
 		pvPolicyDict['samplingPeriod'] = 1.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
 		pvPolicyDict['dataStores'] = [ 
-			h01_plugin_url, 
-			d14_plugin_url, 
-			y01_plugin_url 
+			fast_sts_plugin_url,
+			fast_mts_plugin_url,
+			fast_lts_plugin_url
 			]
-		pvPolicyDict['policyName'] = '2HzPVs';
-	elif userPolicyOverride == 'Default' or (userPolicyOverride == '' and pvInfoDict['pvName'] == 'mshankar:arch:sine'):
-		pvPolicyDict['samplingPeriod'] = 1.0
+	elif 'Medium' in userPolicyOverride:
+		pvPolicyDict['samplingPeriod'] = 10.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
 		pvPolicyDict['dataStores'] = [ 
-			h01_plugin_url, 
-			d14_plugin_url, 
-			y01_plugin_url + "&pp=firstSample&pp=firstSample_3600"
+			medium_sts_plugin_url,
+			medium_mts_plugin_url,
+			medium_lts_plugin_url
 			]
-		pvPolicyDict['policyName'] = 'Default';
-	elif userPolicyOverride == 'BPMS' or (userPolicyOverride == '' and pvInfoDict['pvName'].startswith('BPMS') and pvInfoDict['storageRate'] > 35):
-		# We limit BPM PVs to 1GB/year (34 bytes/sec)
-		# We reduce the sampling rate (and hence increase the sampling period) to cater to this. 
-		pvPolicyDict['samplingPeriod'] = pvInfoDict['storageRate']/(35*pvInfoDict['eventRate'])
+	elif 'VerySlow' in userPolicyOverride:
+		pvPolicyDict['samplingPeriod'] = 900.0
+		pvPolicyDict['samplingMethod'] = 'SCAN'
+		pvPolicyDict['dataStores'] = [
+			veryslow_sts_plugin_url,
+			veryslow_mts_plugin_url,
+			veryslow_lts_plugin_url
+			]
+	elif 'Slow' in userPolicyOverride:
+		pvPolicyDict['samplingPeriod'] = 60.0
+		pvPolicyDict['samplingMethod'] = 'SCAN'
+		pvPolicyDict['dataStores'] = [
+			slow_sts_plugin_url,
+			slow_mts_plugin_url,
+			slow_lts_plugin_url
+			]
+	elif 'Default' in userPolicyOverride:
+        pvPolicyDict['samplingPeriod'] = 1.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
 		pvPolicyDict['dataStores'] = [ 
-			h01_plugin_url, 
-			d14_plugin_url, 
-			y01_plugin_url 
+			default_sts_plugin_url,
+			default_mts_plugin_url,
+			default_lts_plugin_url
 			]
-		pvPolicyDict['policyName'] = 'BPMS';
-	elif userPolicyOverride == '3DaysMTSOnly':
-		pvPolicyDict['samplingPeriod'] = 1.0
-		pvPolicyDict['samplingMethod'] = 'MONITOR'
-		pvPolicyDict['dataStores'] = [ 
-			h01_plugin_url, 
-			d14_plugin_url, 
-			y01_plugin_url 
-			]
-		pvPolicyDict['policyName'] = '2HzPVs';
 	else:
 		pvPolicyDict['samplingPeriod'] = 1.0
 		pvPolicyDict['samplingMethod'] = 'MONITOR'
 		pvPolicyDict['dataStores'] = [ 
-			h01_plugin_url, 
-			d14_plugin_url, 
-			y01_plugin_url 
+			default_sts_plugin_url,
+			default_mts_plugin_url,
+			default_lts_plugin_url
 			]
-		pvPolicyDict['policyName'] = 'Default';
 	 
 	archiveFields=[]
 	
@@ -131,6 +171,8 @@ def determinePolicy(pvInfoDict):
 			archiveFields=['HIHI','HIGH','LOW','LOLO','LOPR','HOPR']
 		elif pvRTYP=="sub":
 			archiveFields=['HIHI','HIGH','LOW','LOLO','LOPR','HOPR']
+		elif pvRTYP=="motor":
+			archiveFields=['HIHI','HIGH','LOW','LOLO','LOPR','HOPR', 'VELO', 'RBV']
 		pvPolicyDict["archiveFields"]=archiveFields
 
 	return pvPolicyDict
