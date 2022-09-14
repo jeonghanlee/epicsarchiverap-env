@@ -4,7 +4,9 @@
 # This has the effect of distributing the files containing data into multiple folders
 # Getting a good distribution is important for good performance; most file systems do not perform well if they have 10000's of files in a folder.
 # This is passed into java's String.replaceAll; so watch out for regex issues.
-org.epics.archiverappliance.config.ConvertPVNameToKey.siteNameSpaceSeparators = [\\:\\-]
+#org.epics.archiverappliance.config.ConvertPVNameToKey.siteNameSpaceSeparators = [\\:\\-]
+### ALS ### add the underscore, '_' for our legacy channel names.
+org.epics.archiverappliance.config.ConvertPVNameToKey.siteNameSpaceSeparators = [\\:\\-\\___\\__\\_]
 # To avoid substring issues, each pathname is terminated with a character that is guaranteed not to be in the path name (because of said replacement above)
 org.epics.archiverappliance.config.ConvertPVNameToKey.siteNameSpaceTerminator = :
 
