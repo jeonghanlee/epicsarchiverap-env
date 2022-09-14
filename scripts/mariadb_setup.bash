@@ -18,9 +18,9 @@ ENV_TOP="${SC_TOP}/.."
 
 SITE_TEMPLATE_PATH=$(make -C "${ENV_TOP}" -s print-SITE_TEMPLATE_PATH)
 
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC1091
 . "${SITE_TEMPLATE_PATH}/mariadb.conf"
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC1091
 . "${SC_TOP}/mariadb_generic_function.bash"
 
 declare -g ALS_DB_NAME;
