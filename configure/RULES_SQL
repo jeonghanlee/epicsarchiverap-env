@@ -1,5 +1,5 @@
 
-sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show alsconf alsconf.show
+sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show
 sql_db_RULES:=$(addprefix db., $(sql_db_RULES_NAMES))
 
 db.conf: $(SQL_CONFIG_FILE).in 
@@ -20,8 +20,77 @@ db.conf: $(SQL_CONFIG_FILE).in
 db.conf.show:
 	$(QUIET)cat -b $(SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)
 
-db.alsconf: $(SQL_AA_ALS_SQL).in
-	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+
+db.secure: mariadb_setup.bash db.conf
+	$(QUIET)bash $< secureSetup
+
+db.addAdmin: mariadb_setup.bash db.conf
+	$(QUIET)bash $< adminAdd
+
+db.rmAdmin: mariadb_setup.bash db.conf
+	$(QUIET)bash $< adminRemove
+
+# Create DB : DB_NAME and ALS_DB_NAME
+db.create: mariadb_setup.bash db.conf
+	$(QUIET)echo "\n>>> Create $(DB_NAME) with $(DB_USER)"
+	$(QUIET)bash $< dbUserCreate
+	$(QUIET)echo "\n>>> Create ALS Specific table $(ALS_DB_NAME) with $(DB_USER)"
+	$(QUIET)bash $< alsDbUserCreate
+
+# Drop DB and DB USER
+# So, als DB only can drop DB only
+db.drop: mariadb_setup.bash db.conf
+	$(QUIET)bash $< dbUserDrop
+	$(QUIET)bash $< alsDbDrop
+
+db.show: mariadb_setup.bash db.conf
+	$(QUIET)bash $< dbShow
+
+#sed "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" ${aa_deploy_db_tables} > ${aa_deploy_db_tables_new};
+
+sql_sql_RULES_NAMES:=fill show update update.show table.fill table.show table.drop als.update als.update.show
+sql_sql_RULES:=$(addprefix sql., $(sql_db_RULES_NAMES))
+
+sql.fill: sql.update sql.table.fill
+
+sql.show: sql.table.show
+
+sql.drop: sql.table.drop
+
+sql.update: sql.als.update
+	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
+	            -e "s/) ENGINE=InnoDB;/) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/g" \
+	            < $(SQL_AA_ORIG_SQL) > $(SQL_AA_UPDATE_SQL)
+
+sql.update.show: sql.als.show
+	$(QUIET)echo ">>> $(SQL_AA_UPDATE_SQL)"
+	$(QUIET)cat -b $(SQL_AA_UPDATE_SQL)
+
+sql.table.fill: mariadb_setup.bash
+	$(QUIET)bash $< "queryFile" "$(SQL_AA_UPDATE_SQL)"
+	$(QUIET)bash $< "queryFile" "$(SQL_AA_ALS_SQL)"
+
+sql.table.show: mariadb_setup.bash
+	$(QUIET)echo "\n>>> $(DB_NAME) Tables"
+	$(QUIET)bash $< tableShow
+	$(QUIET)echo "\n>>> $(ALS_DB_NAME) Tables"
+	$(QUIET)bash $< alsTableShow
+	$(QUIET)echo "\n>>> $(ALS_DB_NAME) View"
+	$(QUIET)bash $< alsViewShow
+	$(QUIET)echo "\n>>> $(DB_NAME) Trigger inserted by $(ALS_DB_NAME)"
+	$(QUIET)bash $< alsTriggerShow
+
+sql.table.drop: mariadb_setup.bash
+	$(QUIET)bash $< tableDrop
+	$(QUIET)echo "\n>>> $(ALS_DB_NAME) Table Drop"
+	$(QUIET)bash $< alsTableDrop
+	$(QUIET)echo "\n>>> $(ALS_DB_NAME) View Drop"
+	$(QUIET)bash $< alsViewDrop
+	$(QUIET)echo "\n>>> $(ALS_DB_NAME) Trigger Drop"
+	$(QUIET)bash $< alsTriggerDrop
+
+sql.als.update: $(SQL_AA_ALS_SQL).in
+	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@DB_ADMIN_HOST@|"$(DB_ADMIN_HOST)"|g" \
 			-e "s|@DB_ADMIN@|$(DB_ADMIN)|g" \
 			-e "s|@DB_ADMIN_PASS@|$(DB_ADMIN_PASS)|g" \
@@ -34,53 +103,9 @@ db.alsconf: $(SQL_AA_ALS_SQL).in
 			-e "s|@DB_USER_PASS@|$(DB_USER_PASS)|g" \
 			< $< > $(basename $<)
 
-db.alsconf.show: $(SQL_AA_ALS_SQL).in
+sql.als.show: $(SQL_AA_ALS_SQL).in
+	$(QUIET)echo ">>> $(basename $<) from $<"
 	$(QUIET)cat -b $(basename $<)
-
-db.secure: mariadb_setup.bash db.conf
-	$(QUIET)bash $< secureSetup
-
-db.addAdmin: mariadb_setup.bash db.conf
-	$(QUIET)bash $< adminAdd
-
-db.rmAdmin: mariadb_setup.bash db.conf
-	$(QUIET)bash $< adminRemove
-
-db.create: mariadb_setup.bash db.conf
-	$(QUIET)bash $< dbUserCreate
-
-db.drop: mariadb_setup.bash db.conf
-	$(QUIET)bash $< dbUserDrop
-
-db.show: mariadb_setup.bash db.conf
-	$(QUIET)bash $< dbShow
-
-#sed "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" ${aa_deploy_db_tables} > ${aa_deploy_db_tables_new};
-
-sql_sql_RULES_NAMES:=fill show update update.show table.fill table.show table.drop
-sql_sql_RULES:=$(addprefix sql., $(sql_db_RULES_NAMES))
-
-sql.fill: sql.update sql.table.fill
-
-sql.show: sql.table.show
-
-sql.drop: sql.table.drop
-
-sql.update:
-	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" < $(SQL_AA_ORIG_SQL) > $(SQL_AA_UPDATE_SQL)
-
-sql.update.show: 
-	$(QUIET)cat -b $(SQL_AA_UPDATE_SQL)
-
-sql.table.fill: mariadb_setup.bash
-	$(QUIET)bash $< "queryFile" "$(SQL_AA_UPDATE_SQL)"
-
-sql.table.show: mariadb_setup.bash
-	$(QUIET)bash $< tableShow
-
-sql.table.drop: mariadb_setup.bash
-	$(QUIET)bash $< tableDrop
-
 #
 aa_tables_RULES:=PVRequests.show DataServers.show PVAliases.show PVTypeInfo.show
 

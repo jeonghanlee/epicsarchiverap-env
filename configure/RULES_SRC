@@ -3,8 +3,8 @@
 
 .PHONY: help default
 
-# # help is defined in
-# # https://gist.github.com/rcmachado/af3db315e31383502660
+# help is defined in
+# https://gist.github.com/rcmachado/af3db315e31383502660
 help:
 	$(info --------------------------------------- )
 	$(info Make Targets)
@@ -25,7 +25,7 @@ help:
 default: help
 
 .PHONY: init clone update deinit distclean
-## Clone Source
+## Clone and update Source
 init: clone update
 
 # gitclone use '-C' option, so git version should be more than 1.8.5. CentOS7 git is imcompatiable.
@@ -38,6 +38,7 @@ update:
 
 
 deinit: distclean
+
 ## Clean Source
 distclean:
 	$(call distclean, $(SRC_PATH))

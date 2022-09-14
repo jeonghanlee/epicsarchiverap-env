@@ -2,7 +2,7 @@
 APPNAME:=epicsarchiverap
 
 ## Where the Source repository SRC_URL/SRC_NAME
-##
+#
 SRC_URL:=https://github.com/slacmshankar
 SRC_NAME:=${APPNAME}
 
@@ -12,6 +12,7 @@ SRC_NAME:=${APPNAME}
 SRC_TAG:=d3dd9cc
 
 ## Placeholder for the site-specific version control 
+#
 SRC_VERSION:=${SRC_TAG}-2022-08-08
 
 

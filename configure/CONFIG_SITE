@@ -3,7 +3,7 @@
 
 INSTALL_PATH=/opt
 INSTALL_LOCATION=${INSTALL_PATH}/${APPNAME}
-SITE_TEMPLATE_PATH:=$(TOP)/site-template
+SITE_TEMPLATE_PATH=$(TOP)/site-template
 
 WARS_TARGET:=$(TOP)/wars
 
@@ -34,10 +34,10 @@ MAVEN_OPTS:=
 # Set MaxMetaspaceSize : 256M, so it reduces the GC execution to compare with the original option.
 JAVA_HEAPSIZE="1G"
 JAVA_MAXMETASPACE="256M"
-## https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for
-## https://www.openssl.org/blog/blog/2017/08/12/random/
+# https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for
+# https://www.openssl.org/blog/blog/2017/08/12/random/
 JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
-##
+#
 CATALINA_OPTS="-XX:MaxMetaspaceSize=$(JAVA_MAXMETASPACE)"
 CATALINA_OPTS+="-Xms$(JAVA_HEAPSIZE)"
 CATALINA_OPTS+="-Xmx$(JAVA_HEAPSIZE)"
@@ -48,6 +48,7 @@ USERID:=tomcat
 GROUPID:=$(USERID)
 
 ## appliances.xml 
+#
 ARCHAPPL_STORAGE_TOP:=/arch
 ARCHAPPL_SHORT_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore
 ARCHAPPL_MEDIUM_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore
@@ -55,26 +56,41 @@ ARCHAPPL_LONG_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore
 
 ## archappl.properties
 ## We only have three variables for the space holder for the future expansion
-## 
+# 
 ARCHAPPL_MINIMUM_SAMPLING_PERIOD:=0.1
 ARCHAPPL_SECONDS_TO_BUFFER:=10
 ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT:=1.0
 
 
 ## log4j_properties located in $(TOMCAT_HOME)/lib 
+#
 ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
 ARCHAPPL_SINGLE_IDENTITY=appliance0
 ## The following three files will in $(INSTALL_LOCATION)
+#
 ARCHAPPL_APPLIANCES:=appliances.xml
 ARCHAPPL_POLICIES:=policies.py
 ARCHAPPL_PROPERTIES:=archappl.properties
 ARCHAPPL_CONF:=archappl.conf
 ## $(INSTALL_LOCATION)/*/conf 
+#
 ARCHAPPL_CONTEXT_XML:=context.xml
 ARCHAPPL_TOMCAT_STARTUP:=startup.sh
 ARCHAPPL_TOMCAT_SHUTDOWN:=shutdown.sh
 ARCHAPPL_MAIN_SCRIPT:=archappl.bash
 
+
+# SYSTEDM Required and After Service List
+# This is After and Required services for the systemd archiver appliance systemd service.
+# mariadb.service was defined in there, but sometimes, we need to check our directories where
+# our data will be saved. 
+# one can check the mounting service name through  `systemctl list-units --type=mount`
+# Here is the example for the ALS environment
+# CONFIG_SITE.local can be used to hold this information locally
+# Each service need one space between them, and backslash must be double backslash
+# 
+# SYSTEMD_SERVICES=archappl.mount home-als1.mount remote-als\\x2dsw.mount
+SYSTEMD_SERVICES:=
 
 # These allow developers to override the CONFIG_SITE variable
 # settings without having to modify the configure/CONFIG_SITE

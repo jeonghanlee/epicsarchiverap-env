@@ -71,3 +71,4 @@ apache-tomcat*
 .plist
 site-template/*.plist
 site-template/sql/archappl_summary_views.sql
+*.swo

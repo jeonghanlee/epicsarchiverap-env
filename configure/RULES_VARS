@@ -8,6 +8,7 @@ VARS_EXCLUDES+=LEVEL
 VARS_EXCLUDES+=$(filter JAR_%, $(.VARIABLES))
 VARS_EXCLUDES+=$(RULES_VARS)
 VARS_EXCLUDES+=%_RULES_VARS
+VARS_EXCLUDES+=RULES_VARS
 VARS_EXCLUDES+=a_service_BUIDER buildrules_BUILDER
 
 .PHONY: $(RULES_VARS)
@@ -26,7 +27,7 @@ endif
 .PHONY : env vars header
 
 env: vars
-## Print interesting VARIABLES : also make PRINT.$(EACH_VARIABLE)
+# Print interesting VARIABLES : also make PRINT.$(EACH_VARIABLE)
 vars: _header
 	$(foreach v, $(SRC_VARIABLES), $(info $(v) = $($(v)))) @#noop
 
@@ -43,8 +44,7 @@ PRINT.%:
 	$(QUIET)echo $*\'s origin is $(origin $*)
 
 print-%:
-	$(QUIET)echo $* = $($*)
-	$(QUIET)echo $*\'s origin is $(origin $*)
+	$(QUIET)echo $($*)
 
 ls.%:
 	$(QUIET) ls $(LSOPTS) $($*)

@@ -1,8 +1,8 @@
 [Unit]
 Description=EPICS Archiver Appliance for @ARCHAPPL_SITEID@
 Documentation=@DOCURL@
-After=network.target mariadb.service
-Requires=mariadb.service
+After=network.target mariadb.service @SYSTEMD_SERVICES@
+Requires=mariadb.service @SYSTEMD_SERVICES@
 
 SourcePath=@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@
 

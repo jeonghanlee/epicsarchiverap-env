@@ -2,8 +2,8 @@
 #
 #  author  : Jeong Han Lee
 #  email   : jeonghan.lee@gmail.com
-#  version : 0.0.9
-#  date    : Thu 01 Sep 2022 04:44:08 PM PDT
+#  version : 0.1.0
+#  date    : Wed 14 Sep 2022 10:46:23 AM PDT
 
 declare -g SC_SCRIPT;
 declare -g SC_TOP;
@@ -16,15 +16,21 @@ SC_TOP="${SC_SCRIPT%/*}"
 LOGDATE="$(date +%y%m%d%H%M)"
 ENV_TOP="${SC_TOP}/.."
 
+SITE_TEMPLATE_PATH=$(make -C ${ENV_TOP} -s print-SITE_TEMPLATE_PATH)
+
 # shellcheck disable=SC1091
-. "${ENV_TOP}/site-template/mariadb.conf"
+. "${SITE_TEMPLATE_PATH}/mariadb.conf"
 # shellcheck disable=SC1091
 . "${SC_TOP}/mariadb_generic_function.bash"
 
+declare -g ALS_DB_NAME;
+
+ALS_DB_NAME="${DB_NAME}_summary"
 
 declare -g DEFAULT_DB_BACKUP_PATH;
 # shellcheck disable=SC2153
 DEFAULT_DB_BACKUP_PATH="${ENV_TOP}/${DB_NAME}_sql_backup";
+DEFAULT_ALS_DB_BACKUP_PATH="${ENV_TOP}/${ALS_DB_NAME}_sql_backup";
 
 function usage
 {
@@ -124,7 +130,7 @@ function drop_procedures
 
 
 # 1 : database name
-function drop_triggers
+function drop_als_triggers
 {
     local db_name="$1"; shift;
     local db_exist;
@@ -132,9 +138,7 @@ function drop_triggers
     local dropCmd;
     db_exist=$(isDb "${db_name}");
     ## 
-    ## These outputs are defined in $(SRC_PAHT)/db/sql/create_triggers.sql
-    ## So, this function is only valid for this CDB application.
-    outputs=( "insert_item"  "update_item" "insert_item_element" "update_item_element" )
+    outputs=( "appliance_id_push1"  "appliance_id_push2" "appliance_id_push3" "channel_delete" )
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit;
@@ -150,10 +154,10 @@ function drop_triggers
             dropCmd+=" ";
             dropCmd+="--execute=\"";
             # Ignore all table orders, drop all
+            printf "... drop %24s if exists \n" "${output}";
             dropCmd+="DROP TRIGGER IF EXISTS ${output}"
             dropCmd+=";\"";
-            printf ". %24s was found. Droping .... \n" "${output}"
-	    commandPrn "$dropCmd"
+	        commandPrn "$dropCmd"
             eval "${dropCmd}"
         done
     fi
@@ -395,12 +399,17 @@ case "$input" in
 	    ;;
     dbCreate)
         create_db "${DB_NAME}";
-        create_db "${DB_NAME}_summary";
+        ;;
+    alsDbCreate)
+        create_db "${ALS_DB_NAME}";
         ;;
     dbUserCreate)
         # shellcheck disable=SC2153
         create_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
-        create_db "${DB_NAME}_summary";
+        ;;
+    alsDbUserCreate)
+        # shellcheck disable=SC2153
+        create_db_and_user "${ALS_DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
         ;;
     dbShow)
         show_dbs;
@@ -408,14 +417,24 @@ case "$input" in
     dbUserDrop)
         drop_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}";
         ;;
+    alsDbUserDrop)
+        drop_db_and_user "${ALS_DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}";
+        ;;
     userDrop)
       drop_user "${DB_HOST_NAME}" "${DB_USER}";
         ;;
     dbDrop)
         drop_db "${DB_NAME}"
         ;;
+    alsDbDrop)
+        drop_db "${ALS_DB_NAME}"
+        ;;
     isDb)
         isDb "${DB_NAME}" "YES";
+        ;;
+
+    isAlsDb)
+        isDb "${ALS_DB_NAME}" "YES";
         ;;
     dbBackup)
 	    backup_path="$additional_input"
@@ -439,17 +458,63 @@ case "$input" in
         fi
         restore_db "${date}" "${backup_path}";
         ;;
-    tableCreate)
-        if [ -z "${additional_input}" ]; then
-            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_cdb_tables.sql"
+    alsDbBackup)
+	    backup_path="$additional_input"
+	    if [ -z "${backup_path}" ]; then
+            backup_path="${DEFAULT_ALS_DB_BACKUP_PATH}"
         fi
-        query_from_sql_file "${DB_NAME}" "${additional_input}";
-        ;;    
+	    backup_db "${ALS_DB_NAME}" "${backup_path}";
+        ;;
+    alsDbBackupList)
+	    backup_path="$additional_input"
+	    if [ -z "${backup_path}" ]; then
+            backup_path="${DEFAULT_ALS_DB_BACKUP_PATH}"
+        fi
+        backup_db_list "${backup_path}"
+        ;;
+    alsDbRestore)
+        date="$additional_input";
+	    backup_path="$3"
+	    if [ -z "${backup_path}" ]; then
+            backup_path="${DEFAULT_ALS_DB_BACKUP_PATH}"
+        fi
+        restore_db "${date}" "${backup_path}";
+        ;;
+#    tableCreate)
+#        if [ -z "${additional_input}" ]; then
+#            additional_input="${ENV_TOP}//ComponentDB-src/db/sql/create_cdb_tables.sql"
+#        fi
+#        query_from_sql_file "${DB_NAME}" "${additional_input}";
+#        ;;    
     tableShow)
         show_tables "${DB_NAME}" "BASE TABLE";
         ;;
     tableDrop)
         drop_tables "${DB_NAME}" "BASE TABLE";
+        ;; 
+#    alsTableCreate)
+#        if [ -z "${additional_input}" ]; then
+#            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_cdb_tables.sql"
+#        fi
+#        query_from_sql_file "${ALS_DB_NAME}" "${additional_input}";
+#        ;;    
+    alsTableShow)
+        show_tables "${ALS_DB_NAME}" "BASE TABLE";
+        ;;
+    alsTableDrop)
+        drop_tables "${ALS_DB_NAME}" "BASE TABLE";
+        ;; 
+    alsViewShow)
+        show_tables "${ALS_DB_NAME}" "VIEW";
+        ;;
+    alsViewDrop)
+        drop_tables "${ALS_DB_NAME}" "VIEW";
+        ;; 
+    alsTriggerShow)
+        execute_query "${DB_NAME}" "SELECT TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_SCHEMA='${DB_NAME}';"
+        ;;
+    alsTriggerDrop)
+        drop_als_triggers "${DB_NAME}";
         ;; 
     aaShow)
         if [ -z "${additional_input}" ]; then
@@ -457,60 +522,60 @@ case "$input" in
         fi
         show_archappl "${additional_input}";
         ;;
-    viewCreate)
-        if [ -z "${additional_input}" ]; then
-            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_views.sql"
-        fi
-        query_from_sql_file "${DB_NAME}" "${additional_input}";
-        ;;
-    viewShow)
-        show_tables "${DB_NAME}" "VIEW";
-        ;;
-    viewDrop)
-        drop_tables "${DB_NAME}" "VIEW";
-        ;;
-    sProcCreate)
-        if [ -z "${additional_input}" ]; then
-            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_stored_procedures.sql"
-        fi
-        query_from_sql_file "${DB_NAME}" "${additional_input}";
-        ;;
-    sProcShow)
-        show_procedures "${DB_NAME}";
-        ;;
-    sProcDrop)
-        drop_procedures "${DB_NAME}";
-        ;;
-    triggersCreate)
-        if [ -z "${additional_input}" ]; then
-            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_triggers.sql"
-        fi
-        query_from_sql_file "${DB_NAME}" "${additional_input}"
-        ;;
-    triggersShow)
-        execute_query "${DB_NAME}" "show TRIGGERS;"
-        ;;
-    triggersDrop)
-        drop_triggers "${DB_NAME}";
-        ;;
-    allCreate)
-        input1="${ENV_TOP}/ComponentDB-src/db/sql/create_cdb_tables.sql"
-        input2="${ENV_TOP}/ComponentDB-src/db/sql/create_views.sql"
-        input3="${ENV_TOP}/ComponentDB-src/db/sql/create_stored_procedures.sql"
-        query_from_sql_file "${DB_NAME}" "$input1"
-        query_from_sql_file "${DB_NAME}" "$input2"
-        query_from_sql_file "${DB_NAME}" "$input3"
-        ;;
-    allShow)
-        show_tables "${DB_NAME}" "BASE TABLE";
-        show_tables "${DB_NAME}" "VIEW";
-        show_procedures "${DB_NAME}";
-        ;;
-    allDrop)
-        drop_tables "${DB_NAME}" "BASE TABLE";  
-        drop_tables "${DB_NAME}" "VIEW";
-        drop_procedures "${DB_NAME}";
-        ;;
+#    viewCreate)
+#        if [ -z "${additional_input}" ]; then
+#            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_views.sql"
+#        fi
+#        query_from_sql_file "${DB_NAME}" "${additional_input}";
+#        ;;
+#    viewShow)
+#        show_tables "${DB_NAME}" "VIEW";
+#        ;;
+#    viewDrop)
+#        drop_tables "${DB_NAME}" "VIEW";
+#        ;;
+#    sProcCreate)
+#        if [ -z "${additional_input}" ]; then
+#            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_stored_procedures.sql"
+#        fi
+#        query_from_sql_file "${DB_NAME}" "${additional_input}";
+#        ;;
+#    sProcShow)
+#        show_procedures "${DB_NAME}";
+#        ;;
+#    sProcDrop)
+#        drop_procedures "${DB_NAME}";
+#        ;;
+#    triggersCreate)
+#        if [ -z "${additional_input}" ]; then
+#            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_triggers.sql"
+#        fi
+#        query_from_sql_file "${DB_NAME}" "${additional_input}"
+#        ;;
+#    triggersShow)
+#        execute_query "${DB_NAME}" "show TRIGGERS;"
+#        ;;
+#    triggersDrop)
+#        drop_triggers "${DB_NAME}";
+#        ;;
+#    allCreate)
+#        input1="${ENV_TOP}/ComponentDB-src/db/sql/create_cdb_tables.sql"
+#        input2="${ENV_TOP}/ComponentDB-src/db/sql/create_views.sql"
+#        input3="${ENV_TOP}/ComponentDB-src/db/sql/create_stored_procedures.sql"
+#        query_from_sql_file "${DB_NAME}" "$input1"
+#        query_from_sql_file "${DB_NAME}" "$input2"
+#        query_from_sql_file "${DB_NAME}" "$input3"
+#        ;;
+#    allShow)
+#        show_tables "${DB_NAME}" "BASE TABLE";
+#        show_tables "${DB_NAME}" "VIEW";
+#        show_procedures "${DB_NAME}";
+#        ;;
+#    allDrop)
+#        drop_tables "${DB_NAME}" "BASE TABLE";  
+#        drop_tables "${DB_NAME}" "VIEW";
+#        drop_procedures "${DB_NAME}";
+#        ;;
     query)
         if [ -z "${additional_input}" ]; then
             additional_input="SHOW DATABASES;"
@@ -527,7 +592,7 @@ case "$input" in
         input_options="$3"
         verbose="$4"
         if [ -z "${input_sql_file}" ]; then
-            input_sql_file="${ENV_TOP}/site-template/sql/default_query.sql"
+            input_sql_file="${SITE_TEMPLATE_PATH}/sql/default_query.sql"
         fi
         query_from_sql_file "${DB_NAME}" "$input_sql_file" "$input_options" "$verbose"
         ;;
@@ -535,7 +600,7 @@ case "$input" in
         query_sql_file="${additional_input}"
         query_options="$3"
         if [ -z "${sql_file}" ]; then
-             sql_file="${ENV_TOP}/site-template/sql/default_query.sql"
+             sql_file="${SITE_TEMPLATE_PATH}/sql/default_query.sql"
         fi
         query_from_sql_file "${DB_NAME}" "${query_sql_file}" "$query_options"
         ;;
