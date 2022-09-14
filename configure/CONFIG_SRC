@@ -24,7 +24,6 @@ endif
 
 #
 #
-SITE_TEMPLATE_PATH:=$(TOP)/site-template
 
 PATH:=$(MAVEN_PATH):$(ANT_PATH):$(JAVA_PATH):${PATH}
 
