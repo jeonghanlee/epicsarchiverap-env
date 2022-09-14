@@ -16,15 +16,16 @@ SC_TOP="${SC_SCRIPT%/*}"
 LOGDATE="$(date +%y%m%d%H%M)"
 ENV_TOP="${SC_TOP}/.."
 
-SITE_TEMPLATE_PATH=$(make -C ${ENV_TOP} -s print-SITE_TEMPLATE_PATH)
+SITE_TEMPLATE_PATH=$(make -C "${ENV_TOP}" -s print-SITE_TEMPLATE_PATH)
 
-# shellcheck disable=SC1091
+# shellcheck disable=SC1090
 . "${SITE_TEMPLATE_PATH}/mariadb.conf"
-# shellcheck disable=SC1091
+# shellcheck disable=SC1090
 . "${SC_TOP}/mariadb_generic_function.bash"
 
 declare -g ALS_DB_NAME;
 
+# shellcheck disable=SC2153
 ALS_DB_NAME="${DB_NAME}_summary"
 
 declare -g DEFAULT_DB_BACKUP_PATH;
