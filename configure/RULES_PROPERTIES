@@ -28,6 +28,7 @@ conf.appliances: $(ARCHAPPL_APPLIANCES).in | mkdir.sitesidpath
                 -e "s|@ARCHAPPL_RETRIEVAL_URL@|$(ARCHAPPL_RETRIEVAL_URL)|g" \
                 -e "s|@ARCHAPPL_DATA_RETRIEVAL_URL@|$(ARCHAPPL_DATA_RETRIEVAL_URL)|g" \
                 < $< > $(basename $<)
+	rm -f $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(basename $<)
 	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"
 	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
 
@@ -40,6 +41,7 @@ conf.properties: $(ARCHAPPL_PROPERTIES).in  | mkdir.sitesidpath
 				-e "s|@ARCHAPPL_SECONDS_TO_BUFFER@|$(ARCHAPPL_SECONDS_TO_BUFFER)|g" \
 				-e "s|@ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT@|$(ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT)|g" \
                 < $< > $(basename $<)
+	rm -f $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(basename $<)
 	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"
 	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
 
@@ -54,6 +56,7 @@ conf.policies: $(ARCHAPPL_POLICIES).in  | mkdir.sitesidpath
 				-e "s|@ARCHAPPL_MEDIUM_TERM_FOLDER@|$(ARCHAPPL_MEDIUM_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_LONG_TERM_FOLDER@|$(ARCHAPPL_LONG_TERM_FOLDER)|g" \
                 < $< > $(basename $<)
+	rm -f $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(basename $<)
 	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"
 	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
 	
