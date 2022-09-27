@@ -1,6 +1,6 @@
 
 # Debian
-JAVA_HOME:=/usr/lib/jvm/default-java
+JAVA_HOME:=/usr
 ANT_HOME:=/usr/share/ant
 MAVEN_HOME:=/usr/share/maven
 TOMCAT_HOME:=/usr/share/tomcat9
