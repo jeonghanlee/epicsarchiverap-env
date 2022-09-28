@@ -1,6 +1,6 @@
 SQL_TOP_PATH:=$(SRC_PATH)/src/main/org/epics/archiverappliance/config/persistence
 
-SQL_SITE_PATH:=$(SITE_TEMPLATE_PATH)/sql
+SQL_SITE_PATH:=$(AA_SITE_TEMPLATE_PATH)/sql
 
 SQL_CONFIG_FILE:=mariadb.conf
 

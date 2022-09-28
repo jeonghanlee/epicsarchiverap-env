@@ -3,8 +3,8 @@ sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show
 sql_db_RULES:=$(addprefix db., $(sql_db_RULES_NAMES))
 
 db.conf: $(SQL_CONFIG_FILE).in 
-	$(call checkfile, "$(SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)")
-	$(QUIET) echo ">>> Generate $(SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)"
+	$(call checkfile, "$(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)")
+	$(QUIET) echo ">>> Generate $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)"
 	$(QUIET)sed -e "s|@DB_ADMIN_HOST@|"$(DB_ADMIN_HOST)"|g" \
 			-e "s|@DB_ADMIN@|$(DB_ADMIN)|g" \
 			-e "s|@DB_ADMIN_PASS@|$(DB_ADMIN_PASS)|g" \
@@ -18,7 +18,7 @@ db.conf: $(SQL_CONFIG_FILE).in
 			< $< > $(basename $<)
 
 db.conf.show:
-	$(QUIET)cat -b $(SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)
+	$(QUIET)cat -b $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)
 
 
 db.secure: mariadb_setup.bash db.conf

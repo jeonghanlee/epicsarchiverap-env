@@ -22,8 +22,8 @@ archapplconf.install: $(ARCHAPPL_CONF)
 	$(QUIET)$(SUDO) install $< $(INSTALL_LOCATION)/
 
 archapplconf.show: $(ARCHAPPL_CONF)
-	$(QUIET)echo ">>> Show the installed $(INSTALL_LOCATION)/$(patsubst $(SITE_TEMPLATE_PATH)/%,%,$<) "
-	$(QUIET)cat -bs $(INSTALL_LOCATION)/$(patsubst $(SITE_TEMPLATE_PATH)/%,%,$<)
+	$(QUIET)echo ">>> Show the installed $(INSTALL_LOCATION)/$(patsubst $(AA_SITE_TEMPLATE_PATH)/%,%,$<) "
+	$(QUIET)cat -bs $(INSTALL_LOCATION)/$(patsubst $(AA_SITE_TEMPLATE_PATH)/%,%,$<)
 
 # Three files are moved into $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH) 
 # before build.ant. So these files are locatedin war files automatically.
@@ -81,21 +81,21 @@ uninstall: sd_stop sd_disable sd_clean
 
 # Tomcat Service is already in the system
 src_preinst:
-#	$(QUIET)$(SUDO) bash $(SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
+#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
 
 # Tomcat Service is already in the system
 src_postrm: 
-#	$(QUIET)$(SUDO) bash $(SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(USERID)"
+#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(USERID)"
 
 src_version: FORCE
-	$(QUIET)echo "Timestamps : $$(date +%Y%m%d-%H%M%S)/YYYYMMDD-HHMMSS" > $(SITE_TEMPLATE_PATH)/.versions
-	$(QUIET)echo "- SRC REMOTE URL   : $(SRC_GITURL)"  >> $(SITE_TEMPLATE_PATH)/.versions
-	$(QUIET)echo "- SRC SITE VERSION : $(SRC_TAG)"     >> $(SITE_TEMPLATE_PATH)/.versions
-	$(QUIET)echo -n "- SRC GIT  VERSION : "            >> $(SITE_TEMPLATE_PATH)/.versions
-	$(QUIET)cd $(SRC_PATH) && git describe --tags      >> $(SITE_TEMPLATE_PATH)/.versions
+	$(QUIET)echo "Timestamps : $$(date +%Y%m%d-%H%M%S)/YYYYMMDD-HHMMSS" > $(AA_SITE_TEMPLATE_PATH)/.versions
+	$(QUIET)echo "- SRC REMOTE URL   : $(SRC_GITURL)"  >> $(AA_SITE_TEMPLATE_PATH)/.versions
+	$(QUIET)echo "- SRC SITE VERSION : $(SRC_TAG)"     >> $(AA_SITE_TEMPLATE_PATH)/.versions
+	$(QUIET)echo -n "- SRC GIT  VERSION : "            >> $(AA_SITE_TEMPLATE_PATH)/.versions
+	$(QUIET)cd $(SRC_PATH) && git describe --tags      >> $(AA_SITE_TEMPLATE_PATH)/.versions
 
 clean:
-	rm -rf $(SITE_TEMPLATE_PATH)/.versions
+	rm -rf $(AA_SITE_TEMPLATE_PATH)/.versions
 
 FORCE:
 
