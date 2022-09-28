@@ -1,10 +1,10 @@
 
 ## ---> $(TOMCAT_HOME)/lib 
 ## ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
-## ---> $(INSTALL_LOCATION)/*/conf 
+## ---> $(AA_INSTALL_LOCATION)/*/conf 
 ## ARCHAPPL_CONTEXT_XML:=context.xml
 
-## ---> $(INSTALL_LOCATION)
+## ---> $(AA_INSTALL_LOCATION)
 ## ARCHAPPL_CONF:=archappl.conf
 
 
@@ -81,7 +81,7 @@ conf.context.show: $(ARCHAPPL_CONTEXT_XML).in
 
 conf.archappl: $(ARCHAPPL_CONF).in 
 	$(QUIET) echo ">>> Generate $(basename $<) from $<"
-	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(INSTALL_LOCATION):g" \
+	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(AA_INSTALL_LOCATION):g" \
 			 -e "s:@ARCHAPPL_APPLIANCES@:$(ARCHAPPL_APPLIANCES):g" \
 			 -e "s:@ARCHAPPL_PROPERTIES@:$(ARCHAPPL_PROPERTIES):g" \
 			 -e "s:@ARCHAPPL_POLICIES@:$(ARCHAPPL_POLICIES):g" \

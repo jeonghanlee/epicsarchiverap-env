@@ -26,7 +26,7 @@ install.systemd.show: $(show_install_systemd_RULES)
 # /etc/systemd/system/tomcat9.service.d/
 conf.override: $(SYSTEMD_OVERRIDE_FILENAME).in
 	$(QUIET) echo ">>> Generate $(basename $<) from $<"
-	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(INSTALL_LOCATION):g" \
+	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(AA_INSTALL_LOCATION):g" \
                 < $< > $(basename $<)
 
 conf.override.show: $(SYSTEMD_OVERRIDE_FILENAME).in
@@ -38,7 +38,7 @@ conf.systemd0: $(SYSTEMD_FILENAME).in
 	$(QUIET)sed -e "s|@DOCURL@|$(DOCURL)|g" \
 				-e "s|@USERID@|$(USERID)|g" \
 				-e "s|@GROUPID@|$(GROUPID)|g" \
-				-e "s|@INSTALL_LOCATION@|$(INSTALL_LOCATION)|g" \
+				-e "s|@INSTALL_LOCATION@|$(AA_INSTALL_LOCATION)|g" \
 				-e "s|@ARCHAPPL_MAIN_SCRIPT@|$(ARCHAPPL_MAIN_SCRIPT)|g" \
 				-e "s|@ARCHAPPL_SITEID@|$(ARCHAPPL_SITEID)|g" \
 				-e 's|@SYSTEMD_SERVICES@|$(SYSTEMD_SERVICES)|g' \
@@ -117,11 +117,11 @@ launchctl_print:
 	$(QUIET)$(SUDO) launchctl print system/org.epics.archappl
 
 start:
-	$(QUIET) $(INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) startup
+	$(QUIET) $(AA_INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) startup
 
 stop:
-	$(QUIET) $(INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) shutdown
+	$(QUIET) $(AA_INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) shutdown
 
 status:
-	$(QUIET) $(INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) status
+	$(QUIET) $(AA_INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) status
 

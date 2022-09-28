@@ -61,9 +61,9 @@ FORCE:
 
 exist:
 ifeq (, $(shell which tree))
-	$(if $(wildcard $(INSTALL_LOCATION)), @ ls -d $(INSTALL_LOCATION) && find $(INSTALL_LOCATION)/ -maxdepth $(LEVEL) | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/:---\1/")
+	$(if $(wildcard $(AA_INSTALL_LOCATION)), @ ls -d $(AA_INSTALL_LOCATION) && find $(AA_INSTALL_LOCATION)/ -maxdepth $(LEVEL) | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/:---\1/")
 else
-	$(if $(wildcard $(INSTALL_LOCATION)), tree -pugaL $(LEVEL) $(INSTALL_LOCATION), $(QUIET)echo "No $(INSTALL_LOCATION)")
+	$(if $(wildcard $(AA_INSTALL_LOCATION)), tree -pugaL $(LEVEL) $(AA_INSTALL_LOCATION), $(QUIET)echo "No $(AA_INSTALL_LOCATION)")
 endif
 
 
