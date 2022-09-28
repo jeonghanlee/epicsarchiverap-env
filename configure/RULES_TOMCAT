@@ -31,27 +31,27 @@ tomcat.uninstallaction:
 	$(QUIET)$(SUDO) rm -rf $(TOMCAT_INSTALL_LOCATION)/
 
 tomcat.installaction: tomcat.src_install tomcat.update
-	$(QUIET)$(SUDO) chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) chown -R $(AA_USERID):$(AA_GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)$(SUDO) chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
 	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
 	$(QUIET)$(SUDO) chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 
 tomcat.install: tomcat.preinst tomcat.src_install tomcat.update
-	$(QUIET)$(SUDO) chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) chown -R $(AA_USERID):$(AA_GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)$(SUDO) chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
 	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
 	$(QUIET)$(SUDO) chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 #	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
 
 tomcat.installall: tomcat.preinst tomcat.src_install tomcat.update tomcat.sd_install tomcat.sd_enable
-	$(QUIET)$(SUDO) chown -R $(USERID):$(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) chown -R $(AA_USERID):$(AA_GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)$(SUDO) chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib
 	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin
 	$(QUIET)$(SUDO) chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 #	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
 
 tomcat.src_install:
-	$(QUIET)$(SUDO) $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(TOMCAT_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) $(INSTALL) -d -o $(AA_USERID) -g $(AA_GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)$(SUDO) tar -C "$(TOMCAT_INSTALL_LOCATION)" -xzf $(TOP)/$(TOMCAT_SRC)  --strip 1
 
 tomcat.update:
@@ -61,11 +61,11 @@ tomcat.update:
 # Debian Tomcat Service is already in the system
 # This rule for CentOS 8
 tomcat.preinst:
-	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
+	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(AA_USERID)" "$(AA_GROUPID)"
 
 # Tomcat Service is already in the system
 tomcat.postrm: 
-	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(USERID)"
+	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(AA_USERID)"
 
 
 tomcat.exist:
@@ -83,8 +83,8 @@ tomcat.sd_install: tomcat.sd_conf
 
 tomcat.sd_conf: $(TOMCAT_SYSTEMD).in
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
-	$(QUIET)sed -e "s:@USERID@:$(USERID):g" \
-	            -e "s:@GROUPID@:$(GROUPID):g" \
+	$(QUIET)sed -e "s:@USERID@:$(AA_USERID):g" \
+	            -e "s:@GROUPID@:$(AA_GROUPID):g" \
 	            -e "s:@TOMCAT_INSTALL_LOCATION@:$(TOMCAT_INSTALL_LOCATION):g" \
 	            -e "s:@TOMCAT_VER@:$(TOMCAT_VER):g" \
                 -e "s:@JAVA_HOME@:$(JAVA_HOME):g" \
@@ -152,8 +152,8 @@ macos.conf:
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "USERID:=${USER}"                     > $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "GROUPID:=20"                        >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_USERID:=${USER}"                  > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_GROUPID:=20"                     >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=${HOME}/arch" >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
@@ -174,8 +174,8 @@ macbrew.conf:
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "USERID:=${USER}"                                          > $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "GROUPID:=admin"                                          >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_USERID:=${USER}"                                       > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_GROUPID:=admin"                                       >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch"                         >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=/opt/arch/sts/ArchiverStore"  >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=/opt/arch/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
@@ -193,8 +193,8 @@ githubmac.conf:
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "USERID:=${USER}"                                          > $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "GROUPID:=admin"                                          >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_USERID:=${USER}"                                       > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_GROUPID:=admin"                                       >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch"                         >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=/opt/arch/sts/ArchiverStore"  >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=/opt/arch/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local

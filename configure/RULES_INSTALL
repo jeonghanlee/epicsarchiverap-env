@@ -1,6 +1,6 @@
 
 SERVICES_INSTALL_RULES:=
-$(call buildrules_BUILDER,$(USERID),$(GROUPID),$(AA_INSTALL_LOCATION),$(INSTALL_LOCATION_SERVICES),SERVICES_INSTALL_RULES)
+$(call buildrules_BUILDER,$(AA_USERID),$(AA_GROUPID),$(AA_INSTALL_LOCATION),$(INSTALL_LOCATION_SERVICES),SERVICES_INSTALL_RULES)
 #conf_RULES_NAMES:=log4j appliances properties policies serverxml 
 conf_RULES_NAMES:=log4j archapplconf appliances properties policies serverxml archapplshell
 conf_install_RULES:=$(addsuffix .install, $(conf_RULES_NAMES))
@@ -9,7 +9,7 @@ show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 .PHONY: install services.install 
 
 install:  src_install services.install sd_install sd_enable
-	$(QUIET)$(SUDO)	chown -R $(USERID):$(GROUPID) $(AA_INSTALL_LOCATION)
+	$(QUIET)$(SUDO)	chown -R $(AA_USERID):$(AA_GROUPID) $(AA_INSTALL_LOCATION)
 
 services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES) 
 
@@ -34,11 +34,11 @@ appliances.install: $(ARCHAPPL_APPLIANCES)
 
 properties.install: $(ARCHAPPL_PROPERTIES)
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
-	$(QUIET)$(SUDO) install -o $(USERID) -g $(GROUPID) $< $(AA_INSTALL_LOCATION)/
+	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $< $(AA_INSTALL_LOCATION)/
 
 policies.install: $(ARCHAPPL_POLICIES)
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
-	$(QUIET)$(SUDO) install -o $(USERID) -g $(GROUPID) $< $(AA_INSTALL_LOCATION)/
+	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $< $(AA_INSTALL_LOCATION)/
 
 # all other ports are disable by default from $(TOMCAT_HOME)/skel/conf/server.
 # mgmt, engine, bpl, and retrieval 
@@ -64,7 +64,7 @@ archapplshell.show: $(ARCHAPPL_MAIN_SCRIPT)
 
 src_install: src_version src_preinst
 #	$(if $(wildcard $(AA_INSTALL_LOCATION)), $(QUIET)$(SUDO) mv $(AA_INSTALL_LOCATION) $(AA_INSTALL_LOCATION)_backup_$$(date +%Y%m%d-%H%M%S))
-	$(QUIET)$(SUDO) $(INSTALL) -d -o $(USERID) -g $(GROUPID) $(AA_INSTALL_LOCATION)
+	$(QUIET)$(SUDO) $(INSTALL) -d -o $(AA_USERID) -g $(AA_GROUPID) $(AA_INSTALL_LOCATION)
 
 src_uninstall:
 	$(QUIET)echo "Removing $(AA_INSTALL_LOCATION)..."
@@ -81,11 +81,11 @@ uninstall: sd_stop sd_disable sd_clean
 
 # Tomcat Service is already in the system
 src_preinst:
-#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(USERID)" "$(GROUPID)"
+#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(AA_USERID)" "$(AA_GROUPID)"
 
 # Tomcat Service is already in the system
 src_postrm: 
-#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(USERID)"
+#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(AA_USERID)"
 
 src_version: FORCE
 	$(QUIET)echo "Timestamps : $$(date +%Y%m%d-%H%M%S)/YYYYMMDD-HHMMSS" > $(AA_SITE_TEMPLATE_PATH)/.versions

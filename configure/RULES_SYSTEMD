@@ -36,8 +36,8 @@ conf.systemd0: $(SYSTEMD_FILENAME).in
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)echo ">>> $(SYSTEMD_SERVICES)"
 	$(QUIET)sed -e "s|@DOCURL@|$(DOCURL)|g" \
-				-e "s|@USERID@|$(USERID)|g" \
-				-e "s|@GROUPID@|$(GROUPID)|g" \
+				-e "s|@USERID@|$(AA_USERID)|g" \
+				-e "s|@GROUPID@|$(AA_GROUPID)|g" \
 				-e "s|@INSTALL_LOCATION@|$(AA_INSTALL_LOCATION)|g" \
 				-e "s|@ARCHAPPL_MAIN_SCRIPT@|$(ARCHAPPL_MAIN_SCRIPT)|g" \
 				-e "s|@ARCHAPPL_SITEID@|$(ARCHAPPL_SITEID)|g" \
@@ -94,8 +94,8 @@ conf.launch: $(LAUNCH_PLIST_FILENAME).in
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(INSTALL_LOCATION):g" \
 				-e "s:@ARCHAPPL_MAIN_SCRIPT@:$(ARCHAPPL_MAIN_SCRIPT):g" \
-				-e "s:@USERID@:$(USERID):g" \
-				-e "s:@GROUPID@:$(GROUPID):g" \
+				-e "s:@USERID@:$(AA_USERID):g" \
+				-e "s:@GROUPID@:$(AA_GROUPID):g" \
                 < $< > $(basename $<)
 
 conf.launch.show: $(LAUNCH_PLIST_FILENAME).in
@@ -108,10 +108,10 @@ install.launch.show:
 	$(QUIET)cat -b $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME)
 #
 launchctl_load:
-	$(QUIET)$(SUDO) launchctl bootstrap user/$(USERID) $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME) | cat -b
+	$(QUIET)$(SUDO) launchctl bootstrap user/$(AA_USERID) $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME) | cat -b
 #
 launchctl_unload:
-	$(QUIET)$(SUDO) launchctl bootout user/$(USERID) $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME) | cat -b
+	$(QUIET)$(SUDO) launchctl bootout user/$(AA_USERID) $(LAUNCH_PATH)/$(LAUNCH_PLIST_FILENAME) | cat -b
 #
 launchctl_print:
 	$(QUIET)$(SUDO) launchctl print system/org.epics.archappl
