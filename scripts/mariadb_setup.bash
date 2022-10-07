@@ -16,10 +16,10 @@ SC_TOP="${SC_SCRIPT%/*}"
 LOGDATE="$(date +%y%m%d%H%M)"
 ENV_TOP="${SC_TOP}/.."
 
-SITE_TEMPLATE_PATH=$(make -C "${ENV_TOP}" -s print-SITE_TEMPLATE_PATH)
+AA_SITE_TEMPLATE_PATH=$(make -C "${ENV_TOP}" -s print-AA_SITE_TEMPLATE_PATH)
 
 # shellcheck disable=SC1090,SC1091
-. "${SITE_TEMPLATE_PATH}/mariadb.conf"
+. "${AA_SITE_TEMPLATE_PATH}/mariadb.conf"
 # shellcheck disable=SC1090,SC1091
 . "${SC_TOP}/mariadb_generic_function.bash"
 
