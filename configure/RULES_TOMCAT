@@ -88,7 +88,7 @@ tomcat.sd_conf: $(TOMCAT_SYSTEMD).in
 	            -e "s:@TOMCAT_INSTALL_LOCATION@:$(TOMCAT_INSTALL_LOCATION):g" \
 	            -e "s:@TOMCAT_VER@:$(TOMCAT_VER):g" \
                 -e "s:@JAVA_HOME@:$(JAVA_HOME):g" \
-	            -e "s|@JAVA_OPTS@|$(JAVA_OPTS)|g" \
+	            -e "s|@JAVA_OPTS@|$(AA_JAVA_OPTS)|g" \
                 -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
                 < $< > $(basename $<)
 
