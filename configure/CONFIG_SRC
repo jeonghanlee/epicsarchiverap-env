@@ -59,6 +59,7 @@ CATALINA_OPTS+="-Xmx$(AA_JAVA_HEAPSIZE)"
 CATALINA_OPTS+="-XX:+UseG1GC"
 CATALINA_OPTS+="-ea"
 
+
 # Service order is matter, don't change them
 ARCHAPPL_SERVICES:=mgmt engine etl retrieval
 INSTALL_LOCATION_SERVICES:=$(addprefix $(AA_INSTALL_LOCATION)/, $(ARCHAPPL_SERVICES))

@@ -6,10 +6,10 @@
 # help is defined in
 # https://gist.github.com/rcmachado/af3db315e31383502660
 help:
-	$(info --------------------------------------- )
+	$(info --------------------------------------- )	
 	$(info Make Targets)
 	$(info --------------------------------------- )
-	$(QUIET) awk '/^[a-zA-Z\-\_0-9]+:/ {            \
+	$(QUIET) awk '/^[a-zA-Z\\-\\_0-9]+:/ {          \
 	  nb = sub( /^## /, "", helpMsg );              \
 	  if(nb == 0) {                                 \
 	    helpMsg = $$0;                              \
@@ -20,7 +20,6 @@ help:
 	}                                               \
 	{ helpMsg = $$0 }'                              \
 	$(MAKEFILE_LIST) | column -ts:
-
 
 default: help
 
@@ -39,12 +38,13 @@ update:
 
 deinit: distclean
 
-## Clean Source
+## Clean
 distclean:
 	$(call distclean, $(SRC_PATH))
 
 .PHONY: info.ant clean.ant  build.ant copy.sitespecific mkdir.wars
 
+## Ant and Java
 info.ant:
 	$(QUIET)echo "-------------------------------------------------------------"
 	$(QUIET)echo ">>> Ant  information"
@@ -56,14 +56,17 @@ info.ant:
 	$(QUIET)$(JAVA_PATH)/java -version
 	$(QUIET)echo "-------------------------------------------------------------"
 
+## Clean
 clean.ant: info.ant
-	JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS) clean
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) clean && cd ..
 
+## Build
 build.ant: info.ant copy.sitespecific | mkdir.wars
-	JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS)
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) && cd ..
 
+## Site Build
 build.site: info.ant copy.sitespecific | mkdir.wars
-	JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) -f $(SRC_PATH)/build.xml $(ANT_OPTS) sitespecificbuild
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) sitespecificbuild && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"
@@ -78,7 +81,10 @@ mkdir.wars:
 
 .PHONY: conf build
 
+
+## Conf and Build
 build: conf build.ant
 
+## Configuration
 conf: conf.archapplproperties conf.storage
 
