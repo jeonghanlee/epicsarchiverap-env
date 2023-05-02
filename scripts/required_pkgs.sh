@@ -182,7 +182,7 @@ function rocky8_pkgs
                    tree \
                    sed \
                    which \
-                   java-17-openjdk \
+                   java-11-openjdk \
                    ant \
                    mariadb-server \
                    chrony
