@@ -3,17 +3,17 @@ APPNAME:=epicsarchiverap
 
 ## Where the Source repository SRC_URL/SRC_NAME
 #
-SRC_URL:=https://github.com/slacmshankar
+#SRC_URL:=https://github.com/slacmshankar
+SRC_URL:=https://github.com/archiver-appliance
 SRC_NAME:=${APPNAME}
 
 
 ## Which the source tag / branch / hash id would like to use
 # latest master
-SRC_TAG:=d3dd9cc
-
+SRC_TAG:=8b4f22e
 ## Placeholder for the site-specific version control 
 #
-SRC_VERSION:=${SRC_TAG}-2022-08-08
+SRC_VERSION:=${SRC_TAG}-2024-01-23
 
 
 -include $(TOP)/../RELEASE.local
