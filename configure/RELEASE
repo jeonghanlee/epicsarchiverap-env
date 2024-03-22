@@ -10,10 +10,10 @@ SRC_NAME:=${APPNAME}
 
 ## Which the source tag / branch / hash id would like to use
 # latest master
-SRC_TAG:=8b4f22e
+SRC_TAG:=835061f
 ## Placeholder for the site-specific version control 
 #
-SRC_VERSION:=${SRC_TAG}-2024-01-23
+SRC_VERSION:=${SRC_TAG}-2024-01-10
 
 
 -include $(TOP)/../RELEASE.local
