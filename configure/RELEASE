@@ -3,8 +3,7 @@ APPNAME:=epicsarchiverap
 
 ## Where the Source repository SRC_URL/SRC_NAME
 #
-#SRC_URL:=https://github.com/slacmshankar
-SRC_URL:=https://github.com/archiver-appliance
+SRC_URL:=https://github.com/jeonghanlee
 SRC_NAME:=${APPNAME}
 
 
