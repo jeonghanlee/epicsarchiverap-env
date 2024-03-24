@@ -129,6 +129,12 @@ tomcat.sd_disable:
 
 .PHONY: centos8.conf rocky8.conf centos7.conf
 
+debian12.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo "TOMCAT_HOME:=$(TOMCAT_INSTALL_LOCATION)" >> $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
+
 centos7.conf: rocky8.conf
 
 centos8.conf: rocky8.conf
