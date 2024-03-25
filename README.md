@@ -48,4 +48,7 @@ make sd_start
 make sd_status
 ```
 
+### Switch between different source commits
+
+First, update `SRC_TAG` in `configure/RELEASE`, then `make srcupdate`
 

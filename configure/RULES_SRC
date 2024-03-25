@@ -23,7 +23,7 @@ help:
 
 default: help
 
-.PHONY: init clone update deinit distclean
+.PHONY: init clone update deinit distclean checkout srcupdate
 ## Clone and update Source
 init: clone update
 
@@ -35,6 +35,10 @@ clone:
 update:
 	$(QUIET)cd $(SRC_PATH) && git submodule update --init ./
 
+checkout:
+	$(QUIET)cd $(SRC_PATH) && git checkout $(SRC_TAG)
+
+srcupdate: checkout update
 
 deinit: distclean
 
