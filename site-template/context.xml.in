@@ -28,30 +28,31 @@
     <!--
     <Manager pathname="" />
     -->
+    <!--
+    https://tomcat.apache.org/tomcat-9.0-doc/jdbc-pool.html
+    -->
     <Resource name="jdbc/@JDBC_DB_NAME@"
         auth="Container"
-        type="@JDBC_RES_TYPE@"
         factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
-        testWhileIdle="true"
-        testOnBorrow="true"
-        testOnReturn="false"
-        validationQuery="SELECT 1"
-        validationInterval="30000"
-        timeBetweenEvictionRunsMillis="30000"
-        maxActive="10"
-        maxIdle="10"
-        minIdle="2"
-        maxWait="10000"
-        initialSize="2"
-        removeAbandonedTimeout="60"
-        removeAbandoned="true"
-        logAbandoned="true"
-        minEvictableIdleTimeMillis="30000"
-        jmxEnabled="true"
-        driverClassName="@JDBC_DATASOURCE_CLASSNAME@"
-        url="jdbc:@JDBC_DB_TYPE@://@JDBC_DB_HOSTNAME@:@JDBC_DB_PORTNUM@/@JDBC_DB_NAME@"
+        type="@JDBC_RES_TYPE@"
         username="@JDBC_DB_USER@"
         password="@JDBC_DB_USER_PASS@"
+        maxActive="10"
+        maxIdle="10"
+        minEvictableIdleTimeMillis="30000"
+        minIdle="2"
+        initialSize="2"
+        maxWait="10000"
+        testOnBorrow="true"
+        validationInterval="30000"
+        testWhileIdle="true"
+        timeBetweenEvictionRunsMillis="30000"
+        validationQuery="SELECT 1"
+        removeAbandoned="true"
+        removeAbandonedTimeout="60"
+        logAbandoned="true"
+        driverClassName="@JDBC_DATASOURCE_CLASSNAME@"
+        url="jdbc:@JDBC_DB_TYPE@://@JDBC_DB_HOSTNAME@:@JDBC_DB_PORTNUM@/@JDBC_DB_NAME@"
     />
 </Context>
 
