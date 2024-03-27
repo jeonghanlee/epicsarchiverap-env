@@ -23,15 +23,9 @@ AA_SITE_TEMPLATE_PATH=$(make -C "${ENV_TOP}" -s print-AA_SITE_TEMPLATE_PATH)
 # shellcheck disable=SC1090,SC1091
 . "${SC_TOP}/mariadb_generic_function.bash"
 
-declare -g ALS_DB_NAME;
-
-# shellcheck disable=SC2153
-ALS_DB_NAME="${DB_NAME}_summary"
-
 declare -g DEFAULT_DB_BACKUP_PATH;
 # shellcheck disable=SC2153
 DEFAULT_DB_BACKUP_PATH="${ENV_TOP}/${DB_NAME}_sql_backup";
-DEFAULT_ALS_DB_BACKUP_PATH="${ENV_TOP}/${ALS_DB_NAME}_sql_backup";
 
 function usage
 {
@@ -129,49 +123,13 @@ function drop_procedures
 
 }
 
-
-# 1 : database name
-function drop_als_triggers
-{
-    local db_name="$1"; shift;
-    local db_exist;
-    local cmd;
-    local dropCmd;
-    db_exist=$(isDb "${db_name}");
-    ## 
-    outputs=( "appliance_id_push1"  "appliance_id_push2" "appliance_id_push3" "channel_delete" )
-    if [[ $db_exist -ne "$EXIST" ]]; then
-	    noDbMessage "${db_name}";
-	    exit;
-    else
-
-        # shellcheck disable=SC2086
-        printf "\n";
-        for output in "${outputs[@]}"
-        do
-            dropCmd="$SQL_DBUSER_CMD";
-            dropCmd+=" ";
-            dropCmd+="${db_name}";
-            dropCmd+=" ";
-            dropCmd+="--execute=\"";
-            # Ignore all table orders, drop all
-            printf "... drop %24s if exists \n" "${output}";
-            dropCmd+="DROP TRIGGER IF EXISTS ${output}"
-            dropCmd+=";\"";
-	        commandPrn "$dropCmd"
-            eval "${dropCmd}"
-        done
-    fi
-
-}
-
 function generate_admin_local_password
 {
     local db_name="$1"; shift;
     local db_user_name="$1"; shift;
     local local_password="$1"; shift;
     local python_path="$1";shift;
-    local python_cmd="$1"; shift;   
+    local python_cmd="$1"; shift;
 
     local db_exist;
     local cmd;
@@ -401,16 +359,9 @@ case "$input" in
     dbCreate)
         create_db "${DB_NAME}";
         ;;
-    alsDbCreate)
-        create_db "${ALS_DB_NAME}";
-        ;;
     dbUserCreate)
         # shellcheck disable=SC2153
         create_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
-        ;;
-    alsDbUserCreate)
-        # shellcheck disable=SC2153
-        create_db_and_user "${ALS_DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
         ;;
     dbShow)
         show_dbs;
@@ -418,24 +369,14 @@ case "$input" in
     dbUserDrop)
         drop_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}";
         ;;
-    alsDbUserDrop)
-        drop_db_and_user "${ALS_DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}";
-        ;;
     userDrop)
       drop_user "${DB_HOST_NAME}" "${DB_USER}";
         ;;
     dbDrop)
         drop_db "${DB_NAME}"
         ;;
-    alsDbDrop)
-        drop_db "${ALS_DB_NAME}"
-        ;;
     isDb)
         isDb "${DB_NAME}" "YES";
-        ;;
-
-    isAlsDb)
-        isDb "${ALS_DB_NAME}" "YES";
         ;;
     dbBackup)
 	    backup_path="$additional_input"
@@ -459,28 +400,6 @@ case "$input" in
         fi
         restore_db "${date}" "${backup_path}";
         ;;
-    alsDbBackup)
-	    backup_path="$additional_input"
-	    if [ -z "${backup_path}" ]; then
-            backup_path="${DEFAULT_ALS_DB_BACKUP_PATH}"
-        fi
-	    backup_db "${ALS_DB_NAME}" "${backup_path}";
-        ;;
-    alsDbBackupList)
-	    backup_path="$additional_input"
-	    if [ -z "${backup_path}" ]; then
-            backup_path="${DEFAULT_ALS_DB_BACKUP_PATH}"
-        fi
-        backup_db_list "${backup_path}"
-        ;;
-    alsDbRestore)
-        date="$additional_input";
-	    backup_path="$3"
-	    if [ -z "${backup_path}" ]; then
-            backup_path="${DEFAULT_ALS_DB_BACKUP_PATH}"
-        fi
-        restore_db "${date}" "${backup_path}";
-        ;;
 #    tableCreate)
 #        if [ -z "${additional_input}" ]; then
 #            additional_input="${ENV_TOP}//ComponentDB-src/db/sql/create_cdb_tables.sql"
@@ -492,30 +411,6 @@ case "$input" in
         ;;
     tableDrop)
         drop_tables "${DB_NAME}" "BASE TABLE";
-        ;; 
-#    alsTableCreate)
-#        if [ -z "${additional_input}" ]; then
-#            additional_input="${ENV_TOP}/ComponentDB-src/db/sql/create_cdb_tables.sql"
-#        fi
-#        query_from_sql_file "${ALS_DB_NAME}" "${additional_input}";
-#        ;;    
-    alsTableShow)
-        show_tables "${ALS_DB_NAME}" "BASE TABLE";
-        ;;
-    alsTableDrop)
-        drop_tables "${ALS_DB_NAME}" "BASE TABLE";
-        ;; 
-    alsViewShow)
-        show_tables "${ALS_DB_NAME}" "VIEW";
-        ;;
-    alsViewDrop)
-        drop_tables "${ALS_DB_NAME}" "VIEW";
-        ;; 
-    alsTriggerShow)
-        execute_query "${DB_NAME}" "SELECT TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_SCHEMA='${DB_NAME}';"
-        ;;
-    alsTriggerDrop)
-        drop_als_triggers "${DB_NAME}";
         ;; 
     aaShow)
         if [ -z "${additional_input}" ]; then

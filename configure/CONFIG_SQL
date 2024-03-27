@@ -1,37 +1,30 @@
+#
 SQL_TOP_PATH:=$(SRC_PATH)/src/main/org/epics/archiverappliance/config/persistence
-
+#
 SQL_SITE_PATH:=$(AA_SITE_TEMPLATE_PATH)/sql
-
+#
 SQL_CONFIG_FILE:=mariadb.conf
-
-
 #
-# We use the hard-coded file name instead of $DB_NAME_mysql.sql
-# 
+## We use the hard-coded file name instead of $DB_NAME_mysql.sql
+## AA Original SQL
 SQL_AA_ORIG_SQL:=$(SQL_TOP_PATH)/archappl_mysql.sql
-
 # This file doesn't have any archappl (DB_NAME) within
+# ALS-U Updated SQL with DEFAULT CHARSET=utf8mb4
 SQL_AA_UPDATE_SQL:=$(SQL_SITE_PATH)/archappl_mysql_updated.sql
-
-# This is a template which contains DB_NAME, will be replaced with DB_NAME
 #
-SQL_AA_ALS_SQL:=$(SQL_SITE_PATH)/archappl_summary_views.sql
-
 ## https://mariadb.com/kb/en/about-mariadb-connector-j/
 # For MySQL : com.mysql.jdbc.Driver
-# We only need to put the JDBC driver into mgmt/WEP_INF/lib
+## We only need to put the JDBC driver into mgmt/WEP_INF/lib
 JDBC_DATASOURCE_CLASSNAME=org.mariadb.jdbc.Driver
-# For MySQL : mysql 
+## For MySQL : mysql
 JDBC_DB_TYPE=mariadb
-# Shouldn't change it, beceause mgmt/WEP_INF/web.xml has the hard-coded RES_TYPE
+## Shouldn't change it, beceause mgmt/WEP_INF/web.xml has the hard-coded RES_TYPE
 JDBC_RES_TYPE=javax.sql.DataSource
 JDBC_DB_USER=$(DB_USER)
 JDBC_DB_USER_PASS=$(DB_USER_PASS)
-# localhost is prefered
-# {}/conf/context.xml
+## localhost is prefered
+## {}/conf/context.xml
 JDBC_DB_HOSTNAME=$(DB_HOST_NAME)
 JDBC_DB_PORTNUM=$(DB_HOST_PORT)
 JDBC_DB_NAME=$(DB_NAME)
-
-ALS_DB_NAME=$(DB_NAME)_summary
-
+# -- end of line
