@@ -71,3 +71,5 @@ apache-tomcat*
 .plist
 site-template/*.plist
 *.swo
+# updated.sql was generated through RULES_SQL
+archappl_mysql_updated.sql
