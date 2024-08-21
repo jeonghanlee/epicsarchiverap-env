@@ -46,7 +46,7 @@ deinit: distclean
 distclean:
 	$(call distclean, $(SRC_PATH))
 
-.PHONY: info.ant clean.ant  build.ant copy.sitespecific mkdir.wars
+.PHONY: info.ant clean.gradle clean.ant  build.ant copy.sitespecific mkdir.wars
 
 ## Ant and Java
 info.ant:
@@ -64,13 +64,21 @@ info.ant:
 clean.ant: info.ant
 	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) clean && cd ..
 
+clean.gradle:
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) ./gradlew clean && cd ..
+
 ## Build
 build.ant: info.ant copy.sitespecific | mkdir.wars
 	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) && cd ..
 
 # Gradle experiment
 build.gradle: copy.sitespecific | mkdir.wars
-	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) ./gradlew war && cp build/libs/*.war ../wars/ && cd ..
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) && \
+	./gradlew && \
+	cd build/distributions && \
+	tar --wildcards -xvzf archappl*tar.gz *.war && \
+	cp *.war ../../../wars/ && \
+	cd ../../
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"
@@ -87,7 +95,7 @@ mkdir.wars:
 
 
 ## Conf and Build
-build: conf build.ant
+build: conf build.gradle
 
 ## Configuration
 conf: conf.archapplproperties conf.storage

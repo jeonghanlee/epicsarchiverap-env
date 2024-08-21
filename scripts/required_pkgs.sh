@@ -139,6 +139,47 @@ function debian11_pkgs
     fi
 }
 
+function debian12_pkgs
+{
+    ## Debian 12
+    apt update -y
+    apt install -y wget \
+                   curl \
+    	           git \
+    	           sed \
+                   gawk \
+                   unzip \
+                   make \
+                   gcc \
+                   tree \
+                   python3 \
+                   python3-pip \
+                   python-is-python3 \
+                   python3-venv \
+    	           mariadb-server \
+                   mariadb-client  \
+                   libmariadb-dev \
+                   libmariadb-dev-compat \
+                   openjdk-17-jdk \
+                   ant \
+                   tomcat10 \
+                   tomcat10-common \
+                   tomcat10-admin \
+                   tomcat10-user \
+                   libtomcat10-java \
+                   jsvc \
+                   chrony 
+    
+    ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
+    # MySQL-python-1.2.5 doesn't work with mariadb 
+    # https://lists.launchpad.net/maria-developers/msg10744.html
+    # https://github.com/DefectDojo/django-DefectDojo/issues/407
+
+    if [ ! -f /usr/include/mariadb/mysql.h.bkp ]; then
+        sed '/st_mysql_options options;/a unsigned int reconnect;' /usr/include/mariadb/mysql.h -i.bkp
+    fi
+}
+
 function centos7_pkgs
 {
     yum update -y;
@@ -223,6 +264,7 @@ echo "$dist"
 case "$dist" in
     *buster*)   debian10_pkgs ;;
     *bullseye*) debian11_pkgs ;;
+    *bookworm*) debian12_pkgs ;;
     *CentOS* | *Scientific* ) 
         centos_version=$(centos_dist)
         if [ "$centos_version" == "7" ]; then
