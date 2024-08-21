@@ -68,9 +68,9 @@ clean.ant: info.ant
 build.ant: info.ant copy.sitespecific | mkdir.wars
 	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) && cd ..
 
-## Site Build
-build.site: info.ant copy.sitespecific | mkdir.wars
-	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) sitespecificbuild && cd ..
+# Gradle experiment
+build.gradle: copy.sitespecific | mkdir.wars
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) ./gradlew war && cp build/libs/*.war ../wars/ && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"
