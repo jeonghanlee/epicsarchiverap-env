@@ -43,6 +43,11 @@ tomcat.install: tomcat.preinst tomcat.src_install tomcat.update
 	$(QUIET)$(SUDO) chmod 644 $(TOMCAT_INSTALL_LOCATION)/bin/*.jar
 #	$(QUIET)$(SUDO) chmod 755 $(TOMCAT_INSTALL_LOCATION)/bin/*.sh
 
+tomcat.installmdb: tomcat.preinst
+	$(QUIET)$(SUDO) rm -rf $(TOMCAT_INSTALL_LOCATION)/lib/$(MARIADB_JDBC_FILE)
+	$(QUIET)$(SUDO) wget $(MARIADB_URL) -P $(TOMCAT_INSTALL_LOCATION)/lib/
+	$(SUDO) chown $(AA_USERID):$(AA_GROUPID) $(TOMCAT_INSTALL_LOCATION)/lib/$(MARIADB_JDBC_FILE)
+
 tomcat.installall: tomcat.preinst tomcat.src_install tomcat.update tomcat.sd_install tomcat.sd_enable
 	$(QUIET)$(SUDO) chown -R $(AA_USERID):$(AA_GROUPID) $(TOMCAT_INSTALL_LOCATION)
 	$(QUIET)$(SUDO) chmod -R 755 $(TOMCAT_INSTALL_LOCATION)/lib

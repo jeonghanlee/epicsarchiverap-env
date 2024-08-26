@@ -4,6 +4,7 @@ Configuration Environment for [Customized or Legacy EPICS Archiver Appliance](ht
 
 
 ## Debian 12
+will use a manually downloaded version of tomcat9, installed to /opt/tomcat9
 
 ### Pre-requirement packages
 
@@ -33,6 +34,7 @@ make sql.show
 make vars FILTER=TOMCAT
 make tomcat.get
 make tomcat.install
+make tomcat.installmdb # will install mariadb jdbc connector to tomcat's libs
 make tomcat.exist
 ```
 

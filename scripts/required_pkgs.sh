@@ -160,7 +160,7 @@ function debian12_pkgs
                    mariadb-client  \
                    libmariadb-dev \
                    libmariadb-dev-compat \
-                   openjdk-17-jdk \
+                   openjdk-17-jdk-headless \
                    ant \
     
 }
