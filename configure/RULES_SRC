@@ -78,7 +78,7 @@ build.gradle: copy.sitespecific | mkdir.wars
 	export ARCHAPPL_SITEID=$(ARCHAPPL_SITEID) && \
 	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) && \
 	./gradlew && \
-	cp build/libs/*war ../wars/ && \
+	cp build/libs/*war $(ARCHAPPL_WARS_TARGET_PATH)/ && \
 	cd ..
 
 copy.sitespecific: | FORCE
