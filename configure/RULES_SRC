@@ -71,14 +71,15 @@ clean.gradle:
 build.ant: info.ant copy.sitespecific | mkdir.wars
 	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) && cd ..
 
-# Gradle experiment
+## Build with Gradle
+##	tar --wildcards -xvzf build/distributions/archappl*tar.gz *.war -C ../../../../wars/ && \
+
 build.gradle: copy.sitespecific | mkdir.wars
+	export ARCHAPPL_SITEID=$(ARCHAPPL_SITEID) && \
 	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) && \
 	./gradlew && \
-	cd build/distributions && \
-	tar --wildcards -xvzf archappl*tar.gz *.war && \
-	cp *.war ../../../wars/ && \
-	cd ../../
+	cp build/libs/*war ../wars/ && \
+	cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"
