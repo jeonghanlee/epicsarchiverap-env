@@ -139,7 +139,10 @@ function debian11_pkgs
     fi
 }
 
-# manually copy form @kingspride pr/26
+# Manually copy form @kingspride pr/26 with jsvc and chrony
+# chrony is the critical system, to archive signals correctly.
+# jsvc is used to close the service first, if not pkill or kill will be used.
+#
 function debian12_pkgs
 {
     ## Debian 12
@@ -163,6 +166,8 @@ function debian12_pkgs
                    libmariadb-dev-compat \
                    openjdk-17-jdk-headless \
                    ant \
+                   jsvc \
+                   chrony
 
 }
 
