@@ -46,7 +46,7 @@ function find_dist
      	    dist_cn=$(lsb_release -cs)
      	    dist_rs=$(lsb_release -rs)
      	    echo "$dist_id" "${dist_cn}" "${dist_rs}"
-        else 
+        else
             # shellcheck disable=SC2046 disable=SC2002
      	    eval $(cat /etc/os-release | grep -E "^(PRETTY_NAME)=")
             # shellcheck disable=SC2086
@@ -89,10 +89,10 @@ function debian10_pkgs
                    tomcat9-user \
                    libtomcat9-java \
                    jsvc \
-                   chrony 
-    
+                   chrony
+
     ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
-    # MySQL-python-1.2.5 doesn't work with mariadb 
+    # MySQL-python-1.2.5 doesn't work with mariadb
     # https://lists.launchpad.net/maria-developers/msg10744.html
     # https://github.com/DefectDojo/django-DefectDojo/issues/407
 
@@ -127,16 +127,43 @@ function debian11_pkgs
                    tomcat9-user \
                    libtomcat9-java \
                    jsvc \
-                   chrony 
-    
+                   chrony
+
     ln -sf "$(which mariadb_config)" /usr/bin/mysql_config
-    # MySQL-python-1.2.5 doesn't work with mariadb 
+    # MySQL-python-1.2.5 doesn't work with mariadb
     # https://lists.launchpad.net/maria-developers/msg10744.html
     # https://github.com/DefectDojo/django-DefectDojo/issues/407
 
     if [ ! -f /usr/include/mariadb/mysql.h.bkp ]; then
         sed '/st_mysql_options options;/a unsigned int reconnect;' /usr/include/mariadb/mysql.h -i.bkp
     fi
+}
+
+# manually copy form @kingspride pr/26
+function debian12_pkgs
+{
+    ## Debian 12
+    apt update -y
+    apt install -y wget \
+                   curl \
+    	           git \
+    	           sed \
+                   gawk \
+                   unzip \
+                   make \
+                   gcc \
+                   tree \
+                   python3 \
+                   python3-pip \
+                   python-is-python3 \
+                   python3-venv \
+    	           mariadb-server \
+                   mariadb-client  \
+                   libmariadb-dev \
+                   libmariadb-dev-compat \
+                   openjdk-17-jdk-headless \
+                   ant \
+
 }
 
 function centos7_pkgs
@@ -196,7 +223,7 @@ function macos_pkgs
     if command -v brew &> /dev/null
     then
 	brew install tree wget unzip mariadb ant nmap openjdk@17
- 
+
     elif command -v port &> /dev/null
     then
 	echo "Port"
@@ -223,7 +250,8 @@ echo "$dist"
 case "$dist" in
     *buster*)   debian10_pkgs ;;
     *bullseye*) debian11_pkgs ;;
-    *CentOS* | *Scientific* ) 
+    *bookworm*) debian12_pkgs ;;
+    *CentOS* | *Scientific* )
         centos_version=$(centos_dist)
         if [ "$centos_version" == "7" ]; then
             centos7_pkgs

@@ -1,5 +1,5 @@
 
-APPNAME:=epicsarchiverap
+APPNAME:=epicsarchiverap-maven
 
 ## Where the Source repository SRC_URL/SRC_NAME
 #
@@ -14,10 +14,10 @@ SRC_NAME:=${APPNAME}
 #SRC_TAG:=734f31f
 ## Placeholder for the site-specific version control 
 #
-SRC_TAG:=d3dd9cc
+SRC_TAG:=master
 #
-#SRC_VERSION:=$(SRC_TAG)
-SRC_VERSION:=${SRC_TAG}-2022-08-08
+SRC_VERSION:=$(SRC_TAG)
+#SRC_VERSION:=${SRC_TAG}-2022-08-08
 
 -include $(TOP)/../RELEASE.local
 -include $(TOP)/configure/RELEASE.local
