@@ -8,7 +8,7 @@ AA_SITE_TEMPLATE_PATH=$(TOP)/site-template
 ARCHAPPL_TOP:=$(AA_INSTALL_LOCATION)
 ARCHAPPL_SITEID:=als
 ARCHAPPL_VERSION:=$(SRC_VERSION)-$(ARCHAPPL_SITEID)
-ARCHAPPL_WARS_TARGET_PATH:=$(TOP)/wars
+ARCHAPPL_WARS_TARGET_PATH=$(TOP)/$(SRC_PATH)/target
 ARCHAPPL_SITEID_TEMPATE_PATH:=$(AA_SITE_TEMPLATE_PATH)/siteid
 ARCHAPPL_SITEID_CLASSPATHFILES_PATH:=$(ARCHAPPL_SITEID_TEMPATE_PATH)/classpathfiles
 
@@ -24,7 +24,7 @@ MAVEN_OPTS:=
 
 # export JAVA_OPTS="-XX:MaxPermSize=128M -XX:+UseG1GC -Xmx4G -Xms4G -ea"
 #
-#  -XX:MaxPermSize=size  This option was deprecated in JDK 8, 
+#  -XX:MaxPermSize=size  This option was deprecated in JDK 8,
 #   and superseded by the -XX:MaxMetaspaceSize option.
 #
 # The physical memory  :  64G, so I use 8G instead of 4G, since we don't have any other application on the server.
@@ -33,12 +33,14 @@ AA_JAVA_HEAPSIZE="1G"
 AA_JAVA_MAXMETASPACE="256M"
 # https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for
 # https://www.openssl.org/blog/blog/2017/08/12/random/
-AA_JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
+# AA_JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
+# For Java 21, we don't need this anymore.
+AA_JAVA_OPTS=""
 #
 AA_USERID:=tomcat
 AA_GROUPID:=$(AA_USERID)
 
-## appliances.xml 
+## appliances.xml
 #
 ARCHAPPL_STORAGE_TOP:=/arch
 ARCHAPPL_SHORT_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore
@@ -47,13 +49,13 @@ ARCHAPPL_LONG_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore
 
 ## archappl.properties
 ## We only have three variables for the space holder for the future expansion
-# 
+#
 ARCHAPPL_MINIMUM_SAMPLING_PERIOD:=0.1
 ARCHAPPL_SECONDS_TO_BUFFER:=10
 ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT:=1.0
 
 
-## log4j_properties located in $(TOMCAT_HOME)/lib 
+## log4j_properties located in $(TOMCAT_HOME)/lib
 #
 ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
 ARCHAPPL_SINGLE_IDENTITY=appliance0
@@ -63,7 +65,7 @@ ARCHAPPL_APPLIANCES:=appliances.xml
 ARCHAPPL_POLICIES:=policies.py
 ARCHAPPL_PROPERTIES:=archappl.properties
 ARCHAPPL_CONF:=archappl.conf
-## $(AA_INSTALL_LOCATION)/*/conf 
+## $(AA_INSTALL_LOCATION)/*/conf
 #
 ARCHAPPL_CONTEXT_XML:=context.xml
 ARCHAPPL_TOMCAT_STARTUP:=startup.sh
@@ -74,12 +76,12 @@ ARCHAPPL_MAIN_SCRIPT:=archappl.bash
 # SYSTEDM Required and After Service List
 # This is After and Required services for the systemd archiver appliance systemd service.
 # mariadb.service was defined in there, but sometimes, we need to check our directories where
-# our data will be saved. 
+# our data will be saved.
 # one can check the mounting service name through  `systemctl list-units --type=mount`
 # Here is the example for the ALS environment
 # CONFIG_SITE.local can be used to hold this information locally
 # Each service need one space between them, and backslash must be double backslash
-# 
+#
 # SYSTEMD_SERVICES=archappl.mount home-als1.mount remote-als\\x2dsw.mount
 SYSTEMD_SERVICES:=
 

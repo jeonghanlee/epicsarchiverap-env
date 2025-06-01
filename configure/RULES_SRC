@@ -6,7 +6,7 @@
 # help is defined in
 # https://gist.github.com/rcmachado/af3db315e31383502660
 help:
-	$(info --------------------------------------- )	
+	$(info --------------------------------------- )
 	$(info Make Targets)
 	$(info --------------------------------------- )
 	$(QUIET) awk '/^[a-zA-Z\\-\\_0-9]+:/ {          \
@@ -46,14 +46,14 @@ deinit: distclean
 distclean:
 	$(call distclean, $(SRC_PATH))
 
-.PHONY: info.ant clean.ant  build.ant copy.sitespecific mkdir.wars
+.PHONY: info.mvn clean.mvn build.mvn copy.sitespecific mkdir.wars
 
 ## Ant and Java
-info.ant:
+info.mvn:
 	$(QUIET)echo "-------------------------------------------------------------"
-	$(QUIET)echo ">>> Ant  information"
-	$(QUIET)echo "Ant : $(ANT_PATH)/ant"
-	$(QUIET)$(ANT_PATH)/ant -version
+	$(QUIET)echo ">>> MAVEN information"
+	$(QUIET)echo "MAVEN : $(MAVEN_PATH)/mvn"
+	$(QUIET)$(MAVEN_PATH)/mvn -version
 	$(QUIET)echo "-------------------------------------------------------------"
 	$(QUIET)echo ">>> JAVA information"
 	$(QUIET)echo "JAVA : $(JAVA_PATH)/java"
@@ -61,16 +61,16 @@ info.ant:
 	$(QUIET)echo "-------------------------------------------------------------"
 
 ## Clean
-clean.ant: info.ant
-	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) clean && cd ..
+clean.mvn: info.mvn
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean && cd ..
 
 ## Build
-build.ant: info.ant copy.sitespecific | mkdir.wars
-	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) && cd ..
+build.mvn: info.mvn copy.sitespecific
+	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
 
 ## Site Build
-build.site: info.ant copy.sitespecific | mkdir.wars
-	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(ANT_CMD) $(ANT_OPTS) sitespecificbuild && cd ..
+#build.site: info.mvn copy.sitespecific
+#	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) sitespecificbuild && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"
@@ -80,14 +80,11 @@ copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"
 
 
-mkdir.wars:
-	@mkdir -p $(ARCHAPPL_WARS_TARGET_PATH)
-
 .PHONY: conf build
 
 
 ## Conf and Build
-build: conf build.ant
+build: conf build.mvn
 
 ## Configuration
 conf: conf.archapplproperties conf.storage

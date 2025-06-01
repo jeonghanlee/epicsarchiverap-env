@@ -5,7 +5,7 @@ INSTALL_PROGRAM:=$(INSTALL)
 INSTALL_DATA:=$(INSTALL) -m 644
 INSTALL_755:=$(INSTALL) -m 755
 
-# IF INSTALL_LOCATIOIN is not WRITABLE, SUDO and SUDOBASH should be used 
+# IF INSTALL_LOCATIOIN is not WRITABLE, SUDO and SUDOBASH should be used
 # SUDO_INFO 1 : SUDO is needed (NOT writable)
 # SUDO_INFO 0 : SUDO is not needed
 SUDO_INFO := $(shell test -w $(AA_INSTALL_LOCATION) 1>&2 2> /dev/null; echo $$?)
@@ -27,9 +27,9 @@ endif
 
 PATH:=$(MAVEN_PATH):$(ANT_PATH):$(JAVA_PATH):${PATH}
 
-ANT_CMD:=$(ANT_PATH)/ant
-MAVEN_CMD:=$(MAVE_PATH)/mvn
-JAVA_CMD:=$(JAVA_PATH)/java 
+ANT_CMD=$(ANT_PATH)/ant
+MAVEN_CMD=$(MAVEN_PATH)/mvn
+JAVA_CMD=$(JAVA_PATH)/java
 
 
 ARCHAPPL_MGMT_PORT:=17665

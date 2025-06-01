@@ -82,11 +82,11 @@ uninstall: sd_stop sd_disable sd_clean
 
 # Tomcat Service is already in the system
 src_preinst:
-#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(AA_USERID)" "$(AA_GROUPID)"
+	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postinst "configure" "$(AA_USERID)" "$(AA_GROUPID)"
 
 # Tomcat Service is already in the system
 src_postrm:
-#	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(AA_USERID)"
+	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(AA_USERID)"
 
 src_version: FORCE
 	$(QUIET)echo "Timestamps : $$(date +%Y%m%d-%H%M%S)/YYYYMMDD-HHMMSS" > $(AA_SITE_TEMPLATE_PATH)/.versions

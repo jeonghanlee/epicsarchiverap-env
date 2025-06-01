@@ -76,7 +76,7 @@ install.$(patsubst $(3)/%,%,$(4)):
 	@echo "    1) Copy all template from $(TOMCAT_HOME)/skel/* to $(4)/"
 	@$(SUDO) cp -r $(AA_SITE_TEMPLATE_PATH)/skel/* $(4)/
 	@echo "    2) Extracting $(patsubst $(3)/%,%,$(4)).war into $(4)/webapps/$(patsubst $(3)/%,%,$(4))"
-	@$(SUDO) unzip -q -o $(ARCHAPPL_WARS_TARGET_PATH)/$(patsubst $(3)/%,%,$(4)).war -d $(4)/webapps/$(patsubst $(3)/%,%,$(4))
+	@$(SUDO) unzip -q -o $(ARCHAPPL_WARS_TARGET_PATH)/*$(patsubst $(3)/%,%,$(4)).war -d $(4)/webapps/$(patsubst $(3)/%,%,$(4))
 	@echo "    3) Install $(ARCHAPPL_CONTEXT_XML) into $(4)/conf/"
 	@$(SUDO) install -m 644 $(AA_SITE_TEMPLATE_PATH)/$(ARCHAPPL_CONTEXT_XML) $(4)/conf/
 	@echo "    4) Install $(ARCHAPPL_TOMCAT_STARTUP) and $(ARCHAPPL_TOMCAT_SHUTDOWN) in $(4)/bin"
@@ -96,6 +96,7 @@ endef
 # 3 : INSTALL_LOCATION
 # 4 : INSTALL_LOCATION_SERVICES
 # 5 : RETURN
+## in order to debug, replace eval with info
 define buildrules_BUILDER
 $(foreach dir, $(4), $(eval $(call a_service_BUIDER,$(1),$(2),$(3),$(dir),$(5))))
 endef
