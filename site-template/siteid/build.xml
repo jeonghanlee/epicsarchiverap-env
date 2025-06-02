@@ -2,35 +2,37 @@
 <!--
 Advanced Light Souce Upgrade Project Site Specific build.xml
 * Jeong Han Lee : JeongLee@lbl.gov
-* 2020.08.07 
+* 2020.08.07
 -->
 <project name="ALS Custumized Build" default="als">
     <description>The build file for the ALS Specific Configuration.</description>
 	<target name="als" depends="updateTemplate">
 		<echo message="Advanced Light Source (ALS-U) : ${archapplsite}" />
-		<echo message="Advanced Light Source (ALS-U) : STAGE_FOLDER - ${stage}" /> 
+		<echo message="Advanced Light Source (ALS-U) : STAGE_FOLDER - ${stage}" />
 		<echo message="Advanced Light Source (ALS-U) : WAR FILES are in ${wardest}" />
 		<echo message="Copying JDBC Jar file to ${lib}" />
 		<copy todir="${lib}" overwrite="true" >
     		<fileset dir="lib" />
    		</copy>
-		<echo message="Advanced Light Source (ALS-U) : ALS image files to STAGE_FOLDER/org/epics/archiverappliance/staticcontent/img" />  
+		<echo message="Advanced Light Source (ALS-U) : ALS image files to STAGE_FOLDER/org/epics/archiverappliance/staticcontent/img" />
 		<copy todir="${stage}/org/epics/archiverappliance/staticcontent/img" overwrite="true">
 			<fileset dir="img" />
 		</copy>
-		<echo message="Advanced Light Source (ALS-U) : css/main.css to STAGE_FOLDER/org/epics/archiverappliance/staticcontent/css" />  
+		<echo message="Advanced Light Source (ALS-U) : css/main.css to STAGE_FOLDER/org/epics/archiverappliance/staticcontent/css" />
 		<copy file="css/main.css" todir="${stage}/org/epics/archiverappliance/staticcontent/css" overwrite="true" />
-		<echo message="Advanced Light Source (ALS-U) : css/mgnt.css to STAGE_FOLDER/org/epics/archiverappliance/mgmt/staticcontent/css" />  
+		<echo message="Advanced Light Source (ALS-U) : css/mgnt.css to STAGE_FOLDER/org/epics/archiverappliance/mgmt/staticcontent/css" />
 		<copy file="css/mgmt.css" todir="${stage}/org/epics/archiverappliance/mgmt/staticcontent/css" overwrite="true" />
-	</target>   
+	</target>
 	<target name="updateTemplate">
 		<echo message="Advanced Light Source (ALS-U) : Apply template_changes.html to mgmt to STAGE_FOLDER/org/epics/archiverappliance/staticcontent" />
-        <java classname = "org.epics.archiverappliance.mgmt.bpl.SyncStaticContentHeadersFooters" 
-			  fork="true"  
-			  failonerror="true" >  
- 			<classpath path="${classes}" />
+        <java classname = "org.epics.archiverappliance.mgmt.bpl.SyncStaticContentHeadersFooters"
+			  fork="true"
+			  failonerror="true" >
+            <classpath>
+                <pathelement path="${ant.classes}"/>
+            </classpath>
 			<arg value="template_changes.html" />
 			<arg value="${stage}/org/epics/archiverappliance/mgmt/staticcontent/"/>
-        </java>  
-    </target>  
+        </java>
+    </target>
 </project>
