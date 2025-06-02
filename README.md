@@ -4,6 +4,8 @@ Configuration Environment for [EPICS Archiver Appliance with MAVEN](https://gith
 
 The source of EPICS Archiver Appliance **IS** the community version, however the building method **IS NOT** the same as the community versioin. Of course, there are a few code difference one might see. Nevertheless, I would like to keep the minimum changes. The main difference is that the repository uses **MAVEN** as the building environment.
 
+**Not fully working - Work In Progress**
+
 ## Debian 12
 
 This guide outlines the setup process on a Debian 12 system.
