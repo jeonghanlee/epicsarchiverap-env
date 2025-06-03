@@ -62,11 +62,21 @@ info.mvn:
 
 ## Clean
 clean.mvn: info.mvn
-	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean && cd ..
+	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean && cd ..
 
+## -f $(SRC_PATH)/pom.xml does not work, since we will have the
+## java.io.FileNotFoundException: docs/api/mgmt_scriptables.txt
+## issues. It requires the significant work to change the sources codes,
+## So, I am good for cd && solution.
+## 2025-06-03
 ## Build
 build.mvn: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
+	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
+
+## Build 2
+build.mvn2: info.mvn copy.sitespecific
+	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package  -Dsphinx.skip=true && cd ..
+
 
 ## Site Build
 #build.site: info.mvn copy.sitespecific
