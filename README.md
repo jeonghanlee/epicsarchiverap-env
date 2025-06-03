@@ -1,8 +1,10 @@
-# EPICS Archiver Appliance Configuration Environment with MAVEN
+# WIP - EPICS Archiver Appliance Configuration Environment with MAVEN
 
 Configuration Environment for [EPICS Archiver Appliance with MAVEN](https://github.com/jeonghanlee/epicsarchiverap-maven) for [the Advanced Light Source Upgrade (ALS-U) Project](https://als.lbl.gov/als-u/overview/) at [Lawrence Berkeley National Laboratory](https://lbl.gov).
 
 The source of EPICS Archiver Appliance **IS** the community version, however the building method **IS NOT** the same as the community versioin. Of course, there are a few code difference one might see. Nevertheless, I would like to keep the minimum changes. The main difference is that the repository uses **MAVEN** as the building environment.
+
+**Not fully working - Work In Progress**
 
 ## Debian 12
 
