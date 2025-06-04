@@ -1,8 +1,8 @@
 # WIP - EPICS Archiver Appliance Configuration Environment with MAVEN
 
-Configuration Environment for [EPICS Archiver Appliance with MAVEN](https://github.com/jeonghanlee/epicsarchiverap-maven) for [the Advanced Light Source Upgrade (ALS-U) Project](https://als.lbl.gov/als-u/overview/) at [Lawrence Berkeley National Laboratory](https://lbl.gov).
+This repository provides the Configuration Environment for the [EPICS Archiver Appliance with MAVEN](https://github.com/jeonghanlee/epicsarchiverap-maven) project, specifically tailored for [the Advanced Light Source Upgrade (ALS-U) Project](https://als.lbl.gov/als-u/overview/) at [Lawrence Berkeley National Laboratory](https://lbl.gov).
 
-The source of EPICS Archiver Appliance **IS** the community version, however the building method **IS NOT** the same as the community versioin. Of course, there are a few code difference one might see. Nevertheless, I would like to keep the minimum changes. The main difference is that the repository uses **MAVEN** as the building environment.
+The source code for the [EPICS Archiver Appliance with MAVEN](https://github.com/jeonghanlee/epicsarchiverap-maven) build **IS** fundamentally based on the community version. However, its building method **IS NOT** the same as the standard community version. While the goal is to maintain minimal code differences from the community release, some variations may be present. The primary distinction is the use of **MAVEN** as the core build environment for that project, though **ANT** is also currently utilized for certain auxiliary tasks. For a more detailed understanding of the build system and specific modifications in that version, please refer to the [EPICS Archiver Appliance with MAVEN](https://github.com/jeonghanlee/epicsarchiverap-maven) repository.
 
 **Not fully working - Work In Progress**
 
@@ -58,7 +58,6 @@ make tomcat.install
 make tomcat.exist
 ```
 
-
 ### Build, install, and Service
 
 These commands compile the Archiver Appliance source code, install it, and manage its system service.
@@ -79,6 +78,13 @@ make sd_start
 # Check the current status of the Archiver Appliance service
 make sd_status
 ```
+
+### Home Screenshot
+
+|![archappl.png](docs/images/home-2025-06-03.png)|
+| :---: |
+|**Figure 1** Archiver Appliance Home Screen|
+
 
 ### Switch between different source commits
 

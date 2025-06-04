@@ -74,16 +74,11 @@ clean.mvn: info.mvn
 ## 2025-06-03
 ## Build
 build.mvn: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
 
 ## Build 2
 build.mvn2: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package  -Dsphinx.skip=true && cd ..
-
-
-## Site Build
-build.site: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) sitespecificbuild && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true -X && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"

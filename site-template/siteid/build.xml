@@ -9,11 +9,6 @@ Advanced Light Souce Upgrade Project Site Specific build.xml
 	<target name="als" depends="updateTemplate">
 		<echo message="Advanced Light Source (ALS-U) : ${archapplsite}" />
 		<echo message="Advanced Light Source (ALS-U) : STAGE_FOLDER - ${stage}" />
-		<echo message="Advanced Light Source (ALS-U) : WAR FILES are in ${wardest}" />
-		<echo message="Copying JDBC Jar file to ${lib}" />
-		<copy todir="${lib}" overwrite="true" >
-    		<fileset dir="lib" />
-   		</copy>
 		<echo message="Advanced Light Source (ALS-U) : ALS image files to STAGE_FOLDER/org/epics/archiverappliance/staticcontent/img" />
 		<copy todir="${stage}/org/epics/archiverappliance/staticcontent/img" overwrite="true">
 			<fileset dir="img" />
