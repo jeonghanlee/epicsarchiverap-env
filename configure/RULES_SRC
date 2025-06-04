@@ -26,7 +26,10 @@ default: help
 .PHONY: init clone update deinit distclean checkout srcupdate
 ## Clone and update Source
 init: clone update
-
+	$(QUIET)echo "-------------------------------------------------------------"
+	$(QUIET)echo "Move env $(TOP)/pom.xml to $(SRC_PATH)"
+	cp -rf $(TOP)/pom.xml $(SRC_PATH)
+	$(QUIET)echo "-------------------------------------------------------------"
 # gitclone use '-C' option, so git version should be more than 1.8.5. CentOS7 git is imcompatiable.
 #
 clone:
@@ -79,8 +82,8 @@ build.mvn2: info.mvn copy.sitespecific
 
 
 ## Site Build
-#build.site: info.mvn copy.sitespecific
-#	cd $(SRC_PATH) && JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) sitespecificbuild && cd ..
+build.site: info.mvn copy.sitespecific
+	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) sitespecificbuild && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"

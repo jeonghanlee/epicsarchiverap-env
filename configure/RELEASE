@@ -3,7 +3,8 @@ APPNAME:=epicsarchiverap-maven
 
 ## Where the Source repository SRC_URL/SRC_NAME
 #
-SRC_URL:=https://github.com/jeonghanlee
+SRC_URL=https://github.com/jeonghanlee
+#SRC_URL=https://github.com/archiver-appliance
 SRC_NAME:=${APPNAME}
 
 
@@ -12,7 +13,7 @@ SRC_NAME:=${APPNAME}
 #SRC_TAG:=b069bd8
 #SRC_TAG:=32db8e4810489fca280c360b657ed360f7ada116
 #SRC_TAG:=734f31f
-## Placeholder for the site-specific version control 
+## Placeholder for the site-specific version control
 #
 SRC_TAG:=master
 #
