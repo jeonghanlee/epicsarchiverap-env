@@ -9,7 +9,7 @@ show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 .PHONY: install services.install
 
 ## Install
-install:  src_install services.install sd_install sd_enable
+install:  src_install services.install serveroption.install sd_install sd_enable
 	$(QUIET)$(SUDO)	chown -R $(AA_USERID):$(AA_GROUPID) $(AA_INSTALL_LOCATION)
 
 services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES)
@@ -55,6 +55,12 @@ serverxml.show:
 	$(QUIET)cat -b $(AA_INSTALL_LOCATION)/engine/conf/server.xml
 	$(QUIET)cat -b $(AA_INSTALL_LOCATION)/etl/conf/server.xml
 	$(QUIET)cat -b $(AA_INSTALL_LOCATION)/retrieval/conf/server.xml
+
+serveroption.install:
+	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $(AA_SITE_TEMPLATE_PATH)/mgmt.conf $(AA_INSTALL_LOCATION)/mgmt/conf/
+	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $(AA_SITE_TEMPLATE_PATH)/engine.conf $(AA_INSTALL_LOCATION)/engine/conf/
+	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $(AA_SITE_TEMPLATE_PATH)/etl.conf $(AA_INSTALL_LOCATION)/etl/conf/
+	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $(AA_SITE_TEMPLATE_PATH)/retrieval.conf $(AA_INSTALL_LOCATION)/retrieval/conf/
 
 archapplshell.install: $(ARCHAPPL_MAIN_SCRIPT)
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"

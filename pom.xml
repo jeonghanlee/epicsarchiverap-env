@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Author : Jeong Han Lee, Dr.rer.nat.
+    Email  : jeonghan.lee_at_gmail_dot_com
+ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.epics.archiverappliance</groupId>
@@ -17,7 +21,7 @@
     <classes.dir>${project.build.directory}/build/classes</classes.dir>
     <java.docs.output.path>${project.build.directory}/site/apidocs/docs/api</java.docs.output.path>
     <stage.dir>${project.build.directory}/stage</stage.dir>
-    <!--
+<!--
  intermediate files .txt lost thier path, so we have to define it specifically
 -->
     <archapplsite>default</archapplsite>
@@ -336,7 +340,7 @@
                     JAVA_HOME=/opt/java-env/JDK /opt/java-env/MAVEN/bin/mvn dependency:build-classpath -Dmdep.outputFile=cp.txt
                     FULL_CLASSPATH="target/classes:$(cat cp.txt)"
                      /opt/java-env/JDK/bin/java -cp "$FULL_CLASSPATH" org.epics.archiverappliance.mgmt.BPLServlet
-                    -->
+           -->
           <execution>
             <id>generateBPLActionsMappings</id>
             <phase>compile</phase>

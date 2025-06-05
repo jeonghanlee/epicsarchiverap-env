@@ -1,7 +1,7 @@
 
-## ---> $(TOMCAT_HOME)/lib 
+## ---> $(TOMCAT_HOME)/lib
 ## ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
-## ---> $(AA_INSTALL_LOCATION)/*/conf 
+## ---> $(AA_INSTALL_LOCATION)/*/conf
 ## ARCHAPPL_CONTEXT_XML:=context.xml
 
 ## ---> $(AA_INSTALL_LOCATION)
@@ -59,12 +59,12 @@ conf.policies: $(ARCHAPPL_POLICIES).in  | mkdir.sitesidpath
 	rm -f $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(notdir $(basename $<))
 	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"
 	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
-	
-	
+
+
 conf.policies.show: $(ARCHAPPL_POLICIES).in
 	@cat -b $(basename $<)
 
-conf.context: $(ARCHAPPL_CONTEXT_XML).in 
+conf.context: $(ARCHAPPL_CONTEXT_XML).in
 	$(QUIET) echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s:@JDBC_DATASOURCE_CLASSNAME@:$(JDBC_DATASOURCE_CLASSNAME):g" \
 		    -e "s:@JDBC_RES_TYPE@:$(JDBC_RES_TYPE):g" \
@@ -76,10 +76,10 @@ conf.context: $(ARCHAPPL_CONTEXT_XML).in
 			-e "s:@JDBC_DB_NAME@:$(JDBC_DB_NAME):g" \
 			< $< > $(basename $<)
 
-conf.context.show: $(ARCHAPPL_CONTEXT_XML).in 
+conf.context.show: $(ARCHAPPL_CONTEXT_XML).in
 	@cat -b $(basename $<)
 
-conf.archappl: $(ARCHAPPL_CONF).in 
+conf.archappl: $(ARCHAPPL_CONF).in
 	$(QUIET) echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(AA_INSTALL_LOCATION):g" \
 			 -e "s:@ARCHAPPL_APPLIANCES@:$(ARCHAPPL_APPLIANCES):g" \
@@ -90,7 +90,8 @@ conf.archappl: $(ARCHAPPL_CONF).in
 			 -e "s:@ARCHAPPL_SHORT_TERM_FOLDER@:$(ARCHAPPL_SHORT_TERM_FOLDER):g" \
 			 -e "s:@ARCHAPPL_MEDIUM_TERM_FOLDER@:$(ARCHAPPL_MEDIUM_TERM_FOLDER):g" \
 			 -e "s:@ARCHAPPL_LONG_TERM_FOLDER@:$(ARCHAPPL_LONG_TERM_FOLDER):g" \
-			 -e "s:@JAVA_HOME@:$(JAVA_HOME):g" -e "s|@JAVA_OPTS@|$(AA_JAVA_OPTS)|g" \
+			 -e "s:@JAVA_HOME@:$(JAVA_HOME):g" \
+			 -e "s|@JAVA_OPTS@|$(AA_JAVA_OPTS)|g" \
 			 -e "s|@EPICS_CA_ADDR_LIST@|$(EPICS_CA_ADDR_LIST)|g" \
 			 -e "s:@EPICS_CA_AUTO_ADDR_LIST@:$(EPICS_CA_AUTO_ADDR_LIST):g" \
 			 -e "s:@EPICS_CA_MAX_ARRAY_BYTES@:$(EPICS_CA_MAX_ARRAY_BYTES):g" \
@@ -101,7 +102,7 @@ conf.archappl: $(ARCHAPPL_CONF).in
 			 -e "s:@TOMCAT_HOME@:$(TOMCAT_HOME):g" -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
 			< $< > $(basename $<)
 
-conf.archappl.show: $(ARCHAPPL_CONF).in 
+conf.archappl.show: $(ARCHAPPL_CONF).in
 	@cat -b $(basename $<)
 
 conf.log4j: log4j.properties.in
@@ -109,7 +110,7 @@ conf.log4j: log4j.properties.in
 	$(QUIET)sed -e "s:@ARCHAPPL_ROOT_LOGGER_LEVEL@:$(ARCHAPPL_ROOT_LOGGER_LEVEL):g" \
 			< $< > $(basename $<)
 
-conf.log4j.show: log4j.properties.in 
+conf.log4j.show: log4j.properties.in
 	@cat -b $(basename $<)
 
 mkdir.sitesidpath:

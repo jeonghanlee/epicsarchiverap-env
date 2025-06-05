@@ -3,6 +3,7 @@
 set -a
 # shellcheck source=/dev/null
 . "@ARCHAPPL_TOP@/archappl.conf"
+. "@ARCHAPPL_TOP@/@SERVICE_NAME@/conf/@SERVICE_NAME@.conf"
 set +a
 
 export CATALINA_BASE="@INSTALL_LOCATION@"
