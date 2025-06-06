@@ -76,16 +76,20 @@ clean.mvn: info.mvn
 ## So, I am good for cd && solution.
 ## 2025-06-03
 ## Build
-build.mvn: info.mvn copy.sitespecific
+build.mvn: info.mvn copy.sitespecific pom
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
 
 ## Build 2
-build.mvn2: info.mvn copy.sitespecific
+build.mvn2: info.mvn copy.sitespecific pom
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true && cd ..
 
 ## Build 3
-build.mvn3: info.mvn copy.sitespecific
+build.mvn3: info.mvn copy.sitespecific pom
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true -X && cd ..
+
+## Build 3
+build.war: info.mvn copy.sitespecific pom
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) war:exploded -Dsphinx.skip=true && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"

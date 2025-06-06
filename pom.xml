@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.epics.archiverappliance</groupId>
   <artifactId>archappl</artifactId>
-  <version>0</version>
+  <version>2025-6</version>
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -32,10 +32,12 @@
     <log4j.version>2.20.0</log4j.version>
     <selenium.version>4.22.0</selenium.version>
     <sphinx.skip>false</sphinx.skip>
-    <jamtio.name>jamtio</jamtio.name>
-    <jamtio.ver>071005</jamtio.ver>
     <redisnio.name>redisnio</redisnio.name>
     <redisnio.ver>0.0.1</redisnio.ver>
+    <!--
+    <jamtio.name>jamtio</jamtio.name>
+   <jamtio.ver>071005</jamtio.ver>
+   -->
   </properties>
   <repositories>
     <repository>
@@ -48,6 +50,7 @@
     </repository>
   </repositories>
   <dependencies>
+  <!--
     <dependency>
       <groupId>local.org.epics</groupId>
       <artifactId>${jamtio.name}</artifactId>
@@ -55,6 +58,7 @@
       <scope>system</scope>
       <systemPath>${lib.dir}/${jamtio.name}_${jamtio.ver}.jar</systemPath>
     </dependency>
+    -->
     <dependency>
       <groupId>local.org.epics</groupId>
       <artifactId>${redisnio.name}</artifactId>
@@ -77,10 +81,10 @@
       <systemPath>${lib.dir}/test/pbrawclient-0.2.1.jar</systemPath>
     </dependency>
     <dependency>
-      <groupId>org.apache.tomcat</groupId>
-      <artifactId>tomcat-servlet-api</artifactId>
-      <version>9.0.74</version>
-      <scope>compile</scope>
+    <groupId>org.apache.tomcat</groupId>
+    <artifactId>tomcat-servlet-api</artifactId>
+    <version>9.0.74</version>
+    <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
@@ -209,6 +213,11 @@
       <groupId>org.phoebus</groupId>
       <artifactId>core-pva</artifactId>
       <version>5.0.0</version>
+    </dependency>
+    <dependency>
+    <groupId>net.sourceforge.jmatio</groupId>
+    <artifactId>jmatio</artifactId>
+    <version>1.0</version>
     </dependency>
   </dependencies>
   <build>
@@ -579,35 +588,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>3.4.0</version>
+        <!-- Global Configuration -->
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <webResources>
-            <resource>
-              <!--
-              stage.dir/css/
-                        img/
-                        js/
-                        version.txt
-              all war files/ui/comm/css/
-                                    img/
-                                    js/
-                                    version.txt
-              -->
-              <directory>${stage.dir}/org/epics/archiverappliance/staticcontent</directory>
-              <targetPath>ui/comm</targetPath>
-            </resource>
-            <resource>
-              <!-- als
-              sitespecific.path/classpathfiles/appliances.xml
-                                               archappl.properties
-                                               policies.py
-              all war files/WEB-INF/classes/appliances.xml
-                                            archappl.properties
-                                            policies.py
-              -->
-              <directory>${sitespecific.path}/classpathfiles</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-            </resource>
           </webResources>
           <packagingExcludes>WEB-INF/lib/tomcat-servlet-api-*.jar</packagingExcludes>
         </configuration>
@@ -620,11 +604,29 @@
             </goals>
             <configuration>
               <classifier>mgmt</classifier>
+              <warSourceDirectory>${src.main.dir}/webapp-mgmt</warSourceDirectory>
+              <webappDirectory>${project.build.directory}/${project.build.finalName}-mgmt</webappDirectory>
               <webXml>${src.main.dir}/org/epics/archiverappliance/mgmt/WEB-INF/web.xml</webXml>
               <webResources combine.children="append">
                 <resource>
+                  <directory>${stage.dir}/org/epics/archiverappliance/staticcontent</directory>
+                  <targetPath>ui/comm</targetPath>
+                </resource>
+                <resource>
+                  <directory>${sitespecific.path}/classpathfiles</directory>
+                  <targetPath>WEB-INF/classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${lib.dir}</directory>
+                  <includes>
+                    <!--<include>${jamtio.name}_${jamtio.ver}.jar</include>-->
+                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
+                  </includes>
+                  <targetPath>WEB-INF/lib</targetPath>
+                </resource>
+                <resource>
                 <!--
-                    copies from all of directory (staticcontent/* ) to targetPath folder (ui) 
+                    copies from all of directory (staticcontent/* ) to targetPath folder (ui)
                     css/mgmt.css
                     js/mgmt.js
                     js/reporttable.js
@@ -679,61 +681,111 @@
                   <directory>${src.main.dir}/org/epics/archiverappliance/common/scripts</directory>
                   <targetPath>install/pbutils</targetPath>
                 </resource>
+                <resource>
+                  <directory>${lib.dir}</directory>
+                  <includes>
+                    <!--<include>${jamtio.name}_${jamtio.ver}.jar</include>-->
+                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
+                  </includes>
+                  <targetPath>WEB-INF/lib</targetPath>
+                </resource>
               </webResources>
             </configuration>
           </execution>
-          <!--
-          -          <execution>
--            <id>etl-war</id>
--            <phase>package</phase>
--            <goals>
--              <goal>war</goal>
--            </goals>
--            <configuration>
--              <classifier>etl</classifier>
--              <webXml>${src.main.dir}/org/epics/archiverappliance/etl/WEB-INF/web.xml</webXml>
--            </configuration>
--          </execution>
--          <execution>
--            <id>engine-war</id>
--            <phase>package</phase>
--            <goals>
--              <goal>war</goal>
--            </goals>
--            <configuration>
--              <classifier>engine</classifier>
--              <webXml>${src.main.dir}/org/epics/archiverappliance/engine/WEB-INF/web.xml</webXml>
--              <webResources combine.children="append">
--                <resource>
--                  <directory>${lib.dir}</directory>
--                  <includes>
--                    <include>${jamtio.name}_${jamtio.ver}.jar</include>
--                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
--                  </includes>
--                  <targetPath>WEB-INF/lib</targetPath>
--                </resource>
--              </webResources>
--            </configuration>
--          </execution>
--          <execution>
--            <id>retrieval-war</id>
--            <phase>package</phase>
--            <goals>
--              <goal>war</goal>
--            </goals>
--            <configuration>
--              <classifier>retrieval</classifier>
--              <webXml>${src.main.dir}/org/epics/archiverappliance/retrieval/WEB-INF/web.xml</webXml>
--              <webResources combine.children="append">
--                <resource>
--                  <directory>${stage.dir}/org/epics/archiverappliance/retrieval/staticcontent</directory>
--                  <targetPath>ui</targetPath>
--                </resource>
--              </webResources>
--            </configuration>
--          </execution>
--        </executions>
--->
+          <execution>
+            <id>etl-war</id>
+            <phase>package</phase>
+            <goals>
+              <goal>war</goal>
+            </goals>
+            <configuration>
+              <classifier>etl</classifier>
+              <webappDirectory>${project.build.directory}/${project.build.finalName}-etl</webappDirectory>
+              <webXml>${src.main.dir}/org/epics/archiverappliance/etl/WEB-INF/web.xml</webXml>
+              <webResources combine.children="append">
+                <resource>
+                  <directory>${stage.dir}/org/epics/archiverappliance/staticcontent</directory>
+                  <targetPath>ui/comm</targetPath>
+                </resource>
+                <resource>
+                  <directory>${sitespecific.path}/classpathfiles</directory>
+                  <targetPath>WEB-INF/classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${lib.dir}</directory>
+                  <includes>
+                    <!--<include>${jamtio.name}_${jamtio.ver}.jar</include>-->
+                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
+                  </includes>
+                  <targetPath>WEB-INF/lib</targetPath>
+                </resource>
+              </webResources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>engine-war</id>
+            <phase>package</phase>
+            <goals>
+              <goal>war</goal>
+            </goals>
+            <configuration>
+              <classifier>engine</classifier>
+              <webappDirectory>${project.build.directory}/${project.build.finalName}-engine</webappDirectory>
+              <webXml>${src.main.dir}/org/epics/archiverappliance/engine/WEB-INF/web.xml</webXml>
+              <webResources combine.children="append">
+                <resource>
+                  <directory>${stage.dir}/org/epics/archiverappliance/staticcontent</directory>
+                  <targetPath>ui/comm</targetPath>
+                </resource>
+                <resource>
+                  <directory>${sitespecific.path}/classpathfiles</directory>
+                  <targetPath>WEB-INF/classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${lib.dir}</directory>
+                  <includes>
+                    <!--<include>${jamtio.name}_${jamtio.ver}.jar</include>-->
+                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
+                  </includes>
+                  <targetPath>WEB-INF/lib</targetPath>
+                </resource>
+              </webResources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>retrieval-war</id>
+            <phase>package</phase>
+            <goals>
+              <goal>war</goal>
+            </goals>
+            <configuration>
+              <classifier>retrieval</classifier>
+              <webappDirectory>${project.build.directory}/${project.build.finalName}-retrieval</webappDirectory>
+              <webXml>${src.main.dir}/org/epics/archiverappliance/retrieval/WEB-INF/web.xml</webXml>
+              <webResources combine.children="append">
+                <resource>
+                  <directory>${stage.dir}/org/epics/archiverappliance/retrieval/staticcontent</directory>
+                  <targetPath>ui</targetPath>
+                </resource>
+                <resource>
+                  <directory>${stage.dir}/org/epics/archiverappliance/staticcontent</directory>
+                  <targetPath>ui/comm</targetPath>
+                </resource>
+                <resource>
+                  <directory>${sitespecific.path}/classpathfiles</directory>
+                  <targetPath>WEB-INF/classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${lib.dir}</directory>
+                  <includes>
+                    <!--<include>${jamtio.name}_${jamtio.ver}.jar</include>-->
+                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
+                  </includes>
+                  <targetPath>WEB-INF/lib</targetPath>
+                </resource>
+              </webResources>
+            </configuration>
+          </execution>
          </executions>
       </plugin>
       <plugin>
@@ -744,7 +796,7 @@
           <descriptors>
             <descriptor>src/assembly/release.xml</descriptor>
           </descriptors>
-          <finalName>archappl_v${project.version}</finalName>
+          <finalName>archappl_${project.version}</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
         <executions>

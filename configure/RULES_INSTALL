@@ -2,7 +2,7 @@
 SERVICES_INSTALL_RULES:=
 $(call buildrules_BUILDER,$(AA_USERID),$(AA_GROUPID),$(AA_INSTALL_LOCATION),$(INSTALL_LOCATION_SERVICES),SERVICES_INSTALL_RULES)
 #conf_RULES_NAMES:=log4j appliances properties policies serverxml
-conf_RULES_NAMES:=log4j archapplconf appliances properties policies serverxml archapplshell
+conf_RULES_NAMES:=log4j2 archapplconf appliances properties policies serverxml archapplshell
 conf_install_RULES:=$(addsuffix .install, $(conf_RULES_NAMES))
 show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 
@@ -13,10 +13,6 @@ install:  src_install services.install serveroption.install sd_install sd_enable
 	$(QUIET)$(SUDO)	chown -R $(AA_USERID):$(AA_GROUPID) $(AA_INSTALL_LOCATION)
 
 services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES)
-
-log4j.install: log4j.properties
-	$(QUIET)echo ">>> Install $< into $(TOMCAT_HOME)/lib/"
-	$(QUIET)$(SUDO) install $< $(TOMCAT_HOME)/lib/
 
 archapplconf.install: $(ARCHAPPL_CONF)
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
@@ -38,6 +34,10 @@ properties.install: $(ARCHAPPL_PROPERTIES)
 	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $< $(AA_INSTALL_LOCATION)/
 
 policies.install: $(ARCHAPPL_POLICIES)
+	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $< $(AA_INSTALL_LOCATION)/
+
+log4j2.install: $(ARCHAPPL_LOG4J_XML)
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
 	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $< $(AA_INSTALL_LOCATION)/
 

@@ -62,9 +62,12 @@ ARCHAPPL_SINGLE_IDENTITY=appliance0
 ## The following three files will in $(AA_INSTALL_LOCATION)
 #
 ARCHAPPL_APPLIANCES:=appliances.xml
+ARCHAPPL_CONF:=archappl.conf
+## WAR/WEB-INF/classes
+## RULES_INSTALL
 ARCHAPPL_POLICIES:=policies.py
 ARCHAPPL_PROPERTIES:=archappl.properties
-ARCHAPPL_CONF:=archappl.conf
+ARCHAPPL_LOG4J_XML:=log4j2.xml
 ## $(AA_INSTALL_LOCATION)/*/conf
 #
 ARCHAPPL_CONTEXT_XML:=context.xml
