@@ -2,12 +2,12 @@
 <!--
     Author : Jeong Han Lee, Dr.rer.nat.
     Email  : jeonghan.lee_at_gmail_dot_com
- -->
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.epics.archiverappliance</groupId>
   <artifactId>archappl</artifactId>
-  <version>2025-06-01-rev1-LBNL-ALS-U</version>
+  <version>0</version>
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,7 +21,7 @@
     <classes.dir>${project.build.directory}/build/classes</classes.dir>
     <java.docs.output.path>${project.build.directory}/site/apidocs/docs/api</java.docs.output.path>
     <stage.dir>${project.build.directory}/stage</stage.dir>
-<!--
+    <!--
  intermediate files .txt lost thier path, so we have to define it specifically
 -->
     <archapplsite>default</archapplsite>
@@ -280,27 +280,34 @@
               </target>
             </configuration>
           </execution>
-          <execution>
-            <id>download-and-unpack-svg-viewer</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
+        <execution>
+            <id>download-unpack-and-stage-svg-viewer</id>
+            <phase>prepare-package</phase> <goals>
+                <goal>run</goal>
             </goals>
             <configuration>
-              <target>
-                <property name="svg.viewer.zip.dir" value="${project.build.directory}/dependencies/svg_viewer_zip"/>
-                <property name="svg.viewer.zip.file" value="${svg.viewer.zip.dir}/svg_viewer-v1.2.1.zip"/>
-                <property name="svg.viewer.url" value="https://github.com/archiver-appliance/svg_viewer/archive/v1.2.1.zip"/>
-                <property name="svg.viewer.base.unpacked.dir" value="${project.build.directory}/dependencies/unpacked"/>
-                <echo message="Downloading SVG Viewer from ${svg.viewer.url} to ${svg.viewer.zip.file}"/>
-                <mkdir dir="${svg.viewer.zip.dir}"/>
-                <get src="${svg.viewer.url}" dest="${svg.viewer.zip.file}" skipexisting="true"/>
-                <echo message="Unpacking SVG Viewer to ${svg.viewer.base.unpacked.dir}"/>
-                <mkdir dir="${svg.viewer.base.unpacked.dir}"/>
-                <unzip src="${svg.viewer.zip.file}" dest="${svg.viewer.base.unpacked.dir}"/>
-              </target>
+                <target>
+                    <property name="svg.viewer.zip.dir" value="${project.build.directory}/dependencies/svg_viewer_zip"/>
+                    <property name="svg.viewer.zip.file" value="${svg.viewer.zip.dir}/svg_viewer-v1.2.1.zip"/>
+                    <property name="svg.viewer.url" value="https://github.com/archiver-appliance/svg_viewer/archive/v1.2.1.zip"/>
+                    <property name="svg.viewer.unpacked.base.dir" value="${project.build.directory}/dependencies/unpacked"/>
+                    <property name="svg.viewer.unpacked.content.dir" value="${svg.viewer.unpacked.base.dir}/svg_viewer-1.2.1"/>
+                    <property name="stage.dir" value="${project.build.directory}/stage"/>
+                    <property name="final.zip.output.dir" value="${stage.dir}/org/epics/archiverappliance/retrieval/staticcontent"/>
+                    <property name="final.zip.file" value="${final.zip.output.dir}/viewer.zip"/>
+                    <echo message="Downloading SVG Viewer from ${svg.viewer.url} to ${svg.viewer.zip.file}"/>
+                    <mkdir dir="${svg.viewer.zip.dir}"/>
+                    <get src="${svg.viewer.url}" dest="${svg.viewer.zip.file}" skipexisting="true"/>
+                    <echo message="Unpacking SVG Viewer to ${svg.viewer.unpacked.base.dir}"/>
+                    <mkdir dir="${svg.viewer.unpacked.base.dir}"/>
+                    <unzip src="${svg.viewer.zip.file}" dest="${svg.viewer.unpacked.base.dir}"/>
+                    <echo message="Creating final viewer.zip at ${final.zip.file}"/>
+                    <zip destfile="${final.zip.file}" basedir="${svg.viewer.unpacked.content.dir}" defaultexcludes="false">
+                        <include name="**/*"/>
+                    </zip>
+                </target>
             </configuration>
-          </execution>
+        </execution>
           <execution>
             <id>create-version-txt</id>
             <phase>package</phase>
@@ -340,7 +347,7 @@
                     JAVA_HOME=/opt/java-env/JDK /opt/java-env/MAVEN/bin/mvn dependency:build-classpath -Dmdep.outputFile=cp.txt
                     FULL_CLASSPATH="target/classes:$(cat cp.txt)"
                      /opt/java-env/JDK/bin/java -cp "$FULL_CLASSPATH" org.epics.archiverappliance.mgmt.BPLServlet
-           -->
+          -->
           <execution>
             <id>generateBPLActionsMappings</id>
             <phase>compile</phase>
@@ -374,7 +381,7 @@
           </execution>
           <!--
                      we need to copy ${java.docs.output.path}/docs/api/mgmt_scriptables.txt to ${api.docs.dir} in prepare-pacakges
-                    -->
+          -->
           <execution>
             <id>generateJavaDocTagletScriptables</id>
             <phase>package</phase>
@@ -511,24 +518,6 @@
               </resources>
             </configuration>
           </execution>
-          <execution>
-            <id>stage-svg-viewer-content</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${stage.dir}/org/epics/archiverappliance/retrieval/staticcontent</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${project.build.directory}/dependencies/unpacked/svg_viewer/svg_viewer-v1.2.1</directory>
-                  <includes>
-                    <include>**/*</include>
-                  </includes>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <!--
@@ -594,17 +583,28 @@
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <webResources>
             <resource>
+              <!--
+              stage.dir/css/
+                        img/
+                        js/
+                        version.txt
+              all war files/ui/comm/css/
+                                    img/
+                                    js/
+                                    version.txt
+              -->
               <directory>${stage.dir}/org/epics/archiverappliance/staticcontent</directory>
               <targetPath>ui/comm</targetPath>
             </resource>
             <resource>
-              <directory>${project.basedir}/src/resources/test</directory>
-              <includes>
-                <include>log4j2.xml</include>
-              </includes>
-              <targetPath>WEB-INF/classes</targetPath>
-            </resource>
-            <resource>
+              <!-- als
+              sitespecific.path/classpathfiles/appliances.xml
+                                               archappl.properties
+                                               policies.py
+              all war files/WEB-INF/classes/appliances.xml
+                                            archappl.properties
+                                            policies.py
+              -->
               <directory>${sitespecific.path}/classpathfiles</directory>
               <targetPath>WEB-INF/classes</targetPath>
             </resource>
@@ -623,10 +623,34 @@
               <webXml>${src.main.dir}/org/epics/archiverappliance/mgmt/WEB-INF/web.xml</webXml>
               <webResources combine.children="append">
                 <resource>
+                <!--
+                    copies from all of directory (staticcontent/* ) to targetPath folder (ui) 
+                    css/mgmt.css
+                    js/mgmt.js
+                    js/reporttable.js
+                    appliance.html
+                    cacompare.html
+                    index.html
+                    integration.html
+                    metrics.html
+                    pvdetails.html
+                    redirect.html
+                    reports.html
+                    storage.html
+                    directory shall be ready before 'package' phase, so
+                    generate-resouces or prepare-package phase.
+                -->
                   <directory>${stage.dir}/org/epics/archiverappliance/mgmt/staticcontent</directory>
                   <targetPath>ui</targetPath>
                 </resource>
                 <resource>
+                  <directory>${docs.dir}/docs/build</directory>
+                  <targetPath>ui/help</targetPath>
+                </resource>
+                <resource>
+                <!--
+                    copies *.sql files from directory to the install folder
+                -->
                   <directory>${src.main.dir}/org/epics/archiverappliance/config/persistence</directory>
                   <includes>
                     <include>*.sql</include>
@@ -634,10 +658,9 @@
                   <targetPath>install</targetPath>
                 </resource>
                 <resource>
-                  <directory>${docs.dir}/docs/build</directory>
-                  <targetPath>ui/help</targetPath>
-                </resource>
-                <resource>
+                <!--
+                    copies deployMultipleTomcats.py from directory (docs.dir/docs/source/samples) to the install folder
+                -->
                   <directory>${docs.dir}/docs/source/samples</directory>
                   <includes>
                     <include>deployMultipleTomcats.py</include>
@@ -645,62 +668,73 @@
                   <targetPath>install</targetPath>
                 </resource>
                 <resource>
+                <!--
+                    copies
+                    pb2json.sh
+                    printTime.sh
+                    repair.sh
+                    validate.sh
+                    from directory (scripts) to the install/pbutils folder
+                -->
                   <directory>${src.main.dir}/org/epics/archiverappliance/common/scripts</directory>
                   <targetPath>install/pbutils</targetPath>
                 </resource>
               </webResources>
             </configuration>
           </execution>
-          <execution>
-            <id>etl-war</id>
-            <phase>package</phase>
-            <goals>
-              <goal>war</goal>
-            </goals>
-            <configuration>
-              <classifier>etl</classifier>
-              <webXml>${src.main.dir}/org/epics/archiverappliance/etl/WEB-INF/web.xml</webXml>
-            </configuration>
-          </execution>
-          <execution>
-            <id>engine-war</id>
-            <phase>package</phase>
-            <goals>
-              <goal>war</goal>
-            </goals>
-            <configuration>
-              <classifier>engine</classifier>
-              <webXml>${src.main.dir}/org/epics/archiverappliance/engine/WEB-INF/web.xml</webXml>
-              <webResources combine.children="append">
-                <resource>
-                  <directory>${lib.dir}</directory>
-                  <includes>
-                    <include>${jamtio.name}_${jamtio.ver}.jar</include>
-                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
-                  </includes>
-                  <targetPath>WEB-INF/lib</targetPath>
-                </resource>
-              </webResources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>retrieval-war</id>
-            <phase>package</phase>
-            <goals>
-              <goal>war</goal>
-            </goals>
-            <configuration>
-              <classifier>retrieval</classifier>
-              <webXml>${src.main.dir}/org/epics/archiverappliance/retrieval/WEB-INF/web.xml</webXml>
-              <webResources combine.children="append">
-                <resource>
-                  <directory>${stage.dir}/org/epics/archiverappliance/retrieval/staticcontent</directory>
-                  <targetPath>ui</targetPath>
-                </resource>
-              </webResources>
-            </configuration>
-          </execution>
-        </executions>
+          <!--
+          -          <execution>
+-            <id>etl-war</id>
+-            <phase>package</phase>
+-            <goals>
+-              <goal>war</goal>
+-            </goals>
+-            <configuration>
+-              <classifier>etl</classifier>
+-              <webXml>${src.main.dir}/org/epics/archiverappliance/etl/WEB-INF/web.xml</webXml>
+-            </configuration>
+-          </execution>
+-          <execution>
+-            <id>engine-war</id>
+-            <phase>package</phase>
+-            <goals>
+-              <goal>war</goal>
+-            </goals>
+-            <configuration>
+-              <classifier>engine</classifier>
+-              <webXml>${src.main.dir}/org/epics/archiverappliance/engine/WEB-INF/web.xml</webXml>
+-              <webResources combine.children="append">
+-                <resource>
+-                  <directory>${lib.dir}</directory>
+-                  <includes>
+-                    <include>${jamtio.name}_${jamtio.ver}.jar</include>
+-                    <include>${redisnio.name}_${redisnio.ver}.jar</include>
+-                  </includes>
+-                  <targetPath>WEB-INF/lib</targetPath>
+-                </resource>
+-              </webResources>
+-            </configuration>
+-          </execution>
+-          <execution>
+-            <id>retrieval-war</id>
+-            <phase>package</phase>
+-            <goals>
+-              <goal>war</goal>
+-            </goals>
+-            <configuration>
+-              <classifier>retrieval</classifier>
+-              <webXml>${src.main.dir}/org/epics/archiverappliance/retrieval/WEB-INF/web.xml</webXml>
+-              <webResources combine.children="append">
+-                <resource>
+-                  <directory>${stage.dir}/org/epics/archiverappliance/retrieval/staticcontent</directory>
+-                  <targetPath>ui</targetPath>
+-                </resource>
+-              </webResources>
+-            </configuration>
+-          </execution>
+-        </executions>
+-->
+         </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
