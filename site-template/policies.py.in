@@ -243,3 +243,15 @@ def determinePolicy(pvInfoDict):
         pvPolicyDict["archiveFields"] = archiveFields
 
     return pvPolicyDict
+
+
+### Analysis for pb(protocol buffer) parameter settings ###
+## name = STS ##
+## rootFolder = STS ##
+## reducedata
+## pp
+## postprocessors
+## partitionGranularity
+## hold
+## gather
+## consolidateOnShutdown
