@@ -255,3 +255,31 @@ def determinePolicy(pvInfoDict):
 ## hold
 ## gather
 ## consolidateOnShutdown
+
+###### Parameter Settings ######
+## name :
+    # STS : Short Term Storage
+    # MTS : Middle Term Storage
+    # LTS : Long Term Storage
+
+## rootFolder :
+## partitionGranularity : 
+
+## hold: 
+   # Defines the period of time for which granuality files are maintained in the storage areas(STS,MTS,LTS). 
+   # After this period, the files are moved to their destination(STS=>MTS, MTS=>LTS)
+## gather: 
+   # Defines the number of granularity file unit to be moved in the given storage area.
+######
+
+### Note: pb file generation name 
+
+##### without hold & gather #####
+  ## The pb (protocol buffer) file corresponding to the EPICS Process Variable is created irregularly.
+  ## This causes irregular movement of pb data files by ETL, and the resulting data display may become inconsistent.
+
+######
+
+##### with hold & gather #####
+
+##### optimized number for (hold, gather) #####
