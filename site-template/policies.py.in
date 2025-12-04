@@ -245,8 +245,6 @@ def determinePolicy(pvInfoDict):
     return pvPolicyDict
 
 
-## consolidateOnShutdown
-
 ###### Parameter Settings ######
 ## name : One of them, each storage volume
     # STS : Short Term Storage (Temporary files)
@@ -256,6 +254,11 @@ def determinePolicy(pvInfoDict):
     # Note: 
     #   "Temporary" means that the pb file will be moved to the destination by the ETL module after the time elapses, 
     #   according to the "partitionGranularity" setting.
+
+## consolidateOnShutdown
+    # Often the STS is a RAMDisk, and thus has a consolidateOnShutdown attribute on the data store to move the data off the STS onto the MTS 
+    #   when the appliance is being gracefully shutdown or the PV is being paused.
+    # consolidateOnShutdown=true
 
 ## rootFolder :
     # The location of the top-level folder where each area should be saved.
@@ -331,8 +334,8 @@ def determinePolicy(pvInfoDict):
 
     #   4. The Importance of Handling Data Gaps
     #       : It is very important to decide how to handle gaps where there is no data.
-    #       : FirstSample, LastSample
-    #       : FirstFill, LastFill
+    #       : FirstSample, LastSample (No fill for empty data)
+    #       : FirstFill, LastFill (Fill with the previous value for empty data)
 
 ## pp:
     # pp settings default to saving raw data.
@@ -345,9 +348,26 @@ def determinePolicy(pvInfoDict):
     # e.g,) "pp=mean_30" or "pp=firstSample_30"
     # Analog15:2025_10_13_14.mean_30 or Analog15:2025_10_13_14.firstSample_30
 
+    # Continuous setting
+    # Setting more than one 'pp' parameter
+    # e.g,) "pp=ignoreflyers_30_3&mean_60"  // After filtering the outlier data for 3 sigma for a time interval of 30 seconds, mean(30) post-processor is applied.
+
+    # Optimization 'pp' parameter setting for statistical data.
+    # e.g,) "pp=stats_60",      // Statistical data includes {mean,standard deviation,minimum,maximum,and count} values by order.
+    # In the case of statistical data (stats), it is important to know the extraction order when extracting data(also errorbar). 
+
+    # Data move via ETL
+    # 'pp' settings can be set in MTS and LTS areas. However, the ETL data moving policy does not apply. 
+
+    # partitionGranularity 
+    #
+
     # Note: 
     # reducedata: Unlike PP, the original data is replaced with post-processed data during the ETL process and stored. 
     # This saves storage space, but the original data is lost.
+    # The best post processor for pp settings is stats, which contains the most information.
+
+    
 
 ######
 
@@ -401,6 +421,14 @@ def determinePolicy(pvInfoDict):
 
 #####
 
+##### Final recommended parameters #####
+    # The most reasonable settings for the default archiving policy. 
+    
+    # "dataStores":["pb:\/\/localhost?name=STS&rootFolder=\/arch\/sts\/ArchiverStore&partitionGranularity=PARTITION_HOUR&hold=2&gather=1&consolidateOnShutdown=true",
+    #               "pb:\/\/localhost?name=MTS&rootFolder=\/arch\/mts\/ArchiverStore&partitionGranularity=PARTITION_DAY&hold=2&gather=1",
+    #               "pb:\/\/localhost?name=LTS&rootFolder=\/arch\/lts\/ArchiverStore&partitionGranularity=PARTITION_YEAR&pp=mean_3600"]
+
+#####
 
 
 
