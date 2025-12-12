@@ -243,3 +243,190 @@ def determinePolicy(pvInfoDict):
         pvPolicyDict["archiveFields"] = archiveFields
 
     return pvPolicyDict
+
+
+###### Parameter Settings ######
+## name : One of them, each storage volume
+    # STS : Short Term Storage (Temporary files)
+    # MTS : Middle Term Storage (Temporary files)
+    # LTS : Long Term Storage (Permanent files)
+
+    # Note: 
+    #   "Temporary" means that the pb file will be moved to the destination by the ETL module after the time elapses, 
+    #   according to the "partitionGranularity" setting.
+
+## consolidateOnShutdown
+    # Often the STS is a RAMDisk, and thus has a consolidateOnShutdown attribute on the data store to move the data off the STS onto the MTS 
+    #   when the appliance is being gracefully shutdown or the PV is being paused.
+    # consolidateOnShutdown=true
+
+## rootFolder :
+    # The location of the top-level folder where each area should be saved.
+    # You can set a different file system area to be mounted and used.
+
+## partitionGranularity : 
+    # Important parameter for the file transferring of ETL.
+    # Defines the time index of the "pb" file to be created in each storage area.
+    # Defines:
+    #       PARTITION_5MIN(5 * 60)
+    #       PARTITION_15MIN(15 * 60)
+    #       PARTITION_30MIN(30 * 60)
+    #       PARTITION_HOUR(60 * 60)
+    #       PARTITION_DAY(24 * 60 * 60)
+    #       PARTITION_MONTH( 31 * 24 * 60 * 60)
+    #       PARTITION_YEAR( 366 * 24 * 60 * 60)
+
+    # Note: 
+    #   The pb generated file name is created based on UTC time.
+    #   For example(PV, ApplTest:AN:F:Analog10), The prefix name corresponds to the directory path.
+    #       -> ApplTest/AN/F/Analog10:partitionGranularity_time_index.pb
+    #       -> ApplTest/AN/F/Analog10:2025_10_25_06_15.pb (STS, partitionGranularity=PARTITION_15MIN)
+    #       -> ApplTest/AN/F/Analog10:2025_10_25_06.pb    (MTS, partitionGranularity=PARTITION_HOUR)
+    #       -> ApplTest/AN/F/Analog10:2025_10.pb          (LTS, partitionGranularity=PARTITION_MONTH)
+    #           : The area where the final files are collected becomes the LTS area
+
+###### reducedata & pp(post-processor) #####
+## PostProcessors: 
+    # This is an operator that implements various algorithm functions for post-processing from raw data.
+    # Operators(algorithm post-processing):
+    # FirstFill, FirstSample, LastFill, LastSample, Nth, RMS, Skewness, Count, NCount, 
+    # Mean, Min, Max, Median, PopulationVariance, Variance, Jitter, Kurtosis, StandardDeviation,
+    # LinearInterpolation, LoessInterpolation, Optimized, OptimizedWithLastSample, ErrorBars,
+    # Fliers, Statistics, IgnoreFliers
+
+## reducedata:
+    # When moving and loading data in the ETL module, the algorithms of multiple post-processors are applied to save storage capacity 
+    # and maximize the performance of data retrieval services.
+    # Based on all postprocessor algorithms, summary the important things to consider when setting up 'reducedata' into 4 key topics.
+    #   1. Control: 'Interval time' vs 'Data count'
+    #       * Interval time: e.g.) mean_300, firstFill_300, median_300
+    #           - Meaning: Divide the data into 300-second time interval.
+    #           - 300 second time interval = 1 hour query((60*60)/300=12 count), 24 hour query((24*60*60)/300 = 288 count)
+    #           - mean, firstFill, median, ... except optimized, 
+
+    #       * Count : e.g.) optimized_500, optimizedWithLastSample_500
+    #           - Meaning: Regardless of the query time, set the final result to 500.
+    #           - Note: The final number of data points (e.g., 500) is fixed, but the time size of the bins continuously changes 
+    #                    depending on the total query time (1-hour=7.2(3600/500) seconds, 24-hour=172.8(86,400/500) seconds)
+
+    #   2. Purpose of processing: What to see?
+    #       : Depending on the purpose of data reduction, completely different algorithms should be chosen.
+
+    #     2-1. Simple sampling (representative point extraction)
+    #       : FirstSample(FirstFill), LastSample(LastFill), Nth: regardless of time, n-th sample
+    #     2-2. Statistical summary (interval compression)
+    #       : Central Tendency: Mean (average), Median (median, robust to outliers)
+    #       : Volatility/Stability: Variance, Jitter, and ErrorBars
+    #       : Distribution shape (advanced analysis): Kurtosis (peakiness, outlier frequency), Skewness (asymmetry)
+    #     2-3. Data Cleaning (filtering)
+    #       : IgnoreFliers: Remove statistical outliers (outliers) to see only clean data.
+    #       : Fliers: Analyze errors or events by extracting only statistical outliers.
+    #     2-4. Interpolation and Smoothing (Gap Filling)
+    #       : FirstFill, OptimizedWithLastSample: Fills empty intervals with previous values (LOCF) to ensure continuity.   
+    #       : LinearInterpolation, LoessInterpolation: Resample irregular data into data with regular time intervals. 
+    #           Loess is specialized for drawing smooth trend lines that remove noise.
+
+    #   3. Tradeoffs: Performance vs Statical Features
+    #     3-1. High performance/low memory (using SummaryStatistics)
+    #       : Min, Mean, Variance, Jitter, Statistics, ErrorBars, ...
+    #     3-2. High cost/high memory (using DescriptiveStatistics or List)
+    #       : Median, Kurtosis, Skewness, LinearInterpolation, LoessInterpolation
+
+    #   4. The Importance of Handling Data Gaps
+    #       : It is very important to decide how to handle gaps where there is no data.
+    #       : FirstSample, LastSample (No fill for empty data)
+    #       : FirstFill, LastFill (Fill with the previous value for empty data)
+
+## pp:
+    # pp settings default to saving raw data.
+    # The pb file for pp settings is saved as a separate file.
+    # When data retrieval is performed, if the post processor matches exactly, data is fetched from the file.
+    # ‘pp’(Post-Processor): This feature pre-calculates and caches frequently used post-processing results (e.g., average, RMS) 
+    # during data retrieval during the ETL process. This significantly improves data retrieval performance.
+    # However, ‘pp’ property and ‘reducedata’ property cannot be set at the same time.
+    # ‘pp’ property stores cached data in a separate file.  
+    # e.g,) "pp=mean_30" or "pp=firstSample_30"
+    # Analog15:2025_10_13_14.mean_30 or Analog15:2025_10_13_14.firstSample_30
+
+    # Continuous setting
+    # Setting more than one 'pp' parameter
+    # e.g,) "pp=ignoreflyers_30_3&mean_60"  // After filtering the outlier data for 3 sigma for a time interval of 30 seconds, mean(30) post-processor is applied.
+
+    # Optimization 'pp' parameter setting for statistical data.
+    # e.g,) "pp=stats_60",      // Statistical data includes {mean,standard deviation,minimum,maximum,and count} values by order.
+    # In the case of statistical data (stats), it is important to know the extraction order when extracting data(also errorbar). 
+
+    # Data move via ETL
+    # 'pp' settings can be set in MTS and LTS areas. However, the ETL data moving policy does not apply. 
+
+    # partitionGranularity 
+    #
+
+    # Note: 
+    # reducedata: Unlike PP, the original data is replaced with post-processed data during the ETL process and stored. 
+    # This saves storage space, but the original data is lost.
+    # The best post processor for pp settings is stats, which contains the most information.
+
+    
+
+######
+
+###### hold & gather #####
+## hold: 
+    # This parameter is related to the 'partitionGranularity' setting.
+    # Defines the period of time for which granuality files are maintained in the storage areas(STS,MTS,LTS). 
+    # After this period, the files are moved to their destination(STS=>MTS, MTS=>LTS)
+    # For example, the setting 'hold=6' means that 5 pb files will be kept in the current storage area and then moved by the ETL module.
+
+## gather: 
+    # This parameter is related to the 'partitionGranularity' and 'hold' setting.
+    # Defines the number of granularity file unit to be moved in the given storage area.
+    # For example, a setting of 'gather=4' will move 4 'pb' files at a time when the pb file time expires in the current storage area.
+
+    # Note: The number of gathers cannot exceed the number of holds.
+    #       The hold number is always greater than the gather number.
+
+######
+
+##### without hold & gather #####
+  ## The pb (protocol buffer) file corresponding to the EPICS Process Variable is created irregularly.
+  ## This causes irregular movement of pb data files by ETL, and the resulting data display may become inconsistent.
+
+######
+
+##### with hold & gather #####
+  ## Data movement and data display can be done consistently.
+  ## In case using “hold count” with large number, When data extraction requires optimized reading performance from storage media.
+  ## In case gather > hold  => IOException
+
+##### optimized number for (hold, gather) #####
+  ## The setting “hold=2&gather=1” is the smoothest setting for ETL data movement and data display.
+  ## In case “STS and MTS” storage media are the same
+
+
+##### Storage Media #####
+  ## SATA Disk: Local Disk(STS/MTS), LTS(Storage F.S - memory based as possible)
+    #   STS : 
+	#       - RAM file system(Memory Mapped I/O to Disk, Greater than 64GB RAM)  => Consider total PV volume
+	#       - P_Granularity : HOUR,  hold: 5, gather: 1
+    #   MTS:  P_Granularity : DAY,  hold: 2, gather: 1
+    #   LTS : P_Granularity : MONTH
+
+
+  ## NVMe(M.2): Local Disk(STS/MTS), LTS(Storage F.S - memory based as possible)
+    #   STS : P_Granularity : DAY,  hold: 2, gather: 1
+    #   MTS : P_Granularity : MONTH,  hold: 2, gather: 1
+    #   LTS : P_Granularity : YEAR (Live),  1yr, 3yr, 5yr / experiment  => move recovery storage
+
+
+#####
+
+##### Final recommended parameters #####
+    # The most reasonable settings for the default archiving policy. 
+    
+    # "dataStores":["pb:\/\/localhost?name=STS&rootFolder=\/arch\/sts\/ArchiverStore&partitionGranularity=PARTITION_HOUR&hold=2&gather=1&consolidateOnShutdown=true",
+    #               "pb:\/\/localhost?name=MTS&rootFolder=\/arch\/mts\/ArchiverStore&partitionGranularity=PARTITION_DAY&hold=2&gather=1",
+    #               "pb:\/\/localhost?name=LTS&rootFolder=\/arch\/lts\/ArchiverStore&partitionGranularity=PARTITION_YEAR&pp=mean_3600"]
+
+#####
+
