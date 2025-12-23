@@ -83,7 +83,7 @@
     <dependency>
     <groupId>org.apache.tomcat</groupId>
     <artifactId>tomcat-servlet-api</artifactId>
-    <version>9.0.74</version>
+    <version>9.0.113</version>
     <scope>compile</scope>
     </dependency>
     <dependency>
@@ -99,7 +99,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>1.6.0</version>
+      <version>1.5</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -109,7 +109,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.18.0</version>
+      <version>3.12.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -571,7 +571,7 @@
           <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
+            <version>3.12.0</version>
           </dependency>
         </dependencies>
         <executions>
