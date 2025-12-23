@@ -18,8 +18,8 @@ This repository provides a set of `Makefiles` and scripts to automate the setup 
     * Sphinx documentation (`build_docs.sh`) is primarily for Linux.
 * **Sphinx Tools**: If building Sphinx documentation (which is enabled by default), ensure Sphinx, Python, and any necessary themes/extensions are installed and configured.
 
-## Debian 12 Setup Guide
-This guide outlines the setup and build process on a Debian 12 system.
+## Debian 13 Setup Guide
+This guide outlines the setup and build process on a Debian 13 system.
 
 ### Pre-requirement packages
 These commands initialize the environment and install essential software packages required for the Archiver Appliance and its dependencies.

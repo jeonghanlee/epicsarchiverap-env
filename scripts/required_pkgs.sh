@@ -171,6 +171,35 @@ function debian12_pkgs
 
 }
 
+
+function debian13_pkgs
+{
+    ## Debian 13
+    apt update -y
+    apt install -y wget \
+                   curl \
+                   git \
+                   sed \
+                   gawk \
+                   unzip \
+                   make \
+                   gcc \
+                   tree \
+                   python3 \
+                   python3-pip \
+                   python-is-python3 \
+                   python3-venv \
+                   mariadb-server \
+                   mariadb-client  \
+                   libmariadb-dev \
+                   libmariadb-dev-compat \
+                   openjdk-21-jdk-headless \
+                   ant \
+                   jsvc \
+                   chrony
+
+}
+
 function centos7_pkgs
 {
     yum update -y;
@@ -256,6 +285,7 @@ case "$dist" in
     *buster*)   debian10_pkgs ;;
     *bullseye*) debian11_pkgs ;;
     *bookworm*) debian12_pkgs ;;
+    *trixie*)   debian13_pkgs ;;
     *CentOS* | *Scientific* )
         centos_version=$(centos_dist)
         if [ "$centos_version" == "7" ]; then
