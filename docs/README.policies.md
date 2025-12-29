@@ -3,31 +3,30 @@
 ## 1. Storage Tier Architecture
 The Archiver Appliance utilizes a tiered storage strategy to balance high-speed data acquisition with long-term capacity management. Data moves between these tiers via the ETL service.
 
-* **STS (Short Term Storage)**: Designed for high-frequency writes; typically resides on a RAMDisk or fast SSD.
-* **MTS (Middle Term Storage)**: An intermediate staging area for data before it is moved to long-term storage.
-* **LTS (Long Term Storage)**: The final destination for permanent historical data.
+* STS (Short Term Storage): Designed for high-frequency writes; typically resides on a RAMDisk or fast SSD to maximize I/O performance.
+* MTS (Middle Term Storage): An intermediate staging area where data is consolidated before being moved to long-term storage.
+* LTS (Long Term Storage): The final destination for permanent historical data.
+
 
 ## 2. Data Store Parameters
 Storage tiers are configured using URL-style strings that define how files are partitioned, moved, and maintained across the STS, MTS, and LTS areas.
 
-### 2.1 Core Settings
+### 2.1 Core Settings.
 The following settings are used to define URL-style strings.
 
-#### 2.1.1 Storage Volume Identification
+#### 2.1.1 Storage Volume Identification (`name`)
 * `STS`: Short Term Storage. Used for temporary files before ETL processing.
 * `MTS`: Middle Term Storage. Used for temporary files staged between STS and permanent storage.
 * `LTS`: Long Term Storage. The final destination for permanent files.
 * Note on "Temporary": This indicates that the `.pb` file will be moved to the next destination by the ETL service after the time elapses, according to the `partitionGranularity` setting.
 
-#### 2.1.2 Storage Location
-* Defined by the `rootFolder` parameter.
+#### 2.1.2 Storage Location (`rootFolder`)
 * Specifies the location of the top-level folder where each storage area is saved.
 * Supports the use of different mounted file system areas for each tier to optimize hardware usage and performance.
 
-#### 2.1.3 Time Indexing
-* Defined by the `partitionGranularity` parameter.
-* An essential parameter for the ETL service that sets the time index of the `.pb` file created in each storage area.
-* **Predefined Intervals**:
+#### 2.1.3 Time Indexing (`partitionGranularity`)
+* An essential parameter for the ETL service that sets the time index of the .pb file created in each storage area.
+* Predefined Intervals:
 
 | Interval Name | Calculation Formula | Duration (Seconds) |
 | :--- | :--- | :--- |
@@ -39,61 +38,72 @@ The following settings are used to define URL-style strings.
 | `PARTITION_MONTH` | 31 * 24 * 60 * 60 | 2,678,400 |
 | `PARTITION_YEAR` | 366 * 24 * 60 * 60 | 31,622,400 |
 
-* **PB File Naming Logic**: The `.pb` file name is created based on UTC time with a directory path prefix.
+* PB File Naming Logic: The `.pb` file name is created based on **UTC time** with a directory path prefix.
     * Example (PV: `ApplTest:AN:F:Analog10`):
         * `STS` (`PARTITION_15MIN`): `ApplTest/AN/F/Analog10:2025_10_25_06_15.pb`
         * `MTS` (`PARTITION_HOUR`): `ApplTest/AN/F/Analog10:2025_10_25_06.pb`
         * `LTS` (`PARTITION_MONTH`): `ApplTest/AN/F/Analog10:2025_10.pb`
 
+### 2.2 Data File States (.pb)
+In the Archiver Appliance, data is stored in `.pb` (Protocol Buffer) files. Before understanding how data moves (ETL), it is crucial to understand that these files exist in two distinct states based on the `partitionGranularity`.
 
-### 2.2 ETL Flow Control
-These parameters manage the movement of data between storage tiers.
+#### 2.2.1 Active State
+* This state refers to the `.pb` file that is currently being written to.
+* Data is actively being collected and appended to this file.
+* The time duration defined by `partitionGranularity` for this file has not yet elapsed.
 
-#### 2.2.1 Definition of ETL Cycle
-* The **ETL Cycle** is the specific operation where the ETL service moves a batch of data files (`.pb`) from one storage tier to the next (e.g., STS → MTS).
+#### 2.2.2 Completed State
+* This state refers to a `.pb` file that has completely stored data for the entire duration defined by `partitionGranularity`.
+* Once the time elapses, the file is closed and considered a complete archive unit.
+* Important: Only files in this completed state are subject to the `hold` parameter and subsequent ETL migration described in the next section. The `hold` count applies specifically to these fully formed, archived data files waiting to be moved.
+
+### 2.3 ETL Flow Control
+These parameters manage the movement of data between storage tiers. This process primarily interacts with files in the **Completed State**.
+
+#### 2.3.1 Definition of ETL Cycle
+* The ETL Cycle is the specific operation where the ETL service moves a batch of data files (`.pb`) from one storage tier to the next (e.g., `STS` → `MTS`).
 * It is dynamically defined by the interaction of three key parameters:
-    1.  **Unit**: The size of a single file, defined by `partitionGranularity`.
-    2.  **Trigger**: The cycle starts when the file count exceeds `hold`.
-    3.  **Batch Size**: The number of files moved is defined by `gather`.
+    1. Unit: The size of a single file, defined by `partitionGranularity`.
+    2. Trigger: The cycle starts when the file count (of Completed files) exceeds `hold`.
+    3. Batch Size: The number of files moved is defined by `gather`.
 
-#### 2.2.2 Retention Period
-* Defined by the `hold` parameter.
-* **Relation**: This parameter is directly related to the `partitionGranularity` setting.
-* Specifies the number of granularity files maintained in a storage area before they are moved to the next tier.
-* Example: `hold=6` maintains 5 `.pb` files in the current area before the ETL service initiates a move.
+#### 2.3.2 Retention Period (`hold`)
+* This parameter is directly related to the `partitionGranularity` setting.
+* Specifies the number of **completed** granularity files maintained in a storage area before they are moved to the next tier.
+* Example: `hold=6` maintains 5 completed `.pb` files in the current area before the ETL service initiates a move.
 
-#### 2.2.3 Batch Move Size
-* Defined by the `gather` parameter.
-* **Relation**: This parameter is related to both the `partitionGranularity` and `hold` settings.
+#### 2.3.3 Batch Move Size (`gather`)
+* This parameter is related to both the `partitionGranularity` and `hold` settings.
 * Specifies the number of granularity file units to be moved simultaneously during an ETL cycle.
 * Example: `gather=4` moves 4 `.pb` files at once when their time expires in the current tier.
 
-#### 2.2.4 Flow Constraints
-* **gather vs. hold**: The `hold` number must always be greater than the `gather` number.
-* **Error Handling**: If `gather > hold`, it will result in an `IOException`.
+#### 2.3.4 Flow Constraints (`hold` vs. `gather`)
+* The `hold` number must always be greater than the `gather` number.
+* If `gather > hold`, it will result in an `IOException`.
 
-#### 2.2.5 Configuration Strategies & Impact
+#### 2.3.5 Configuration Strategies and Impact
 The behavior of the Archiver Appliance varies significantly based on how `hold` and `gather` are configured.
 
-* **Scenario A: Without `hold` & `gather` (Unconfigured)**
-    * **Irregular Generation**: The Protocol Buffer (`.pb`) files corresponding to the EPICS Process Variable are created at irregular intervals.
-    * **Inconsistent Display**: This irregularity causes the ETL service to move data files unpredictably, which may result in inconsistent data visualization on the viewer.
+* Scenario A: Without `hold` and `gather` (Unconfigured)
+    * Irregular Generation: The Protocol Buffer (`.pb`) files corresponding to the EPICS Process Variable are created at irregular intervals.
+    * Inconsistent Display: This irregularity causes the ETL service to move data files unpredictably, which may result in inconsistent data visualization on the viewer.
 
-* **Scenario B: With `hold` & `gather` (Custom Configuration)**
-    * **Consistency**: Both data movement and data visualization become consistent and predictable.
-    * **Performance Tuning**: Using a **large `hold` count** is beneficial when data extraction requires optimized reading performance from the storage media (by buffering larger chunks of data before moving).
-    * **Critical Warning**: As noted in flow constraints, setting `gather > hold` will immediately cause an `IOException`.
+* Scenario B: With `hold` & `gather` (Custom Configuration)
+    * Consistency: Both data movement and data visualization become consistent and predictable.
+    * Performance Tuning: Using a large `hold` count is beneficial when data extraction requires optimized reading performance from the storage media (by buffering larger chunks of data before moving).
+    * As noted in flow constraints, setting `gather > hold` will immediately cause an `IOException`.
 
-* **Scenario C: Optimized Configuration (Recommended)**
-    * **Best Practice**: The setting `hold=2&gather=1` is recommended as the smoothest configuration for ETL data movement and data display.
-    * **Use Case**: This setting is particularly effective and recommended when the `STS` and `MTS` storage media are identical (e.g., both utilize the same high-speed storage volume).
-
-## 3. Data Reduction & Post-Processing
+* Scenario C: Optimized Configuration (Recommended)
+    * Best Practice: The setting `hold=2&gather=1` is recommended as the smoothest configuration for ETL data movement and data display.
+    * This setting is particularly effective and recommended when the `STS` and `MTS` storage media are identical (e.g., both utilize the same high-speed storage volume).
+    
+    
+## 3. Data Reduction and Post-Processing
 The ETL service provides powerful post-processing capabilities to optimize storage footprints and improve data retrieval performance.
 
 Conceptually, this system consists of two parts:
-1.  **Algorithms (`PostProcessors`)**: The library of mathematical functions available to process data.
-2.  **Implementation Methods (`reducedata` vs `pp`)**: The two distinct approaches for applying these algorithms—either replacing the data or creating auxiliary processed files.
+1. Algorithms (`PostProcessors`): The library of mathematical functions available to process data.
+2. Implementation Methods (`reducedata` vs `pp`): The two distinct approaches for applying these algorithms—either replacing the data or creating auxiliary processed files.
 
 ### 3.1 Post-Processing Algorithms (`PostProcessors`)
 `PostProcessors` are the underlying operators that implement specific algorithm functions. These algorithms are the building blocks used by both `reducedata` and `pp` settings.
