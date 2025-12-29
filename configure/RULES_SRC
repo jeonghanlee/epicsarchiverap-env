@@ -87,9 +87,13 @@ build.mvn2: info.mvn copy.sitespecific pom
 build.mvn3: info.mvn copy.sitespecific pom
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true -X && cd ..
 
-## Build 3
+## Build 4 
 build.war: info.mvn copy.sitespecific pom
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) war:exploded -Dsphinx.skip=true && cd ..
+
+## Build 4 
+build.mvndeps: info.mvn copy.sitespecific pom
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) dependency:tree && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"
