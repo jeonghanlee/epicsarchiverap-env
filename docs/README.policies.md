@@ -1,10 +1,10 @@
 ---
-title: EPICS Archiver Appliance: Storage & Policy Configuration Guide
+title: EPICS Archiver Appliance Storage & Policy Configuration Guide
 author: Sangil Lee & Jeong Han Lee
 date: 2026-01-02
 version: 1.0
 ---
-# EPICS Archiver Appliance: Storage & Policy Configuration Guide
+# EPICS Archiver Appliance Storage & Policy Configuration Guide
 
 **Author:** Sangil Lee & Jeong Han Lee
 
