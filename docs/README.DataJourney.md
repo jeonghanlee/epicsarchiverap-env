@@ -1,4 +1,12 @@
-# The Data Journey in the Archiver Appliance
+---
+title: The Data Journey in the EPICS Archiver Appliance
+author: Sangil Lee & Jeong Han Lee
+date: 2026-01-02
+version: 1.0
+---
+# The Data Journey in the EPICS Archiver Appliance
+
+**Author:** Sangil Lee & Jeong Han Lee
 
 This document outlines the storage hierarchy and ETL logic of the Archiver Appliance, incorporating a timestamped scenario to illustrate how data moves over time.
 

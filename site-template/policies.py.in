@@ -97,7 +97,7 @@ def determinePolicy(pvInfoDict):
         userPolicyOverride = pvInfoDict['policyName']
 
     if 'Controlled' in userPolicyOverride:
-        pvPolicyDict['controlPV'] = 'ALS:Archiver:Enable'
+        pvPolicyDict['controlPV'] = 'EPICS:ArchiverAppliance:Enable'
 
     if 'VeryFast' in userPolicyOverride:
         pvPolicyDict['samplingPeriod'] = 0.1
