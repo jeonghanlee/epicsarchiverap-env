@@ -28,6 +28,9 @@ O.*/
 /modules/Makefile.local
 /*Top/configure/*.local
 
+# Scratch directory for commit message drafts and other transient working files
+/work/
+
 # documents
 /documentation/html
 /documentation/*.tag
