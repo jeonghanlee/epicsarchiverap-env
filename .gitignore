@@ -31,6 +31,9 @@ O.*/
 # Scratch directory for commit message drafts and other transient working files
 /work/
 
+# Local handoff snapshot maintained per session
+/HANDOFF.md
+
 # documents
 /documentation/html
 /documentation/*.tag
