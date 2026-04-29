@@ -43,10 +43,6 @@ JDBC_SRC="mariadb-java-client-${JDBC_VER}.jar"
 JDBC_URL="https://downloads.mariadb.com/Connectors/java/connector-java-${JDBC_VER}/${JDBC_SRC}"
 
 
-function pushd { builtin pushd "$@" > /dev/null || exit; }
-function popd  { builtin popd  > /dev/null || exit; }
-
-
 ## http://ant.apache.org/bindownload.cgi
 ## https://maven.apache.org/download.cgi
 

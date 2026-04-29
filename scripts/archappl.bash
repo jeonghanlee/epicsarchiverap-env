@@ -200,8 +200,8 @@ case "$1" in
 	    shutdown_archappl
 	    ;;
     restart)
-	    startup_archappl
 	    shutdown_archappl
+	    startup_archappl
 	    ;;
     status)
 	    status_archappl 
