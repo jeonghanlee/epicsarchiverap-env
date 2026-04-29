@@ -1,3 +1,3 @@
-# This folder
+# Tomcat skel files
 
-Skel is a carbon-copy of /usr/share/tomcat9/skel in Debian 10. Please see the LICENSE for this folder.
+Carbon-copy of `/usr/share/tomcat9/skel` from the Debian Tomcat 9 package. See `LICENSE` in this directory for licensing terms.
