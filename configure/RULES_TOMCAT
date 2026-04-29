@@ -1,17 +1,22 @@
 # for .PHONY targets
 tomcat_RULES_NAMES:=get uninstall install src_install preinst postrm exist sd_install sd_conf sd_conf.show sd_status sd_start sd_stop sd_restart sd_clean sd_enable sd_disable
 all_tomcat_RULES:=$(addprefix tomcat., $(tomcat_RULES_NAMES))
-#
+
+.PHONY: tomcat tomcat.action tomcat.all $(all_tomcat_RULES)
+.PHONY: tomcat.installaction tomcat.installall tomcat.uninstallall tomcat.uninstallaction tomcat.update
+
 # Tomcat running service isn't necessary for running archiver appliance
 # So, we remove the systemd related rules out of the default rules
+## Download, install, and configure Tomcat (no systemd)
 tomcat: tomcat.get tomcat.install tomcat.update
 
-# For GitHub Action
+## Install Tomcat for GitHub Action runners
 tomcat.action: tomcat.get tomcat.installaction tomcat.update
 
-# Everything with systemd services
+## Install Tomcat with systemd service enabled
 tomcat.all: tomcat.get tomcat.installall tomcat.update
 
+## Download Tomcat tarball from archive.apache.org
 tomcat.get:
 	$(QUIET)echo "\n>>> Preparing $(TOMCAT_URL) .... "
 	$(QUIET)wget -c $(TOMCAT_URL)
@@ -130,79 +135,56 @@ tomcat.sd_disable:
 .PHONY: centos8.conf rocky8.conf centos7.conf
 
 debian12.conf:
-	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
-	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "TOMCAT_HOME:=$(TOMCAT_INSTALL_LOCATION)" >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/debian12.mk" > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
 
 centos7.conf: rocky8.conf
 
 centos8.conf: rocky8.conf
 
 rocky8.conf:
-	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
-	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_HOME:=/usr/lib/jvm/jre-11-openjdk"  > $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_PATH:=/usr/lib/jvm/jre-11-openjdk/bin" >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"              >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
-
-macos.conf:
-	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
-	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_HOME:=/Library/Java/JavaVirtualMachines/openjdk17-zulu/Contents/Home"      > $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_PATH:=/Library/Java/JavaVirtualMachines/openjdk17-zulu/Contents/Home/bin" >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "ANT_HOME:=/opt/local/share/java/apache-ant"                                    >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "ANT_PATH:=/opt/local/share/java/apache-ant/bin"                                >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                                                     >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "AA_USERID:=${USER}"                  > $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "AA_GROUPID:=20"                     >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=${HOME}/arch" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/rocky8.mk" > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
+
+macos.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/macos.mk" > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_USERID:=${USER}"                    >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_GROUPID:=20"                        >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=${HOME}/arch"    >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=\$$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore"  >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=\$$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=\$$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore"   >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
 
 
 macos.conf: macbrew.conf
 
 macbrew.conf:
-	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
-	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_HOME:=/opt/homebrew/opt/openjdk"      > $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_PATH:=/opt/homebrew/opt/openjdk/bin" >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "ANT_HOME:=/opt/homebrew/opt/ant"          >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "ANT_PATH:=/opt/homebrew/opt/ant/bin"      >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "AA_USERID:=${USER}"                                       > $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "AA_GROUPID:=admin"                                       >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch"                         >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=/opt/arch/sts/ArchiverStore"  >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=/opt/arch/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=/opt/arch/lts/ArchiverStore"   >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/macbrew.mk"                > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_USERID:=${USER}"                                     >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_GROUPID:=admin"                                      >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch"                        >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=/opt/arch/sts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=/opt/arch/mts/ArchiverStore">> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=/opt/arch/lts/ArchiverStore"  >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
 
 githubmac.conf:
-	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_COMMON.local"
-	$(QUIET)-rm -f $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_HOME:=/usr/local/opt/openjdk@17"       > $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "JAVA_PATH:=/usr/local/opt/openjdk@17/bin"  >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "ANT_HOME:=/usr/local/Cellar/ant/1.10.12"          >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "ANT_PATH:=/usr/local/Cellar/ant/1.10.12/bin"      >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)echo "TOMCAT_HOME:=/opt/tomcat9"                        >> $(TOP)/configure/CONFIG_COMMON.local
-	$(QUIET)cat -b $(TOP)/configure/CONFIG_COMMON.local
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
 	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "AA_USERID:=${USER}"                                       > $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "AA_GROUPID:=admin"                                       >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch"                         >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=/opt/arch/sts/ArchiverStore"  >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=/opt/arch/mts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
-	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=/opt/arch/lts/ArchiverStore"   >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/githubmac.mk"             > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_USERID:=${USER}"                                    >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "AA_GROUPID:=admin"                                     >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_STORAGE_TOP:=/opt/arch"                       >> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_SHORT_TERM_FOLDER=/opt/arch/sts/ArchiverStore">> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_MEDIUM_TERM_FOLDER=/opt/arch/mts/ArchiverStore">> $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "ARCHAPPL_LONG_TERM_FOLDER=/opt/arch/lts/ArchiverStore" >> $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local

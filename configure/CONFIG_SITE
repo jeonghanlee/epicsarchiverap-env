@@ -1,4 +1,32 @@
 
+### Toolchain paths (overridable via CONFIG_SITE.local or configure/os/*.mk)
+JAVA_HOME=/opt/java-env/JDK
+ANT_HOME=/usr/share/ant
+MAVEN_HOME=/opt/java-env/MAVEN
+TOMCAT_HOME=/opt/tomcat9
+
+JAVA_PATH=$(JAVA_HOME)/bin
+ANT_PATH=$(ANT_HOME)/bin
+MAVEN_PATH=$(MAVEN_HOME)/bin
+
+JAVA_LOCAL:=$(TOP)/JAVA
+JAVA_LOCAL_VER:=21
+
+### MariaDB defaults (overridable via CONFIG_SITE.local)
+## bind-address=localhost is assumed; non-local hosts must be configured manually
+DB_ADMIN_HOST=localhost
+DB_HOST_IPADDR=127.0.0.1
+DB_HOST_PORT=3306
+DB_HOST_NAME=localhost
+DB_ADMIN=admin
+DB_ADMIN_PASS=admin
+DB_NAME=archappl
+DB_USER=archappl
+DB_USER_PASS=archappl
+DB_BACKUP_PATH=db
+
+ARCHAPPL_HOST_IPADDR=localhost
+
 ### ArchiverAppliance Configuration Path
 
 AA_INSTALL_PATH=/opt
