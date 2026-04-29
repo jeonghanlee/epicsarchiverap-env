@@ -60,6 +60,8 @@ context.xml
 *.war
 *.jar
 test*
+!/tests/
+!/tests/**
 *.service
 override.conf
 wars
