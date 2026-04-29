@@ -16,6 +16,15 @@ The Archiver Appliance manages data through a sophisticated tiered storage model
 
 Beyond storage, this document explores the system's data processing capabilities, distinguishing between real-time retrieval operations and permanent ETL-based data reduction (`reducedata`, `pp`). Finally, it provides a deep dive into the `policies.py` script, clarifying how sampling methods (Monitor vs. Scan) and field archiving rules are defined, applied, and managed throughout the service lifecycle.
 
+## Scope
+
+This document covers the storage tier architecture (STS/MTS/LTS), URL-style data store parameters (`partitionGranularity`, `hold`, `gather`), retrieval-time and ETL-time data processing operators, and the `policies.py` script for sampling rules and field archiving.
+
+**Out of scope:**
+* The retrieval REST API specification and web UI configuration.
+* Operational deployment, system installation, and service management — see the project [README](../README.md).
+* Conceptual ETL timeline and `hold`/`gather` interaction visualisation — see [README.DataJourney.md](README.DataJourney.md).
+
 ## 1. Storage Tier Architecture
 The Archiver Appliance utilizes a tiered storage strategy to balance high-speed data acquisition with long-term capacity management. Data moves between these tiers via the ETL service.
 
@@ -227,31 +236,16 @@ The `policies.py` script defines the logic for how different Process Variables (
 ### 4.1 Standard Policy Configurations
 The system provides a set of predefined policies mapped to specific sampling rates and storage strategies. The policy is determined by the `determinePolicy` function.
 
-#### 4.1.1 Monitor-Based Policies
-These policies use the `MONITOR` sampling method, meaning data is archived whenever the PV value changes (within the sampling period limit).
+`MONITOR` archives whenever the PV value changes (within the sampling period limit). `SCAN` forces a data read at fixed intervals regardless of value changes.
 
-* **Default**
-    * Sampling: 1.0 second (1 Hz)
-    * LTS Reduction: None (Standard retention)
-* **VeryFast**
-    * Sampling: 0.1 second (10 Hz)
-    * LTS Reduction: Reduced to 10 seconds (`lastSample_10`)
-* **Fast**
-    * Sampling: 1.0 second (1 Hz)
-    * LTS Reduction: Reduced to 30 seconds (`lastSample_30`)
-* **Medium**
-    * Sampling: 10.0 seconds
-    * LTS Reduction: Reduced to 60 seconds (`lastSample_60`)
-
-#### 4.1.2 Scan-Based Policies
-These policies use the `SCAN` sampling method, forcing a data read at fixed intervals regardless of value changes.
-
-* **Slow**
-    * Sampling: 60.0 seconds
-    * LTS Reduction: Reduced to 180 seconds (`lastSample_180`)
-* **VerySlow**
-    * Sampling: 900.0 seconds (15 minutes)
-    * LTS Reduction: None
+| Policy | Method | Sampling Rate | LTS Reduction |
+| :--- | :--- | :--- | :--- |
+| Default | MONITOR | 1.0 s (1 Hz) | None (standard retention) |
+| VeryFast | MONITOR | 0.1 s (10 Hz) | `lastSample_10` (10 s) |
+| Fast | MONITOR | 1.0 s (1 Hz) | `lastSample_30` (30 s) |
+| Medium | MONITOR | 10.0 s | `lastSample_60` (60 s) |
+| Slow | SCAN | 60.0 s | `lastSample_180` (180 s) |
+| VerySlow | SCAN | 900.0 s (15 min) | None |
 
 ### 4.2 Controlled Archiving
 Policies with the "Controlled" suffix allow archiving to be paused or resumed dynamically based on an external signal.
@@ -263,31 +257,15 @@ Policies with the "Controlled" suffix allow archiving to be paused or resumed dy
 ### 4.3 Field Archiving Logic
 In addition to the main value (`.VAL`), the archiver captures auxiliary fields to provide operational context (limits, drive values, etc.). The list of archived fields is determined dynamically based on the EPICS Record Type (`RTYP`).
 
-#### 4.3.1 Group A: Standard Limits
-Records in this group archive the standard alarm limits and operating ranges.
-* **Fields**: `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR`, `HOPR`
-* **Applicable RTYPs**:
-    * `ai` (Analog Input)
-    * `calc`, `calcout` (Calculation)
-    * `longin` (Long Input)
-    * `dfanout` (Data Fanout)
-    * `sub` (Subroutine)
+| Group | Fields | Applicable RTYPs |
+| :--- | :--- | :--- |
+| A. Standard Limits | `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR`, `HOPR` | `ai`, `calc`, `calcout`, `longin`, `dfanout`, `sub` |
+| B. Limits with Drive Values | A + `DRVH`, `DRVL` | `ao`, `longout` |
+| C. Motor Specific | A + `VELO`, `RBV` | `motor` |
 
-#### 4.3.2 Group B: Limits with Drive Values
-Output records often include drive limits in addition to the standard operating limits.
-* **Fields**: Group A Fields + `DRVH` (Drive High), `DRVL` (Drive Low)
-* **Applicable RTYPs**:
-    * `ao` (Analog Output)
-    * `longout` (Long Output)
+#### Global Stream Fields
+The system defines a default set of fields considered part of every PV stream structure regardless of RTYP.
 
-#### 4.3.3 Group C: Motor Specific
-Motor records require velocity and readback information in addition to standard limits.
-* **Fields**: Group A Fields + `VELO` (Velocity), `RBV` (Readback Value)
-* **Applicable RTYPs**:
-    * `motor`
-
-#### 4.3.4 Global Stream Fields
-The system defines a default set of fields considered part of every PV stream structure.
 * **Default List**: `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR`, `HOPR`, `DRVH`, `DRVL`.
 
 ## 5. Policy Application & Lifecycle
@@ -316,37 +294,16 @@ Since the policy file is loaded only at initialization, changes to `policies.py`
 3.  **Startup**: Start the services to load and apply the new logic.
 
 ## 6. Storage Media & Hardware Recommendations
-The selection of `partitionGranularity`, `hold`, and `gather` should be optimized based on the physical storage media being used.
+The selection of `partitionGranularity`, `hold`, and `gather` should be optimized based on the physical storage media being used. Dashes indicate that the parameter does not apply to the LTS final tier.
 
-### 6.1 SATA Disk (Local Storage)
-* **STS Configuration**:
-    * Recommended for RAM file systems or high-RAM environments (64GB+).
-    * `partitionGranularity`: `HOUR`
-    * `hold`: 5
-    * `gather`: 1
-* **MTS Configuration**:
-    * `partitionGranularity`: `DAY`
-    * `hold`: 2
-    * `gather`: 1
-* **LTS Configuration**:
-    * `partitionGranularity`: `MONTH`
-
-### 6.2 NVMe (M.2) Storage
-* **STS Configuration**:
-    * `partitionGranularity`: `DAY`
-    * `hold`: 2
-    * `gather`: 1
-* **MTS Configuration**:
-    * `partitionGranularity`: `MONTH`
-    * `hold`: 2
-    * `gather`: 1
-* **LTS Configuration**:
-    * `partitionGranularity`: `YEAR` (Live data)
-    * Recommendation: Move to recovery storage after 1, 3, or 5 years depending on the experiment requirements.
-
-### 6.3 Final Recommended Default Policy
-For a standard robust deployment, the following parameters are recommended to ensure reliability and performance:
-
-* **STS**: `PARTITION_HOUR`, `hold=2`, `gather=1`, `consolidateOnShutdown=true`
-* **MTS**: `PARTITION_DAY`, `hold=2`, `gather=1`
-* **LTS**: `PARTITION_YEAR`, `pp=mean_3600`
+| Media | Tier | `partitionGranularity` | `hold` | `gather` | Notes |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| SATA | STS | `HOUR` | 5 | 1 | RAM file system or high-RAM host (64 GB+) |
+| SATA | MTS | `DAY` | 2 | 1 | |
+| SATA | LTS | `MONTH` | — | — | |
+| NVMe (M.2) | STS | `DAY` | 2 | 1 | |
+| NVMe (M.2) | MTS | `MONTH` | 2 | 1 | |
+| NVMe (M.2) | LTS | `YEAR` | — | — | Live data; migrate to recovery storage after 1/3/5 years |
+| **Default (Recommended)** | STS | `PARTITION_HOUR` | 2 | 1 | `consolidateOnShutdown=true` |
+| **Default (Recommended)** | MTS | `PARTITION_DAY` | 2 | 1 | |
+| **Default (Recommended)** | LTS | `PARTITION_YEAR` | — | — | `pp=mean_3600` |

@@ -5,8 +5,17 @@ The source code for the [EPICS Archiver Appliance with MAVEN](https://github.com
 
 **Project Status**: Confirmed that the current version can archive a few PV signals. However, it requires more fine-tuning for maximizing the archiver appliance performance.
 
+## Scope
+
+This document covers setup and build of the EPICS Archiver Appliance with MAVEN on Debian 13: prerequisites, MariaDB configuration, Tomcat 9 as a build-time dependency, and systemd service management.
+
+**Out of scope:**
+* Archiving policy configuration and storage tier tuning — see [docs/README.policies.md](docs/README.policies.md).
+* Data lifecycle and ETL behavior over time — see [docs/README.DataJourney.md](docs/README.DataJourney.md).
+* The upstream community build process — see [archiver-appliance/epicsarchiverap](https://github.com/archiver-appliance/epicsarchiverap).
+
 ## Purpose of this Environment
-This repository provides a set of `Makefiles` and scripts to automate the setup and build process for the EPICS Archiver Appliance with MAVEN. It handles system dependencies, database configuration, and service management to create a reproducible environment currently on Debian 12.
+This repository provides a set of `Makefiles` and scripts to automate the setup and build process for the EPICS Archiver Appliance with MAVEN. It handles system dependencies, database configuration, and service management to create a reproducible environment currently on Debian 13.
 
 ## Prerequisites
 * **JDK 21+**: Java Development Kit version 21 or newer is required.
@@ -38,7 +47,7 @@ sudo systemctl status mariadb
 ```
 
 The following make targets automate common database administration tasks:
-```
+```bash
 make db.secure
 make db.addAdmin
 make db.show
@@ -51,7 +60,7 @@ make sql.show
 ### Tomcat 9
 In this environment, Apache Tomcat 9 is used as a source for essential Java libraries (like the Servlet API) and provides a structured directory layout. It is primarily used as a build-time dependency and is not run as a continuous service for hosting the web applications.
 
-```
+```bash
 # Set or display Tomcat-specific variables used in the build process
 make vars FILTER=TOMCAT
 
@@ -68,7 +77,7 @@ make tomcat.exist
 ### Build, install, and Service
 With the environment and dependencies in place, these commands compile the Archiver Appliance source code, install it to the target directories, and manage the systemd service.
 
-```
+```bash
 # Compile the EPICS Archiver Appliance source code
 make build
 
@@ -86,9 +95,9 @@ make sd_status
 ```
 
 ### Home Screenshot
-|![archappl.png](docs/images/home-2025-06-05.png)|
-| :---: |
-|**Figure 1** Archiver Appliance Home Screen|
+![Archiver Appliance Home Screen](docs/images/home-2025-06-05.png)
+
+*Figure 1 — Archiver Appliance Home Screen*
 
 ### Switch between different source commits
 To build against a different version of the source code:
