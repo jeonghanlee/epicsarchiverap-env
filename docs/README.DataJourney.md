@@ -16,6 +16,13 @@ The Archiver Appliance utilizes a three-tiered storage strategy to balance high-
 
 The crucial logic determining **when and how much data to move** between these tiers is defined by the ETL rules: `hold` and `gather`.
 
+## Scope
+
+This document walks through a single concrete timeline (T1–T6) to show how the `hold` and `gather` parameters trigger data movement between STS, MTS, and LTS over time.
+
+**Out of scope:**
+* Numeric reference and parameter taxonomy — see [README.policies.md](README.policies.md).
+* Operational deployment, system installation, and service management — see the project [README](../README.md).
 
 ## 1. Storage Tiers and File Units
 
@@ -63,9 +70,9 @@ Let's trace the journey of data with a concrete timeline to visualize the flow.
 ### [T1] 10:00:00 - 10:15:00 (The First 15 Minutes)
 * **STS:** The first file, `File_1 (10:00-10:15)`, is created. Data is actively being written to it (Active State).
 
-|![T1](./figures/T1.png)|
-| :---: |
-|**Figure 1** T1, The First 15 Minutes|
+![T1: the first 15 minutes](./figures/T1.png)
+
+*Figure 1 — T1, The First 15 Minutes*
 
 ### [T2] 10:15:00 - 10:30:00 (The Second 15 Minutes)
 * **STS:** `File_1` completes its 15-minute span and moves to the Completed buffer.
@@ -73,9 +80,9 @@ Let's trace the journey of data with a concrete timeline to visualize the flow.
     * *Action:* No move takes place yet, as the buffer count (1) is not greater than the `hold` value (2).
 * **STS:** A new file, `File_2 (10:15-10:30)`, begins writing (Active State).
 
-|![T2](./figures/T2.png)|
-| :---: |
-|**Figure 2** T2, The Second 15 Minutes|
+![T2: the second 15 minutes](./figures/T2.png)
+
+*Figure 2 — T2, The Second 15 Minutes*
 
 ### [T3] 10:30:00 - 10:45:00 (The Third 15 Minutes)
 * **STS:** `File_2` completes and enters the buffer.
@@ -83,9 +90,9 @@ Let's trace the journey of data with a concrete timeline to visualize the flow.
     * *Action:* Still no move takes place, as the count (2) is not *greater* than the `hold` value (2).
 * **STS:** A new file, `File_3 (10:30-10:45)`, begins writing.
 
-|![T3](./figures/T3.png)|
-| :---: |
-|**Figure 3** T3, The Third 15 Minutes|
+![T3: the third 15 minutes](./figures/T3.png)
+
+*Figure 3 — T3, The Third 15 Minutes*
 
 ### [T4] Just After 10:45:00 (ETL Trigger Moment)
 * **STS:** `File_3` completes and enters the buffer.
@@ -94,9 +101,9 @@ Let's trace the journey of data with a concrete timeline to visualize the flow.
     * *Action:* The ETL process initiates. Based on the `gather=1` setting, the single oldest file, `File_1 (10:00-10:15)`, is moved to MTS.
 * **MTS:** `File_1` arrives in MTS. It becomes the first half (Active State) of a new 30-minute partition covering `10:00-10:30`.
 
-|![T4](./figures/T4.png)|
-| :---: |
-|**Figure 4** T4, Just After 10:45:00|
+![T4: ETL trigger moment, just after 10:45:00](./figures/T4.png)
+
+*Figure 4 — T4, Just After 10:45:00*
 
 
 ### [T5] Just After 11:00:00 (MTS Consolidation)
@@ -104,17 +111,17 @@ Let's trace the journey of data with a concrete timeline to visualize the flow.
 * **MTS:** `File_2` arrives and is merged/appended with the waiting `File_1`.
 * **Result:** A complete 30-minute file for the total period `10:00-10:30` is formed. This new file moves to the MTS Completed buffer, where it will wait for the MTS `hold` trigger before eventually moving to LTS.
 
-|![T5](./figures/T5.png)|
-| :---: |
-|**Figure 5** T5, Just After 11:00:00|
+![T5: MTS consolidation, just after 11:00:00](./figures/T5.png)
+
+*Figure 5 — T5, Just After 11:00:00*
 
 
 ### [T6] Long After T5 (Continuous Operation)
 
 After a longer period, the system reaches a steady state where both STS and MTS buffers are full, and data is being continuously moved to LTS as new files are created. This final image illustrates the complete end-to-end data flow.
 
-|![T6](./figures/T6.png)|
-| :---: |
-|**Figure 6** T6, Long After T5|
+![T6: continuous operation, long after T5](./figures/T6.png)
+
+*Figure 6 — T6, Long After T5*
 
 

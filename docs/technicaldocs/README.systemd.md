@@ -9,20 +9,18 @@ Thus, we simply call them in order within a global wrapper script. It gives us
 more flexiable way to see how thing works without systemd serivce also and to
 locate the archiver appliance anywhere we would like to locate.
 
-Thus, the systemd file is simple such as
+Thus, the systemd unit file is simple, with `@ARCHAPPL_SITEID@` substituted at install time:
 
-```bash
+```ini
 [Unit]
-Description=EPICS Archiver Appliance for als
+Description=EPICS Archiver Appliance for @ARCHAPPL_SITEID@
 Documentation=https://github.com/slacmshankar/epicsarchiverap
 After=network.target
 SourcePath=/opt/epicsarchiverap/archappl.bash
 
 [Service]
-#
 User=tomcat
 Group=tomcat
-#
 ExecStart=/bin/bash -c "/opt/epicsarchiverap/archappl.bash startup"
 ExecStop=/bin/bash -c "/opt/epicsarchiverap/archappl.bash shutdown"
 Type=forking
@@ -30,10 +28,4 @@ Type=forking
 [Install]
 WantedBy=multi-user.target
 Alias=archappl.service
-
-[Unit]
-Description=EPICS Archiver Appliance for @ARCHAPPL_SITEID@
-Documentation=https://github.com/slacmshankar/epicsarchiverap
-After=network.target
-SourcePath=/opt/epicsarchiverap/archappl.bash
 ```

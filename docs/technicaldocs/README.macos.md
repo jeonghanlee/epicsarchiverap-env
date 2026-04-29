@@ -61,10 +61,10 @@ $ make db.show
 $ make sql.fill
 $ make sql.show
 #
-# Select one of port or brew
-# port
-$ make macport.conf
-# brew
+# Select one of MacPorts or Homebrew
+# MacPorts
+$ make macos.conf
+# Homebrew
 $ make macbrew.conf
 #
 $ make tomcat.action
@@ -85,38 +85,12 @@ $ make exist
 ```bash
 bash /opt/epicsarchiverap/archappl.bash startup
 bash /opt/epicsarchiverap/archappl.bash status
-bash /opt/epicaarchiverap/archappl.bash stop
+bash /opt/epicsarchiverap/archappl.bash stop
 ```
 
-|![AAZ](images/macos.png)|
-| :---: |
-|**Figure 1** Archiver Appliance Home Page Screenshot on macOS.|
+![Archiver Appliance home page on macOS](images/macos.png)
 
-
-## Launchctrl
-
-Note that the following rules are developing and they do not work. Please don't use this.
-
-
-```bash
-make conf.launch
-make conf.launch.show
-make install.launch
-make install.launch.show
-make launchctl_load
-make launchctl_unload
-```
-
-* Check the launch service 
-
-```bash
-make stop
-make launchctl_unload
-make launchctl_load
-make status
-```
-
-Note that at this moment, start and stop are not intergrated fully. One can stop the service through `archappl.bash shutdown`.
+*Figure 1 — Archiver Appliance Home Page screenshot on macOS.*
 
 ## Warning
 

@@ -2,22 +2,24 @@
 
 ## Home Page
 
-|![AAH](images/home.png)|
-| :---: |
-|**Figure 1** Firefox Archiver Appliance Home Page Screenshot.|
+![Archiver Appliance home page](images/home.png)
+
+*Figure 1 — Firefox Archiver Appliance Home Page screenshot.*
 
 ## Check Status Page
 
-|![AAC](images/checkstatus.png)|
-| :---: |
-|**Figure 2** Firefox Archiver Appliance Check Status Page Screenshot.|
+![Archiver Appliance check status page](images/checkstatus.png)
+
+*Figure 2 — Firefox Archiver Appliance Check Status Page screenshot.*
 
 ## Metrics Page
 
-|![AAM](images/metrics.png)|
-| :---: |
-|**Figure 3** Firefox Archiver Appliance Metrics Page Screenshot.|
+![Archiver Appliance metrics page](images/metrics.png)
 
-|![AAS](images/storage.png)|
-| :---: |
-|**Figure 4** Firefox Archiver Appliance Storage Page Screenshot.|
+*Figure 3 — Firefox Archiver Appliance Metrics Page screenshot.*
+
+## Storage Page
+
+![Archiver Appliance storage page](images/storage.png)
+
+*Figure 4 — Firefox Archiver Appliance Storage Page screenshot.*

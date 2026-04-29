@@ -37,7 +37,7 @@ One can remove it via `make db.rmAdmin`.
 
 ## Archiver Appliance Configuration
 
-* Generate MariaDB configuration file based on `configure/CONFIG_COMMOM`
+* Generate MariaDB configuration file based on `configure/CONFIG_SITE`
 
 ```bash
 make db.conf
@@ -107,7 +107,7 @@ make sql.drop
 
 ## Archiver Appliance Table Entries
 
-The archiver SQL has four tables, which we can see with `make sql.show`. Here we can see its entries in each table in a short forrmat.
+The archiver SQL has four tables, which we can see with `make sql.show`. Here we can see its entries in each table in a short format.
 
 * `ArchivePVRequests` Table
 
