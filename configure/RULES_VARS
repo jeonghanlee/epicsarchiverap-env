@@ -9,7 +9,7 @@ VARS_EXCLUDES+=$(filter JAR_%, $(.VARIABLES))
 VARS_EXCLUDES+=$(RULES_VARS)
 VARS_EXCLUDES+=%_RULES_VARS
 VARS_EXCLUDES+=RULES_VARS
-VARS_EXCLUDES+=a_service_BUIDER buildrules_BUILDER
+VARS_EXCLUDES+=a_service_BUILDER buildrules_BUILDER
 
 .PHONY: $(RULES_VARS)
 
@@ -34,7 +34,7 @@ vars: _header
 _header:
 	$(QUIET)echo ""
 	$(QUIET)echo "------------------------------------------------------------"
-	$(QUIET)echo ">>>>          Current Envrionment Variables             <<<<"
+	$(QUIET)echo ">>>>          Current Environment Variables             <<<<"
 	$(QUIET)echo "------------------------------------------------------------"
 	$(QUIET)echo ""
 

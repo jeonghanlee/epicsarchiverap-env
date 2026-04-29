@@ -63,7 +63,7 @@ endif
 ## 3 : archappl INSTALL_LOCATION
 ## 4 : each service INSTALL_LOCATION_SERVICES
 ## 5 : RETURN
-define a_service_BUIDER
+define a_service_BUILDER
 install.$(patsubst $(3)/%,%,$(4)):
 	@echo ">>> Installing $(patsubst $(3)/%,%,$(4))"
 	@echo "    0) Creating $(4)/{conf,logs,webapps,work,temp}"
@@ -98,7 +98,7 @@ endef
 # 5 : RETURN
 ## in order to debug, replace eval with info
 define buildrules_BUILDER
-$(foreach dir, $(4), $(eval $(call a_service_BUIDER,$(1),$(2),$(3),$(dir),$(5))))
+$(foreach dir, $(4), $(eval $(call a_service_BUILDER,$(1),$(2),$(3),$(dir),$(5))))
 endef
 
 define classpathfile_output
