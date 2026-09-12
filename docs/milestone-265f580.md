@@ -1,0 +1,1134 @@
+# Work Register
+
+Release line: master (`maven` branch)
+Milestone index: 265f580
+Canonical path: `docs/milestone-265f580.md`
+Canonical branch or ref: modernize
+Git upstream: origin/maven
+Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
+Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-abf6545.md` on branch modernize, announced 2026-09-11, not yet committed there
+
+Next session entry point: `docs/milestone-265f580.md` M1 — draft the aa-env
+baseline tag command and the `configure/RELEASE.local` pin recipe for the
+owner to run.
+
+## Milestone
+
+### Work
+
+| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Deploy | M1 | aa-env baseline tag and reproducible source pin | Milestone | Not started | Yes | D3 | Tag on `4d85e7f` visible on origin; `make init` with `RELEASE.local` checks out aa-maven `abf6545`; [detail](#m1---aa-env-baseline-tag-and-reproducible-source-pin) |
+| Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Blocked | No | M1, G1, G5 | Sequence document committed, handoff sent, deployment reported; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
+| Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Blocked | No | G2 | Register merged to `maven`; `docs/MILESTONES.md` gone; legacy issues closed; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
+| aa-env | M4 | Residual configure and script defects | Milestone | Not started | Yes | | Each defect has a phase 1 assertion that passes; [detail](#m4---residual-configure-and-script-defects) |
+| Tomcat | M5 | Tomcat 9.0.121 interim bump | Milestone | Not started | Yes | D5 | `make tomcat` installs 9.0.121 and all four services start; [detail](#m5---tomcat-90121-interim-bump) |
+| Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Blocked | No | G3 | Build succeeds with no `pom.xml` in aa-env; [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
+| Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Blocked | No | M5, G4, D5 | Four WARs start on Tomcat 11 and one PV archives; [detail](#m7---tomcat-11-migration-aa-env-side) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M2, M3, M4, M5, M6, M7 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
+| Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Open | No | | Tag name and hash received; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
+| Gate | G2 | Legacy GitHub milestones and issues closed by owner | External gate | Open | No | | Milestones M0–M5 and issues #35–#42 closed; [detail](#g2---legacy-github-milestones-and-issues-closed-by-owner) |
+| Gate | G3 | aa-maven lands canonical pom | External gate | Open | No | | aa-maven commit hash received; [detail](#g3---aa-maven-lands-canonical-pom) |
+| Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Open | No | | aa-maven commit hash received; [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
+| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Open | No | | mgmt URL answers on the deployment host; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
+
+### Decisions
+
+| ID | Decision | Decision Date |
+| --- | --- | --- |
+| D1 | aa-maven is maintained independently. No further upstream merges; upstream changes are cherry-picked individually. Legacy roadmap phases M3 and M4 (upstream sync) are retired. | 2026-09-11 |
+| D2 | Two registers, one per repository. The aa-env session is the single writer of this document; the aa-maven session is the single writer of the aa-maven register. Cross-references use canonical path plus local ID. Every M row gets one GitHub issue in its own repository, carrying the peer issue URL in its body. | 2026-09-11 |
+| D3 | The deployment baseline is aa-env `4d85e7f` (`maven` HEAD) with aa-maven `abf6545`, as-is. Modernization work does not gate the deployment. | 2026-09-11 |
+| D4 | Both repositories use a `modernize` branch. The aa-env branch starts at cleanup `265f580`. | 2026-09-11 |
+| D5 | Tomcat target is 11; 9.0.121 is the interim step on the 9.0.x line. | 2026-09-11 |
+| D6 | SQLite as the configuration database stays in the Backlog until assigned. | 2026-09-11 |
+
+### Milestone Details
+
+#### M1 - aa-env baseline tag and reproducible source pin
+
+Origin: 265f580 / M1
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+Freeze the state that the cloud/ansible deployment installs: aa-env `4d85e7f`
+and aa-maven `abf6545`. Provide a recipe that reproduces that source checkout
+without editing tracked files.
+
+##### Scope
+
+- Annotated tag `NewHope` on aa-env `4d85e7f` (name decided 2026-09-11,
+  paired with the aa-maven tag of the same name; owner runs the tag and push).
+- A `configure/RELEASE.local` recipe that sets `SRC_TAG` to the aa-maven baseline
+  tag, so `make init` on the tagged aa-env state clones the pinned aa-maven state.
+- Record both tag names here once they exist.
+
+Out of scope: any change to `configure/RELEASE`; the aa-maven tag itself (G1);
+the deployment (M2, G5).
+
+##### Completion Criteria
+
+- The aa-env tag `NewHope` exists on `origin` and points at `4d85e7f`.
+- A fresh clone of the aa-env tag plus the `RELEASE.local` recipe yields
+  `epicsarchiverap-maven-src` at `abf6545`.
+
+##### Dependencies And Decisions
+
+- D3
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Present the one-line `git tag -a NewHope 4d85e7f` and
+   `git push origin refs/tags/NewHope` commands for the owner.
+2. Write the `RELEASE.local` recipe in the M2 sequence document
+   (`SRC_TAG:=NewHope`), verified by T2.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Repository | `git ls-remote --tags origin` | aa-env checkout | `refs/tags/NewHope` present; `git rev-parse NewHope^{commit}` prints `4d85e7f` |
+| T2 | Build system | Fresh clone at aa-env `NewHope`, add `configure/RELEASE.local` with `SRC_TAG:=NewHope`, run `make init` | Debian 13 host | `git -C epicsarchiverap-maven-src rev-parse --short HEAD` prints `abf6545` |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | aa-env checkout | Pending | none |
+| T2 | Not run | Debian 13 host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Freeze deployment baseline: aa-env tag and aa-maven source pin
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M2 - Non-interactive install sequence for the ansible role
+
+Origin: 265f580 / M2
+Identity History: none
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+Turn the README procedure into a linear, non-interactive sequence with every
+input named, so the ansible/cloud session can write a role from it without
+reading this repository's Makefiles.
+
+##### Scope
+
+- One document under `docs/` listing, in order: packages, java-env, MariaDB
+  secure/admin/create/fill, Tomcat get/install, `make init build install`,
+  systemd enable/start, and the health probe.
+- For each step: the command, the variables it consumes, the files it writes,
+  and the check that proves it ran.
+- The `RELEASE.local` pin from M1.
+- Handoff message to the ansible/cloud session.
+
+Out of scope: writing the role; changing any Makefile behavior; MariaDB
+hardening beyond `make db.secure`.
+
+##### Completion Criteria
+
+- The document is committed on `modernize`.
+- The handoff message has been sent with the document path and both tags.
+- G5 reports a successful deployment that followed the document.
+
+##### Dependencies And Decisions
+
+- M1 (tags and pin recipe)
+- G1 (aa-maven tag name)
+- G5 (deployment report); resume as Not started
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Walk the README procedure on this host and record each step's inputs and
+   observable outputs.
+2. Write the sequence document.
+3. Send the handoff request to the ansible/cloud session.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Deployment | The ansible/cloud session runs the documented sequence on a fresh Debian 13 host | Deployment host | `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` returns 200 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Deployment host | Pending | G5 report |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Document the non-interactive install sequence for the ansible role
+Labels: documentation
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M3 - Land register on maven and retire legacy roadmap
+
+Origin: 265f580 / M3
+Identity History: none
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+Validate the cleanup content carried on `modernize`, land this register on
+`maven` through a pull request, and retire the legacy roadmap in the
+repository and on GitHub.
+
+##### Scope
+
+- `tests/run-all-tests.bash --local` passes on `modernize` HEAD.
+- `docs/MILESTONES.md` is removed in the same change that adds this
+  document.
+- Pull request from `modernize` to `maven` covering the cleanup commits and
+  this register; owner reviews and merges.
+- GitHub side: new issues for M1–M8 per D2, after the legacy issues and
+  milestones are closed (G2).
+
+Out of scope: any modernization content beyond the cleanup commits already
+on the branch.
+
+##### Completion Criteria
+
+- `origin/maven` contains this document and not `docs/MILESTONES.md`.
+- Issues #35–#42 and milestones M0–M5 are closed on GitHub.
+- Issues for M1–M8 exist and their numbers are recorded in each detail.
+
+##### Dependencies And Decisions
+
+- G2; resume as Not started
+- D1, D2
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Run phase 1 and phase 2 tests on `modernize`; fix anything that fails.
+2. Prepare the commit that adds this document and removes
+   `docs/MILESTONES.md`.
+3. Prepare the `gh issue close` and milestone close commands for the owner.
+4. Prepare the pull request description; owner opens and merges.
+5. Prepare `gh issue create` drafts for M1–M8 and record the numbers.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic and compile | `tests/run-all-tests.bash --local` | This host | Phase 1 and phase 2 report all assertions passed |
+| T2 | Repository | `git merge-base --is-ancestor <register commit> origin/maven` | aa-env checkout | Exit 0 |
+| T3 | Tracker | `gh issue list --state open --json number` | GitHub | None of #35–#42 listed |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | aa-env checkout | Pending | none |
+| T3 | Not run | GitHub | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Land the canonical work register and retire the legacy roadmap
+Labels: documentation
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M4 - Residual configure and script defects
+
+Origin: 265f580 / M4
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+Fix the defects found in the 2026-09-11 review that the cleanup commits did
+not cover, and guard each with a phase 1 assertion.
+
+##### Scope
+
+- `configure/RULES_FUNC` `checkfile`: the `$(if $(wildcard ...))` branches
+  are inverted (prints "no source path" when the file exists).
+- `configure/RULES_INSTALL` `serverxml.install`: engine and etl receive each
+  other's `ARCHAPPL_SHUTDOWN_*_PORT` value.
+- `configure/RULES_REQ` `get.jdbc` / `install.jdbc`: dead path; the JDBC
+  driver ships inside the mgmt WAR via Maven runtime scope.
+- `README.md`: purpose paragraph says Debian 12 while the guide is Debian 13.
+- `scripts/required_pkgs.sh` Debian 13: no Maven; README relies on
+  java-env for it. Document or install.
+- `.gitignore`: `test*` pattern hides any path starting with `test`.
+
+Out of scope: defects already fixed on the cleanup commits; anything in the
+aa-maven.
+
+##### Completion Criteria
+
+- Each item above has a phase 1 assertion in `tests/phase1-logic.bash` that
+  fails on the old behavior and passes on the fix.
+
+##### Dependencies And Decisions
+
+- none
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Add the failing assertions first, run phase 1, observe the failures.
+2. Apply each fix; re-run phase 1.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass; total count increases by the number added |
+| T2 | Build system | `make -n install` | This host | Parses without error |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Fix residual configure and script defects with phase 1 guards
+Labels: bug
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M5 - Tomcat 9.0.121 interim bump
+
+Origin: 265f580 / M5
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+Move the aa-env Tomcat from 9.0.113 to 9.0.121, the latest 9.0.x at the time
+of D5, as the safe step before the Tomcat 11 migration.
+
+##### Scope
+
+- `configure/CONFIG_TOMCAT`: `TOMCAT_MINOR_VER` 0.113 to 0.121.
+- `docs/technicaldocs/README.tomcat.md`: example output shows 9.0.87;
+  refresh.
+- Inform the aa-maven session so `tomcat-servlet-api` in the pom moves in
+  lockstep (informational; not a gate).
+
+Out of scope: Tomcat 10 or 11; the aa-maven pom.
+
+##### Completion Criteria
+
+- `make tomcat` on this host installs 9.0.121 and the four services start
+  against it.
+
+##### Dependencies And Decisions
+
+- D5
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Edit `CONFIG_TOMCAT` and the tomcat README.
+2. `make tomcat.get tomcat.install`; then `make install sd_start`.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Install | `unzip -p /opt/tomcat9/lib/catalina.jar org/apache/catalina/util/ServerInfo.properties` | This host | `server.number=9.0.121.0` |
+| T2 | Runtime | `make sd_start` then `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` | This host | HTTP 200 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Bump Tomcat to 9.0.121
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M6 - Single-source pom: remove aa-env pom overwrite
+
+Origin: 265f580 / M6
+Identity History: none
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+Today `make init` and `build.mvn` copy aa-env's `pom.xml` over the source
+clone on every build (`configure/RULES_SRC` target `pom`). Once aa-maven
+carries the canonical pom (G3), aa-env stops shipping one.
+
+##### Scope
+
+- Remove the `pom` target and its use from `init`, `build.mvn`,
+  `build.mvn2`, `build.mvn3`, `build.war`, `build.mvndeps`.
+- Delete `pom.xml` from aa-env; remove the untracked `pom.xml.aa`.
+- Update README and the phase 2 test that assumes the copy.
+
+Out of scope: pom content; the aa-maven build.
+
+##### Completion Criteria
+
+- `make init build.mvn` produces the four WARs with no `pom.xml` in aa-env.
+- The source clone shows a clean `git status` after a build.
+
+##### Dependencies And Decisions
+
+- G3; resume as Not started
+- D2
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After G3 reports the aa-maven commit, set `SRC_TAG` for the build to that
+   commit or later.
+2. Remove the `pom` target and aa-env `pom.xml`.
+3. Run phase 2.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Compile | `tests/run-all-tests.bash --phase=2` | This host | Four WARs produced; no `pom.xml` in aa-env |
+| T2 | Repository | `git -C epicsarchiverap-maven-src status --porcelain` after build | This host | Empty |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Stop overwriting the aa-maven pom.xml from aa-env
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M7 - Tomcat 11 migration (aa-env side)
+
+Origin: 265f580 / M7
+Identity History: none
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+Move the aa-env runtime to Tomcat 11 once the aa-maven has migrated to the
+jakarta servlet namespace (G4). Tomcat 9.0.x support ends no earlier than
+2027-03-31 per the Apache Tomcat project.
+
+##### Scope
+
+- `configure/CONFIG_TOMCAT`: major 11, URL, install location name.
+- `site-template/skel/{conf,bin}` and `startup.sh.in` / `shutdown.sh.in`
+  aligned with Tomcat 11 layout.
+- `configure/RULES_TOMCAT` and `RULES_INSTALL` sed patterns for
+  `server.xml`.
+- Documentation.
+
+Out of scope: source changes (aa-maven); Tomcat 10.1.
+
+##### Completion Criteria
+
+- Four WARs from the jakarta aa-maven build start on Tomcat 11 on this host.
+- One test PV is archived and retrieved.
+
+##### Dependencies And Decisions
+
+- M5
+- G4; resume as Not started
+- D5
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Diff Tomcat 11 `conf/` and `bin/` against the skel; update templates.
+2. Update CONFIG_TOMCAT and rules; `make tomcat install sd_start`.
+3. Archive one PV from a local IOC; retrieve it.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Runtime | `make sd_start` then `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` | This host, Tomcat 11 | HTTP 200 |
+| T2 | Function | Archive one PV, then `curl http://localhost:17668/retrieval/data/getData.json?pv=<pv>` | This host | Non-empty samples |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Migrate the aa-env runtime to Tomcat 11
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M8 - Modernized baseline release to maven
+
+Origin: 265f580 / M8
+Identity History: none
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+Merge the completed `modernize` work into `maven`, tag it, and verify the
+whole tree once on this host and once on the deployment host.
+
+##### Scope
+
+- Final pull request from `modernize` to `maven`.
+- Release tag on the merge commit.
+- `CHANGELOG.md` `[Unreleased]` becomes a dated section.
+
+Out of scope: any new feature.
+
+##### Completion Criteria
+
+- Release Verification 1–4 recorded with evidence.
+
+##### Dependencies And Decisions
+
+- M1, M2, M3, M4, M5, M6, M7
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Re-run the integrated checks below on the final tree.
+2. Prepare the pull request, tag, and changelog edit for the owner.
+
+##### Integrated Verification
+
+| Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
+| --- | --- | --- | --- | --- | --- |
+| M3 / T1 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass | pending |
+| M7 / T1 | Final tree | Runtime | Release Verification 2 | HTTP 200 on Tomcat 11 | pending |
+
+##### Production Environment Tests
+
+| Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Release Verification 3 | post-change | Deployment host | Debian 13 | x86_64 | ansible role | M2 sequence at the release tag | mgmt URL 200, one PV archived | pending |
+
+##### Version Changes
+
+| Field | File | Before | Planned After | Pre-check | Pre-check Label | Post-check | Post-check Label |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Unreleased heading | `CHANGELOG.md` | `[Unreleased]` | dated section | `grep -n Unreleased CHANGELOG.md` | Release Verification 4 | same | Release Verification 4 |
+
+##### Release Execution
+
+| Step | Action | Authorization | Expected Result | Evidence |
+| --- | --- | --- | --- | --- |
+| 1 | Merge `modernize` into `maven` via pull request | owner | merge commit on `origin/maven` | pending |
+| 2 | Annotated tag on the merge commit | owner | tag on origin | pending |
+
+##### Release Verification Plan
+
+| Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
+| --- | --- | --- | --- | --- | --- | --- |
+| Release Verification 1 | Logic and compile | pre-change | `tests/run-all-tests.bash --local` | This host | all pass | run log |
+| Release Verification 2 | Runtime | pre-change | `make sd_start`; mgmt probe | This host | HTTP 200 | curl output |
+| Release Verification 3 | Deployment | post-release | ansible role at the release tag | Deployment host | HTTP 200, PV archived | G5-style report |
+| Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
+
+##### Release Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| Release Verification 1 | Not run | This host | Pending | none |
+| Release Verification 2 | Not run | This host | Pending | none |
+| Release Verification 3 | Not run | Deployment host | Pending | none |
+| Release Verification 4 | Not run | aa-env checkout | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Modernized baseline release to maven
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### G1 - aa-maven baseline tag reported by the aa-maven session
+
+Origin: 265f580 / G1
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The aa-maven session (single writer of jeonghanlee/epicsarchiverap-maven) tags
+the aa-maven state `abf6545` and reports the tag name. Affects M2.
+
+Announced 2026-09-11: tag name `NewHope` (annotated, no `v` prefix) on
+`abf6545`; not yet created or pushed at the time of the announcement.
+
+##### Completion Criteria
+
+- A cross-session response names the tag and confirms it points at
+  `abf6545` on aa-maven's origin.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G2 - Legacy GitHub milestones and issues closed by owner
+
+Origin: 265f580 / G2
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The owner closes GitHub milestones M0–M5 and issues #35–#42 on
+jeonghanlee/epicsarchiverap-env; the commands are prepared under M3.
+Affects M3.
+
+##### Completion Criteria
+
+- `gh issue list --state open` shows none of #35–#42.
+- `gh api repos/:owner/:repo/milestones?state=open` shows none of M0–M5.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G3 - aa-maven lands canonical pom
+
+Origin: 265f580 / G3
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The aa-maven session commits a pom.xml that builds without aa-env's copy and
+reports the commit hash. Affects M6.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and its register row.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G4 - aa-maven lands jakarta servlet migration
+
+Origin: 265f580 / G4
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The aa-maven session migrates `javax.servlet` to `jakarta.servlet` and the
+related dependencies, and reports the commit hash. Affects M7.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and its register row.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G5 - Baseline deployment reported by the ansible/cloud session
+
+Origin: 265f580 / G5
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The ansible/cloud session deploys the M1 baseline following the M2
+sequence and reports the result. Affects M2.
+
+##### Completion Criteria
+
+- A cross-session response reports HTTP 200 from the mgmt probe on the
+  deployment host, with the aa-env and aa-maven tags it used.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+## Backlog
+
+### Work
+
+| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| DB | M9 | SQLite as the configuration database | Milestone | Open | No | D6 | Assign when MariaDB removal is scheduled; [detail](#m9---sqlite-as-the-configuration-database) |
+| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
+| aa-env | M11 | Single JDK source on the host | Milestone | Open | No | | Assign after M7; [detail](#m11---single-jdk-source-on-the-host) |
+| Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Conditional | No | | Condition: Tomcat 9.0.x end of support is announced before M7 completes; [detail](#m12---tomcat-91x-fallback) |
+| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign when aa-maven lands the new mgmt interface; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
+
+### Backlog Details
+
+#### M9 - SQLite as the configuration database
+
+Origin: 265f580 / M9
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+Replace MariaDB with SQLite for the appliance configuration database. The
+aa-maven source already selects the SQLite dialect from the JDBC driver name and
+ships `archappl_sqlite.sql`; upstream documents a single-connection pool
+limit.
+
+##### Scope
+
+- `site-template/context.xml.in`: driver `org.sqlite.JDBC`, file URL,
+  pool size 1.
+- `configure/CONFIG_SQL`, `configure/RULES_SQL`: SQLite initialization
+  instead of MariaDB targets.
+- `site-template/systemd/*.service.in`: drop `Requires=mariadb.service`.
+- `scripts/required_pkgs.sh`: `sqlite3` instead of MariaDB packages.
+- Documentation.
+
+Out of scope: the `sqlite-jdbc` dependency (aa-maven register).
+
+##### Completion Criteria
+
+- One PV archives and retrieves with no MariaDB service on the host.
+
+##### Dependencies And Decisions
+
+- D6
+- aa-maven register row for `sqlite-jdbc` (reference pending G1 report)
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Not planned until assigned.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Function | `systemctl stop mariadb`; `make sd_restart`; archive one PV; retrieve | This host | Non-empty samples |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Use SQLite as the configuration database
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M10 - Phase 3 and 4 install tests (container, VM)
+
+Origin: 265f580 / M10
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+Implement the `tests/phase3-docker.bash` and `tests/phase4-vm.bash` stubs
+described in `tests/README.md`.
+
+##### Scope
+
+- Container entrypoint under `tests/docker/` running `make install`.
+- VM entrypoint under `tests/vm/` running the systemd stack and HTTP probes.
+
+Out of scope: CI wiring.
+
+##### Completion Criteria
+
+- `tests/run-all-tests.bash --system` passes on a host with Docker and
+  libvirt.
+
+##### Dependencies And Decisions
+
+- none
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Not planned until assigned.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | System | `tests/run-all-tests.bash --system` | Host with Docker and libvirt | All assertions pass |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Host with Docker and libvirt | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Implement phase 3 and 4 install tests
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M11 - Single JDK source on the host
+
+Origin: 265f580 / M11
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The host carries two JDK 21 installs: java-env's `/opt/java-env/JDK`
+(21+35) and Debian's `openjdk-21` (21.0.12.1). Maven resolves the Debian
+one while `CONFIG_SITE` points at java-env. Pick one and make
+`required_pkgs.sh` and the configuration agree.
+
+##### Scope
+
+- Decide the JDK source; update `scripts/required_pkgs.sh` and the
+  `configure/os/debian13.mk` preset accordingly.
+
+Out of scope: aa-maven's `maven.compiler` settings.
+
+##### Completion Criteria
+
+- `make info.mvn` reports the same JDK path for Maven and for `JAVA_CMD`.
+
+##### Dependencies And Decisions
+
+- none
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Not planned until assigned.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Build system | `make info.mvn` | This host | One JDK path in both outputs |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Use a single JDK source on the host
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M12 - Tomcat 9.1.x fallback
+
+Origin: 265f580 / M12
+Identity History: none
+GitHub Issue: none
+Status: Conditional
+
+##### Summary
+
+If Tomcat 9.0.x reaches end of support before M7 completes, move the aa-env
+runtime to the 9.1.x extended-support branch, which keeps the javax
+namespace.
+
+##### Scope
+
+- `configure/CONFIG_TOMCAT` major/minor and URL for 9.1.x.
+
+Out of scope: any source change.
+
+##### Completion Criteria
+
+- Four services start on Tomcat 9.1.x on this host.
+
+##### Dependencies And Decisions
+
+- Condition: Apache announces the 9.0.x end-of-support date and it precedes
+  the expected M7 completion.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Not planned until the condition is observed.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Runtime | `make tomcat install sd_start`; mgmt probe | This host | HTTP 200 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Tomcat 9.1.x fallback for the aa-env runtime
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M13 - Site skin aligned with the rewritten mgmt UI
+
+Origin: 265f580 / M13
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+aa-maven will rewrite the management web interface. The aa-env repository
+carries only the site-specific skin (`site-template/siteid`: css, img,
+`template_changes.html`) that the build copies into the WAR. Once the new
+interface lands, the skin must be rebuilt against it or dropped.
+
+##### Scope
+
+- `site-template/siteid/{css,img,template_changes.html}` and the
+  `copy.sitespecific` step in `configure/RULES_SRC`.
+
+Out of scope: the interface itself (aa-maven register).
+
+##### Completion Criteria
+
+- `make build` with the new aa-maven UI produces a mgmt WAR whose home page
+  renders the site skin without errors in the browser console.
+
+##### Dependencies And Decisions
+
+- aa-maven register row for the mgmt UI rewrite (reference pending)
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Not planned until assigned.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | UI | Open `http://localhost:17665/mgmt/ui/index.html` after `make build install sd_start` | This host | Page renders with the site skin; no console errors |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Align the site skin with the rewritten mgmt UI
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
