@@ -8,9 +8,9 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, commit `c1dd0b1` (2026-09-12 reset; prior generation at `daff1b7`)
 
-Next session entry point: `docs/milestone-265f580.md` M16 — replace
-`scripts/archappl.bash` with a systemd template unit that runs the four
-Tomcat 9 instances; Tomcat 9 and the WARs already build, so no gate blocks it.
+Next session entry point: `docs/milestone-265f580.md` M11 — draft the per-OS
+package-list format and installer, then switch the toolchain to the distro
+JDK and the source repository's `./mvnw`.
 
 ## Milestone
 
@@ -22,22 +22,22 @@ Tomcat 9 instances; Tomcat 9 and the WARs already build, so no gate blocks it.
 | Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Blocked | No | G2 | Register merged to `maven`; `docs/MILESTONES.md` gone; legacy issues closed; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
 | aa-env | M4 | Residual configure and script defects | Milestone | Complete | No | D10 | Three defects fixed with phase 1 guards (`0e02ede`); the Maven item superseded by D10; [detail](#m4---residual-configure-and-script-defects) |
 | Tomcat | M5 | Tomcat 9.0.121, the fixed Phase 2 version | Milestone | Complete | No | D8, D11 | Config bumped (`aea623b`); Tomcat 9.0.121 fixed for Phase 2; [detail](#m5---tomcat-90121-the-fixed-phase-2-version) |
-| Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Blocked | No | G3 | Build succeeds with no `pom.xml` in aa-env; [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
+| Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Complete | No | G3 | Verified 2026-09-12: full build with no aa-env pom, clean source tree (`0e9cee6`); [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
 | Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; Tomcat 9 is fixed for Phase 2; [detail](#m7---tomcat-11-migration-aa-env-side) |
 | Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; [detail](#m12---tomcat-91x-fallback) |
 | DB | M9 | SQLite as the only configuration database | Milestone | Blocked | No | G9, M11, D11 | One PV archives and retrieves with no MariaDB on the host; [detail](#m9---sqlite-as-the-only-configuration-database) |
-| Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Not started | Yes | D11 | Four `archappl@<component>` units replace `archappl.bash`; mgmt probe 200; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
-| Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Blocked | No | G8, D10 | `make info.mvn` shows the distro JDK and `./mvnw`; no java-env, `MAVEN_HOME`, or `required_pkgs.sh` left; [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
+| Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
+| Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Not started | Yes | G8, D10 | `make info.mvn` shows the distro JDK and `./mvnw`; no java-env, `MAVEN_HOME`, or `required_pkgs.sh` left; [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
 | Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M3, M4, M6, M9, M11, M14, M15, M16 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed by owner | External gate | Open | No | | Milestones M0–M5 and issues #35–#42 closed; [detail](#g2---legacy-github-milestones-and-issues-closed-by-owner) |
-| Gate | G3 | aa-maven lands canonical pom | External gate | Open | No | | aa-maven commit hash received; [detail](#g3---aa-maven-lands-canonical-pom) |
+| Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
 | Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Complete | No | | Retired 2026-09-12: Tomcat 9 fixed, no jakarta migration (aa-maven D13); [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
 | Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | aa-maven M4 complete, commit and post-Ant sitespecific contract reported; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Gate | G7 | aa-maven CI builds on Maven | External gate | Open | No | | aa-maven rebuilds CI on Maven and reports a passing run; [detail](#g7---aa-maven-ci-builds-on-maven) |
-| Gate | G8 | aa-maven Maven Wrapper build verified | External gate | Open | No | | aa-maven wrapper commit and a fresh-clone build reported; [detail](#g8---aa-maven-maven-wrapper-build-verified) |
+| Gate | G8 | aa-maven Maven Wrapper build verified | External gate | Complete | No | | Fresh-clone `./mvnw` build passed at `c1dd0b1`, reported 2026-09-12; [detail](#g8---aa-maven-maven-wrapper-build-verified) |
 | Gate | G9 | aa-maven delivers SQLite persistence and removes MariaDB | External gate | Open | No | | aa-maven sqlite-jdbc and MariaDB-removal commits with the SQLite DataSource contract; [detail](#g9---aa-maven-delivers-sqlite-persistence-and-removes-mariadb) |
 
 ### Decisions
@@ -53,7 +53,8 @@ Tomcat 9 instances; Tomcat 9 and the WARs already build, so no gate blocks it.
 | D7 | The ansible/cloud deployment work (install sequence document and deployment gate) moves to the Backlog and is built together with the EPICS-env provisioning, not on its own; the NewHope baseline stays frozen for it. | 2026-09-11 |
 | D8 | The M5 Tomcat 9.0.121 live-install checks (T1, T2) are deferred; the version bump is committed, and the running-service verification is done at the M10 install-test phase or at deployment, not against this host now. | 2026-09-11 |
 | D10 | Toolchain: the distro JDK package only (`openjdk-21-jdk-headless`, `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`) and the Apache Maven Wrapper committed in aa-maven (`./mvnw`, pinned 3.9.9); aa-env installs no Maven and drops java-env. Declarative per-OS package lists and one installer replace `scripts/required_pkgs.sh`. Supersedes the M4 Maven question. | 2026-09-12 |
-| D11 | Runtime through Phase 2: the four WARs run on Tomcat 9 (fixed at 9.0.121) under one systemd template unit per component, with SQLite as the only configuration store. Supersedes D5 (no Tomcat 11) and D6 (SQLite is active, not backlog); aa-env rows M7 and M12 and gate G4 are retired. The post-Phase-2 runtime (no Tomcat) is built in the EPICS-Arche repository, not here. | 2026-09-12 |
+| D11 | Runtime through Phase 2: the four WARs run on Tomcat 9 (fixed at 9.0.121), with SQLite as the only configuration store. Supersedes D5 (no Tomcat 11) and D6 (SQLite is active, not backlog); aa-env rows M7 and M12 and gate G4 are retired. The post-Phase-2 runtime (no Tomcat) is built in the EPICS-Arche repository, not here. Launcher: see D12. | 2026-09-12 |
+| D12 | The launcher stays `scripts/archappl.bash` called by the existing single systemd service. The asymmetric start order (mgmt, engine, etl, retrieval) and stop order (engine, retrieval, etl, mgmt) live in the script, which `After=` ordering cannot express; the template-unit and conductor-unit designs are dropped and M16 retires. The script's restart-order defect was already fixed on cleanup (`e504e5c`). | 2026-09-12 |
 | D9 | Boundary between the two repositories: aa-env owns provisioning, deployment layout, service configuration, source baseline pinning, and the site skin; aa-maven owns source, the Maven build (Ant and Gradle leftovers consolidated onto Maven), dependency management, upstream cherry-pick policy, and independent bug fixes. Build-flavored leftovers inside aa-env are aa-env cleanup rows gated on aa-maven rows; compile verification moves to aa-maven CI and aa-env keeps install tests. No aa-env row migrates; the legacy build items already exist on the aa-maven register. | 2026-09-11 |
 
 ### Assignment History
@@ -351,14 +352,15 @@ Out of scope: Tomcat 10 or 11 (retired by D11); the aa-maven pom.
 ##### Completion Criteria
 
 - `configure/CONFIG_TOMCAT` and the Tomcat README name 9.0.121 and the change
-  is committed. The live install and start are verified by M16 / T2 and T3,
-  which start the instances through the systemd units (transferred 2026-09-12).
+  is committed. The live install and start are verified by M8 Release
+  Verification 2 and 3 (re-homed there when M16 retired, D12).
 
 ##### Dependencies And Decisions
 
-- D8: the live-install checks were deferred; on 2026-09-12 they moved to M16
-  (T2 installs and starts the instances, T3 archives a PV), and this row's
-  own checks became the committed configuration values.
+- D8: the live-install checks were deferred; they are carried by M8 Release
+  Verification 2 and 3 (start the service, probe, archive a PV), and this
+  row's own checks became the committed configuration values (D12 re-homed
+  them from the retired M16).
 - D11: 9.0.121 is the fixed Phase 2 version; the interim framing is retired.
 
 ##### Implementation Plan
@@ -388,7 +390,8 @@ Superseded Plan Artifacts: none
 ##### Closure Evidence
 
 - Config bump committed `aea623b`; T1 and T2 observed 2026-09-12; the version
-  is fixed by D11. The live install and start are M16 / T2 and T3.
+  is fixed by D11. The live install and start are M8 Release Verification 2
+  and 3.
 
 ##### GitHub Projection
 
@@ -405,7 +408,7 @@ Last Compared: never
 Origin: 265f580 / M6
 Identity History: none
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Complete
 
 ##### Summary
 
@@ -429,20 +432,24 @@ Out of scope: pom content; the aa-maven build.
 
 ##### Dependencies And Decisions
 
-- G3; resume as Not started
+- G3 Complete 2026-09-12: the canonical pom is `9be652c` (about 96 diff lines
+  from the aa-env copy); the removal must land together with any `SRC_TAG`
+  at or past that commit
 - D2
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-12, owner chose `SRC_TAG:=modernize` (track the source development branch; deployments stay pinned by NewHope)
+Implementation Authorization: 2026-09-12, in session with the `SRC_TAG` choice
 Superseded Plan Artifacts: none
 
-1. After G3 reports the aa-maven commit, set `SRC_TAG` for the build to that
-   commit or later.
-2. Remove the `pom` target and aa-env `pom.xml`.
-3. Run phase 2.
+1. Set `SRC_TAG:=modernize` in `configure/RELEASE`. Done 2026-09-12.
+2. Remove the `pom` target and aa-env `pom.xml` in the same change (the
+   canonical pom drops the system-scope jars, so the stale copy would break
+   the build); `pom.xml.aa` removed with a scratch copy kept for the
+   session. Done 2026-09-12 (`0e9cee6`).
+3. Run phase 2. Done 2026-09-12; see Verification Results.
 
 ##### Test Plan
 
@@ -455,12 +462,12 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
+| T1 | 2026-09-12 | This host | Pass | `tests/run-all-tests.bash --phase=2`: phase 1 passed=27, phase 2 passed=14; four WARs, release tarball, and Sphinx docs built from source `6957bfc` with no `pom.xml` in aa-env |
+| T2 | 2026-09-12 | This host | Pass | `git -C epicsarchiverap-maven-src status --porcelain` empty after the build |
 
 ##### Closure Evidence
 
-- none
+- Commit `0e9cee6`; T1 and T2 observed 2026-09-12 against source `6957bfc`.
 
 ##### GitHub Projection
 
@@ -652,13 +659,13 @@ Superseded Plan Artifacts: none
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M3 / T1 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass | pending |
-| M16 / T2 | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt unit | pending |
+| M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | pending |
 
 ##### Production Environment Tests
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 3 | post-change | This host | Debian 13 | x86_64 | `make install` then `systemctl start archappl.target` at the release tag | README procedure | mgmt URL 200, one PV archived | pending |
+| Release Verification 3 | post-change | This host | Debian 13 | x86_64 | `make install sd_start` at the release tag | README procedure | mgmt URL 200, one PV archived | pending |
 
 ##### Version Changes
 
@@ -678,8 +685,8 @@ Superseded Plan Artifacts: none
 | Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
 | --- | --- | --- | --- | --- | --- | --- |
 | Release Verification 1 | Logic and compile | pre-change | `tests/run-all-tests.bash --local` | This host | all pass | run log |
-| Release Verification 2 | Runtime | pre-change | `systemctl start archappl.target`; mgmt probe | This host | HTTP 200 | curl output |
-| Release Verification 3 | Install | post-change | `make install` + `systemctl start archappl.target` at the release tag | This host | HTTP 200, PV archived | curl output and retrieval sample |
+| Release Verification 2 | Runtime | pre-change | `make sd_start`; mgmt probe | This host | HTTP 200 | curl output |
+| Release Verification 3 | Install | post-change | `make install sd_start` at the release tag | This host | HTTP 200, PV archived | curl output and retrieval sample |
 | Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
 
 ##### Release Verification Results
@@ -881,7 +888,8 @@ renders the per-instance DataSource and the initialization from that contract.
   size 1, per the aa-maven contract (G9).
 - `configure/CONFIG_SQL`, `configure/RULES_SQL`: SQLite initialization from
   `archappl_sqlite.sql` instead of the MariaDB targets.
-- `site-template/systemd`: no `mariadb.service` dependency in the units (M16).
+- `site-template/systemd/epicsarchiverap-maven.service.in`: drop the
+  `mariadb.service` dependency when MariaDB goes.
 - Package list: `sqlite3`, no MariaDB packages (M11 list).
 - Documentation.
 
@@ -943,47 +951,31 @@ Last Compared: never
 Origin: 265f580 / M16
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: Complete
 
 ##### Summary
 
-Replace `scripts/archappl.bash` and its per-instance `startup.sh`/`shutdown.sh`
-loop with one systemd template unit, `archappl@.service`, instantiated for
-mgmt, engine, etl, and retrieval, plus `archappl.target` that orders and groups
-them. The four Tomcat 9 instances and `/opt/tomcat9` stay as they are; only the
-wrapper-script launcher changes. This is the first piece of the D11 runtime and
-has no external gate.
+Proposed replacing `scripts/archappl.bash` with `archappl@.service` template
+units. Retired by D12: the appliance's stop order (engine, retrieval, etl,
+mgmt) is not the reverse of its start order, `After=` ordering can only
+mirror, and the owner chose the script over a conductor unit. The existing
+`epicsarchiverap-maven.service` calling `archappl.bash` stays the launcher;
+the script's restart-order defect was fixed on cleanup (`e504e5c`).
 
 ##### Scope
 
-- `site-template/systemd/archappl@.service.in`: `Type=exec` running
-  `catalina.sh run` in the foreground (journald captures stdout; no pid file),
-  `User`/`Group`, `Environment`/`EnvironmentFile` for
-  `CATALINA_BASE=/opt/.../%i`, `CATALINA_HOME`, `CATALINA_OPTS`, `JAVA_HOME`,
-  `Restart=on-failure`; `archappl.target` with `Wants=` the four and ordering
-  so engine, etl, and retrieval start `After=archappl@mgmt.service`, each
-  `After=mariadb.service` until M9 removes MariaDB.
-- `configure/RULES_SYSTEMD` / `RULES_INSTALL`: generate and install the unit
-  and target; stop installing `archappl.bash`, jsvc wiring, and the per-instance
-  startup/shutdown scripts.
-- `make sd_start`/`sd_stop`/`sd_status` drive `systemctl ... archappl.target`.
-- README and `docs/technicaldocs/README.systemd.md`.
-- Phase 1 assertions: no `archappl.bash` install, unit template present.
+- No deliverable. The template-unit and conductor designs are not built.
 
-Out of scope: the SQLite DataSource (M9); the toolchain (M11); any Tomcat
-version change (M5 fixed it at 9.0.121).
+Out of scope: everything; see D12.
 
 ##### Completion Criteria
 
-- `systemctl start archappl.target` brings up the four instances; the mgmt
-  probe returns HTTP 200; one test PV is archived and retrieved.
-- `scripts/archappl.bash` is no longer installed; the units are the launcher.
+- Retired; no deliverable. The live runtime checks this row briefly carried
+  moved to M8 (Release Verification 2 and 3).
 
 ##### Dependencies And Decisions
 
-- D11 (systemd template units are the Phase 2 launcher)
-- 2026-09-12: the unit runs `catalina.sh run` under `Type=exec`; the forking
-  `startup.sh` path and pid files are not carried over.
+- D12 retires this row (2026-09-12).
 
 ##### Implementation Plan
 
@@ -992,33 +984,28 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Write the unit template and target; add the phase 1 assertions.
-2. Rework the systemd install rules; drop `archappl.bash` and jsvc.
-3. `make install`; start the target; probe; archive one PV.
+1. Not executed. Retired by D12.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass |
-| T2 | Runtime | `systemctl start archappl.target`; `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` | This host | Four units active; HTTP 200 |
-| T3 | Function | Archive one PV, then `curl http://localhost:17668/retrieval/data/getData.json?pv=<pv>` | This host | Non-empty samples |
+| T1 | Runtime | `make sd_start`; mgmt probe (waived here) | This host | Carried by M8 Release Verification 2 |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
-| T3 | Not run | This host | Pending | none |
+| T1 | Not run | This host | Waived | Moved to M8 Release Verification 2 and 3 |
 
 ##### Closure Evidence
 
-- none
+- Retired 2026-09-12 by D12; the live checks live on as M8 Release
+  Verification 2 and 3.
 
 ##### GitHub Projection
 
-Title: Run the Tomcat 9 instances under systemd template units
+Title: Run the Tomcat 9 instances under systemd template units (retired)
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
@@ -1031,7 +1018,7 @@ Last Compared: never
 Origin: 265f580 / M11
 Identity History: Backlog "Single JDK source on the host" to Milestone, retitled, 2026-09-12 (D10)
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Not started
 
 ##### Summary
 
@@ -1069,7 +1056,7 @@ beyond a first-pass port.
 
 ##### Dependencies And Decisions
 
-- G8 (aa-maven Maven Wrapper, verified); resume as Not started
+- G8 Complete 2026-09-12 (wrapper verified from a fresh clone)
 - D10
 
 ##### Implementation Plan
@@ -1178,7 +1165,7 @@ Affects M3.
 
 Origin: 265f580 / G3
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
@@ -1195,11 +1182,12 @@ tracked `pom.xml` (aa-maven decision D6).
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-12 | Pass | Origin `modernize` at `6957bfc`; pom `9be652c` re-derived: zero `systemPath`/system-scope entries, `tomcat-servlet-api` 9.0.113, `lib/repo` local repository present; aa-maven register records M3 Complete |
 
 ##### Closure Evidence
 
-- none
+- aa-maven push notice of 2026-09-12 (commits `9be652c`, `6957bfc`) and the
+  origin re-derivation above.
 
 #### G4 - aa-maven lands jakarta servlet migration
 
@@ -1293,7 +1281,7 @@ workflows (their M1); the Maven CI is a planned aa-maven item, not yet a row.
 
 Origin: 265f580 / G8
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
@@ -1313,11 +1301,12 @@ aa-maven register row: `docs/milestone-daff1b7.md` M2 (In progress).
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | aa-maven push notice names `ff67460`, pinned 3.9.9; fresh-clone build not yet re-derived here |
+| 2026-09-12 | Pass | aa-maven response: fresh clone at `c1dd0b1`, `./mvnw -B -q clean package -DskipTests` (JDK 21.0.12.1, wrapper-downloaded Maven 3.9.9) exit 0, four WARs; recorded as their M2 / T2 |
 
 ##### Closure Evidence
 
-- none
+- aa-maven cross-session response of 2026-09-12 (their M2 Complete); the
+  wrapper files and pin were re-derived from their origin on 2026-09-11.
 
 #### G9 - aa-maven delivers SQLite persistence and removes MariaDB
 
