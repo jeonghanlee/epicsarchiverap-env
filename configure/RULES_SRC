@@ -25,13 +25,7 @@ default: help
 
 .PHONY: init clone update deinit distclean checkout srcupdate
 ## Clone and update Source
-init: clone update pom
-
-pom:
-	$(QUIET)echo "-------------------------------------------------------------"
-	$(QUIET)echo "Move env $(TOP)/pom.xml to $(SRC_PATH)"
-	cp -rf $(TOP)/pom.xml $(SRC_PATH)
-	$(QUIET)echo "-------------------------------------------------------------"
+init: clone update
 
 # gitclone use '-C' option, so git version should be more than 1.8.5. CentOS7 git is imcompatiable.
 #
@@ -76,23 +70,23 @@ clean.mvn: info.mvn
 ## So, I am good for cd && solution.
 ## 2025-06-03
 ## Build
-build.mvn: info.mvn copy.sitespecific pom
+build.mvn: info.mvn copy.sitespecific
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
 
 ## Build 2
-build.mvn2: info.mvn copy.sitespecific pom
+build.mvn2: info.mvn copy.sitespecific
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true && cd ..
 
 ## Build 3
-build.mvn3: info.mvn copy.sitespecific pom
+build.mvn3: info.mvn copy.sitespecific
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true -X && cd ..
 
 ## Build 4 
-build.war: info.mvn copy.sitespecific pom
+build.war: info.mvn copy.sitespecific
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) war:exploded -Dsphinx.skip=true && cd ..
 
 ## Build 4 
-build.mvndeps: info.mvn copy.sitespecific pom
+build.mvndeps: info.mvn copy.sitespecific
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) dependency:tree && cd ..
 
 copy.sitespecific: | FORCE

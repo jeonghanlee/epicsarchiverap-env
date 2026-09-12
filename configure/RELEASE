@@ -15,7 +15,7 @@ SRC_NAME:=${APPNAME}
 #SRC_TAG:=734f31f
 ## Placeholder for the site-specific version control
 #
-SRC_TAG:=master
+SRC_TAG:=modernize
 #
 SRC_VERSION:=$(SRC_TAG)
 #SRC_VERSION:=${SRC_TAG}-2022-08-08
