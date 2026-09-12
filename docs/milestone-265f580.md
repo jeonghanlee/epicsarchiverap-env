@@ -8,8 +8,8 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-abf6545.md` on branch modernize, announced 2026-09-11, not yet committed there
 
-Next session entry point: `docs/milestone-265f580.md` M5 — bump
-`configure/CONFIG_TOMCAT` to 9.0.121 and run T1/T2; M4 is also Ready.
+Next session entry point: `docs/milestone-265f580.md` M4 — add the failing
+phase 1 assertions for the residual defects, then apply the fixes.
 
 ## Milestone
 
@@ -20,7 +20,7 @@ Next session entry point: `docs/milestone-265f580.md` M5 — bump
 | Deploy | M1 | aa-env baseline tag and reproducible source pin | Milestone | Complete | No | D3 | Both `NewHope` tags verified and pin recipe reproduced 2026-09-11; [detail](#m1---aa-env-baseline-tag-and-reproducible-source-pin) |
 | Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Blocked | No | G2 | Register merged to `maven`; `docs/MILESTONES.md` gone; legacy issues closed; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
 | aa-env | M4 | Residual configure and script defects | Milestone | Not started | Yes | | Each defect has a phase 1 assertion that passes; [detail](#m4---residual-configure-and-script-defects) |
-| Tomcat | M5 | Tomcat 9.0.121 interim bump | Milestone | Not started | Yes | D5 | `make tomcat` installs 9.0.121 and all four services start; [detail](#m5---tomcat-90121-interim-bump) |
+| Tomcat | M5 | Tomcat 9.0.121 interim bump | Milestone | In progress | No | D5, D8 | Config bumped; live install check deferred (D8); [detail](#m5---tomcat-90121-interim-bump) |
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Blocked | No | G3 | Build succeeds with no `pom.xml` in aa-env; [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
 | Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Blocked | No | M5, G4, D5 | Four WARs start on Tomcat 11 and one PV archives; [detail](#m7---tomcat-11-migration-aa-env-side) |
 | Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M3, M4, M5, M6, M7 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
@@ -40,6 +40,7 @@ Next session entry point: `docs/milestone-265f580.md` M5 — bump
 | D5 | Tomcat target is 11; 9.0.121 is the interim step on the 9.0.x line. | 2026-09-11 |
 | D6 | SQLite as the configuration database stays in the Backlog until assigned. | 2026-09-11 |
 | D7 | The ansible/cloud deployment work (install sequence document and deployment gate) moves to the Backlog and is built together with the EPICS-env provisioning, not on its own; the NewHope baseline stays frozen for it. | 2026-09-11 |
+| D8 | The M5 Tomcat 9.0.121 live-install checks (T1, T2) are deferred; the version bump is committed, and the running-service verification is done at the M10 install-test phase or at deployment, not against this host now. | 2026-09-11 |
 
 ### Assignment History
 
@@ -287,7 +288,7 @@ Last Compared: never
 Origin: 265f580 / M5
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -312,16 +313,17 @@ Out of scope: Tomcat 10 or 11; the aa-maven pom.
 ##### Dependencies And Decisions
 
 - D5
+- D8: the live-install checks (T1, T2) are deferred to M10 or deployment.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-11, owner accepted the 9.0.121 bump in session
+Implementation Authorization: 2026-09-11, config bump only; live install not run on this host per D8
 Superseded Plan Artifacts: none
 
-1. Edit `CONFIG_TOMCAT` and the tomcat README.
-2. `make tomcat.get tomcat.install`; then `make install sd_start`.
+1. Edit `CONFIG_TOMCAT` and the tomcat README. Done 2026-09-11.
+2. `make tomcat.get tomcat.install`; then `make install sd_start`. Deferred (D8).
 
 ##### Test Plan
 
@@ -334,8 +336,8 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
+| T1 | Deferred (D8) | This host | Pending | Requires `make tomcat.install`, which replaces `/opt/tomcat9`; not run |
+| T2 | Deferred (D8) | This host | Pending | Requires restarting the running appliance; not run |
 
 ##### Closure Evidence
 
