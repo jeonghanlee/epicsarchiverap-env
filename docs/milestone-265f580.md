@@ -6,11 +6,11 @@ Canonical path: `docs/milestone-265f580.md`
 Canonical branch or ref: modernize
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
-Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-abf6545.md` on branch modernize, commit `4f8a261` (2026-09-11)
+Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, commit `c1dd0b1` (2026-09-12 reset; prior generation at `daff1b7`)
 
-Next session entry point: `docs/milestone-265f580.md` M4 — obtain the owner's
-decision on Maven in `scripts/required_pkgs.sh` (add the package, or document
-the java-env dependency), apply it, then close M4.
+Next session entry point: `docs/milestone-265f580.md` M16 — replace
+`scripts/archappl.bash` with a systemd template unit that runs the four
+Tomcat 9 instances; Tomcat 9 and the WARs already build, so no gate blocks it.
 
 ## Milestone
 
@@ -20,19 +20,25 @@ the java-env dependency), apply it, then close M4.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Deploy | M1 | aa-env baseline tag and reproducible source pin | Milestone | Complete | No | D3 | Both `NewHope` tags verified and pin recipe reproduced 2026-09-11; [detail](#m1---aa-env-baseline-tag-and-reproducible-source-pin) |
 | Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Blocked | No | G2 | Register merged to `maven`; `docs/MILESTONES.md` gone; legacy issues closed; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
-| aa-env | M4 | Residual configure and script defects | Milestone | In progress | No | | Three defects fixed with phase 1 guards and the branch check retargeted; one item awaits an owner decision; [detail](#m4---residual-configure-and-script-defects) |
-| Tomcat | M5 | Tomcat 9.0.121 interim bump | Milestone | In progress | No | D5, D8 | Config bumped; live install check deferred (D8); [detail](#m5---tomcat-90121-interim-bump) |
+| aa-env | M4 | Residual configure and script defects | Milestone | Complete | No | D10 | Three defects fixed with phase 1 guards (`0e02ede`); the Maven item superseded by D10; [detail](#m4---residual-configure-and-script-defects) |
+| Tomcat | M5 | Tomcat 9.0.121, the fixed Phase 2 version | Milestone | Complete | No | D8, D11 | Config bumped (`aea623b`); Tomcat 9.0.121 fixed for Phase 2; [detail](#m5---tomcat-90121-the-fixed-phase-2-version) |
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Blocked | No | G3 | Build succeeds with no `pom.xml` in aa-env; [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
-| Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Blocked | No | M5, G4, D5 | Four WARs start on Tomcat 11 and one PV archives; [detail](#m7---tomcat-11-migration-aa-env-side) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M3, M4, M5, M6, M7, M14, M15 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
+| Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; Tomcat 9 is fixed for Phase 2; [detail](#m7---tomcat-11-migration-aa-env-side) |
+| Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; [detail](#m12---tomcat-91x-fallback) |
+| DB | M9 | SQLite as the only configuration database | Milestone | Blocked | No | G9, M11, D11 | One PV archives and retrieves with no MariaDB on the host; [detail](#m9---sqlite-as-the-only-configuration-database) |
+| Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Not started | Yes | D11 | Four `archappl@<component>` units replace `archappl.bash`; mgmt probe 200; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
+| Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Blocked | No | G8, D10 | `make info.mvn` shows the distro JDK and `./mvnw`; no java-env, `MAVEN_HOME`, or `required_pkgs.sh` left; [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M3, M4, M6, M9, M11, M14, M15, M16 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed by owner | External gate | Open | No | | Milestones M0–M5 and issues #35–#42 closed; [detail](#g2---legacy-github-milestones-and-issues-closed-by-owner) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Open | No | | aa-maven commit hash received; [detail](#g3---aa-maven-lands-canonical-pom) |
-| Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Open | No | | aa-maven commit hash received; [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
+| Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Complete | No | | Retired 2026-09-12: Tomcat 9 fixed, no jakarta migration (aa-maven D13); [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
 | Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | aa-maven M4 complete, commit and post-Ant sitespecific contract reported; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
-| Gate | G7 | aa-maven CI builds on Maven | External gate | Open | No | | aa-maven M5 complete, workflow run reported; [detail](#g7---aa-maven-ci-builds-on-maven) |
+| Gate | G7 | aa-maven CI builds on Maven | External gate | Open | No | | aa-maven rebuilds CI on Maven and reports a passing run; [detail](#g7---aa-maven-ci-builds-on-maven) |
+| Gate | G8 | aa-maven Maven Wrapper build verified | External gate | Open | No | | aa-maven wrapper commit and a fresh-clone build reported; [detail](#g8---aa-maven-maven-wrapper-build-verified) |
+| Gate | G9 | aa-maven delivers SQLite persistence and removes MariaDB | External gate | Open | No | | aa-maven sqlite-jdbc and MariaDB-removal commits with the SQLite DataSource contract; [detail](#g9---aa-maven-delivers-sqlite-persistence-and-removes-mariadb) |
 
 ### Decisions
 
@@ -46,13 +52,17 @@ the java-env dependency), apply it, then close M4.
 | D6 | SQLite as the configuration database stays in the Backlog until assigned. | 2026-09-11 |
 | D7 | The ansible/cloud deployment work (install sequence document and deployment gate) moves to the Backlog and is built together with the EPICS-env provisioning, not on its own; the NewHope baseline stays frozen for it. | 2026-09-11 |
 | D8 | The M5 Tomcat 9.0.121 live-install checks (T1, T2) are deferred; the version bump is committed, and the running-service verification is done at the M10 install-test phase or at deployment, not against this host now. | 2026-09-11 |
+| D10 | Toolchain: the distro JDK package only (`openjdk-21-jdk-headless`, `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`) and the Apache Maven Wrapper committed in aa-maven (`./mvnw`, pinned 3.9.9); aa-env installs no Maven and drops java-env. Declarative per-OS package lists and one installer replace `scripts/required_pkgs.sh`. Supersedes the M4 Maven question. | 2026-09-12 |
+| D11 | Runtime through Phase 2: the four WARs run on Tomcat 9 (fixed at 9.0.121) under one systemd template unit per component, with SQLite as the only configuration store. Supersedes D5 (no Tomcat 11) and D6 (SQLite is active, not backlog); aa-env rows M7 and M12 and gate G4 are retired. The post-Phase-2 runtime (no Tomcat) is built in the EPICS-Arche repository, not here. | 2026-09-12 |
 | D9 | Boundary between the two repositories: aa-env owns provisioning, deployment layout, service configuration, source baseline pinning, and the site skin; aa-maven owns source, the Maven build (Ant and Gradle leftovers consolidated onto Maven), dependency management, upstream cherry-pick policy, and independent bug fixes. Build-flavored leftovers inside aa-env are aa-env cleanup rows gated on aa-maven rows; compile verification moves to aa-maven CI and aa-env keeps install tests. No aa-env row migrates; the legacy build items already exist on the aa-maven register. | 2026-09-11 |
 
 ### Assignment History
 
 | Work Identity | From Canonical | To Canonical | Target Commit | Authority Moved At |
 | --- | --- | --- | --- | --- |
-| M2, G5 (`docs/milestone-265f580.md`) | Milestone section, branch modernize | Backlog section, branch modernize | this synchronization commit | this synchronization commit |
+| M2, G5 (`docs/milestone-265f580.md`) | Milestone section, branch modernize | Backlog section, branch modernize | `621312f` | `621312f` |
+| M9, M11 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retitled per D10/D11) | this synchronization commit | this synchronization commit |
+| M12 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retired per D11) | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -219,7 +229,7 @@ Last Compared: never
 Origin: 265f580 / M4
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -242,7 +252,8 @@ not cover, and guard each with a phase 1 assertion.
   `build`, not documented. Removed 2026-09-11 (owner choice), together with
   the `jdbc` download case in `scripts/install_java_pkgs_local.bash`.
 - `scripts/required_pkgs.sh` Debian 13: no Maven; README relies on
-  java-env for it. Document or install. Owner decision pending (2026-09-11).
+  java-env for it. Superseded 2026-09-12 by D10: the script is replaced under
+  M11 and aa-env installs no Maven at all.
 - `tests/phase1-logic.bash` `EXPECTED_BRANCH` defaulted to `cleanup`, so
   P1.1 only warned on `modernize`. Default changed to `modernize` (owner
   choice a, 2026-09-11); the variable stays overridable.
@@ -266,14 +277,13 @@ aa-maven.
 
 - Owner choice 2026-09-11: remove the jdbc rules rather than annotate them.
 - Owner choice 2026-09-11: phase 1 expects `modernize` by default.
-- One item above (Maven in `required_pkgs.sh`) awaits an owner decision
-  before this row can close.
+- D10 (2026-09-12) retires the Maven item to M11; nothing remains open here.
 
 ##### Implementation Plan
 
 Plan Status: accepted
 Plan Acceptance: 2026-09-11, owner accepted the assertion-first plan in session
-Implementation Authorization: 2026-09-11, for the checkfile, serverxml, jdbc, and branch-default items; the Maven item awaits its decision
+Implementation Authorization: 2026-09-11, for the checkfile, serverxml, jdbc, and branch-default items
 Superseded Plan Artifacts: none
 
 1. Add the failing assertions first, run phase 1, observe the failures.
@@ -302,7 +312,9 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Commit `0e02ede` (fixes, guards, CHANGELOG, tests README); T1 and T2
+  observed 2026-09-11; third-person and second-person passes the same day;
+  the Maven item retired by D10 on 2026-09-12.
 
 ##### GitHub Projection
 
@@ -314,17 +326,17 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
-#### M5 - Tomcat 9.0.121 interim bump
+#### M5 - Tomcat 9.0.121, the fixed Phase 2 version
 
 Origin: 265f580 / M5
-Identity History: none
+Identity History: retitled from "Tomcat 9.0.121 interim bump" 2026-09-12 (D11)
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
-Move the aa-env Tomcat from 9.0.113 to 9.0.121, the latest 9.0.x at the time
-of D5, as the safe step before the Tomcat 11 migration.
+Set the aa-env Tomcat to 9.0.121, the latest 9.0.x. Under D11 this is the
+fixed runtime version through Phase 2; there is no later Tomcat 11 step.
 
 ##### Scope
 
@@ -334,17 +346,20 @@ of D5, as the safe step before the Tomcat 11 migration.
 - Inform the aa-maven session so `tomcat-servlet-api` in the pom moves in
   lockstep (informational; not a gate).
 
-Out of scope: Tomcat 10 or 11; the aa-maven pom.
+Out of scope: Tomcat 10 or 11 (retired by D11); the aa-maven pom.
 
 ##### Completion Criteria
 
-- `make tomcat` on this host installs 9.0.121 and the four services start
-  against it.
+- `configure/CONFIG_TOMCAT` and the Tomcat README name 9.0.121 and the change
+  is committed. The live install and start are verified by M16 / T2 and T3,
+  which start the instances through the systemd units (transferred 2026-09-12).
 
 ##### Dependencies And Decisions
 
-- D5
-- D8: the live-install checks (T1, T2) are deferred to M10 or deployment.
+- D8: the live-install checks were deferred; on 2026-09-12 they moved to M16
+  (T2 installs and starts the instances, T3 archives a PV), and this row's
+  own checks became the committed configuration values.
+- D11: 9.0.121 is the fixed Phase 2 version; the interim framing is retired.
 
 ##### Implementation Plan
 
@@ -353,26 +368,27 @@ Plan Acceptance: 2026-09-11, owner accepted the 9.0.121 bump in session
 Implementation Authorization: 2026-09-11, config bump only; live install not run on this host per D8
 Superseded Plan Artifacts: none
 
-1. Edit `CONFIG_TOMCAT` and the tomcat README. Done 2026-09-11.
-2. `make tomcat.get tomcat.install`; then `make install sd_start`. Deferred (D8).
+1. Edit `CONFIG_TOMCAT` and the tomcat README. Done 2026-09-11 (`aea623b`).
+2. Live install and start run under M16 with the systemd units.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Install | `unzip -p /opt/tomcat9/lib/catalina.jar org/apache/catalina/util/ServerInfo.properties` | This host | `server.number=9.0.121.0` |
-| T2 | Runtime | `make sd_start` then `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` | This host | HTTP 200 |
+| T1 | Config | `make -s print-TOMCAT_VER` | This host | `9.0.121` |
+| T2 | Config | `grep -c 9.0.121 docs/technicaldocs/README.tomcat.md` | This host | 3 (lines; the URL line holds two occurrences) |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Deferred (D8) | This host | Pending | Requires `make tomcat.install`, which replaces `/opt/tomcat9`; not run |
-| T2 | Deferred (D8) | This host | Pending | Requires restarting the running appliance; not run |
+| T1 | 2026-09-12 | This host | Pass | `make -s print-TOMCAT_VER` printed `9.0.121` (config from commit `aea623b`) |
+| T2 | 2026-09-12 | This host | Pass | `grep -c 9.0.121 docs/technicaldocs/README.tomcat.md` printed `3` (commit `aea623b`) |
 
 ##### Closure Evidence
 
-- none
+- Config bump committed `aea623b`; T1 and T2 observed 2026-09-12; the version
+  is fixed by D11. The live install and start are M16 / T2 and T3.
 
 ##### GitHub Projection
 
@@ -461,7 +477,7 @@ Last Compared: never
 Origin: 265f580 / M7
 Identity History: none
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Complete
 
 ##### Summary
 
@@ -487,9 +503,7 @@ Out of scope: source changes (aa-maven); Tomcat 10.1.
 
 ##### Dependencies And Decisions
 
-- M5
-- G4; resume as Not started
-- D5
+- D11 retires this row.
 
 ##### Implementation Plan
 
@@ -498,9 +512,7 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Diff Tomcat 11 `conf/` and `bin/` against the skel; update templates.
-2. Update CONFIG_TOMCAT and rules; `make tomcat install sd_start`.
-3. Archive one PV from a local IOC; retrieve it.
+1. Not executed. Retired by D11 before any work.
 
 ##### Test Plan
 
@@ -518,11 +530,76 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Retired 2026-09-12 by D11: Tomcat 9 is fixed for Phase 2, so there is no
+  Tomcat 11 migration on the aa-env side. T1 and T2 waived.
 
 ##### GitHub Projection
 
 Title: Migrate the aa-env runtime to Tomcat 11
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M12 - Tomcat 9.1.x fallback
+
+Origin: 265f580 / M12
+Identity History: Backlog (Conditional) to Milestone as a retired row, 2026-09-12 (D11)
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+If Tomcat 9.0.x had reached end of support before a Tomcat 11 move, the
+runtime would have moved to the 9.1.x extended-support branch. D11 fixes
+9.0.121 for Phase 2 and places the post-Phase-2 runtime (no Tomcat) in
+EPICS-Arche, so the condition can no longer arise here.
+
+##### Scope
+
+- `configure/CONFIG_TOMCAT` major/minor and URL for 9.1.x (not executed).
+
+Out of scope: any source change.
+
+##### Completion Criteria
+
+- Retired; no deliverable.
+
+##### Dependencies And Decisions
+
+- D11 retires this row (2026-09-12).
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Not executed. Retired by D11.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Runtime | `make tomcat install`; mgmt probe on 9.1.x | This host | HTTP 200 (waived) |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Waived | Retired by D11 |
+
+##### Closure Evidence
+
+- Retired 2026-09-12 by D11: Tomcat 9.0.121 is fixed through Phase 2 and no
+  host Tomcat remains after it. T1 waived.
+
+##### GitHub Projection
+
+Title: Tomcat 9.1.x fallback for the aa-env runtime
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
@@ -535,7 +612,7 @@ Last Compared: never
 Origin: 265f580 / M8
 Identity History: none
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Not started
 
 ##### Summary
 
@@ -556,7 +633,8 @@ Out of scope: any new feature.
 
 ##### Dependencies And Decisions
 
-- M1, M3, M4, M5, M6, M7, M14, M15
+- M1, M3, M4, M6, M9, M11, M14, M15, M16
+- D11 retired M5's successor work (M7); M16 carries the runtime.
 - D7: the ansible deployment (M2, G5) is Backlog and does not gate this row.
 
 ##### Implementation Plan
@@ -574,13 +652,13 @@ Superseded Plan Artifacts: none
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M3 / T1 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass | pending |
-| M7 / T1 | Final tree | Runtime | Release Verification 2 | HTTP 200 on Tomcat 11 | pending |
+| M16 / T2 | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt unit | pending |
 
 ##### Production Environment Tests
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 3 | post-change | This host | Debian 13 | x86_64 | `make install sd_start` at the release tag | README procedure | mgmt URL 200, one PV archived | pending |
+| Release Verification 3 | post-change | This host | Debian 13 | x86_64 | `make install` then `systemctl start archappl.target` at the release tag | README procedure | mgmt URL 200, one PV archived | pending |
 
 ##### Version Changes
 
@@ -600,8 +678,8 @@ Superseded Plan Artifacts: none
 | Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
 | --- | --- | --- | --- | --- | --- | --- |
 | Release Verification 1 | Logic and compile | pre-change | `tests/run-all-tests.bash --local` | This host | all pass | run log |
-| Release Verification 2 | Runtime | pre-change | `make sd_start`; mgmt probe | This host | HTTP 200 | curl output |
-| Release Verification 3 | Install | post-change | README procedure at the release tag | This host | HTTP 200, PV archived | curl output and retrieval sample |
+| Release Verification 2 | Runtime | pre-change | `systemctl start archappl.target`; mgmt probe | This host | HTTP 200 | curl output |
+| Release Verification 3 | Install | post-change | `make install` + `systemctl start archappl.target` at the release tag | This host | HTTP 200, PV archived | curl output and retrieval sample |
 | Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
 
 ##### Release Verification Results
@@ -782,6 +860,262 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
+#### M9 - SQLite as the only configuration database
+
+Origin: 265f580 / M9
+Identity History: Backlog "SQLite as the configuration database" to Milestone, retitled, 2026-09-12 (D11)
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+Under D11 SQLite is the only configuration store; MariaDB is removed. The
+aa-maven source selects the SQLite dialect from the JDBC driver name and ships
+`archappl_sqlite.sql`; aa-maven adds `sqlite-jdbc` and removes the MariaDB
+dependency (its M11 and M13) and sends the SQLite DataSource contract. aa-env
+renders the per-instance DataSource and the initialization from that contract.
+
+##### Scope
+
+- `site-template/context.xml.in`: driver `org.sqlite.JDBC`, file URL, pool
+  size 1, per the aa-maven contract (G9).
+- `configure/CONFIG_SQL`, `configure/RULES_SQL`: SQLite initialization from
+  `archappl_sqlite.sql` instead of the MariaDB targets.
+- `site-template/systemd`: no `mariadb.service` dependency in the units (M16).
+- Package list: `sqlite3`, no MariaDB packages (M11 list).
+- Documentation.
+
+Out of scope: the `sqlite-jdbc` dependency and MariaDB removal in the source
+(aa-maven M11, M13); the systemd unit itself (M16).
+
+##### Completion Criteria
+
+- One PV archives and retrieves with no MariaDB service or package on the host.
+
+##### Dependencies And Decisions
+
+- G9 (aa-maven sqlite-jdbc + MariaDB removal + DataSource contract); resume as
+  Not started
+- M11 (ordering): the package change lands in the per-OS lists, not in
+  `required_pkgs.sh`
+- D11 (SQLite is the only store)
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. On the G9 contract: render `context.xml` for SQLite and wire the
+   initialization from `archappl_sqlite.sql`.
+2. Drop MariaDB from the package list and the unit dependency.
+3. Archive and retrieve one PV with no MariaDB present.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Function | Stop and remove MariaDB; start the units; archive one PV; retrieve | This host | Non-empty samples; no MariaDB running |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Use SQLite as the only configuration database
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M16 - Run the Tomcat 9 instances under systemd template units
+
+Origin: 265f580 / M16
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+Replace `scripts/archappl.bash` and its per-instance `startup.sh`/`shutdown.sh`
+loop with one systemd template unit, `archappl@.service`, instantiated for
+mgmt, engine, etl, and retrieval, plus `archappl.target` that orders and groups
+them. The four Tomcat 9 instances and `/opt/tomcat9` stay as they are; only the
+wrapper-script launcher changes. This is the first piece of the D11 runtime and
+has no external gate.
+
+##### Scope
+
+- `site-template/systemd/archappl@.service.in`: `Type=exec` running
+  `catalina.sh run` in the foreground (journald captures stdout; no pid file),
+  `User`/`Group`, `Environment`/`EnvironmentFile` for
+  `CATALINA_BASE=/opt/.../%i`, `CATALINA_HOME`, `CATALINA_OPTS`, `JAVA_HOME`,
+  `Restart=on-failure`; `archappl.target` with `Wants=` the four and ordering
+  so engine, etl, and retrieval start `After=archappl@mgmt.service`, each
+  `After=mariadb.service` until M9 removes MariaDB.
+- `configure/RULES_SYSTEMD` / `RULES_INSTALL`: generate and install the unit
+  and target; stop installing `archappl.bash`, jsvc wiring, and the per-instance
+  startup/shutdown scripts.
+- `make sd_start`/`sd_stop`/`sd_status` drive `systemctl ... archappl.target`.
+- README and `docs/technicaldocs/README.systemd.md`.
+- Phase 1 assertions: no `archappl.bash` install, unit template present.
+
+Out of scope: the SQLite DataSource (M9); the toolchain (M11); any Tomcat
+version change (M5 fixed it at 9.0.121).
+
+##### Completion Criteria
+
+- `systemctl start archappl.target` brings up the four instances; the mgmt
+  probe returns HTTP 200; one test PV is archived and retrieved.
+- `scripts/archappl.bash` is no longer installed; the units are the launcher.
+
+##### Dependencies And Decisions
+
+- D11 (systemd template units are the Phase 2 launcher)
+- 2026-09-12: the unit runs `catalina.sh run` under `Type=exec`; the forking
+  `startup.sh` path and pid files are not carried over.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Write the unit template and target; add the phase 1 assertions.
+2. Rework the systemd install rules; drop `archappl.bash` and jsvc.
+3. `make install`; start the target; probe; archive one PV.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass |
+| T2 | Runtime | `systemctl start archappl.target`; `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` | This host | Four units active; HTTP 200 |
+| T3 | Function | Archive one PV, then `curl http://localhost:17668/retrieval/data/getData.json?pv=<pv>` | This host | Non-empty samples |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+| T3 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Run the Tomcat 9 instances under systemd template units
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M11 - Single distro toolchain: JDK, Maven Wrapper, package lists
+
+Origin: 265f580 / M11
+Identity History: Backlog "Single JDK source on the host" to Milestone, retitled, 2026-09-12 (D10)
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+The host carries two JDK 21 installs (java-env's `/opt/java-env/JDK` and
+Debian's `openjdk-21`) and two Mavens; `configure/CONFIG_SITE` points at
+java-env while Maven resolves the Debian JDK. D10 replaces this with the distro
+JDK package, the Maven Wrapper committed in aa-maven (`./mvnw`), and declarative
+per-OS package lists instead of `scripts/required_pkgs.sh`.
+
+##### Scope
+
+- `configure/CONFIG_SITE` and `configure/os/*.mk`: `JAVA_HOME` from the distro
+  path; remove `MAVEN_HOME`, `MAVEN_PATH`, `JAVA_LOCAL*`, the
+  `CONFIG_SITE_{JDK,ANT,MAVEN}.local` hooks; `MAVEN_CMD := $(SRC_PATH)/mvnw`.
+- `configure/RULES_REQ`: remove the local JDK/Ant/Maven install rules and
+  `scripts/install_java_pkgs_local.bash`.
+- `configure/os/<os>.pkgs` (one package per line) and one installer that reads
+  the list for the detected OS; remove `scripts/required_pkgs.sh`.
+- `README.md`: prerequisites and the package step; no java-env reference.
+- Phase 1: assert no `java-env`, `MAVEN_HOME`, or `install_java_pkgs_local`
+  reference in `configure/`, `scripts/`, or `README.md`; assert the Debian 13
+  list exists and names `openjdk-21-jdk-headless`.
+
+Out of scope: Ant pieces (M14); the wrapper itself (G8); Rocky and macOS lists
+beyond a first-pass port.
+
+##### Completion Criteria
+
+- `make info.mvn` reports the distro JDK for both Maven and `JAVA_CMD`, and
+  `MAVEN_CMD` ends in `/mvnw`.
+- `make build` succeeds through the wrapper with no Maven installed outside
+  `~/.m2`.
+- `scripts/required_pkgs.sh` and `scripts/install_java_pkgs_local.bash` are gone
+  and the phase 1 assertions pass.
+
+##### Dependencies And Decisions
+
+- G8 (aa-maven Maven Wrapper, verified); resume as Not started
+- D10
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. While G8 is open: draft the per-OS package-list format and the installer,
+   porting the Debian 13 set from `required_pkgs.sh` minus `ant`, `maven`, and
+   java-env.
+2. After G8: set the distro `JAVA_HOME`, point `MAVEN_CMD` at the wrapper,
+   remove the java-env and local-install rules, add the phase 1 assertions.
+3. `make build` through the wrapper; record T1-T3.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass; removed scripts absent |
+| T2 | Build system | `make info.mvn` | This host | One JDK path; `MAVEN_CMD` ends in `/mvnw` |
+| T3 | Build | `make build` with `SRC_TAG` at the G8 commit | This host | Four WARs; `~/.m2/wrapper` holds the pinned Maven |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+| T3 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Single distro toolchain: distro JDK, Maven Wrapper, declarative package lists
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
 #### G1 - aa-maven baseline tag reported by the aa-maven session
 
 Origin: 265f580 / G1
@@ -795,7 +1129,8 @@ the aa-maven state `abf6545` and reports the tag name. Affects M2.
 
 Announced 2026-09-11: tag name `NewHope` (annotated, no `v` prefix) on
 `abf6545`. Pushed the same day; see Verification Results.
-aa-maven register row: `docs/milestone-abf6545.md` M1 (Complete).
+aa-maven records the tag as decision D5 in `docs/milestone-daff1b7.md`
+(no work row; complete).
 
 ##### Completion Criteria
 
@@ -849,8 +1184,8 @@ Status: Open
 
 The aa-maven session commits a pom.xml that builds without aa-env's copy and
 reports the commit hash. Affects M6.
-aa-maven register row: `docs/milestone-abf6545.md` M2 (Not started, Ready);
-its base is aa-env's tracked `pom.xml` (aa-maven decision D8, 2026-09-11).
+aa-maven register row: `docs/milestone-daff1b7.md` M3; its base is aa-env's
+tracked `pom.xml` (aa-maven decision D6).
 
 ##### Completion Criteria
 
@@ -870,13 +1205,13 @@ its base is aa-env's tracked `pom.xml` (aa-maven decision D8, 2026-09-11).
 
 Origin: 265f580 / G4
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
-The aa-maven session migrates `javax.servlet` to `jakarta.servlet` and the
-related dependencies, and reports the commit hash. Affects M7.
-aa-maven register row: `docs/milestone-abf6545.md` M6 (depends on its M3).
+Retired 2026-09-12: aa-maven fixed Tomcat 9 and dropped the jakarta / Tomcat 11
+migration (aa-maven decision D13); there is no migration to wait for. This gate
+had served M7, which D11 also retired.
 
 ##### Completion Criteria
 
@@ -890,7 +1225,8 @@ aa-maven register row: `docs/milestone-abf6545.md` M6 (depends on its M3).
 
 ##### Closure Evidence
 
-- none
+- aa-maven reset register `docs/milestone-daff1b7.md` (D13) retires the
+  migration; no aa-maven target remains.
 
 #### G6 - aa-maven lands Ant removal with the per-site build contract
 
@@ -905,7 +1241,8 @@ commit together with the post-Ant contract for the per-site build step that
 `build.xml` target `sitespecificbuild` used to run inside
 `src/sitespecific/<site>`. Affects M14.
 
-aa-maven register row: `docs/milestone-abf6545.md` M4.
+aa-maven register row: `docs/milestone-daff1b7.md` M10 (Ant removal,
+Deferred to the end of aa-maven Phase 1, their D7).
 
 ##### Completion Criteria
 
@@ -930,16 +1267,78 @@ Status: Open
 
 ##### Summary
 
-aa-maven moves its GitHub Actions and readthedocs build from Gradle to
-Maven (its register row M5) and reports a passing workflow run. Affects
-M15.
+aa-maven rebuilds CI on Maven and reports a passing workflow run. It removed
+the Gradle workflows (aa-maven M1); the readthedocs build already runs
+`./mvnw javadoc:javadoc`. Affects M15.
 
-aa-maven register row: `docs/milestone-abf6545.md` M5.
+aa-maven register: CI rebuild on Maven. aa-maven removed the Gradle
+workflows (their M1); the Maven CI is a planned aa-maven item, not yet a row.
 
 ##### Completion Criteria
 
 - A cross-session response names the aa-maven commit and a passing
   workflow run.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G8 - aa-maven Maven Wrapper build verified
+
+Origin: 265f580 / G8
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+aa-maven committed the Apache Maven Wrapper (`mvnw`, `mvnw.cmd`,
+`.mvn/wrapper/maven-wrapper.properties`, pinned Maven 3.9.9) in commit
+`ff67460`. This gate closes when a fresh clone builds through `./mvnw` so
+aa-env can rely on it as the only Maven. Affects M11.
+
+aa-maven register row: `docs/milestone-daff1b7.md` M2 (In progress).
+
+##### Completion Criteria
+
+- A cross-session response confirms the wrapper commit and a passing
+  `./mvnw -B clean package -DskipTests` from a fresh clone.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | aa-maven push notice names `ff67460`, pinned 3.9.9; fresh-clone build not yet re-derived here |
+
+##### Closure Evidence
+
+- none
+
+#### G9 - aa-maven delivers SQLite persistence and removes MariaDB
+
+Origin: 265f580 / G9
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+aa-maven adds the `sqlite-jdbc` runtime dependency and removes the MariaDB
+dependency (its M11 and M13), and reports the SQLite DataSource contract
+aa-env renders into `context.xml`: driver class, file URL, pool size, and the
+initialization SQL. Affects M9.
+
+aa-maven register rows: `docs/milestone-daff1b7.md` M11 (sqlite-jdbc) and M13
+(MariaDB removal, closes aa-maven Phase 2).
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commits and the SQLite DataSource
+  contract.
 
 ##### Verification Results
 
@@ -959,10 +1358,7 @@ aa-maven register row: `docs/milestone-abf6545.md` M5.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Open | No | M1, D7 | Assign when the EPICS-env provisioning work that carries the archiver is scheduled; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Open | No | D7 | Follows M2 when assigned; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
-| DB | M9 | SQLite as the configuration database | Milestone | Open | No | D6 | Assign when MariaDB removal is scheduled; [detail](#m9---sqlite-as-the-configuration-database) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
-| aa-env | M11 | Single JDK source on the host | Milestone | Open | No | | Assign after M7; [detail](#m11---single-jdk-source-on-the-host) |
-| Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Conditional | No | | Condition: Tomcat 9.0.x end of support is announced before M7 completes; [detail](#m12---tomcat-91x-fallback) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign when aa-maven lands the new mgmt interface; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 
 ### Backlog Details
@@ -1071,76 +1467,6 @@ sequence and reports the result. Affects M8 (Release Verification 3).
 
 - none
 
-#### M9 - SQLite as the configuration database
-
-Origin: 265f580 / M9
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-Replace MariaDB with SQLite for the appliance configuration database. The
-aa-maven source already selects the SQLite dialect from the JDBC driver name and
-ships `archappl_sqlite.sql`; upstream documents a single-connection pool
-limit.
-
-##### Scope
-
-- `site-template/context.xml.in`: driver `org.sqlite.JDBC`, file URL,
-  pool size 1.
-- `configure/CONFIG_SQL`, `configure/RULES_SQL`: SQLite initialization
-  instead of MariaDB targets.
-- `site-template/systemd/*.service.in`: drop `Requires=mariadb.service`.
-- `scripts/required_pkgs.sh`: `sqlite3` instead of MariaDB packages.
-- Documentation.
-
-Out of scope: the `sqlite-jdbc` dependency (aa-maven register).
-
-##### Completion Criteria
-
-- One PV archives and retrieves with no MariaDB service on the host.
-
-##### Dependencies And Decisions
-
-- D6
-- aa-maven `docs/milestone-abf6545.md` M8 (`sqlite-jdbc`, Backlog)
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Not planned until assigned.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Function | `systemctl stop mariadb`; `make sd_restart`; archive one PV; retrieve | This host | Non-empty samples |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Use SQLite as the configuration database
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
 Origin: 265f580 / M10
@@ -1204,133 +1530,6 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
-#### M11 - Single JDK source on the host
-
-Origin: 265f580 / M11
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The host carries two JDK 21 installs: java-env's `/opt/java-env/JDK`
-(21+35) and Debian's `openjdk-21` (21.0.12.1). Maven resolves the Debian
-one while `CONFIG_SITE` points at java-env. Pick one and make
-`required_pkgs.sh` and the configuration agree.
-
-##### Scope
-
-- Decide the JDK source; update `scripts/required_pkgs.sh` and the
-  `configure/os/debian13.mk` preset accordingly.
-
-Out of scope: aa-maven's `maven.compiler` settings.
-
-##### Completion Criteria
-
-- `make info.mvn` reports the same JDK path for Maven and for `JAVA_CMD`.
-
-##### Dependencies And Decisions
-
-- none
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Not planned until assigned.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Build system | `make info.mvn` | This host | One JDK path in both outputs |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Use a single JDK source on the host
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
-#### M12 - Tomcat 9.1.x fallback
-
-Origin: 265f580 / M12
-Identity History: none
-GitHub Issue: none
-Status: Conditional
-
-##### Summary
-
-If Tomcat 9.0.x reaches end of support before M7 completes, move the aa-env
-runtime to the 9.1.x extended-support branch, which keeps the javax
-namespace.
-
-##### Scope
-
-- `configure/CONFIG_TOMCAT` major/minor and URL for 9.1.x.
-
-Out of scope: any source change.
-
-##### Completion Criteria
-
-- Four services start on Tomcat 9.1.x on this host.
-
-##### Dependencies And Decisions
-
-- Condition: Apache announces the 9.0.x end-of-support date and it precedes
-  the expected M7 completion.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Not planned until the condition is observed.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Runtime | `make tomcat install sd_start`; mgmt probe | This host | HTTP 200 |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Tomcat 9.1.x fallback for the aa-env runtime
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
 #### M13 - Site skin aligned with the rewritten mgmt UI
 
 Origin: 265f580 / M13
@@ -1340,17 +1539,18 @@ Status: Open
 
 ##### Summary
 
-aa-maven will rewrite the management web interface. The aa-env repository
-carries only the site-specific skin (`site-template/siteid`: css, img,
-`template_changes.html`) that the build copies into the WAR. Once the new
-interface lands, the skin must be rebuilt against it or dropped.
+The management web interface rewrite moved to the EPICS-Arche repository
+(the post-Phase-2 runtime, per D11). The aa-env repository carries only the
+site-specific skin (`site-template/siteid`: css, img, `template_changes.html`)
+copied into the WAR. While the appliance stays on WARs (Phase 2) the skin is
+unchanged; it is revisited only if EPICS-Arche replaces the mgmt UI.
 
 ##### Scope
 
 - `site-template/siteid/{css,img,template_changes.html}` and the
   `copy.sitespecific` step in `configure/RULES_SRC`.
 
-Out of scope: the interface itself (aa-maven register).
+Out of scope: the interface itself (EPICS-Arche).
 
 ##### Completion Criteria
 
@@ -1359,7 +1559,7 @@ Out of scope: the interface itself (aa-maven register).
 
 ##### Dependencies And Decisions
 
-- aa-maven `docs/milestone-abf6545.md` M12 (mgmt UI rewrite, Backlog)
+- EPICS-Arche (mgmt UI rewrite; the session OFFICE-EPICS-Arche), post-Phase-2
 
 ##### Implementation Plan
 
