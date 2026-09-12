@@ -16,10 +16,10 @@ TOMCAT_DEFAULT_SERVER_XML = server.xml
 TOMCAT_HOME = /opt/tomcat9
 TOMCAT_INSTALL_LOCATION = /opt/tomcat9
 TOMCAT_MAJOR_VER = 9
-TOMCAT_MINOR_VER = 0.113
-TOMCAT_SRC = apache-tomcat-9.0.113.tar.gz
-TOMCAT_URL = "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.113/bin/apache-tomcat-9.0.113.tar.gz"
-TOMCAT_VER = 9.0.113
+TOMCAT_MINOR_VER = 0.121
+TOMCAT_SRC = apache-tomcat-9.0.121.tar.gz
+TOMCAT_URL = "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.121/bin/apache-tomcat-9.0.121.tar.gz"
+TOMCAT_VER = 9.0.121
 ```
 
 ## Setup
