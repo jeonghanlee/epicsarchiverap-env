@@ -6,10 +6,11 @@ Canonical path: `docs/milestone-265f580.md`
 Canonical branch or ref: modernize
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
-Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-abf6545.md` on branch modernize, announced 2026-09-11, not yet committed there
+Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-abf6545.md` on branch modernize, commit `4f8a261` (2026-09-11)
 
-Next session entry point: `docs/milestone-265f580.md` M4 — add the failing
-phase 1 assertions for the residual defects, then apply the fixes.
+Next session entry point: `docs/milestone-265f580.md` M4 — obtain the owner's
+decision on Maven in `scripts/required_pkgs.sh` (add the package, or document
+the java-env dependency), apply it, then close M4.
 
 ## Milestone
 
@@ -19,15 +20,19 @@ phase 1 assertions for the residual defects, then apply the fixes.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Deploy | M1 | aa-env baseline tag and reproducible source pin | Milestone | Complete | No | D3 | Both `NewHope` tags verified and pin recipe reproduced 2026-09-11; [detail](#m1---aa-env-baseline-tag-and-reproducible-source-pin) |
 | Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Blocked | No | G2 | Register merged to `maven`; `docs/MILESTONES.md` gone; legacy issues closed; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
-| aa-env | M4 | Residual configure and script defects | Milestone | Not started | Yes | | Each defect has a phase 1 assertion that passes; [detail](#m4---residual-configure-and-script-defects) |
+| aa-env | M4 | Residual configure and script defects | Milestone | In progress | No | | Three defects fixed with phase 1 guards and the branch check retargeted; one item awaits an owner decision; [detail](#m4---residual-configure-and-script-defects) |
 | Tomcat | M5 | Tomcat 9.0.121 interim bump | Milestone | In progress | No | D5, D8 | Config bumped; live install check deferred (D8); [detail](#m5---tomcat-90121-interim-bump) |
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Blocked | No | G3 | Build succeeds with no `pom.xml` in aa-env; [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
 | Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Blocked | No | M5, G4, D5 | Four WARs start on Tomcat 11 and one PV archives; [detail](#m7---tomcat-11-migration-aa-env-side) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M3, M4, M5, M6, M7 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M3, M4, M5, M6, M7, M14, M15 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
+| Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
+| Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed by owner | External gate | Open | No | | Milestones M0–M5 and issues #35–#42 closed; [detail](#g2---legacy-github-milestones-and-issues-closed-by-owner) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Open | No | | aa-maven commit hash received; [detail](#g3---aa-maven-lands-canonical-pom) |
 | Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Open | No | | aa-maven commit hash received; [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
+| Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | aa-maven M4 complete, commit and post-Ant sitespecific contract reported; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
+| Gate | G7 | aa-maven CI builds on Maven | External gate | Open | No | | aa-maven M5 complete, workflow run reported; [detail](#g7---aa-maven-ci-builds-on-maven) |
 
 ### Decisions
 
@@ -41,6 +46,7 @@ phase 1 assertions for the residual defects, then apply the fixes.
 | D6 | SQLite as the configuration database stays in the Backlog until assigned. | 2026-09-11 |
 | D7 | The ansible/cloud deployment work (install sequence document and deployment gate) moves to the Backlog and is built together with the EPICS-env provisioning, not on its own; the NewHope baseline stays frozen for it. | 2026-09-11 |
 | D8 | The M5 Tomcat 9.0.121 live-install checks (T1, T2) are deferred; the version bump is committed, and the running-service verification is done at the M10 install-test phase or at deployment, not against this host now. | 2026-09-11 |
+| D9 | Boundary between the two repositories: aa-env owns provisioning, deployment layout, service configuration, source baseline pinning, and the site skin; aa-maven owns source, the Maven build (Ant and Gradle leftovers consolidated onto Maven), dependency management, upstream cherry-pick policy, and independent bug fixes. Build-flavored leftovers inside aa-env are aa-env cleanup rows gated on aa-maven rows; compile verification moves to aa-maven CI and aa-env keeps install tests. No aa-env row migrates; the legacy build items already exist on the aa-maven register. | 2026-09-11 |
 
 ### Assignment History
 
@@ -213,7 +219,7 @@ Last Compared: never
 Origin: 265f580 / M4
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -223,37 +229,62 @@ not cover, and guard each with a phase 1 assertion.
 ##### Scope
 
 - `configure/RULES_FUNC` `checkfile`: the `$(if $(wildcard ...))` branches
-  are inverted (prints "no source path" when the file exists).
+  are inverted, and the only caller (`db.conf` in `RULES_SQL`) passes a
+  quoted path that `$(wildcard)` never matches; the two defects masked each
+  other so the stale file was always removed. Fixed 2026-09-11.
 - `configure/RULES_INSTALL` `serverxml.install`: engine and etl receive each
-  other's `ARCHAPPL_SHUTDOWN_*_PORT` value.
-- `configure/RULES_REQ` `get.jdbc` / `install.jdbc`: dead path; the JDBC
-  driver ships inside the mgmt WAR via Maven runtime scope.
-- `README.md`: purpose paragraph says Debian 12 while the guide is Debian 13.
+  other's `ARCHAPPL_SHUTDOWN_*_PORT` value. Fixed 2026-09-11.
+- `configure/RULES_REQ` `get.jdbc` / `install.jdbc`: an unused manual
+  alternative that copies the driver into `TOMCAT_HOME/lib`; Maven already
+  packages `mariadb-java-client` into each WAR (runtime scope); the built
+  WARs in `target/` and the installed tree carry the driver only inside the
+  four WARs, and the Tomcat lib holds none. Not wired into `install` or
+  `build`, not documented. Removed 2026-09-11 (owner choice), together with
+  the `jdbc` download case in `scripts/install_java_pkgs_local.bash`.
 - `scripts/required_pkgs.sh` Debian 13: no Maven; README relies on
-  java-env for it. Document or install.
-- `.gitignore`: `test*` pattern hides any path starting with `test`.
+  java-env for it. Document or install. Owner decision pending (2026-09-11).
+- `tests/phase1-logic.bash` `EXPECTED_BRANCH` defaulted to `cleanup`, so
+  P1.1 only warned on `modernize`. Default changed to `modernize` (owner
+  choice a, 2026-09-11); the variable stays overridable.
+
+Examined on `modernize` and found already fixed by the cleanup commits, so
+not part of this row: the README "Debian 12" wording (Debian 13 throughout
+since `6d294f3`) and the `.gitignore` `test*` pattern (followed by
+`!/tests/` and `!/tests/**` since `dc8628d`; `tests/` is tracked).
 
 Out of scope: defects already fixed on the cleanup commits; anything in the
 aa-maven.
 
 ##### Completion Criteria
 
-- Each item above has a phase 1 assertion in `tests/phase1-logic.bash` that
-  fails on the old behavior and passes on the fix.
+- Each defect item above has a phase 1 assertion in `tests/phase1-logic.bash`
+  that fails on the old behavior and passes on the fix. The `EXPECTED_BRANCH`
+  default is a test-harness setting, not a defect: its evidence is P1.1
+  passing on `modernize` instead of warning.
 
 ##### Dependencies And Decisions
 
-- none
+- Owner choice 2026-09-11: remove the jdbc rules rather than annotate them.
+- Owner choice 2026-09-11: phase 1 expects `modernize` by default.
+- One item above (Maven in `required_pkgs.sh`) awaits an owner decision
+  before this row can close.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-11, owner accepted the assertion-first plan in session
+Implementation Authorization: 2026-09-11, for the checkfile, serverxml, jdbc, and branch-default items; the Maven item awaits its decision
 Superseded Plan Artifacts: none
 
 1. Add the failing assertions first, run phase 1, observe the failures.
-2. Apply each fix; re-run phase 1.
+   Done 2026-09-11: P1.9 (checkfile, three checks), P1.10 (two checks),
+   P1.11 (one check) added; each observed failing on the old code.
+2. Apply each fix; re-run phase 1. Done 2026-09-11 for items 1 to 3 and
+   the branch default.
+3. Third-person review 2026-09-11: five findings accepted and applied — the
+   `jdbc` download case removed from `scripts/install_java_pkgs_local.bash`,
+   `CHANGELOG.md` and `tests/README.md` entries added, the completion
+   criterion and the jdbc wording above corrected.
 
 ##### Test Plan
 
@@ -266,8 +297,8 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
+| T1 | 2026-09-11 | This host | Pass | `tests/run-all-tests.bash --phase=1`: passed=27 failed=0 (20 before; six new checks plus P1.1 now passing on `modernize`); the six new checks fail against the HEAD copies of the files |
+| T2 | 2026-09-11 | This host | Pass | `make -n install` exit 0 after the RULES edits |
 
 ##### Closure Evidence
 
@@ -525,7 +556,7 @@ Out of scope: any new feature.
 
 ##### Dependencies And Decisions
 
-- M1, M3, M4, M5, M6, M7
+- M1, M3, M4, M5, M6, M7, M14, M15
 - D7: the ansible deployment (M2, G5) is Backlog and does not gate this row.
 
 ##### Implementation Plan
@@ -596,6 +627,161 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
+#### M14 - Remove Ant leftovers from aa-env
+
+Origin: 265f580 / M14
+Identity History: none
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+aa-env still carries Ant pieces from the pre-Maven build: an Ant build file
+in the site overlay, `ANT_HOME` / `ANT_PATH` / `ANT_OPTS` in the site
+configuration, and the `ant` package in the Debian package list. Once
+aa-maven removes Ant from the build (its M4) and states how the per-site
+build step is replaced, aa-env removes its half.
+
+##### Scope
+
+- `site-template/siteid/build.xml` (33 lines): remove, or replace per the
+  post-Ant sitespecific contract aa-maven reports.
+- `configure/CONFIG_SITE`: `ANT_HOME`, `ANT_PATH`, `ANT_OPTS` (lines 4, 9,
+  43–49) and any `.local` preset that sets them.
+- `scripts/required_pkgs.sh`: the `ant` package in every OS function.
+- `configure/RULES_SRC` `copy.sitespecific`: unchanged unless the contract
+  changes the overlay path.
+
+Out of scope: the aa-maven build itself; the overlay path
+`src/sitespecific/<ARCHAPPL_SITEID>` and the `classpathfiles` packaging,
+which aa-maven confirmed survive Ant removal.
+
+##### Completion Criteria
+
+- Phase 1 asserts: no `ANT_` variable in `configure/`, no
+  `site-template/siteid/build.xml`, no `ant` package in
+  `scripts/required_pkgs.sh`.
+- `make build` against the post-Ant aa-maven source produces the four WARs
+  with the site overlay applied.
+
+##### Dependencies And Decisions
+
+- G6 (aa-maven M4 and the post-Ant sitespecific contract); resume as Not
+  started
+- D9
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Read the contract aa-maven reports with G6; decide remove-or-replace for
+   `site-template/siteid/build.xml`.
+2. Add the failing phase 1 assertions, then remove the Ant pieces.
+3. Run `make build` against the aa-maven commit named in G6.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass |
+| T2 | Build | `make build` with `SRC_TAG` at the G6 commit | This host | Four WARs; `archappl.properties`, `log4j2.xml`, `policies.py` from the overlay present in each WAR (`unzip -l`) |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Remove Ant leftovers from the environment configuration
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M15 - Reduce phase 2 to a build-wrapper check
+
+Origin: 265f580 / M15
+Identity History: none
+GitHub Issue: none
+Status: Blocked (resume as Not started)
+
+##### Summary
+
+`tests/phase2-compile.bash` runs the full Maven build with Sphinx as an
+aa-env test. Under D9 compile verification belongs to aa-maven CI (its M5);
+aa-env keeps the install tests and reduces phase 2 to checking that the
+`make build` wrapper still drives the aa-maven build.
+
+##### Scope
+
+- `tests/phase2-compile.bash`: replace the full `make build.mvn` run with a
+  wrapper check (the target resolves and invokes `mvn ... package` in
+  `epicsarchiverap-maven-src`, captured with `make -n`).
+- `tests/README.md`: phase 2 description and the phase table.
+- `tests/run-all-tests.bash`: `--local` semantics unchanged.
+
+Out of scope: phases 1, 3, 4; the aa-maven CI workflow.
+
+##### Completion Criteria
+
+- Phase 2 completes in seconds without a network fetch and passes on this
+  host.
+- `tests/README.md` states that compile verification runs in aa-maven CI.
+
+##### Dependencies And Decisions
+
+- G7 (aa-maven M5, CI on Maven); resume as Not started
+- D9
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After G7 reports a passing aa-maven workflow run, rewrite phase 2 as the
+   wrapper check.
+2. Update `tests/README.md`; run `tests/run-all-tests.bash --local`.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --local` | This host | Phase 1 and the reduced phase 2 pass; no Maven download |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Reduce phase 2 to a build-wrapper check; compile verification in aa-maven CI
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
 #### G1 - aa-maven baseline tag reported by the aa-maven session
 
 Origin: 265f580 / G1
@@ -609,6 +795,7 @@ the aa-maven state `abf6545` and reports the tag name. Affects M2.
 
 Announced 2026-09-11: tag name `NewHope` (annotated, no `v` prefix) on
 `abf6545`. Pushed the same day; see Verification Results.
+aa-maven register row: `docs/milestone-abf6545.md` M1 (Complete).
 
 ##### Completion Criteria
 
@@ -662,6 +849,8 @@ Status: Open
 
 The aa-maven session commits a pom.xml that builds without aa-env's copy and
 reports the commit hash. Affects M6.
+aa-maven register row: `docs/milestone-abf6545.md` M2 (Not started, Ready);
+its base is aa-env's tracked `pom.xml` (aa-maven decision D8, 2026-09-11).
 
 ##### Completion Criteria
 
@@ -687,10 +876,70 @@ Status: Open
 
 The aa-maven session migrates `javax.servlet` to `jakarta.servlet` and the
 related dependencies, and reports the commit hash. Affects M7.
+aa-maven register row: `docs/milestone-abf6545.md` M6 (depends on its M3).
 
 ##### Completion Criteria
 
 - A cross-session response names the aa-maven commit and its register row.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G6 - aa-maven lands Ant removal with the per-site build contract
+
+Origin: 265f580 / G6
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+aa-maven removes Ant from its build (its register row M4) and reports the
+commit together with the post-Ant contract for the per-site build step that
+`build.xml` target `sitespecificbuild` used to run inside
+`src/sitespecific/<site>`. Affects M14.
+
+aa-maven register row: `docs/milestone-abf6545.md` M4.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and states how (or
+  whether) the per-site `build.xml` step is executed after Ant removal.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G7 - aa-maven CI builds on Maven
+
+Origin: 265f580 / G7
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+aa-maven moves its GitHub Actions and readthedocs build from Gradle to
+Maven (its register row M5) and reports a passing workflow run. Affects
+M15.
+
+aa-maven register row: `docs/milestone-abf6545.md` M5.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and a passing
+  workflow run.
 
 ##### Verification Results
 
@@ -855,7 +1104,7 @@ Out of scope: the `sqlite-jdbc` dependency (aa-maven register).
 ##### Dependencies And Decisions
 
 - D6
-- aa-maven register row for `sqlite-jdbc` (reference pending G1 report)
+- aa-maven `docs/milestone-abf6545.md` M8 (`sqlite-jdbc`, Backlog)
 
 ##### Implementation Plan
 
@@ -1110,7 +1359,7 @@ Out of scope: the interface itself (aa-maven register).
 
 ##### Dependencies And Decisions
 
-- aa-maven register row for the mgmt UI rewrite (reference pending)
+- aa-maven `docs/milestone-abf6545.md` M12 (mgmt UI rewrite, Backlog)
 
 ##### Implementation Plan
 
