@@ -1,16 +1,13 @@
 
 ### Toolchain paths (overridable via CONFIG_SITE.local or configure/os/*.mk)
-JAVA_HOME=/opt/java-env/JDK
+## The JDK is the distro package from configure/os/<os>.pkgs; Maven comes
+## from the source repository's Maven Wrapper (see MAVEN_CMD in CONFIG_SRC).
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 ANT_HOME=/usr/share/ant
-MAVEN_HOME=/opt/java-env/MAVEN
 TOMCAT_HOME=/opt/tomcat9
 
 JAVA_PATH=$(JAVA_HOME)/bin
 ANT_PATH=$(ANT_HOME)/bin
-MAVEN_PATH=$(MAVEN_HOME)/bin
-
-JAVA_LOCAL:=$(TOP)/JAVA
-JAVA_LOCAL_VER:=21
 
 ### MariaDB defaults (overridable via CONFIG_SITE.local)
 ## bind-address=localhost is assumed; non-local hosts must be configured manually
@@ -121,7 +118,3 @@ SYSTEMD_SERVICES:=
 # file itself.
 -include $(TOP)/../CONFIG_SITE.local
 -include $(TOP)/configure/CONFIG_SITE.local
-# Per-toolchain .local files emitted by `make conf.{jdk,ant,maven}`.
--include $(TOP)/configure/CONFIG_SITE_JDK.local
--include $(TOP)/configure/CONFIG_SITE_ANT.local
--include $(TOP)/configure/CONFIG_SITE_MAVEN.local

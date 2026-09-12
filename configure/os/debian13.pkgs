@@ -1,0 +1,25 @@
+# Debian 13 (trixie) packages for the Archiver Appliance environment.
+# One package per line; "#" starts a comment. Consumed by
+# scripts/install_os_packages.bash. The JDK is the distro package; Maven
+# comes from the source repository's Maven Wrapper (./mvnw), so no Maven
+# package is listed.
+wget
+curl
+git
+sed
+gawk
+unzip
+make
+gcc
+tree
+python3
+python3-pip
+python-is-python3
+python3-venv
+mariadb-server
+mariadb-client
+libmariadb-dev
+libmariadb-dev-compat
+openjdk-21-jdk-headless
+jsvc
+chrony

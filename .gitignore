@@ -52,7 +52,6 @@ auto_positions.sav*
 \#*
 .versions
 *-src
-JAVA/*
 *.tar.gz
 *.tar
 appliances.xml

@@ -1,0 +1,16 @@
+# Rocky Linux 8 packages (first-pass port; JDK raised to 21 for the
+# maven.compiler target). One package per line; "#" starts a comment.
+gcc
+libgcc
+wget
+sudo
+git
+unzip
+curl
+make
+tree
+sed
+which
+java-21-openjdk
+mariadb-server
+chrony

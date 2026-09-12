@@ -24,8 +24,7 @@ phase_header "Phase 2: Compile"
 
 # P2.1 Toolchain present.
 assert_cmd python3 "python3 available (build_docs.sh venv bootstrap)"
-assert_dir "${JAVA_HOME:-/opt/java-env/JDK}" "JAVA_HOME directory"
-assert_dir "${MAVEN_HOME:-/opt/java-env/MAVEN}" "MAVEN_HOME directory"
+assert_dir "${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}" "JAVA_HOME directory"
 
 # P2.2 Source tree: clone via make init when absent, otherwise skip.
 if [[ ! -d "${SRC_PATH}" ]]; then
@@ -38,6 +37,7 @@ else
     _record_pass "Source tree already present (skipping make init)"
 fi
 assert_dir "${SRC_PATH}" "source tree at ${SRC_PATH}"
+assert_file "${SRC_PATH}/mvnw" "Maven Wrapper present in the source tree"
 
 # P2.3 Full build (sphinx + war + assembly).
 if run_logged "make build.mvn (full Maven package, ~1-2 min)" make -C "${TOP}" build.mvn; then

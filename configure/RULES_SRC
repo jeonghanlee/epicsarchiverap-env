@@ -52,8 +52,8 @@ distclean:
 info.mvn:
 	$(QUIET)echo "-------------------------------------------------------------"
 	$(QUIET)echo ">>> MAVEN information"
-	$(QUIET)echo "MAVEN : $(MAVEN_PATH)/mvn"
-	$(QUIET)$(MAVEN_PATH)/mvn -version
+	$(QUIET)echo "MAVEN : $(MAVEN_CMD)"
+	$(QUIET)if [ -x "$(MAVEN_CMD)" ]; then JAVA_HOME=$(JAVA_HOME) "$(MAVEN_CMD)" --version; else echo "mvnw not present yet; run make init first"; fi
 	$(QUIET)echo "-------------------------------------------------------------"
 	$(QUIET)echo ">>> JAVA information"
 	$(QUIET)echo "JAVA : $(JAVA_PATH)/java"

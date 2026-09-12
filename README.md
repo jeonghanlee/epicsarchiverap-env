@@ -18,24 +18,23 @@ This document covers setup and build of the EPICS Archiver Appliance with MAVEN 
 This repository provides a set of `Makefiles` and scripts to automate the setup and build process for the EPICS Archiver Appliance with MAVEN. It handles system dependencies, database configuration, and service management to create a reproducible environment currently on Debian 13.
 
 ## Prerequisites
-* **JDK 21+**: Java Development Kit version 21 or newer is required.
-* **Apache Maven**: A recent version (e.g., 3.9.x).
-    * For easy Java/Maven setup, see [jeonghanlee/java-env](https://github.com/jeonghanlee/java-env).
+* **JDK 21+**: the distro package (`openjdk-21-jdk-headless` on Debian 13), installed by the package step below.
+* **Apache Maven**: none to install. The source repository ships the Maven Wrapper (`./mvnw`), which downloads its pinned Maven version on the first build.
 * **Git**: Required for generating release notes from commit history (this is part of the documentation generation process).
 * **Operating System**:
     * Core build (JARs/WARs) is generally OS-agnostic.
     * Sphinx documentation (`build_docs.sh`) is primarily for Linux.
-* **Sphinx Tools**: If building Sphinx documentation (which is enabled by default), ensure Sphinx, Python, and any necessary themes/extensions are installed and configured.
+* **Sphinx Tools**: nothing to install by hand. The package step provides Python and `python3-venv`, and the documentation build (`build_docs.sh`) bootstraps Sphinx into its own venv on the first run.
 
 ## Debian 13 Setup Guide
 This guide outlines the setup and build process on a Debian 13 system.
 
 ### Pre-requirement packages
-These commands initialize the environment and install essential software packages required for the Archiver Appliance and its dependencies.
+Install the OS packages from the per-OS list in `configure/os/` (one package per line), then check out the source.
 
 ```bash
+sudo bash scripts/install_os_packages.bash
 make init
-scripts/required_pkgs.sh
 ```
 ### MariaDB
 This section covers the setup and configuration of the MariaDB database, which will store the archived data and appliance configuration.

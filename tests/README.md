@@ -10,7 +10,7 @@ Tests execute in strict order, from least to most privilege:
 | Phase | Validates | Setup cost |
 | :--- | :--- | :--- |
 | 1. Logic | configure/ structure, Makefile parsing, doc set integrity | none |
-| 2. Compile | full Maven build with sphinx; four service WARs produced | Java 21, Maven, Python (host), network |
+| 2. Compile | full Maven build with sphinx; four service WARs produced | distro JDK 21, Python, network (the Maven Wrapper self-provisions) |
 | 3. Infrastructure | `make install` end-to-end inside a Debian 13 container | Docker daemon |
 | 4. System | full systemd stack inside a libvirt VM; HTTP probes | KVM, libvirt, cloud-init |
 
@@ -50,6 +50,8 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - `checkfile` (run through the real `configure/RULES_FUNC` in an ad-hoc makefile) removes an existing file and leaves an absent one alone; its caller in `RULES_SQL` passes an unquoted path.
 - `serverxml.install` pairs engine and etl with their own `ARCHAPPL_SHUTDOWN_*_PORT` variables.
 - `RULES_REQ` carries no `get.jdbc` / `install.jdbc` rules.
+- The legacy package scripts are gone; `scripts/install_os_packages.bash` parses and `configure/os/debian13.pkgs` names the distro JDK.
+- No `java-env`, `MAVEN_HOME`, or local-install reference survives in `configure/`, `scripts/`, or `README.md`; `MAVEN_CMD` is the source tree's `mvnw`.
 
 ### Phase 2 — Compile
 - `python3` is on PATH for `docs/build_docs.sh` to bootstrap its sphinx venv.

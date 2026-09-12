@@ -7,6 +7,7 @@ Version markers use the calendar-versioning scheme adopted in `pom.xml`.
 ## [Unreleased]
 
 ### Added
+- `configure/os/<os>.pkgs` declarative per-OS package lists (`debian13`, `rocky8`, `macos`) and `scripts/install_os_packages.bash`, the installer that consumes them.
 - `configure/os/*.mk` tracked OS preset files (`debian12`, `rocky8`, `macos`, `macbrew`, `githubmac`).
 - Scope and Out-of-scope blocks in `README.md`, `docs/README.policies.md`, and `docs/README.DataJourney.md`.
 - `## help` annotations on user-facing Tomcat targets and `.PHONY` wiring for `$(all_tomcat_RULES)`.
@@ -16,6 +17,8 @@ Version markers use the calendar-versioning scheme adopted in `pom.xml`.
 - `XXX.conf` Tomcat targets now generate a single-line `CONFIG_SITE.local` that includes the matching tracked preset under `configure/os/`.
 - Top-level documentation reformatted: convert multi-attribute bullet lists to tables in the policies guide (sections 4.1, 4.3, 6); compress `docs/README.md` to a true index; convert single-cell figure tables to plain images with captions across all docs.
 - `tests/phase1-logic.bash` expects branch `modernize` by default (`EXPECTED_BRANCH` still overrides).
+- Toolchain: `JAVA_HOME` is the distro JDK (`/usr/lib/jvm/java-21-openjdk-amd64`) and the build runs the source repository's Maven Wrapper (`./mvnw`, pinned 3.9.9); the environment installs no Maven and no longer references java-env.
+- The build consumes the source repository's own `pom.xml`; the environment no longer ships or copies one, and `SRC_TAG` tracks the source `modernize` branch during development.
 
 ### Fixed
 - `a_service_BUIDER` -> `a_service_BUILDER` macro typo across `RULES_FUNC` and `RULES_VARS`.
@@ -29,6 +32,7 @@ Version markers use the calendar-versioning scheme adopted in `pom.xml`.
 - Obsolete documentation: `README.ant.md` (pre-Maven build guide), `README.centos7.md` (EOL 2024-06-30), `README.centos8.md` (EOL 2021-12-31), `README.javapkgs.md` (Java 11/12 superseded by Java 21).
 - `configure/CONFIG_COMMON` (folded into `CONFIG_SITE`).
 - `get.jdbc`, `clean.jdbc`, `install.jdbc` rules in `RULES_REQ` and the `jdbc` download case in `scripts/install_java_pkgs_local.bash`: Maven packages `mariadb-java-client` into each WAR, so a copy in the Tomcat lib is not used (phase 1 guard P1.11).
+- `scripts/required_pkgs.sh` and `scripts/install_java_pkgs_local.bash`: replaced by the package lists, the installer, and the Maven Wrapper (phase 1 guard P1.12); the `install.{jdk,ant,maven}` and `conf.{jdk,ant,maven}` local-toolchain rules in `RULES_REQ` go with them.
 
 ## [2025-12-23]
 

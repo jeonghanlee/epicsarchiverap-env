@@ -10,10 +10,11 @@ $ make init
 
 ## Packages, and MariaDB, and Tomcat
 
-The **port** and **brew** package management shall be used. 
+The installer drives **Homebrew**; MacPorts users install the packages
+listed in `configure/os/macos.pkgs` manually with `port`.
 
 ```bash
-$ bash scripts/required_pkgs.sh
+$ bash scripts/install_os_packages.bash
 ```
 
 ### Configure MariaDB

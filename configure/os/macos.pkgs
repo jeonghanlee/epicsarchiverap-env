@@ -1,0 +1,8 @@
+# macOS Homebrew packages (first-pass port; JDK raised to 21). One
+# package per line; "#" starts a comment. Run without sudo; brew
+# refuses root.
+tree
+wget
+unzip
+mariadb
+openjdk@21

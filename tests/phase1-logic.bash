@@ -111,4 +111,23 @@ assert_eq "${etl_line}" "1" "serverxml.install etl uses ARCHAPPL_SHUTDOWN_ETL_PO
 jdbc_rules=$(grep -n 'jdbc' "${TOP}/configure/RULES_REQ" || true)
 assert_empty "${jdbc_rules}" "No get.jdbc/install.jdbc rules in RULES_REQ"
 
+# P1.12 Toolchain: distro JDK plus the source Maven Wrapper; package lists
+# replace the hand-written package scripts.
+for gone in required_pkgs.sh install_java_pkgs_local.bash; do
+    assert_not_file "${TOP}/scripts/${gone}" "legacy ${gone} removed"
+done
+assert_file "${TOP}/scripts/install_os_packages.bash" "package-list installer present"
+bash -n "${TOP}/scripts/install_os_packages.bash"
+assert_status $? 0 "installer parses (bash -n)"
+assert_file "${TOP}/configure/os/debian13.pkgs" "Debian 13 package list present"
+jdkpkg=$(grep -c '^openjdk-21-jdk-headless$' "${TOP}/configure/os/debian13.pkgs" || true)
+assert_eq "${jdkpkg}" "1" "Debian 13 list names the distro JDK"
+stale=$(grep -rln 'java-env\|MAVEN_HOME\|install_java_pkgs_local' "${TOP}/configure/" "${TOP}/scripts/" "${TOP}/README.md" 2>/dev/null || true)
+assert_empty "${stale}" "No java-env, MAVEN_HOME, or local-install references in configure/, scripts/, README.md"
+mvncmd=$(make -C "${TOP}" --no-print-directory print-MAVEN_CMD 2>/dev/null | tail -1)
+case "${mvncmd}" in
+    */mvnw) _record_pass "MAVEN_CMD is the source Maven Wrapper: ${mvncmd}" ;;
+    *)      _record_fail "MAVEN_CMD is the source Maven Wrapper" "got: ${mvncmd}" ;;
+esac
+
 phase_pass "Phase 1: Logic"
