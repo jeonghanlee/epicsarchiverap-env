@@ -8,9 +8,9 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, commit `c1dd0b1` (2026-09-12 reset; prior generation at `daff1b7`)
 
-Next session entry point: `docs/milestone-265f580.md` M11 — draft the per-OS
-package-list format and installer, then switch the toolchain to the distro
-JDK and the source repository's `./mvnw`.
+Next session entry point: `docs/milestone-265f580.md` M3 — prepare the
+legacy issue and milestone close commands for the owner (gate G2), then the
+pull request from `modernize` to `maven`; no other row is Ready.
 
 ## Milestone
 
@@ -27,7 +27,7 @@ JDK and the source repository's `./mvnw`.
 | Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; [detail](#m12---tomcat-91x-fallback) |
 | DB | M9 | SQLite as the only configuration database | Milestone | Blocked | No | G9, M11, D11 | One PV archives and retrieves with no MariaDB on the host; [detail](#m9---sqlite-as-the-only-configuration-database) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
-| Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Not started | Yes | G8, D10 | `make info.mvn` shows the distro JDK and `./mvnw`; no java-env, `MAVEN_HOME`, or `required_pkgs.sh` left; [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
+| Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
 | Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M3, M4, M6, M9, M11, M14, M15, M16 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
@@ -1018,7 +1018,7 @@ Last Compared: never
 Origin: 265f580 / M11
 Identity History: Backlog "Single JDK source on the host" to Milestone, retitled, 2026-09-12 (D10)
 GitHub Issue: none
-Status: Not started
+Status: Complete
 
 ##### Summary
 
@@ -1061,17 +1061,27 @@ beyond a first-pass port.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-12, owner directed the start with the plan as registered
+Implementation Authorization: 2026-09-12, same direction (G8 already Complete)
 Superseded Plan Artifacts: none
 
-1. While G8 is open: draft the per-OS package-list format and the installer,
-   porting the Debian 13 set from `required_pkgs.sh` minus `ant`, `maven`, and
-   java-env.
-2. After G8: set the distro `JAVA_HOME`, point `MAVEN_CMD` at the wrapper,
-   remove the java-env and local-install rules, add the phase 1 assertions.
-3. `make build` through the wrapper; record T1-T3.
+1. Package lists (`debian13`, `rocky8`, `macos`) and
+   `scripts/install_os_packages.bash` written per the bash-coding root-script
+   rules (fixed PATH, os-release parsed not sourced, non-interactive stdin
+   guard, `--force`, `--list-only`, `--os`); shellcheck clean. Done 2026-09-12.
+2. Distro `JAVA_HOME`, `MAVEN_CMD` to the source `mvnw`, java-env and
+   local-install rules removed, README and phase 1/2 updated, P1.12
+   assertions added (observed failing against the HEAD copies). Done
+   2026-09-12.
+3. Build through the wrapper; T1-T3 recorded. Done 2026-09-12 (T3 ran
+   `make build.mvn`, the compile path; `make build` additionally runs the
+   sudo-gated storage provisioning, which is host state outside this row).
+4. Third-person review 2026-09-12: four findings applied; the OS presets
+   (`configure/os/{rocky8,macbrew,macos,githubmac}.mk`) now name JDK 21
+   paths, the macOS technical doc points at the new installer, the
+   installer rejects a valueless `--os`, and the stale JAVA ignore entry
+   is gone.
 
 ##### Test Plan
 
@@ -1085,13 +1095,17 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
-| T3 | Not run | This host | Pending | none |
+| T1 | 2026-09-12 | This host | Pass | `tests/run-all-tests.bash --phase=1`: passed=35 failed=0 (27 before; eight P1.12 checks added); on a HEAD copy the first P1.12 check fails |
+| T2 | 2026-09-12 | This host | Pass | `make info.mvn`: Maven 3.9.9 from `~/.m2/wrapper` (wrapper-downloaded), Java 21.0.12.1 at `/usr/lib/jvm/java-21-openjdk-amd64`; `MAVEN_CMD` ends in `/mvnw` |
+| T3 | 2026-09-12 | This host | Pass | `tests/run-all-tests.bash --phase=2` (runs `make build.mvn` through the wrapper): passed=14 failed=0; four WARs, release tarball, Sphinx docs |
 
 ##### Closure Evidence
 
-- none
+- Commit `f24ec5c`; implementation and T1-T3 observed 2026-09-12; the four
+  review passes (two third-person, one second-person, plus the convergence
+  pass) applied their findings before this commit. The host still carries
+  the now-unused `/opt/java-env` tree and distro `maven` package; removing
+  them is host operations outside the repository.
 
 ##### GitHub Projection
 
