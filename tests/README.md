@@ -47,6 +47,9 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - `SRC_PATH` derives to `epicsarchiverap-maven-src` and downstream `ARCHAPPL_SITEID_TARGET_PATH` resolves under that subtree (regression guard for the CONFIG include reorder).
 - The four removed obsolete documents (`README.ant.md`, `README.centos7.md`, `README.centos8.md`, `README.javapkgs.md`) are not referenced from any surviving Markdown file.
 - `CHANGELOG.md` is present; the misspelled `CHANGLOG.md` is gone.
+- `checkfile` (run through the real `configure/RULES_FUNC` in an ad-hoc makefile) removes an existing file and leaves an absent one alone; its caller in `RULES_SQL` passes an unquoted path.
+- `serverxml.install` pairs engine and etl with their own `ARCHAPPL_SHUTDOWN_*_PORT` variables.
+- `RULES_REQ` carries no `get.jdbc` / `install.jdbc` rules.
 
 ### Phase 2 — Compile
 - `python3` is on PATH for `docs/build_docs.sh` to bootstrap its sphinx venv.

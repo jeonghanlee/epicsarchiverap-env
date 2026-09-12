@@ -38,10 +38,6 @@ ANT_VER=1.10.9
 ANT_SRC="apache-ant-${ANT_VER}-bin.tar.gz"
 ANT_URL="https://archive.apache.org/dist/ant/binaries/${ANT_SRC}"
 
-JDBC_VER=2.3.0
-JDBC_SRC="mariadb-java-client-${JDBC_VER}.jar"
-JDBC_URL="https://downloads.mariadb.com/Connectors/java/connector-java-${JDBC_VER}/${JDBC_SRC}"
-
 
 ## http://ant.apache.org/bindownload.cgi
 ## https://maven.apache.org/download.cgi
@@ -119,9 +115,6 @@ case "$pkg" in
         rm -f "$dest/openjdk12"
         ln -sf "$dest/jdk-12" "$dest/openjdk12"
         tree -L 1 "${dest}"
-        ;;
-    jdbc)
-        wget -qc "$JDBC_URL"
         ;;
     vars)
         vars;

@@ -15,16 +15,20 @@ Version markers use the calendar-versioning scheme adopted in `pom.xml`.
 - Restructure CONFIG layout per the epics-makefile pattern: merge `configure/CONFIG_COMMON` into `configure/CONFIG_SITE`; reorder `configure/CONFIG` includes so RELEASE comes first and CONFIG_VARS last.
 - `XXX.conf` Tomcat targets now generate a single-line `CONFIG_SITE.local` that includes the matching tracked preset under `configure/os/`.
 - Top-level documentation reformatted: convert multi-attribute bullet lists to tables in the policies guide (sections 4.1, 4.3, 6); compress `docs/README.md` to a true index; convert single-cell figure tables to plain images with captions across all docs.
+- `tests/phase1-logic.bash` expects branch `modernize` by default (`EXPECTED_BRANCH` still overrides).
 
 ### Fixed
 - `a_service_BUIDER` -> `a_service_BUILDER` macro typo across `RULES_FUNC` and `RULES_VARS`.
 - Drop dead `CATALINA_OPTS` block in `CONFIG_VARS` that referenced undefined `JAVA_HEAPSIZE` and `JAVA_MAXMETASPACE`.
 - `help` awk character class now includes `.` so dotted targets surface in `make help`.
 - `make macport.conf` reference in macOS docs corrected to `make macos.conf`.
+- `checkfile` macro in `RULES_FUNC` had its `$(if $(wildcard))` branches inverted while its only caller (`db.conf` in `RULES_SQL`) passed a quoted path that never matched; both corrected, with phase 1 guards P1.9.
+- `serverxml.install` in `RULES_INSTALL` paired engine and etl with each other's `ARCHAPPL_SHUTDOWN_*_PORT` variable; each now reads its own, with phase 1 guard P1.10.
 
 ### Removed
 - Obsolete documentation: `README.ant.md` (pre-Maven build guide), `README.centos7.md` (EOL 2024-06-30), `README.centos8.md` (EOL 2021-12-31), `README.javapkgs.md` (Java 11/12 superseded by Java 21).
 - `configure/CONFIG_COMMON` (folded into `CONFIG_SITE`).
+- `get.jdbc`, `clean.jdbc`, `install.jdbc` rules in `RULES_REQ` and the `jdbc` download case in `scripts/install_java_pkgs_local.bash`: Maven packages `mariadb-java-client` into each WAR, so a copy in the Tomcat lib is not used (phase 1 guard P1.11).
 
 ## [2025-12-23]
 

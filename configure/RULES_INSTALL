@@ -46,8 +46,8 @@ log4j2.install: $(ARCHAPPL_LOG4J_XML)
 serverxml.install:
 	$(QUIET)echo ">>> Update  $(AA_INSTALL_LOCATION)/*/conf/server.xml to use the proper port numbers to match $(ARCHAPPL_APPLIANCES)"
 	$(QUIET)$(SUDO) sed -i.bak -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_MGMT_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_MGMT_PORT)" shutdown="SHUTDOWN"|g' $(AA_INSTALL_LOCATION)/mgmt/conf/server.xml
-	$(QUIET)$(SUDO) sed -i.bak -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ENGINE_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ETL_PORT)" shutdown="SHUTDOWN"|g' $(AA_INSTALL_LOCATION)/engine/conf/server.xml
-	$(QUIET)$(SUDO) sed -i.bak -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ETL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ENGINE_PORT)" shutdown="SHUTDOWN"|g' $(AA_INSTALL_LOCATION)/etl/conf/server.xml
+	$(QUIET)$(SUDO) sed -i.bak -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ENGINE_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ENGINE_PORT)" shutdown="SHUTDOWN"|g' $(AA_INSTALL_LOCATION)/engine/conf/server.xml
+	$(QUIET)$(SUDO) sed -i.bak -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_ETL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_ETL_PORT)" shutdown="SHUTDOWN"|g' $(AA_INSTALL_LOCATION)/etl/conf/server.xml
 	$(QUIET)$(SUDO) sed -i.bak -e 's|Connector port="8080"|Connector port="$(ARCHAPPL_RETRIEVAL_PORT)"|g' -e 's|Server port="-1" shutdown="SHUTDOWN"|Server port="$(ARCHAPPL_SHUTDOWN_RETRIEVAL_PORT)" shutdown="SHUTDOWN"|g' $(AA_INSTALL_LOCATION)/retrieval/conf/server.xml
 
 serverxml.show:

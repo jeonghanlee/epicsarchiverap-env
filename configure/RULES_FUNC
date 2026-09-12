@@ -40,7 +40,7 @@ $(if $(wildcard $(2)), @echo"", git clone  $(1) $(2); git -C $(2) checkout $(3))
 endef
 
 define checkfile
-$(if $(wildcard $(1)), @echo "There is no source path at $(1).",@echo ">>> Found exist$(1) will be deleted." && rm -f $(1) )
+$(if $(wildcard $(1)),@echo ">>> Found existing $(1). Deleting it." && rm -f $(1),@echo ">>> No existing $(1).")
 endef
 
 

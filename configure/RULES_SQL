@@ -3,7 +3,7 @@ sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show
 sql_db_RULES:=$(addprefix db., $(sql_db_RULES_NAMES))
 
 db.conf: $(SQL_CONFIG_FILE).in
-	$(call checkfile, "$(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)")
+	$(call checkfile,$(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE))
 	$(QUIET) echo ">>> Generate $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)"
 	$(QUIET)sed -e "s|@DB_ADMIN_HOST@|"$(DB_ADMIN_HOST)"|g"\
 			-e "s|@DB_ADMIN@|$(DB_ADMIN)|g"\

@@ -62,26 +62,6 @@ clean.localmaven:
 $(JAVA_LOCAL):
 	@mkdir -p $@
 
-.PHONY: get.jdbc clean.jdbc install.jdbc
-get.jdbc:
-	$(QUIET)echo "Downloading JDBC connector ... "
-	$(QUIET)bash install_java_pkgs_local.bash "jdbc"
-
-ifneq ($(wildcard mariadb-java-*.jar),)
-clean.jdbc: 
-	$(QUIET) rm -rf mariadb-java-*.jar
-
-install.jdbc:
-	$(QUIET) echo "Copying $(wildcard mariadb-java-*.jar) to $(TOMCAT_HOME)/lib/"
-	$(QUIET) $(SUDO) $(INSTALL_755) mariadb-java-*.jar $(TOMCAT_HOME)/lib/
-else
-
-clean.jdbc:
-
-install.jdbc:
-
-endif
-
 req_storage_RULES_NAMES:=storage storage.show storage.rm 
 req_storage_RULES:=$(addprefix conf., $(req_storage_RULES_NAMES))
 

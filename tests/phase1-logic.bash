@@ -6,7 +6,7 @@
 set -euo pipefail
 
 readonly TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-readonly EXPECTED_BRANCH="${EXPECTED_BRANCH:-cleanup}"
+readonly EXPECTED_BRANCH="${EXPECTED_BRANCH:-modernize}"
 readonly EXPECTED_SRC_PATH="epicsarchiverap-maven-src"
 
 # shellcheck source=lib/common.bash
@@ -76,5 +76,39 @@ done
 # P1.8 Changelog rename applied (CHANGELOG.md kept, CHANGLOG.md gone).
 assert_file "${TOP}/CHANGELOG.md" "CHANGELOG.md exists"
 assert_not_file "${TOP}/CHANGLOG.md" "CHANGLOG.md (typo) removed"
+
+# P1.9 checkfile macro: deletes an existing file, leaves an absent one alone.
+# Exercise the real macro from configure/RULES_FUNC through an ad-hoc makefile;
+# make -n prints the branch the macro selects without running rm.
+checkfile_probe() {
+    # shellcheck disable=SC2016  # $(TOP) and $(call ...) are make syntax, not shell
+    printf 'TOP:=%s\ninclude $(TOP)/configure/RULES_FUNC\nprobe:\n\t$(call checkfile,%s)\n' \
+        "${TOP}" "$1" | make -n -f - probe 2>&1 || true
+}
+touch "${WORKSPACE}/checkfile-present.conf"
+rm -f "${WORKSPACE}/checkfile-absent.conf"
+present_out=$(checkfile_probe "${WORKSPACE}/checkfile-present.conf")
+absent_out=$(checkfile_probe "${WORKSPACE}/checkfile-absent.conf")
+case "${present_out}" in
+    *"rm -f"*) _record_pass "checkfile removes an existing file" ;;
+    *)         _record_fail "checkfile removes an existing file" "got: ${present_out}" ;;
+esac
+case "${absent_out}" in
+    *"rm -f"*) _record_fail "checkfile leaves an absent file alone" "got: ${absent_out}" ;;
+    *)         _record_pass "checkfile leaves an absent file alone" ;;
+esac
+# The caller must pass a bare path: a quoted argument never matches $(wildcard).
+quoted_calls=$(grep -n 'call checkfile,.*"' "${TOP}/configure/RULES_SQL" || true)
+assert_empty "${quoted_calls}" "checkfile caller in RULES_SQL passes an unquoted path"
+
+# P1.10 serverxml.install: each service pairs with its own shutdown-port variable.
+engine_line=$(grep -E 'engine/conf/server\.xml' "${TOP}/configure/RULES_INSTALL" | grep -c 'ARCHAPPL_SHUTDOWN_ENGINE_PORT' || true)
+etl_line=$(grep -E 'etl/conf/server\.xml' "${TOP}/configure/RULES_INSTALL" | grep -c 'ARCHAPPL_SHUTDOWN_ETL_PORT' || true)
+assert_eq "${engine_line}" "1" "serverxml.install engine uses ARCHAPPL_SHUTDOWN_ENGINE_PORT"
+assert_eq "${etl_line}" "1" "serverxml.install etl uses ARCHAPPL_SHUTDOWN_ETL_PORT"
+
+# P1.11 JDBC driver rules removed: Maven packages mariadb-java-client into each WAR.
+jdbc_rules=$(grep -n 'jdbc' "${TOP}/configure/RULES_REQ" || true)
+assert_empty "${jdbc_rules}" "No get.jdbc/install.jdbc rules in RULES_REQ"
 
 phase_pass "Phase 1: Logic"
