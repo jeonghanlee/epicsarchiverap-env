@@ -8,9 +8,8 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-abf6545.md` on branch modernize, announced 2026-09-11, not yet committed there
 
-Next session entry point: `docs/milestone-265f580.md` M1 — draft the aa-env
-baseline tag command and the `configure/RELEASE.local` pin recipe for the
-owner to run.
+Next session entry point: `docs/milestone-265f580.md` M5 — bump
+`configure/CONFIG_TOMCAT` to 9.0.121 and run T1/T2; M4 is also Ready.
 
 ## Milestone
 
@@ -18,19 +17,17 @@ owner to run.
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Deploy | M1 | aa-env baseline tag and reproducible source pin | Milestone | Not started | Yes | D3 | Tag on `4d85e7f` visible on origin; `make init` with `RELEASE.local` checks out aa-maven `abf6545`; [detail](#m1---aa-env-baseline-tag-and-reproducible-source-pin) |
-| Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Blocked | No | M1, G1, G5 | Sequence document committed, handoff sent, deployment reported; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
+| Deploy | M1 | aa-env baseline tag and reproducible source pin | Milestone | Complete | No | D3 | Both `NewHope` tags verified and pin recipe reproduced 2026-09-11; [detail](#m1---aa-env-baseline-tag-and-reproducible-source-pin) |
 | Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Blocked | No | G2 | Register merged to `maven`; `docs/MILESTONES.md` gone; legacy issues closed; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
 | aa-env | M4 | Residual configure and script defects | Milestone | Not started | Yes | | Each defect has a phase 1 assertion that passes; [detail](#m4---residual-configure-and-script-defects) |
 | Tomcat | M5 | Tomcat 9.0.121 interim bump | Milestone | Not started | Yes | D5 | `make tomcat` installs 9.0.121 and all four services start; [detail](#m5---tomcat-90121-interim-bump) |
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Blocked | No | G3 | Build succeeds with no `pom.xml` in aa-env; [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
 | Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Blocked | No | M5, G4, D5 | Four WARs start on Tomcat 11 and one PV archives; [detail](#m7---tomcat-11-migration-aa-env-side) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M2, M3, M4, M5, M6, M7 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
-| Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Open | No | | Tag name and hash received; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M3, M4, M5, M6, M7 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
+| Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed by owner | External gate | Open | No | | Milestones M0–M5 and issues #35–#42 closed; [detail](#g2---legacy-github-milestones-and-issues-closed-by-owner) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Open | No | | aa-maven commit hash received; [detail](#g3---aa-maven-lands-canonical-pom) |
 | Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Open | No | | aa-maven commit hash received; [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
-| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Open | No | | mgmt URL answers on the deployment host; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 
 ### Decisions
 
@@ -42,6 +39,13 @@ owner to run.
 | D4 | Both repositories use a `modernize` branch. The aa-env branch starts at cleanup `265f580`. | 2026-09-11 |
 | D5 | Tomcat target is 11; 9.0.121 is the interim step on the 9.0.x line. | 2026-09-11 |
 | D6 | SQLite as the configuration database stays in the Backlog until assigned. | 2026-09-11 |
+| D7 | The ansible/cloud deployment work (install sequence document and deployment gate) moves to the Backlog and is built together with the EPICS-env provisioning, not on its own; the NewHope baseline stays frozen for it. | 2026-09-11 |
+
+### Assignment History
+
+| Work Identity | From Canonical | To Canonical | Target Commit | Authority Moved At |
+| --- | --- | --- | --- | --- |
+| M2, G5 (`docs/milestone-265f580.md`) | Milestone section, branch modernize | Backlog section, branch modernize | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -50,7 +54,7 @@ owner to run.
 Origin: 265f580 / M1
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: Complete
 
 ##### Summary
 
@@ -64,7 +68,8 @@ without editing tracked files.
   paired with the aa-maven tag of the same name; owner runs the tag and push).
 - A `configure/RELEASE.local` recipe that sets `SRC_TAG` to the aa-maven baseline
   tag, so `make init` on the tagged aa-env state clones the pinned aa-maven state.
-- Record both tag names here once they exist.
+- Tag names: aa-env `NewHope` -> `4d85e7f` (tag object `9d092f0`); aa-maven
+  `NewHope` -> `abf6545` (tag object `ffbea94`).
 
 Out of scope: any change to `configure/RELEASE`; the aa-maven tag itself (G1);
 the deployment (M2, G5).
@@ -78,12 +83,14 @@ the deployment (M2, G5).
 ##### Dependencies And Decisions
 
 - D3
+- 2026-09-11: step 1 executed by owner direction (tag created by the owner,
+  push delegated); step 2 verified by T2 after G1 completed.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-11, owner approved the `NewHope` tag name and the `RELEASE.local` pin in session
+Implementation Authorization: 2026-09-11 (owner created the tag; tag push and T2 delegated)
 Superseded Plan Artifacts: none
 
 1. Present the one-line `git tag -a NewHope 4d85e7f` and
@@ -102,93 +109,17 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | aa-env checkout | Pending | none |
-| T2 | Not run | Debian 13 host | Pending | none |
+| T1 | 2026-09-11 | aa-env checkout | Pass | `git ls-remote --tags origin refs/tags/NewHope` returned tag object `9d092f0`; `rev-parse NewHope^{commit}` = `4d85e7f` |
+| T2 | 2026-09-11 | Debian 13 host, fresh clone in a scratch directory | Pass | `git clone --branch NewHope` of aa-env gave `4d85e7f`; `configure/RELEASE.local` with `SRC_TAG:=NewHope`; `make init` checked out `epicsarchiverap-maven-src` at `abf6545`, `git describe --tags --exact-match` = `NewHope` |
 
 ##### Closure Evidence
 
-- none
+- T1 and T2 observed 2026-09-11; aa-maven push notice of the same day.
 
 ##### GitHub Projection
 
 Title: Freeze deployment baseline: aa-env tag and aa-maven source pin
 Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
-#### M2 - Non-interactive install sequence for the ansible role
-
-Origin: 265f580 / M2
-Identity History: none
-GitHub Issue: none
-Status: Blocked (resume as Not started)
-
-##### Summary
-
-Turn the README procedure into a linear, non-interactive sequence with every
-input named, so the ansible/cloud session can write a role from it without
-reading this repository's Makefiles.
-
-##### Scope
-
-- One document under `docs/` listing, in order: packages, java-env, MariaDB
-  secure/admin/create/fill, Tomcat get/install, `make init build install`,
-  systemd enable/start, and the health probe.
-- For each step: the command, the variables it consumes, the files it writes,
-  and the check that proves it ran.
-- The `RELEASE.local` pin from M1.
-- Handoff message to the ansible/cloud session.
-
-Out of scope: writing the role; changing any Makefile behavior; MariaDB
-hardening beyond `make db.secure`.
-
-##### Completion Criteria
-
-- The document is committed on `modernize`.
-- The handoff message has been sent with the document path and both tags.
-- G5 reports a successful deployment that followed the document.
-
-##### Dependencies And Decisions
-
-- M1 (tags and pin recipe)
-- G1 (aa-maven tag name)
-- G5 (deployment report); resume as Not started
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Walk the README procedure on this host and record each step's inputs and
-   observable outputs.
-2. Write the sequence document.
-3. Send the handoff request to the ansible/cloud session.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Deployment | The ansible/cloud session runs the documented sequence on a fresh Debian 13 host | Deployment host | `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` returns 200 |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Deployment host | Pending | G5 report |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Document the non-interactive install sequence for the ansible role
-Labels: documentation
 GitHub Milestone: none
 Observed State: none
 Observed Labels: none
@@ -592,7 +523,8 @@ Out of scope: any new feature.
 
 ##### Dependencies And Decisions
 
-- M1, M2, M3, M4, M5, M6, M7
+- M1, M3, M4, M5, M6, M7
+- D7: the ansible deployment (M2, G5) is Backlog and does not gate this row.
 
 ##### Implementation Plan
 
@@ -615,7 +547,7 @@ Superseded Plan Artifacts: none
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 3 | post-change | Deployment host | Debian 13 | x86_64 | ansible role | M2 sequence at the release tag | mgmt URL 200, one PV archived | pending |
+| Release Verification 3 | post-change | This host | Debian 13 | x86_64 | `make install sd_start` at the release tag | README procedure | mgmt URL 200, one PV archived | pending |
 
 ##### Version Changes
 
@@ -636,7 +568,7 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- | --- | --- |
 | Release Verification 1 | Logic and compile | pre-change | `tests/run-all-tests.bash --local` | This host | all pass | run log |
 | Release Verification 2 | Runtime | pre-change | `make sd_start`; mgmt probe | This host | HTTP 200 | curl output |
-| Release Verification 3 | Deployment | post-release | ansible role at the release tag | Deployment host | HTTP 200, PV archived | G5-style report |
+| Release Verification 3 | Install | post-change | README procedure at the release tag | This host | HTTP 200, PV archived | curl output and retrieval sample |
 | Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
 
 ##### Release Verification Results
@@ -645,7 +577,7 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- |
 | Release Verification 1 | Not run | This host | Pending | none |
 | Release Verification 2 | Not run | This host | Pending | none |
-| Release Verification 3 | Not run | Deployment host | Pending | none |
+| Release Verification 3 | Not run | This host | Pending | none |
 | Release Verification 4 | Not run | aa-env checkout | Pending | none |
 
 ##### Closure Evidence
@@ -666,7 +598,7 @@ Last Compared: never
 
 Origin: 265f580 / G1
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
@@ -674,7 +606,7 @@ The aa-maven session (single writer of jeonghanlee/epicsarchiverap-maven) tags
 the aa-maven state `abf6545` and reports the tag name. Affects M2.
 
 Announced 2026-09-11: tag name `NewHope` (annotated, no `v` prefix) on
-`abf6545`; not yet created or pushed at the time of the announcement.
+`abf6545`. Pushed the same day; see Verification Results.
 
 ##### Completion Criteria
 
@@ -685,11 +617,11 @@ Announced 2026-09-11: tag name `NewHope` (annotated, no `v` prefix) on
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-11 | Pass | `git ls-remote --tags https://github.com/jeonghanlee/epicsarchiverap-maven refs/tags/NewHope 'refs/tags/NewHope^{}'` returned tag object `ffbea94` peeling to `abf6545` |
 
 ##### Closure Evidence
 
-- none
+- aa-maven push notice of 2026-09-11 and the ls-remote observation above.
 
 #### G2 - Legacy GitHub milestones and issues closed by owner
 
@@ -768,16 +700,110 @@ related dependencies, and reports the commit hash. Affects M7.
 
 - none
 
+## Backlog
+
+### Work
+
+| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Open | No | M1, D7 | Assign when the EPICS-env provisioning work that carries the archiver is scheduled; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
+| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Open | No | D7 | Follows M2 when assigned; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
+| DB | M9 | SQLite as the configuration database | Milestone | Open | No | D6 | Assign when MariaDB removal is scheduled; [detail](#m9---sqlite-as-the-configuration-database) |
+| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
+| aa-env | M11 | Single JDK source on the host | Milestone | Open | No | | Assign after M7; [detail](#m11---single-jdk-source-on-the-host) |
+| Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Conditional | No | | Condition: Tomcat 9.0.x end of support is announced before M7 completes; [detail](#m12---tomcat-91x-fallback) |
+| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign when aa-maven lands the new mgmt interface; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
+
+### Backlog Details
+
+#### M2 - Non-interactive install sequence for the ansible role
+
+Origin: 265f580 / M2
+Identity History: none
+GitHub Issue: none
+Status: Open (2026-09-11, D7)
+
+##### Summary
+
+Turn the README procedure into a linear, non-interactive sequence with every
+input named, so the ansible/cloud session can write a role from it without
+reading this repository's Makefiles.
+
+##### Scope
+
+- One document under `docs/` listing, in order: packages, java-env, MariaDB
+  secure/admin/create/fill, Tomcat get/install, `make init build install`,
+  systemd enable/start, and the health probe.
+- For each step: the command, the variables it consumes, the files it writes,
+  and the check that proves it ran.
+- The `RELEASE.local` pin from M1.
+- Handoff message to the ansible/cloud session.
+
+Out of scope: writing the role; changing any Makefile behavior; MariaDB
+hardening beyond `make db.secure`.
+
+##### Completion Criteria
+
+- The document is committed on `modernize`.
+- The handoff message has been sent with the document path and both tags.
+- The deployment result itself is gate G5 on M8, not on this row.
+
+##### Dependencies And Decisions
+
+- M1 (tags and pin recipe)
+- G1 (aa-maven tag name)
+- D7 (moved to Backlog 2026-09-11)
+- 2026-09-11: G5 moved from this row to M8; the deployment cannot precede the
+  document it follows.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Walk the README procedure on this host and record each step's inputs and
+   observable outputs.
+2. Write the sequence document.
+3. Send the handoff request to the ansible/cloud session.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Review | The ansible/cloud session confirms by message that every step in the document names its command, inputs, outputs, and check | Peer session | Confirmation received, or a list of gaps to close |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Peer session | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Document the non-interactive install sequence for the ansible role
+Labels: documentation
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
 #### G5 - Baseline deployment reported by the ansible/cloud session
 
 Origin: 265f580 / G5
 GitHub Issue: none
-Status: Open
+Status: Open (Backlog since 2026-09-11, D7)
 
 ##### Summary
 
 The ansible/cloud session deploys the M1 baseline following the M2
-sequence and reports the result. Affects M2.
+sequence and reports the result. Affects M8 (Release Verification 3).
 
 ##### Completion Criteria
 
@@ -793,20 +819,6 @@ sequence and reports the result. Affects M2.
 ##### Closure Evidence
 
 - none
-
-## Backlog
-
-### Work
-
-| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| DB | M9 | SQLite as the configuration database | Milestone | Open | No | D6 | Assign when MariaDB removal is scheduled; [detail](#m9---sqlite-as-the-configuration-database) |
-| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
-| aa-env | M11 | Single JDK source on the host | Milestone | Open | No | | Assign after M7; [detail](#m11---single-jdk-source-on-the-host) |
-| Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Conditional | No | | Condition: Tomcat 9.0.x end of support is announced before M7 completes; [detail](#m12---tomcat-91x-fallback) |
-| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign when aa-maven lands the new mgmt interface; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
-
-### Backlog Details
 
 #### M9 - SQLite as the configuration database
 
