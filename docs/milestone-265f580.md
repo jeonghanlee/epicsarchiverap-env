@@ -19,7 +19,7 @@ it only after G10 (aa-maven Phase 1) and the install verification pass.
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Deploy | M1 | aa-env baseline tag and reproducible source pin | Milestone | Complete | No | D3 | Both `NewHope` tags verified and pin recipe reproduced 2026-09-11; [detail](#m1---aa-env-baseline-tag-and-reproducible-source-pin) |
-| Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Blocked | No | G2 | Register merged to `maven`; `docs/MILESTONES.md` gone; legacy issues closed; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
+| Register | M3 | Land register on maven and retire legacy roadmap | Milestone | Not started | No | M8 | Legacy roadmap retired (G2); the register lands on maven with M8's merge; [detail](#m3---land-register-on-maven-and-retire-legacy-roadmap) |
 | aa-env | M4 | Residual configure and script defects | Milestone | Complete | No | D10 | Three defects fixed with phase 1 guards (`0e02ede`); the Maven item superseded by D10; [detail](#m4---residual-configure-and-script-defects) |
 | Tomcat | M5 | Tomcat 9.0.121, the fixed Phase 2 version | Milestone | Complete | No | D8, D11 | Config bumped (`aea623b`); Tomcat 9.0.121 fixed for Phase 2; [detail](#m5---tomcat-90121-the-fixed-phase-2-version) |
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Complete | No | G3 | Verified 2026-09-12: full build with no aa-env pom, clean source tree (`0e9cee6`); [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
@@ -32,7 +32,7 @@ it only after G10 (aa-maven Phase 1) and the install verification pass.
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
-| Gate | G2 | Legacy GitHub milestones and issues closed by owner | External gate | Open | No | | Milestones M0–M5 and issues #35–#42 closed; [detail](#g2---legacy-github-milestones-and-issues-closed-by-owner) |
+| Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
 | Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Complete | No | | Retired 2026-09-12: Tomcat 9 fixed, no jakarta migration (aa-maven D13); [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
 | Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | aa-maven M4 complete, commit and post-Ant sitespecific contract reported; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
@@ -45,7 +45,7 @@ it only after G10 (aa-maven Phase 1) and the install verification pass.
 | ID | Decision | Decision Date |
 | --- | --- | --- |
 | D1 | aa-maven is maintained independently. No further upstream merges; upstream changes are cherry-picked individually. Legacy roadmap phases M3 and M4 (upstream sync) are retired. | 2026-09-11 |
-| D2 | Two registers, one per repository. The aa-env session is the single writer of this document; the aa-maven session is the single writer of the aa-maven register. Cross-references use canonical path plus local ID. Every M row gets one GitHub issue in its own repository, carrying the peer issue URL in its body. | 2026-09-11 |
+| D2 | Two registers, one per repository. The aa-env session is the single writer of this document; the aa-maven session is the single writer of the aa-maven register. Cross-references use canonical path plus local ID. (The per-M-row GitHub issue clause is superseded by D13.) | 2026-09-11 |
 | D3 | The deployment baseline is aa-env `4d85e7f` (`maven` HEAD) with aa-maven `abf6545`, as-is. Modernization work does not gate the deployment. | 2026-09-11 |
 | D4 | Both repositories use a `modernize` branch. The aa-env branch starts at cleanup `265f580`. | 2026-09-11 |
 | D5 | Tomcat target is 11; 9.0.121 is the interim step on the 9.0.x line. | 2026-09-11 |
@@ -55,6 +55,7 @@ it only after G10 (aa-maven Phase 1) and the install verification pass.
 | D10 | Toolchain: the distro JDK package only (`openjdk-21-jdk-headless`, `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`) and the Apache Maven Wrapper committed in aa-maven (`./mvnw`, pinned 3.9.9); aa-env installs no Maven and drops java-env. Declarative per-OS package lists and one installer replace `scripts/required_pkgs.sh`. Supersedes the M4 Maven question. | 2026-09-12 |
 | D11 | Runtime through Phase 2: the four WARs run on Tomcat 9 (fixed at 9.0.121), with SQLite as the only configuration store. Supersedes D5 (no Tomcat 11) and D6 (SQLite is active, not backlog); aa-env rows M7 and M12 and gate G4 are retired. The post-Phase-2 runtime (no Tomcat) is built in the EPICS-Arche repository, not here. Launcher: see D12. | 2026-09-12 |
 | D12 | The launcher stays `scripts/archappl.bash` called by the existing single systemd service. The asymmetric start order (mgmt, engine, etl, retrieval) and stop order (engine, retrieval, etl, mgmt) live in the script, which `After=` ordering cannot express; the template-unit and conductor-unit designs are dropped and M16 retires. The script's restart-order defect was already fixed on cleanup (`e504e5c`). | 2026-09-12 |
+| D13 | Issues and milestones are per-repository and independent: aa-env and aa-maven each run their own, with no per-M-row issue and no mirrored peer issue URL (supersedes the D2 per-row clause). The two sides coordinate by ongoing cross-session conversation; a cross-reference is recorded in the register only where one side actually affects the other -- a prerequisite or a shared change -- as an external-gate (G) row citing the peer register path and local ID. Each detail's GitHub Projection fields stay unused unless that row is given its own issue. | 2026-09-13 |
 | D9 | Boundary between the two repositories: aa-env owns provisioning, deployment layout, service configuration, source baseline pinning, and the site skin; aa-maven owns source, the Maven build (Ant and Gradle leftovers consolidated onto Maven), dependency management, upstream cherry-pick policy, and independent bug fixes. Build-flavored leftovers inside aa-env are aa-env cleanup rows gated on aa-maven rows; compile verification moves to aa-maven CI and aa-env keeps install tests. No aa-env row migrates; the legacy build items already exist on the aa-maven register. | 2026-09-11 |
 
 ### Assignment History
@@ -149,7 +150,7 @@ Last Compared: never
 Origin: 265f580 / M3
 Identity History: none
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Not started
 
 ##### Summary
 
@@ -164,8 +165,8 @@ repository and on GitHub.
   document.
 - Pull request from `modernize` to `maven` covering the cleanup commits and
   this register; owner reviews and merges.
-- GitHub side: new issues for M1–M8 per D2, after the legacy issues and
-  milestones are closed (G2).
+- GitHub side: close the legacy issues and milestones (G2). No new per-row
+  issues are created (D13); the register is the tracker.
 
 Out of scope: any modernization content beyond the cleanup commits already
 on the branch.
@@ -173,12 +174,15 @@ on the branch.
 ##### Completion Criteria
 
 - `origin/maven` contains this document and not `docs/MILESTONES.md`.
-- Issues #35–#42 and milestones M0–M5 are closed on GitHub.
-- Issues for M1–M8 exist and their numbers are recorded in each detail.
+- Issues #35–#42 and milestones M0–M5 are closed on GitHub. Done 2026-09-13 (G2).
+- No per-row GitHub issues are created (D13); this register is the sole tracker.
 
 ##### Dependencies And Decisions
 
-- G2; resume as Not started
+- M8: the register-on-maven half is performed by M8's fast-forward merge;
+  this row completes when that lands (not a gate, so this row is Not started
+  with Ready No until M8, not Blocked).
+- G2 Complete 2026-09-13: the legacy roadmap is retired.
 - D1, D2
 
 ##### Implementation Plan
@@ -1159,32 +1163,32 @@ aa-maven records the tag as decision D5 in `docs/milestone-daff1b7.md`
 
 - aa-maven push notice of 2026-09-11 and the ls-remote observation above.
 
-#### G2 - Legacy GitHub milestones and issues closed by owner
+#### G2 - Legacy GitHub milestones and issues closed
 
 Origin: 265f580 / G2
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
-The owner closes GitHub milestones M0–M5 and issues #35–#42 on
-jeonghanlee/epicsarchiverap-env; the commands are prepared under M3.
-Affects M3.
+GitHub milestones M0–M5 and the legacy roadmap issues #35–#42 on
+jeonghanlee/epicsarchiverap-env are closed: the issues under issue
+delegation, the milestones by the owner. Affects M3.
 
 ##### Completion Criteria
 
 - `gh issue list --state open` shows none of #35–#42.
-- `gh api repos/:owner/:repo/milestones?state=open` shows none of M0–M5.
+- `gh api repos/:owner/:repo/milestones?state=all` shows M0–M5 closed.
 
 ##### Verification Results
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-13 | Pass | `gh issue list --state open` shows only #24 and #25 (real bugs, not retired); `gh api .../milestones?state=all` shows M0–M5 (id 1–6) all closed |
 
 ##### Closure Evidence
 
-- none
+- Issues #35–#42 closed under issue delegation 2026-09-12; milestones M0–M5 closed by the owner; both verified on GitHub 2026-09-13.
 
 #### G3 - aa-maven lands canonical pom
 
@@ -1379,6 +1383,9 @@ source `modernize` branch release-ready for the aa-env install verification
 that gates M8. This gate subsumes the earlier per-item gates G6 (Ant) and G7
 (CI) for release purposes; those stay as their own rows until each is
 reported.
+
+aa-maven register rows: `docs/milestone-daff1b7.md` M4 (dependency refresh
+including servlet-api 9.0.121), M5 (CI on Maven), M10 (Ant removal).
 
 ##### Completion Criteria
 
@@ -1604,7 +1611,7 @@ Out of scope: the interface itself (EPICS-Arche).
 
 ##### Dependencies And Decisions
 
-- EPICS-Arche (mgmt UI rewrite; the session OFFICE-EPICS-Arche), post-Phase-2
+- EPICS-Arche repository (mgmt UI rewrite), post-Phase-2
 
 ##### Implementation Plan
 
