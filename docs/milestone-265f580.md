@@ -8,9 +8,9 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, commit `c1dd0b1` (2026-09-12 reset; prior generation at `daff1b7`)
 
-Next session entry point: `docs/milestone-265f580.md` M3 — prepare the
-legacy issue and milestone close commands for the owner (gate G2), then the
-pull request from `modernize` to `maven`; no other row is Ready.
+Next session entry point: `docs/milestone-265f580.md` M3 — close the legacy
+milestones (the issues are already closed) to clear G2. The PR waits: M8 opens
+it only after G10 (aa-maven Phase 1) and the install verification pass.
 
 ## Milestone
 
@@ -28,7 +28,7 @@ pull request from `modernize` to `maven`; no other row is Ready.
 | DB | M9 | SQLite as the only configuration database | Milestone | Blocked | No | G9, M11, D11 | One PV archives and retrieves with no MariaDB on the host; [detail](#m9---sqlite-as-the-only-configuration-database) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M3, M4, M6, M9, M11, M14, M15, M16 | Release Verification complete; [detail](#m8---modernized-baseline-release-to-maven) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M3, M4, M6, M9, M11, M14, M15, M16, G10 | Install-verified against aa-maven Phase 1, then PR to maven; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
@@ -39,7 +39,7 @@ pull request from `modernize` to `maven`; no other row is Ready.
 | Gate | G7 | aa-maven CI builds on Maven | External gate | Open | No | | aa-maven rebuilds CI on Maven and reports a passing run; [detail](#g7---aa-maven-ci-builds-on-maven) |
 | Gate | G8 | aa-maven Maven Wrapper build verified | External gate | Complete | No | | Fresh-clone `./mvnw` build passed at `c1dd0b1`, reported 2026-09-12; [detail](#g8---aa-maven-maven-wrapper-build-verified) |
 | Gate | G9 | aa-maven delivers SQLite persistence and removes MariaDB | External gate | Open | No | | aa-maven sqlite-jdbc and MariaDB-removal commits with the SQLite DataSource contract; [detail](#g9---aa-maven-delivers-sqlite-persistence-and-removes-mariadb) |
-
+| Gate | G10 | aa-maven Phase 1 complete (servlet-api 9.0.121, Ant removed, CI on Maven) | External gate | Open | No | | aa-maven reports Phase 1 done with the commit; the source modernize branch is release-ready; [detail](#g10---aa-maven-phase-1-complete-servlet-api-90121-ant-removed-ci-on-maven) |
 ### Decisions
 
 | ID | Decision | Decision Date |
@@ -619,12 +619,16 @@ Last Compared: never
 Origin: 265f580 / M8
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: Blocked (resume as Not started)
 
 ##### Summary
 
-Merge the completed `modernize` work into `maven`, tag it, and verify the
-whole tree once on this host and once on the deployment host.
+Merge the completed `modernize` work into `maven` only after the install
+verification passes on this host against the finished aa-maven Phase 1
+source. Order: G10 (aa-maven Phase 1 done) -> install and run on this host
+(Release Verification 2 and 3) -> PR `modernize` to `maven`. No PR is opened
+before the install verification passes. The merge is a fast-forward (owner
+choice 2026-09-12); `modernize` is ahead of `maven` with nothing behind.
 
 ##### Scope
 
@@ -641,6 +645,10 @@ Out of scope: any new feature.
 ##### Dependencies And Decisions
 
 - M1, M3, M4, M6, M9, M11, M14, M15, M16
+- G10 (aa-maven Phase 1 complete); resume as Not started
+- The install verification (Release Verification 2 and 3) runs against the
+  aa-maven Phase 1 source before any PR; fast-forward merge per owner choice
+  2026-09-12.
 - D11 retired M5's successor work (M7); M16 carries the runtime.
 - D7: the ansible deployment (M2, G5) is Backlog and does not gate this row.
 
@@ -660,12 +668,13 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- | --- |
 | M3 / T1 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass | pending |
 | M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | pending |
+| M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | pending |
 
 ##### Production Environment Tests
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 3 | post-change | This host | Debian 13 | x86_64 | `make install sd_start` at the release tag | README procedure | mgmt URL 200, one PV archived | pending |
+| Release Verification 3 | pre-PR | This host | Debian 13 | x86_64 | `make install` then start the service on the aa-maven Phase 1 source | README procedure | mgmt URL 200, one PV archived | pending |
 
 ##### Version Changes
 
@@ -677,16 +686,18 @@ Superseded Plan Artifacts: none
 
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
-| 1 | Merge `modernize` into `maven` via pull request | owner | merge commit on `origin/maven` | pending |
-| 2 | Annotated tag on the merge commit | owner | tag on origin | pending |
+| 0 | Install-verify on this host against the aa-maven Phase 1 source (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived | pending |
+| 1 | Open the PR `modernize` to `maven` with the verification result | owner | PR opened | pending |
+| 2 | Fast-forward `maven` to `modernize` (`git push origin origin/modernize:maven`) | owner | `origin/maven` equals `origin/modernize` | pending |
+| 3 | Annotated tag on the merged commit | owner | tag on origin | pending |
 
 ##### Release Verification Plan
 
 | Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
 | --- | --- | --- | --- | --- | --- | --- |
 | Release Verification 1 | Logic and compile | pre-change | `tests/run-all-tests.bash --local` | This host | all pass | run log |
-| Release Verification 2 | Runtime | pre-change | `make sd_start`; mgmt probe | This host | HTTP 200 | curl output |
-| Release Verification 3 | Install | post-change | `make install sd_start` at the release tag | This host | HTTP 200, PV archived | curl output and retrieval sample |
+| Release Verification 2 | Runtime | pre-PR, on the aa-maven Phase 1 source | `make install` then start the service; mgmt probe | This host | HTTP 200 | curl output |
+| Release Verification 3 | Function | pre-PR, on the aa-maven Phase 1 source | archive one PV, then retrieve it | This host | non-empty samples | curl output and retrieval sample |
 | Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
 
 ##### Release Verification Results
@@ -1342,6 +1353,37 @@ aa-maven register rows: `docs/milestone-daff1b7.md` M11 (sqlite-jdbc) and M13
 
 - A cross-session response names the aa-maven commits and the SQLite DataSource
   contract.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### G10 - aa-maven Phase 1 complete (servlet-api 9.0.121, Ant removed, CI on Maven)
+
+Origin: 265f580 / G10
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+aa-maven finishes its Phase 1 and reports the commit: the dependency refresh
+(tomcat-servlet-api 9.0.121 and the other current-stable pins), Ant removal
+with the per-site build contract, and CI rebuilt on Maven. Only then is the
+source `modernize` branch release-ready for the aa-env install verification
+that gates M8. This gate subsumes the earlier per-item gates G6 (Ant) and G7
+(CI) for release purposes; those stay as their own rows until each is
+reported.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and confirms Phase 1 is
+  complete (servlet-api 9.0.121 in the pom, no Ant, CI green on Maven).
 
 ##### Verification Results
 
