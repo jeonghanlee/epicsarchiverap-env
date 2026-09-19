@@ -10,9 +10,9 @@ Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff
 
 Next session entry point: two rows are Ready now — M9 (selectable MariaDB/SQLite
 backend, G9 Complete) and M21 (remove the retired Sphinx docs build, G11
-Complete). M17 is implemented and locally verified; record its commit and remote
-landing evidence after those operations are authorized and performed. M8 still
-waits for the remaining aa-maven gates and install verification.
+Complete). M17 landed at `a159b79` on origin/modernize (2026-09-19); its T6
+follow-up is carried as M20. M8 still waits for the remaining aa-maven gates and
+install verification.
 
 ## Milestone
 
@@ -33,7 +33,7 @@ waits for the remaining aa-maven gates and install verification.
 | Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M4, M6, M9, M11, M14, M15, M16, M17, G10 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
-| Verification | M17 | Correct build verification and align documentation with code | Milestone | In progress | No | D14 | Implemented and locally verified 2026-09-15; T6 timeline placement follow-up is recorded as M20; commit and remote landing pending; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
+| Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Not started | Yes | G11 | No Sphinx/Python/docs-build assumption remains and phase 2 asserts the mgmt WAR `ui/api` reference; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -1190,7 +1190,7 @@ Last Compared: never
 Origin: 265f580 / M17
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1275,9 +1275,10 @@ the T6 artwork and prose remain unchanged in this session.
 
 ##### Closure Evidence
 
-- Implementation and T1-T4 locally verified 2026-09-15. Commit and remote
-  landing evidence remain pending, so this row stays In progress. Live service
-  installation and runtime issue reproduction were not part of these checks.
+- Implementation and T1-T4 locally verified 2026-09-15; landed on
+  origin/modernize at `a159b79` (2026-09-19). Live service installation and
+  runtime issue reproduction were not part of these checks; the T6 timeline
+  correction is carried as M20.
 
 #### M21 - Remove the retired Sphinx docs build from aa-env
 
