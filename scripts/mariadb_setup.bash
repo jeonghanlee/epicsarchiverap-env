@@ -330,7 +330,7 @@ additional_input="$2";
 case "$input" in
     secureSetup)
         # shellcheck disable=SC2153
-    	mariadb_secure_setup "${DB_HOST_NAME}" "${DB_HOST_IPADDR}";
+        mariadb_secure_setup;
         ;;
     localAdminAdd)
         # shellcheck disable=SC2153

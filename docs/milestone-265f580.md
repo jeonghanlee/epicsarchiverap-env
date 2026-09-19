@@ -958,6 +958,11 @@ Out of scope: the driver dependencies and dialect detection in the source
   `localhost`: it belongs to the local-only admin path
   (`make db.secure`/`db.addAdmin`/`db.create`), which the provisioning operator
   replaces, so it is outside the 127.0.0.1 application standardization.
+  `make db.secure` keeps only `root@'localhost'` (unix_socket) and drops every
+  other root account and all anonymous users with `DROP USER` (portable across
+  MariaDB 10.3's `mysql.user` table and 10.4+'s view; on 10.4+ a direct `DELETE`
+  on that view reports success but does not remove the account -- a silent
+  no-op).
 - The ansible and cloud provisioning sessions provide TCP MariaDB
   (`skip_networking=false`, `127.0.0.1:3306`) and create the database and
   account, so aa-env runs only `make sql.fill`. First TCP test agreed 2026-09-19;

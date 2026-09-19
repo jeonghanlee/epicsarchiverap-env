@@ -83,32 +83,42 @@ function die #@ Print error message and exit with error code
 };
 
 
-# 1 : MariaDB Hostname 
-# 2 : MariaDB IP address 
+# No arguments: root@'localhost' is kept and every other root plus anonymous
+# users are dropped, independent of the configured DB host.
 function mariadb_secure_setup
 {
-    local db_hostname="$1"; shift;
-    local db_host_ipaddr="$1"; shift;
+    # MariaDB Secure Installation without setting a root password: root stays
+    # unix_socket-only as root@'localhost'. Every other root account and all
+    # anonymous users are removed with DROP USER, which works on both MariaDB
+    # 10.3 (mysql.user is a table) and 10.4+ (mysql.user is a view over
+    # global_priv, where a direct DELETE reports success but does not remove the
+    # account -- a silent no-op). Only mysql.db, a real table on every version,
+    # is edited directly. No root login is reachable over TCP after this.
+    # Reference: distro mariadb-secure-installation.
 
-    # MariaDB Secure Installation without MariaDB root password
-    # the same as mysql_secure_installation, but skip to setup
-    # the root password in the script. The reference of the sql commands
-    # is https://goo.gl/DnyijD
-
-    # remove_anonymous_users()
-    # remove_remote_root()
-    # remove_test_database()
-    # reload_privilege_tables()
+    # remove_anonymous_users(), remove_remote_root(): read mysql.user (readable
+    # on every version) to build DROP USER statements, then execute them.
+    # remove_test_database(), reload_privilege_tables().
+    local rc=0
+    local -                 # confine 'set' options to this function
+    set -o pipefail
     printf ">> MariaDB Secure Installation\\n";
     # shellcheck disable=SC2154
-    ${SQL_ROOT_CMD} <<EOF
-    -- DELETE FROM mysql.user WHERE User='';
-    DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('${db_hostname}', '${db_host_ipaddr}', '::1');
+    if ! ${SQL_ROOT_CMD} -N -B <<'GENSQL' | ${SQL_ROOT_CMD}
+SELECT CONCAT('DROP USER IF EXISTS ''', User, '''@''', Host, ''';')
+  FROM mysql.user
+  WHERE User = '' OR (User = 'root' AND Host <> 'localhost');
+GENSQL
+    then rc=1; fi
+    # shellcheck disable=SC2154
+    if ! ${SQL_ROOT_CMD} <<EOF
     DROP DATABASE IF EXISTS test;
     DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
     FLUSH PRIVILEGES;
 EOF
+    then rc=1; fi
     printf "\\n"
+    return "$rc"
 }
 
 

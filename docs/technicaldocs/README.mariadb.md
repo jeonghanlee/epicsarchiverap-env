@@ -12,6 +12,8 @@ The Archiver Appliance connects to the database over `127.0.0.1` (IPv4 loopback)
 make db.secure
 ```
 
+`make db.secure` keeps `root@'localhost'` (unix_socket) and removes every other root account and all anonymous users with `DROP USER`, which works on both MariaDB 10.3 and 10.4+ (on 10.4+ a direct `DELETE` on the `mysql.user` view reports success but does not remove the account -- a silent no-op). It then drops the `test` database, so no root login is reachable over TCP afterward.
+
 * Add the admin user account for SQL Database. We use the default `root` through `unix_socket` to connect the SQL server, so we would like to create `admin` account to let users allow to connect the database without `unix_socket`.
 
 ```bash
