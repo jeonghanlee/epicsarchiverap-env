@@ -105,7 +105,8 @@ function mariadb_secure_setup
     printf ">> MariaDB Secure Installation\\n";
     # shellcheck disable=SC2154
     if ! ${SQL_ROOT_CMD} -N -B <<'GENSQL' | ${SQL_ROOT_CMD}
-SELECT CONCAT('DROP USER IF EXISTS ''', User, '''@''', Host, ''';')
+SET SESSION sql_mode='';
+SELECT CONCAT('DROP USER IF EXISTS ', QUOTE(User), '@', QUOTE(Host), ';')
   FROM mysql.user
   WHERE User = '' OR (User = 'root' AND Host <> 'localhost');
 GENSQL
@@ -113,7 +114,7 @@ GENSQL
     # shellcheck disable=SC2154
     if ! ${SQL_ROOT_CMD} <<EOF
     DROP DATABASE IF EXISTS test;
-    DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+    DELETE FROM mysql.db WHERE Db='test' OR HEX(Db) IN ('746573745C5F25', '746573745F25');
     FLUSH PRIVILEGES;
 EOF
     then rc=1; fi
