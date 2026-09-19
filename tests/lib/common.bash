@@ -143,6 +143,7 @@ run_logged() {
     printf '  >> %s\n' "${desc}" >&2
     if "$@" >> "${LOGFILE}" 2>&1; then
         return 0
+    else
+        return $?
     fi
-    return $?
 }

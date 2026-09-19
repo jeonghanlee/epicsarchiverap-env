@@ -10,11 +10,14 @@ JAVA_PATH=$(JAVA_HOME)/bin
 ANT_PATH=$(ANT_HOME)/bin
 
 ### MariaDB defaults (overridable via CONFIG_SITE.local)
-## bind-address=localhost is assumed; non-local hosts must be configured manually
+## MariaDB is expected to listen on the loopback only (127.0.0.1); exposing it
+## to non-loopback hosts must be configured manually
+## Local-only admin path (make db.secure/addAdmin/create); replaced by the
+## provisioning operator. The application connection uses DB_HOST_NAME (127.0.0.1).
 DB_ADMIN_HOST=localhost
 DB_HOST_IPADDR=127.0.0.1
 DB_HOST_PORT=3306
-DB_HOST_NAME=localhost
+DB_HOST_NAME=127.0.0.1
 DB_ADMIN=admin
 DB_ADMIN_PASS=admin
 DB_NAME=archappl

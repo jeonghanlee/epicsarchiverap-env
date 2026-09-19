@@ -2,7 +2,8 @@
 
 All notable changes to this project are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Version markers use the calendar-versioning scheme adopted in `pom.xml`.
+The source repository's POM defines build artifact names; this changelog records
+changes to the environment repository.
 
 ## [Unreleased]
 
@@ -13,14 +14,18 @@ Version markers use the calendar-versioning scheme adopted in `pom.xml`.
 - `## help` annotations on user-facing Tomcat targets and `.PHONY` wiring for `$(all_tomcat_RULES)`.
 
 ### Changed
-- Restructure CONFIG layout per the epics-makefile pattern: merge `configure/CONFIG_COMMON` into `configure/CONFIG_SITE`; reorder `configure/CONFIG` includes so RELEASE comes first and CONFIG_VARS last.
-- `XXX.conf` Tomcat targets now generate a single-line `CONFIG_SITE.local` that includes the matching tracked preset under `configure/os/`.
+- Restructure CONFIG layout per the epics-makefile pattern: merge `configure/CONFIG_COMMON` into `configure/CONFIG_SITE`; load RELEASE first and CONFIG_VARS before the derived SQL, Tomcat, and source configuration.
+- `XXX.conf` Tomcat targets generate `CONFIG_SITE.local` with an include of the matching tracked preset under `configure/os/`; macOS targets also write user and storage overrides.
 - Top-level documentation reformatted: convert multi-attribute bullet lists to tables in the policies guide (sections 4.1, 4.3, 6); compress `docs/README.md` to a true index; convert single-cell figure tables to plain images with captions across all docs.
 - `tests/phase1-logic.bash` expects branch `modernize` by default (`EXPECTED_BRANCH` still overrides).
 - Toolchain: `JAVA_HOME` is the distro JDK (`/usr/lib/jvm/java-21-openjdk-amd64`) and the build runs the source repository's Maven Wrapper (`./mvnw`, pinned 3.9.9); the environment installs no Maven and no longer references java-env.
 - The build consumes the source repository's own `pom.xml`; the environment no longer ships or copies one, and `SRC_TAG` tracks the source `modernize` branch during development.
+- Apache Tomcat 9.0.121 for the four runtime instances.
+- Phase 2 resolves service WARs and the release tarball from a successful clean build without hard-coded version names.
 
 ### Fixed
+- Preserve failed command exit statuses in the test runner so stale build artifacts cannot turn a build failure into a passing Phase 2 result.
+- Align runtime, installation, policy, ETL, and test documentation with the implementation; correct the README screenshot path.
 - `a_service_BUIDER` -> `a_service_BUILDER` macro typo across `RULES_FUNC` and `RULES_VARS`.
 - Drop dead `CATALINA_OPTS` block in `CONFIG_VARS` that referenced undefined `JAVA_HEAPSIZE` and `JAVA_MAXMETASPACE`.
 - `help` awk character class now includes `.` so dotted targets surface in `make help`.

@@ -47,18 +47,20 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - `SRC_PATH` derives to `epicsarchiverap-maven-src` and downstream `ARCHAPPL_SITEID_TARGET_PATH` resolves under that subtree (regression guard for the CONFIG include reorder).
 - The four removed obsolete documents (`README.ant.md`, `README.centos7.md`, `README.centos8.md`, `README.javapkgs.md`) are not referenced from any surviving Markdown file.
 - `CHANGELOG.md` is present; the misspelled `CHANGLOG.md` is gone.
-- `checkfile` (run through the real `configure/RULES_FUNC` in an ad-hoc makefile) removes an existing file and leaves an absent one alone; its caller in `RULES_SQL` passes an unquoted path.
+- `checkfile` (expanded from the real `configure/RULES_FUNC` with `make -n`) selects the removal command for an existing file and no removal command for an absent one; its caller in `RULES_SQL` passes an unquoted path. This is a command-generation check, not an executed deletion test.
 - `serverxml.install` pairs engine and etl with their own `ARCHAPPL_SHUTDOWN_*_PORT` variables.
 - `RULES_REQ` carries no `get.jdbc` / `install.jdbc` rules.
 - The legacy package scripts are gone; `scripts/install_os_packages.bash` parses and `configure/os/debian13.pkgs` names the distro JDK.
 - No `java-env`, `MAVEN_HOME`, or local-install reference survives in `configure/`, `scripts/`, or `README.md`; `MAVEN_CMD` is the source tree's `mvnw`.
+- `run_logged` preserves both success and a nonzero exit status from real child commands.
 
 ### Phase 2 — Compile
 - `python3` is on PATH for `docs/build_docs.sh` to bootstrap its sphinx venv.
 - `make init` clones `epicsarchiverap-maven-src` (skipped if the directory already exists).
-- `make build.mvn` (full clean + package) returns success.
-- The four service WARs (`mgmt`, `engine`, `etl`, `retrieval`) are produced under `target/`, each at least 1 MB.
-- The release tarball `archappl_<version>.tar.gz` and `target/stage/RELEASE_NOTES` are produced.
+- `make conf.archapplproperties` generates the site configuration required by the WAR build; it does not provision the host storage directories.
+- `make build.mvn` (full clean + package) must return success before any artifact is accepted. A failed build stops the phase even if previous artifacts remain.
+- Exactly one WAR for each service (`mgmt`, `engine`, `etl`, `retrieval`) is produced under `target/`, each at least 1 MB. All four share a build prefix chosen by the source POM, including the `aa-<date>-<hash>` naming scheme.
+- Exactly one release `.tar.gz` and `target/stage/RELEASE_NOTES` are produced. The source assembly plugin owns the tarball name.
 - `docs/docs/build/index.html` confirms the sphinx documentation step ran end-to-end.
 
 ### Phase 3 — Infrastructure (planned)
@@ -70,9 +72,6 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` returns 200.
 - The `archappl` MariaDB database contains `ArchivePVRequests`, `ExternalDataServers`, `PVAliases`, and `PVTypeInfo`.
 
-## Long-term TODO
-
-The Maven + sphinx integration relies on `docs/build_docs.sh`
-auto-bootstrapping a Python venv inside the source tree. This is the
-known fragile boundary inherited from the Gradle-to-Maven port and
-should be replaced with a tracked Maven plugin invocation.
+The source repository owns the documentation build, including the current
+`docs/build_docs.sh` venv bootstrap. Planned changes to that build are tracked
+in its own work register rather than as aa-env test work.

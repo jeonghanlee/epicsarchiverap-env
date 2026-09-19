@@ -1,6 +1,7 @@
 # Tomcat9
 
-We need more time to migrate to Tomcat10, so here how configure the Tomcat 9
+The appliance uses Tomcat 9.0.121 for its four WAR instances. Tomcat 10 and 11
+migration is not part of the current runtime plan.
 
 ## Predefine variables
 

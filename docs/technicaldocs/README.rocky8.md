@@ -1,6 +1,6 @@
 # Archiver Appliance for ONLY Rocky 8 
 
-This is the Rocky 8.4 (Green Obsidian) specific installation guide. Technically, CentOS8 is the same one, but some make rules are not supported. Please use Debian 11 or Rocky 8. 
+This guide describes the Rocky Linux 8 configuration. The package list is a first-pass port using JDK 21; a complete Rocky installation is not covered by the recorded Debian verification.
 
 ## Init
 
@@ -13,7 +13,7 @@ $ make init
 I assumed that Rocky 8 is the fresh installation version.
 
 ```bash
-$ make install.pkgs
+$ sudo bash scripts/install_os_packages.bash --os rocky8
 $ sudo systemctl start mariadb
 $ sudo systemctl status mariadb
 # 

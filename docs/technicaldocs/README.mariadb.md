@@ -1,6 +1,8 @@
 # MariaDB Configuration
 
-We use the `bind-address=localhost` in the mariadb configuration. Thus all connections are limited within `localhost`.
+We bind MariaDB to the loopback interface only (`localhost`, i.e. `127.0.0.1`), so all connections are limited to the local host.
+
+The Archiver Appliance connects to the database over `127.0.0.1` (IPv4 loopback), set by `DB_HOST_NAME=127.0.0.1` in `configure/CONFIG_SITE`. When MariaDB is exposed over TCP, the application account is `archappl@'127.0.0.1'` with `skip-name-resolve` ON, so the grant matches the IPv4 connection deterministically. The `admin` account below belongs to the local-only setup path.
 
 ## Generic Configuration
 
@@ -51,7 +53,7 @@ $ make db.conf.show
      2  DB_ADMIN_HOST="localhost"
      3  DB_HOST_IPADDR=127.0.0.1
      4  DB_HOST_PORT=3306
-     5  DB_HOST_NAME=localhost
+     5  DB_HOST_NAME=127.0.0.1
      6  ## SQL server ADMIN user, because we don't use root
      7  DB_ADMIN=admin
      8  DB_ADMIN_PASS=admin

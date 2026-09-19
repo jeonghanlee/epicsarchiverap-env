@@ -9,20 +9,28 @@ Thus, we simply call them in order within a global wrapper script. It gives us
 more flexiable way to see how thing works without systemd serivce also and to
 locate the archiver appliance anywhere we would like to locate.
 
-Thus, the systemd unit file is simple, with `@ARCHAPPL_SITEID@` substituted at install time:
+The unit is generated from
+`site-template/systemd/epicsarchiverap-maven.service.in`. With the default
+configuration, `AA_INSTALL_LOCATION` is `/opt/epicsarchiverap-maven` and
+`SYSTEMD_FILENAME` is `epicsarchiverap-maven.service`. `SYSTEMD_SERVICES` adds
+site-specific prerequisites to both `After` and `Requires`.
+
+The following is the source template; its placeholders are substituted during
+`make sd_install`:
 
 ```ini
 [Unit]
 Description=EPICS Archiver Appliance for @ARCHAPPL_SITEID@
-Documentation=https://github.com/slacmshankar/epicsarchiverap
-After=network.target
-SourcePath=/opt/epicsarchiverap/archappl.bash
+Documentation=@DOCURL@
+After=network.target mariadb.service @SYSTEMD_SERVICES@
+Requires=mariadb.service @SYSTEMD_SERVICES@
+SourcePath=@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@
 
 [Service]
-User=tomcat
-Group=tomcat
-ExecStart=/bin/bash -c "/opt/epicsarchiverap/archappl.bash startup"
-ExecStop=/bin/bash -c "/opt/epicsarchiverap/archappl.bash shutdown"
+User=@USERID@
+Group=@GROUPID@
+ExecStart=/bin/bash -c "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@ startup"
+ExecStop=/bin/bash -c "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@ shutdown"
 Type=forking
 
 [Install]

@@ -84,10 +84,14 @@ $ make exist
 ## Run, status, and stop
 
 ```bash
-bash /opt/epicsarchiverap/archappl.bash startup
-bash /opt/epicsarchiverap/archappl.bash status
-bash /opt/epicsarchiverap/archappl.bash stop
+make start
+make status
+make stop
 ```
+
+Run these targets from the environment checkout. They resolve the configured
+installation path and pass `startup`, `status`, and `shutdown` to
+`archappl.bash`; the default installation path is `/opt/epicsarchiverap-maven`.
 
 ![Archiver Appliance home page on macOS](images/macos.png)
 

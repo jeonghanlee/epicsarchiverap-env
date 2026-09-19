@@ -130,4 +130,12 @@ case "${mvncmd}" in
     *)      _record_fail "MAVEN_CMD is the source Maven Wrapper" "got: ${mvncmd}" ;;
 esac
 
+# P1.13 The command wrapper must preserve the actual child exit status.
+logged_rc=0
+run_logged "Successful child command" bash -c 'exit 0' || logged_rc=$?
+assert_status "${logged_rc}" 0 "run_logged preserves success"
+logged_rc=0
+run_logged "Failing child command" bash -c 'exit 23' || logged_rc=$?
+assert_status "${logged_rc}" 23 "run_logged preserves failure"
+
 phase_pass "Phase 1: Logic"

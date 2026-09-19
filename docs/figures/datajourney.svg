@@ -255,17 +255,17 @@
          id="tspan3"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
          x="43.014191"
-         y="241.66458">Trigger </tspan><tspan
+         y="241.66458">Oldest first sample</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
          x="43.014191"
          y="246.28598"
-         id="tspan4">when completed files </tspan><tspan
+         id="tspan4">at/before hold cutoff</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
          x="43.014191"
          y="250.90736"
-         id="tspan6">exceed hold (2)</tspan></text>
+         id="tspan6">Select to gather cutoff</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;line-height:1.01;font-family:Serif;-inkscape-font-specification:'Serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:0;stroke-dasharray:none;paint-order:normal"
@@ -320,7 +320,7 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
          x="42.549736"
          y="143.26523"
-         id="tspan6-0">(hold=2)</tspan></text>
+         id="tspan6-0">(past partitions)</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:0;stroke-dasharray:none;paint-order:normal"
@@ -412,17 +412,17 @@
            id="tspan3-1"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
            x="104.65617"
-           y="240.58943">Trigger </tspan><tspan
+           y="240.58943">Oldest first sample</tspan><tspan
            sodipodi:role="line"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
            x="104.65617"
            y="245.21083"
-           id="tspan4-9">when completed files </tspan><tspan
+           id="tspan4-9">at/before hold cutoff</tspan><tspan
            sodipodi:role="line"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
            x="104.65617"
            y="249.83221"
-           id="tspan6-9">exceed hold (2)</tspan></text>
+           id="tspan6-9">Select to gather cutoff</tspan></text>
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;line-height:1.01;font-family:Serif;-inkscape-font-specification:'Serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:0;stroke-dasharray:none;paint-order:normal"
@@ -477,7 +477,7 @@
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Serif;-inkscape-font-specification:Serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
            x="104.19171"
            y="142.19008"
-           id="tspan6-0-3">(hold=2)</tspan></text>
+           id="tspan6-0-3">(past partitions)</tspan></text>
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.31;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:0;stroke-dasharray:none;paint-order:normal"
@@ -922,10 +922,8 @@
        inkscape:connection-end="#rect11-5-35-7-5-5" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3.2;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow-4);paint-order:normal"
-       d="M 44.257876,175.75765 64.045055,52.12793"
+       d="M 44.257876,175.75765 H 57 V 52.12793 H 64.045055"
        id="path2-9"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
   </g>
   <g
@@ -1099,10 +1097,8 @@
        inkscape:connection-end="#rect11-5-35-7-5-5-8" />
     <path
        style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3.2;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow-4-7);paint-order:normal"
-       d="M 44.295426,175.77999 64.082606,52.150302"
+       d="M 44.295426,175.77999 H 57 V 52.150302 H 64.082606"
        id="path2-9-2"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
   </g>
   <g
@@ -1354,10 +1350,8 @@
        inkscape:connection-end="#rect11-5-35-7-5-5-8-4-7-5" />
     <path
        style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3.2;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#RoundedArrow-4-7-0);paint-order:normal"
-       d="M 47.062924,177.82096 64.043774,54.249782"
+       d="M 47.062924,177.82096 H 57 V 54.249782 H 64.043774"
        id="path2-9-2-7"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
   </g>
 </svg>

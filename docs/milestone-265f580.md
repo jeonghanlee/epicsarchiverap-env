@@ -4,13 +4,15 @@ Release line: master (`maven` branch)
 Milestone index: 265f580
 Canonical path: `docs/milestone-265f580.md`
 Canonical branch or ref: modernize
-Git upstream: origin/maven
+Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
-Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, commit `c1dd0b1` (2026-09-12 reset; prior generation at `daff1b7`)
+Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API
 
-Next session entry point: `docs/milestone-265f580.md` M3 — close the legacy
-milestones (the issues are already closed) to clear G2. The PR waits: M8 opens
-it only after G10 (aa-maven Phase 1) and the install verification pass.
+Next session entry point: two rows are Ready now — M9 (selectable MariaDB/SQLite
+backend, G9 Complete) and M21 (remove the retired Sphinx docs build, G11
+Complete). M17 is implemented and locally verified; record its commit and remote
+landing evidence after those operations are authorized and performed. M8 still
+waits for the remaining aa-maven gates and install verification.
 
 ## Milestone
 
@@ -25,21 +27,25 @@ it only after G10 (aa-maven Phase 1) and the install verification pass.
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Complete | No | G3 | Verified 2026-09-12: full build with no aa-env pom, clean source tree (`0e9cee6`); [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
 | Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; Tomcat 9 is fixed for Phase 2; [detail](#m7---tomcat-11-migration-aa-env-side) |
 | Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; [detail](#m12---tomcat-91x-fallback) |
-| DB | M9 | SQLite as the only configuration database | Milestone | Blocked | No | G9, M11, D11 | One PV archives and retrieves with no MariaDB on the host; [detail](#m9---sqlite-as-the-only-configuration-database) |
+| DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | Not started | Yes | G9, M11, D15 | One PV archives and retrieves under each backend selected in `context.xml`; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M3, M4, M6, M9, M11, M14, M15, M16, G10 | Install-verified against aa-maven Phase 1, then PR to maven; [detail](#m8---modernized-baseline-release-to-maven) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M4, M6, M9, M11, M14, M15, M16, M17, G10 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
+| Verification | M17 | Correct build verification and align documentation with code | Milestone | In progress | No | D14 | Implemented and locally verified 2026-09-15; T6 timeline placement follow-up is recorded as M20; commit and remote landing pending; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
+| Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Not started | Yes | G11 | No Sphinx/Python/docs-build assumption remains and phase 2 asserts the mgmt WAR `ui/api` reference; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
 | Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Complete | No | | Retired 2026-09-12: Tomcat 9 fixed, no jakarta migration (aa-maven D13); [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
-| Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | aa-maven M4 complete, commit and post-Ant sitespecific contract reported; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
+| Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | aa-maven M10 complete, commit and post-Ant sitespecific contract reported; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Gate | G7 | aa-maven CI builds on Maven | External gate | Open | No | | aa-maven rebuilds CI on Maven and reports a passing run; [detail](#g7---aa-maven-ci-builds-on-maven) |
 | Gate | G8 | aa-maven Maven Wrapper build verified | External gate | Complete | No | | Fresh-clone `./mvnw` build passed at `c1dd0b1`, reported 2026-09-12; [detail](#g8---aa-maven-maven-wrapper-build-verified) |
-| Gate | G9 | aa-maven delivers SQLite persistence and removes MariaDB | External gate | Open | No | | aa-maven sqlite-jdbc and MariaDB-removal commits with the SQLite DataSource contract; [detail](#g9---aa-maven-delivers-sqlite-persistence-and-removes-mariadb) |
+| Gate | G9 | aa-maven ships both DB drivers with dialect auto-detection | External gate | Complete | No | | Both `mariadb-java-client` and `sqlite-jdbc` ship; the source auto-detects the dialect from DataSource metadata (aa-maven `ab324afb`); [detail](#g9---aa-maven-ships-both-db-drivers-with-dialect-auto-detection) |
 | Gate | G10 | aa-maven Phase 1 complete (servlet-api 9.0.121, Ant removed, CI on Maven) | External gate | Open | No | | aa-maven reports Phase 1 done with the commit; the source modernize branch is release-ready; [detail](#g10---aa-maven-phase-1-complete-servlet-api-90121-ant-removed-ci-on-maven) |
+| Gate | G11 | aa-maven retires the Sphinx docs pipeline (mdBook on Pages) | External gate | Complete | No | | Sphinx/RTD removed on aa-maven modernize `263805a1`; mdBook live on GitHub Pages; [detail](#g11---aa-maven-retires-the-sphinx-docs-pipeline-mdbook-on-pages) |
+| Gate | G12 | aa-maven adds JNA for MariaDB Unix-socket support | External gate | Open | No | | aa-maven ships `net.java.dev.jna:jna` (+ jna-platform) so `mariadb-java-client` `localSocket` works; needed for M9 step 2 (UDS); [detail](#g12---aa-maven-adds-jna-for-mariadb-unix-socket-support) |
 ### Decisions
 
 | ID | Decision | Decision Date |
@@ -54,9 +60,12 @@ it only after G10 (aa-maven Phase 1) and the install verification pass.
 | D8 | The M5 Tomcat 9.0.121 live-install checks (T1, T2) are deferred; the version bump is committed, and the running-service verification is done at the M10 install-test phase or at deployment, not against this host now. | 2026-09-11 |
 | D10 | Toolchain: the distro JDK package only (`openjdk-21-jdk-headless`, `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`) and the Apache Maven Wrapper committed in aa-maven (`./mvnw`, pinned 3.9.9); aa-env installs no Maven and drops java-env. Declarative per-OS package lists and one installer replace `scripts/required_pkgs.sh`. Supersedes the M4 Maven question. | 2026-09-12 |
 | D11 | Runtime through Phase 2: the four WARs run on Tomcat 9 (fixed at 9.0.121), with SQLite as the only configuration store. Supersedes D5 (no Tomcat 11) and D6 (SQLite is active, not backlog); aa-env rows M7 and M12 and gate G4 are retired. The post-Phase-2 runtime (no Tomcat) is built in the EPICS-Arche repository, not here. Launcher: see D12. | 2026-09-12 |
-| D12 | The launcher stays `scripts/archappl.bash` called by the existing single systemd service. The asymmetric start order (mgmt, engine, etl, retrieval) and stop order (engine, retrieval, etl, mgmt) live in the script, which `After=` ordering cannot express; the template-unit and conductor-unit designs are dropped and M16 retires. The script's restart-order defect was already fixed on cleanup (`e504e5c`). | 2026-09-12 |
+| D12 | The launcher stays `scripts/archappl.bash` called by the existing single systemd service. The asymmetric start order (mgmt, engine, etl, retrieval) and stop order (engine, retrieval, etl, mgmt) live in the script, which `After=` ordering cannot express; the template-unit and conductor-unit designs are dropped and M16 retires. The script's restart-order defect was already fixed on cleanup (`e504e5c`). The SQLite-only clause is superseded by D15. | 2026-09-12 |
 | D13 | Issues and milestones are per-repository and independent: aa-env and aa-maven each run their own, with no per-M-row issue and no mirrored peer issue URL (supersedes the D2 per-row clause). The two sides coordinate by ongoing cross-session conversation; a cross-reference is recorded in the register only where one side actually affects the other -- a prerequisite or a shared change -- as an external-gate (G) row citing the peer register path and local ID. Each detail's GitHub Projection fields stay unused unless that row is given its own issue. | 2026-09-13 |
+| D14 | Correct the code-to-documentation review findings in M17. M3 completes as an outcome of M8 and is not its prerequisite. Preserve historical verification observations, qualify the defective Phase 2 verdict, and retain unresolved issues #24 and #25 as Open Backlog work rather than asserting a fix. | 2026-09-15 |
 | D9 | Boundary between the two repositories: aa-env owns provisioning, deployment layout, service configuration, source baseline pinning, and the site skin; aa-maven owns source, the Maven build (Ant and Gradle leftovers consolidated onto Maven), dependency management, upstream cherry-pick policy, and independent bug fixes. Build-flavored leftovers inside aa-env are aa-env cleanup rows gated on aa-maven rows; compile verification moves to aa-maven CI and aa-env keeps install tests. No aa-env row migrates; the legacy build items already exist on the aa-maven register. | 2026-09-11 |
+| D15 | MariaDB and SQLite run in parallel as selectable persistence backends, not SQLite-only. The backend is chosen at install in `context.xml` (a `DB_BACKEND` selector renders the driver class, URL, and initialization); the aa-maven source auto-detects the dialect from the DataSource metadata, so both `mariadb-java-client` and `sqlite-jdbc` stay shipped in the WARs. Supersedes the SQLite-only clause of D11; aa-maven records the same model as its D28/D29 (`ab324afb`, `263805a1`). | 2026-09-18 |
+| D16 | DB-backend rollout order: MariaDB over TCP first, then MariaDB over Unix domain socket, then SQLite3 as the end state. The ansible/cloud provisioning starts on TCP MariaDB, agreed with LAB-ansible-provision and LAB-cloud-provision. Refines D15. | 2026-09-19 |
 
 ### Assignment History
 
@@ -67,6 +76,12 @@ it only after G10 (aa-maven Phase 1) and the install verification pass.
 | M12 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retired per D11) | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
+
+Verification note (2026-09-15): the historical Phase 2 results below are retained
+as observations of their original runs. The pre-M17 `run_logged` helper can
+report a failed build as successful when earlier artifacts remain, so a Phase 2
+PASS alone does not establish build success. M17 records fresh real-build and
+failure-path checks; M8 still requires its own final-tree and live-install checks.
 
 #### M1 - aa-env baseline tag and reproducible source pin
 
@@ -154,22 +169,18 @@ Status: Not started
 
 ##### Summary
 
-Validate the cleanup content carried on `modernize`, land this register on
-`maven` through a pull request, and retire the legacy roadmap in the
-repository and on GitHub.
+Confirm that the register and legacy-roadmap removal land on `maven` with M8.
+The legacy GitHub issues and milestones are already retired through G2.
 
 ##### Scope
 
-- `tests/run-all-tests.bash --local` passes on `modernize` HEAD.
-- `docs/MILESTONES.md` is removed in the same change that adds this
-  document.
-- Pull request from `modernize` to `maven` covering the cleanup commits and
-  this register; owner reviews and merges.
-- GitHub side: close the legacy issues and milestones (G2). No new per-row
-  issues are created (D13); the register is the tracker.
+- Confirm that M8's merge carries this register and the already committed
+  removal of `docs/MILESTONES.md` onto `maven`.
+- Keep the legacy GitHub retirement evidence from G2. No new per-row issues
+  are created (D13).
 
-Out of scope: any modernization content beyond the cleanup commits already
-on the branch.
+Out of scope: a separate PR or merge, new feature work, and reopening the retired
+GitHub roadmap. M8 owns the integrated checks and release execution.
 
 ##### Completion Criteria
 
@@ -183,7 +194,7 @@ on the branch.
   this row completes when that lands (not a gate, so this row is Not started
   with Ready No until M8, not Blocked).
 - G2 Complete 2026-09-13: the legacy roadmap is retired.
-- D1, D2
+- D1, D2, D13, D14
 
 ##### Implementation Plan
 
@@ -192,26 +203,23 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Run phase 1 and phase 2 tests on `modernize`; fix anything that fails.
-2. Prepare the commit that adds this document and removes
-   `docs/MILESTONES.md`.
-3. Prepare the `gh issue close` and milestone close commands for the owner.
-4. Prepare the pull request description; owner opens and merges.
-5. Prepare `gh issue create` drafts for M1–M8 and record the numbers.
+1. Wait for M8's verified merge to `maven`; this row does not gate that merge.
+2. Verify the final branch contents and confirm that G2 remains complete.
+3. Record the landing commit and close this row together with the M8 result.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic and compile | `tests/run-all-tests.bash --local` | This host | Phase 1 and phase 2 report all assertions passed |
+| T1 | Repository | Read `origin/maven:docs/milestone-265f580.md` and inspect its tracked paths after fetching | aa-env checkout | This register is present; `docs/MILESTONES.md` is absent |
 | T2 | Repository | `git merge-base --is-ancestor <register commit> origin/maven` | aa-env checkout | Exit 0 |
-| T3 | Tracker | `gh issue list --state open --json number` | GitHub | None of #35–#42 listed |
+| T3 | Tracker | Read issue and milestone states through the GitHub REST API | GitHub | Issues #35-#42 and milestones M0-M5 remain closed |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
+| T1 | Not run | aa-env checkout | Pending | none |
 | T2 | Not run | aa-env checkout | Pending | none |
 | T3 | Not run | GitHub | Pending | none |
 
@@ -375,7 +383,8 @@ Implementation Authorization: 2026-09-11, config bump only; live install not run
 Superseded Plan Artifacts: none
 
 1. Edit `CONFIG_TOMCAT` and the tomcat README. Done 2026-09-11 (`aea623b`).
-2. Live install and start run under M16 with the systemd units.
+2. Live install and start are verified under M8 Release Verification 2 and 3
+   using the existing service and launcher script.
 
 ##### Test Plan
 
@@ -648,12 +657,14 @@ Out of scope: any new feature.
 
 ##### Dependencies And Decisions
 
-- M1, M3, M4, M6, M9, M11, M14, M15, M16
+- M1, M4, M6, M9, M11, M14, M15, M16, M17
 - G10 (aa-maven Phase 1 complete); resume as Not started
 - The install verification (Release Verification 2 and 3) runs against the
   aa-maven Phase 1 source before any PR; fast-forward merge per owner choice
   2026-09-12.
-- D11 retired M5's successor work (M7); M16 carries the runtime.
+- D11 and D12 retired the Tomcat migration and template-unit work. The existing
+  service and script carry the runtime; this row owns its live verification.
+- D14: M3 is completed by this row's merge and is not a prerequisite.
 - D7: the ansible deployment (M2, G5) is Backlog and does not gate this row.
 
 ##### Implementation Plan
@@ -670,7 +681,7 @@ Superseded Plan Artifacts: none
 
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M3 / T1 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass | pending |
+| M17 / T1 and T3 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass with correct failure handling | pending |
 | M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | pending |
 | M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | pending |
 
@@ -737,9 +748,9 @@ Status: Blocked (resume as Not started)
 ##### Summary
 
 aa-env still carries Ant pieces from the pre-Maven build: an Ant build file
-in the site overlay, `ANT_HOME` / `ANT_PATH` / `ANT_OPTS` in the site
-configuration, and the `ant` package in the Debian package list. Once
-aa-maven removes Ant from the build (its M4) and states how the per-site
+in the site overlay and `ANT_HOME` / `ANT_PATH` / `ANT_OPTS` in the site
+configuration. M11 already removed Ant from the package lists. Once
+aa-maven removes Ant from the build (its M10) and states how the per-site
 build step is replaced, aa-env removes its half.
 
 ##### Scope
@@ -748,7 +759,8 @@ build step is replaced, aa-env removes its half.
   post-Ant sitespecific contract aa-maven reports.
 - `configure/CONFIG_SITE`: `ANT_HOME`, `ANT_PATH`, `ANT_OPTS` (lines 4, 9,
   43–49) and any `.local` preset that sets them.
-- `scripts/required_pkgs.sh`: the `ant` package in every OS function.
+- `configure/os/*.pkgs`: verify that no `ant` package remains. M11 already
+  removed the legacy package scripts and omitted Ant from the new lists.
 - `configure/RULES_SRC` `copy.sitespecific`: unchanged unless the contract
   changes the overlay path.
 
@@ -759,14 +771,13 @@ which aa-maven confirmed survive Ant removal.
 ##### Completion Criteria
 
 - Phase 1 asserts: no `ANT_` variable in `configure/`, no
-  `site-template/siteid/build.xml`, no `ant` package in
-  `scripts/required_pkgs.sh`.
+  `site-template/siteid/build.xml`, no `ant` package in `configure/os/*.pkgs`.
 - `make build` against the post-Ant aa-maven source produces the four WARs
   with the site overlay applied.
 
 ##### Dependencies And Decisions
 
-- G6 (aa-maven M4 and the post-Ant sitespecific contract); resume as Not
+- G6 (aa-maven M10 and the post-Ant sitespecific contract); resume as Not
   started
 - D9
 
@@ -832,7 +843,9 @@ aa-env keeps the install tests and reduces phase 2 to checking that the
 - `tests/README.md`: phase 2 description and the phase table.
 - `tests/run-all-tests.bash`: `--local` semantics unchanged.
 
-Out of scope: phases 1, 3, 4; the aa-maven CI workflow.
+Out of scope: phases 1, 3, 4; the aa-maven CI workflow. M17 independently fixes
+the current compile test's failure handling and artifact discovery while G7
+remains open.
 
 ##### Completion Criteria
 
@@ -882,46 +895,80 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
-#### M9 - SQLite as the only configuration database
+#### M9 - Selectable persistence backend: MariaDB and SQLite
 
 Origin: 265f580 / M9
-Identity History: Backlog "SQLite as the configuration database" to Milestone, retitled, 2026-09-12 (D11)
+Identity History: Backlog "SQLite as the configuration database" to Milestone, retitled 2026-09-12 (D11), reframed to the selectable model 2026-09-18 (D15)
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Not started
 
 ##### Summary
 
-Under D11 SQLite is the only configuration store; MariaDB is removed. The
-aa-maven source selects the SQLite dialect from the JDBC driver name and ships
-`archappl_sqlite.sql`; aa-maven adds `sqlite-jdbc` and removes the MariaDB
-dependency (its M11 and M13) and sends the SQLite DataSource contract. aa-env
-renders the per-instance DataSource and the initialization from that contract.
+Under D15 MariaDB and SQLite are selectable backends; D16 sets the rollout
+order: MariaDB over TCP first, then MariaDB over Unix domain socket, then
+SQLite3 as the end state. The aa-maven source ships both `mariadb-java-client`
+and `sqlite-jdbc` and auto-detects the dialect from the DataSource metadata
+(gate G9), so no source change is needed to run MariaDB or SQLite. The
+ansible/cloud provisioning starts on TCP MariaDB (agreed 2026-09-19). aa-env
+renders the per-instance DataSource for the chosen backend and wires its
+initialization.
 
 ##### Scope
 
-- `site-template/context.xml.in`: driver `org.sqlite.JDBC`, file URL, pool
-  size 1, per the aa-maven contract (G9).
-- `configure/CONFIG_SQL`, `configure/RULES_SQL`: SQLite initialization from
-  `archappl_sqlite.sql` instead of the MariaDB targets.
-- `site-template/systemd/epicsarchiverap-maven.service.in`: drop the
-  `mariadb.service` dependency when MariaDB goes.
-- Package list: `sqlite3`, no MariaDB packages (M11 list).
+- `site-template/context.xml.in`: a `DB_BACKEND` selector (`mariadb` | `sqlite`)
+  that renders the driver class, URL, and pool settings for the chosen backend.
+  MariaDB over TCP uses `jdbc:mariadb://<DB_HOST_NAME>:<DB_HOST_PORT>/<DB_NAME>`
+  (host `127.0.0.1`, port `3306`; IPv4 loopback, standardized 2026-09-19 to
+  avoid `::1` ambiguity).
+- `configure/CONFIG_SQL`, `configure/RULES_SQL`: the initialization for the
+  selected backend (the MariaDB targets as today; SQLite from
+  `archappl_sqlite.sql`). Where the operator creates the database and account
+  (the ansible/cloud path), aa-env skips db.secure/db.addAdmin/db.create and
+  runs only `make sql.fill`.
+- `site-template/systemd/epicsarchiverap-maven.service.in`: the `mariadb.service`
+  dependency applies only when the MariaDB backend is selected.
+- MariaDB over UDS (step 2): the driver's `localSocket` needs JNA on the
+  classpath, which the aa-maven WARs do not ship; this step is gated on G12
+  (aa-maven adds JNA), verified absent at aa-maven `3c96141d`.
+- Package list: MariaDB packages for the MariaDB backend, `sqlite3` for SQLite.
 - Documentation.
 
-Out of scope: the `sqlite-jdbc` dependency and MariaDB removal in the source
-(aa-maven M11, M13); the systemd unit itself (M16).
+Out of scope: the driver dependencies and dialect detection in the source
+(aa-maven, gate G9); replacing the existing launcher or service design.
 
 ##### Completion Criteria
 
-- One PV archives and retrieves with no MariaDB service or package on the host.
+- One PV archives and retrieves under each backend in the D16 order —
+  MariaDB/TCP, then MariaDB/UDS, then SQLite3 — with the selector (and, for UDS,
+  the G12 JNA dependency) the only change between them.
 
 ##### Dependencies And Decisions
 
-- G9 (aa-maven sqlite-jdbc + MariaDB removal + DataSource contract); resume as
-  Not started
+- G9 Complete 2026-09-18 (both drivers ship, dialect auto-detected)
 - M11 (ordering): the package change lands in the per-OS lists, not in
   `required_pkgs.sh`
-- D11 (SQLite is the only store)
+- D15 (selectable backend), D16 (rollout order TCP -> UDS -> SQLite3)
+- MariaDB/TCP account and connection model: aa-env is authoritative on the user
+  name, `DB_USER_PASS`, database name, and that it connects over TCP loopback to
+  `:3306`; the account grant host-spec is server-side. The provisioning contract
+  (cloud-provision `290f459`) pins MariaDB `skip-name-resolve` ON with the
+  account `@'127.0.0.1'`, and aa-env connects to `127.0.0.1` (IPv4 loopback, no
+  `::1`; `DB_HOST_NAME=127.0.0.1` in `configure/CONFIG_SITE`). `DB_USER_PASS` is
+  aa-env's value and the account is created to match it. `DB_ADMIN_HOST` stays
+  `localhost`: it belongs to the local-only admin path
+  (`make db.secure`/`db.addAdmin`/`db.create`), which the provisioning operator
+  replaces, so it is outside the 127.0.0.1 application standardization.
+- The ansible and cloud provisioning sessions provide TCP MariaDB
+  (`skip_networking=false`, `127.0.0.1:3306`) and create the database and
+  account, so aa-env runs only `make sql.fill`. First TCP test agreed 2026-09-19;
+  the TCP loopback login re-verified green on Rocky 8 and Debian 13 (reported
+  2026-09-19): `skip_name_resolve=1`, TCP to `127.0.0.1` authenticates as
+  `archappl@127.0.0.1`, listener `127.0.0.1:3306` only, no `::1`. This is the
+  DB-login check only; the full bring-up is not yet done — G5's mgmt-probe
+  deployment report and M9's own PV archive-and-retrieve are separate checks, and
+  G5 stays Open.
+- The MariaDB/UDS step is gated on G12 (aa-maven adds JNA); route the request to
+  aa-maven when the step is reached.
 
 ##### Implementation Plan
 
@@ -930,22 +977,28 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. On the G9 contract: render `context.xml` for SQLite and wire the
-   initialization from `archappl_sqlite.sql`.
-2. Drop MariaDB from the package list and the unit dependency.
-3. Archive and retrieve one PV with no MariaDB present.
+1. MariaDB/TCP: add the `DB_BACKEND` selector, render `context.xml` for
+   MariaDB/TCP, run `make sql.fill`, start the units, and verify one PV.
+2. MariaDB/UDS: once aa-maven ships JNA, render the `localSocket` URL form and
+   verify over the socket.
+3. SQLite3: render the SQLite DataSource and initialization and verify with no
+   DB service present.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Function | Stop and remove MariaDB; start the units; archive one PV; retrieve | This host | Non-empty samples; no MariaDB running |
+| T1 | Function | Select MariaDB/TCP; run `make sql.fill`; start the units; archive one PV; retrieve | This host or a provisioned host (Rocky 8 / Debian 13) | Non-empty samples |
+| T2 | Function | Select MariaDB/UDS (after G12, the aa-maven JNA dependency, lands); start the units; archive one PV; retrieve | provisioned host (Rocky 8 / Debian 13) | Non-empty samples over the socket |
+| T3 | Function | Select SQLite3; start the units; archive one PV; retrieve | This host | Non-empty samples; no MariaDB required |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | T1 | Not run | This host | Pending | none |
+| T2 | Not run | provisioned host (Rocky 8 / Debian 13) | Pending | none |
+| T3 | Not run | This host | Pending | none |
 
 ##### Closure Evidence
 
@@ -953,7 +1006,7 @@ Superseded Plan Artifacts: none
 
 ##### GitHub Projection
 
-Title: Use SQLite as the only configuration database
+Title: Selectable persistence backend: MariaDB and SQLite
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
@@ -1132,6 +1185,179 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
+#### M17 - Correct build verification and align documentation with code
+
+Origin: 265f580 / M17
+Identity History: none
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+Make the compile test reject a failed build even when previous artifacts exist,
+accept the source repository's artifact naming, and correct the documentation
+and work records against the implementation.
+
+##### Scope
+
+- `tests/lib/common.bash`, Phase 1 regression coverage, and Phase 2 artifact checks.
+- README, installation guides, policy and ETL guides, changelog, and this register.
+- ETL figure source `docs/figures/datajourney.svg` and its six T1-T6 PNG exports.
+- Record issues #24 and #25 as unresolved Backlog work with their live metadata.
+
+Out of scope: fixing those runtime issues, installing or restarting services,
+changing storage policy values, completing M15's CI-dependent scope, and changing
+the aa-maven source or its register.
+
+##### Completion Criteria
+
+- The real command wrapper preserves a failing process's exit status.
+- The shipped Phase 2 rejects a failed build with existing real build artifacts.
+- A real clean build passes without hard-coded WAR or tarball version names.
+- Changed documentation agrees with code, all local links resolve, and work-table
+  details and dependencies agree.
+- Repository changes have commit and remote landing evidence.
+
+##### Dependencies And Decisions
+
+- D14; no aa-maven gate is needed for these corrections.
+- The source's `aa-<date>-<hash>` finalName is present at aa-maven `35282494`;
+  the local source used by prior verification is `6957bfc4`.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-09-15, accepted the reported code-to-documentation findings
+Implementation Authorization: 2026-09-15, directed all reported corrections
+Superseded Plan Artifacts: none
+
+1. Add a command-exit regression test; observe its failure on the old helper.
+2. Preserve the child exit status; generate the site configuration with the
+   shipped `conf.archapplproperties` target; check unique service WARs and the
+   assembly produced by the successful clean build without fixing their names.
+3. Correct the runtime, install, policy, ETL, changelog, and milestone text.
+   Apply the accepted second-person findings to the configuration table and
+   shared SVG labels, then regenerate all six timeline figures.
+4. Run T1-T4, review the changed procedures from the reader's perspective, and
+   record the actual results. Commit and push remain separate operations.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1`, including real child exit-status checks | Debian 13 | New check fails on the old helper and passes after the fix |
+| T2 | Build failure | Run the shipped Phase 2 with an invalid make-level JAVA_HOME and existing real artifacts | Local source `6957bfc4` | Nonzero exit at the build failure; no Phase 2 PASS |
+| T3 | Build | Run the shipped Phase 2 on real source checkouts, including the new artifact naming | Isolated checkouts | Successful clean build; four coherent WARs and one release tarball |
+| T4 | Documentation | Compare changed procedures with code and dry runs; validate table values with the built Java enum, inspect all six rendered figures, and check local links, row/detail parity, and dependency cycles | aa-env working tree | No reported contradiction remains; runtime observations are not inferred |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-09-15 | Debian 13, JDK 21 | Pass | The new real-child regression failed on the old helper (expected exit 23, received 0); after the fix, `tests/run-all-tests.bash --phase=1` passed 37 assertions. |
+| T2 | 2026-09-15 | Isolated aa-env checkout, source `6957bfc4`, existing real WARs and tarball | Pass | The shipped Phase 2 with make-level `JAVA_HOME=/nonexistent/archiver-review-jdk` exited 1 at `make build.mvn`; no artifact check or Phase 2 PASS followed. The pre-fix path had returned PASS with the same failure and stale artifacts. |
+| T3 | 2026-09-15 | Debian 13, JDK 21, isolated source checkouts `6957bfc4` and `35282494` | Pass | Real clean builds passed all 23 Phase 2 assertions for both naming schemes. Source `35282494` also passed its default 734 Java tests (zero failures/errors/skips within that selection; the POM excludes integration, localEpics, slow, flaky, and PvaTest). After the final shell quoting change, its clean package and all 23 artifact assertions passed again with make-level `MAVEN_OPTS=-DskipTests`; the prior full default-test result was preserved separately. |
+| T4 | 2026-09-15 | aa-env working tree; source `35282494` for policy and ETL code | Pass with follow-up | Changed procedures reviewed against code; the systemd directives match the template and a real `conf.systemd0` output. Rocky package listing and start/stop dry runs agree with the docs. All 17 tracked Markdown files have valid local file targets; all 29 work rows have matching details, resolved dependencies, derived Ready values, and no cycles. `bash -n` and `git diff --check` passed; no new ShellCheck findings under the same command and version (existing SC2155 warnings remain). T6's file placement does not yet match the derived ETL cutoff; M20 records the correction. No live install result is inferred. |
+
+T4 follow-up (2026-09-15): the owner accepted two second-person findings:
+invalid abbreviated partition names in the configuration examples and the
+file-count trigger still printed in the figures. All nine table values now
+resolve through the built `PartitionGranularity.valueOf` at source `35282494`.
+The shared SVG uses first-sample time cutoffs for both ETL flows; all six PNGs
+were regenerated with Inkscape and visually checked for readable labels and
+preserved transfer arrows. The configuration-reader second-person pass found
+no remaining issue within these two corrections.
+
+Third-person review (2026-09-16): the actual `TimeUtils` cutoff calculation
+shows that File_B and File_C in T6 should already be in LTS at the stated
+12:30 evaluation. The owner chose to record this as M20 for a later correction;
+the T6 artwork and prose remain unchanged in this session.
+
+##### Closure Evidence
+
+- Implementation and T1-T4 locally verified 2026-09-15. Commit and remote
+  landing evidence remain pending, so this row stays In progress. Live service
+  installation and runtime issue reproduction were not part of these checks.
+
+#### M21 - Remove the retired Sphinx docs build from aa-env
+
+Origin: 265f580 / M21
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+aa-maven retired the Sphinx / Read the Docs pipeline and its package build no
+longer produces `docs/docs/build` (gate G11). aa-env still carries the matching
+assumptions; remove them so the build and its tests match the current source.
+
+##### Scope
+
+- `configure/RULES_SRC`: drop the now-inert `-Dsphinx.skip=true` from
+  `build.mvn2`, `build.mvn3`, and `build.war`.
+- `tests/phase2-compile.bash`: replace the `docs/docs/build/index.html`
+  assertion with the mgmt WAR `ui/api/index.html` reference.
+- `README.md` and `tests/README.md`: remove the Sphinx build-step description.
+- `configure/os/debian13.pkgs`: drop `python3`, `python3-pip`,
+  `python-is-python3`, and `python3-venv` (the WAR build needs no system Python;
+  the narrative docs are on Pages).
+
+Out of scope: the mdBook build (aa-maven); the phase 2 reduction to a wrapper
+check (M15); narrative-docs hosting.
+
+##### Completion Criteria
+
+- No `sphinx`, `docs/docs/build`, or Python-for-docs assumption remains in
+  `configure/`, `scripts/`, `tests/`, or `README.md`.
+- Phase 2 asserts the in-WAR mgmt `ui/api/index.html` and passes against the
+  current aa-maven source.
+
+##### Dependencies And Decisions
+
+- G11 Complete 2026-09-18 (aa-maven Sphinx retired, mdBook on Pages)
+- The `tests/phase2-compile.bash`, `README.md`, and `tests/README.md` edits
+  overlap the uncommitted M17 working tree; sequence them with M17.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Remove the inert `-Dsphinx.skip=true` and the Python docs packages.
+2. Repoint the phase 2 docs assertion to the mgmt WAR `ui/api/index.html`.
+3. Remove the Sphinx step from the READMEs; run phase 1 and 2.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | Pass |
+| T2 | Compile | `tests/run-all-tests.bash --phase=2` against the current aa-maven source | This host | Pass; asserts `ui/api/index.html`, no `docs/docs/build` |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Remove the retired Sphinx docs build from aa-env
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
 #### G1 - aa-maven baseline tag reported by the aa-maven session
 
 Origin: 265f580 / G1
@@ -1185,6 +1411,7 @@ delegation, the milestones by the owner. Affects M3.
 | Observed At | Result | Evidence |
 | --- | --- | --- |
 | 2026-09-13 | Pass | `gh issue list --state open` shows only #24 and #25 (real bugs, not retired); `gh api .../milestones?state=all` shows M0–M5 (id 1–6) all closed |
+| 2026-09-15 | Pass | GitHub REST issue and milestone reads confirm #35-#42 and M0-M5 closed; every issue has a retirement comment pointing to this register. Their closed state is retirement evidence, not implementation evidence. #24 and #25 remain open and are recorded in M18 and M19. |
 
 ##### Closure Evidence
 
@@ -1253,7 +1480,7 @@ Status: Open
 
 ##### Summary
 
-aa-maven removes Ant from its build (its register row M4) and reports the
+aa-maven removes Ant from its build (its register row M10) and reports the
 commit together with the post-Ant contract for the per-site build step that
 `build.xml` target `sitespecificbuild` used to run inside
 `src/sitespecific/<site>`. Affects M14.
@@ -1288,8 +1515,8 @@ aa-maven rebuilds CI on Maven and reports a passing workflow run. It removed
 the Gradle workflows (aa-maven M1); the readthedocs build already runs
 `./mvnw javadoc:javadoc`. Affects M15.
 
-aa-maven register: CI rebuild on Maven. aa-maven removed the Gradle
-workflows (their M1); the Maven CI is a planned aa-maven item, not yet a row.
+aa-maven register row: `docs/milestone-daff1b7.md` M5 (Maven-centric CI and docs
+build), observed Not started at `35282494` on 2026-09-15.
 
 ##### Completion Criteria
 
@@ -1319,7 +1546,7 @@ aa-maven committed the Apache Maven Wrapper (`mvnw`, `mvnw.cmd`,
 `ff67460`. This gate closes when a fresh clone builds through `./mvnw` so
 aa-env can rely on it as the only Maven. Affects M11.
 
-aa-maven register row: `docs/milestone-daff1b7.md` M2 (In progress).
+aa-maven register row: `docs/milestone-daff1b7.md` M2 (Complete).
 
 ##### Completion Criteria
 
@@ -1337,36 +1564,37 @@ aa-maven register row: `docs/milestone-daff1b7.md` M2 (In progress).
 - aa-maven cross-session response of 2026-09-12 (their M2 Complete); the
   wrapper files and pin were re-derived from their origin on 2026-09-11.
 
-#### G9 - aa-maven delivers SQLite persistence and removes MariaDB
+#### G9 - aa-maven ships both DB drivers with dialect auto-detection
 
 Origin: 265f580 / G9
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
-aa-maven adds the `sqlite-jdbc` runtime dependency and removes the MariaDB
-dependency (its M11 and M13), and reports the SQLite DataSource contract
-aa-env renders into `context.xml`: driver class, file URL, pool size, and the
-initialization SQL. Affects M9.
+aa-maven ships both `mariadb-java-client` and `sqlite-jdbc` (runtime scope) in
+all four WARs and the source auto-detects the SQLite vs MySQL dialect from the
+DataSource's `DatabaseMetaData` product name, so either backend runs with no
+source change. This replaces the earlier "removes MariaDB" framing under D15
+(parallel, selectable). Affects M9.
 
 aa-maven register rows: `docs/milestone-daff1b7.md` M11 (sqlite-jdbc) and M13
-(MariaDB removal, closes aa-maven Phase 2).
+(reframed to selectable persistence, deferred and coordinated).
 
 ##### Completion Criteria
 
-- A cross-session response names the aa-maven commits and the SQLite DataSource
-  contract.
+- A cross-session response names the aa-maven commit and confirms both drivers
+  ship with dialect auto-detection.
 
 ##### Verification Results
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-18 | Pass | aa-maven reports both drivers ship (runtime) with dialect auto-detection from DataSource metadata, adopted as its D28 at `ab324afb`; aa-env read the modernize-tip pom and found both `org.mariadb.jdbc:mariadb-java-client` and `org.xerial:sqlite-jdbc` present. WAR-level packing was not independently built here. |
 
 ##### Closure Evidence
 
-- none
+- aa-maven cross-session response of 2026-09-18 (parallel/selectable model, `ab324afb`) and the aa-env pom read above.
 
 #### G10 - aa-maven Phase 1 complete (servlet-api 9.0.121, Ant removed, CI on Maven)
 
@@ -1402,6 +1630,68 @@ including servlet-api 9.0.121), M5 (CI on Maven), M10 (Ant removal).
 
 - none
 
+#### G11 - aa-maven retires the Sphinx docs pipeline (mdBook on Pages)
+
+Origin: 265f580 / G11
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+aa-maven removed the Sphinx / Read the Docs pipeline and moved the narrative
+docs to mdBook on GitHub Pages, so the aa-env build carries no docs-build
+assumption. The mgmt API reference stays generated inside the mgmt WAR at
+`ui/api/index.html`. Affects M21.
+
+aa-maven register rows: `docs/milestone-daff1b7.md` M9 (mdBook docs) and M16
+(in-WAR mgmt API reference).
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and the Sphinx removal is
+  observed on the modernize tip.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-09-18 | Pass | aa-env fetched aa-maven modernize `263805a1` and observed `.readthedocs.yaml`, `docs/docs`, `docs/build_docs.sh`, `conf.py`, and `requirements.txt` all absent, zero `sphinx` references in the pom, and `docs/book/` (mdBook) present; live remote head confirmed `263805a1` by `git ls-remote`. |
+
+##### Closure Evidence
+
+- aa-maven cross-session response of 2026-09-18 (mdBook live on Pages, `263805a1`) and the aa-env fetch and ls-remote observations above.
+
+#### G12 - aa-maven adds JNA for MariaDB Unix-socket support
+
+Origin: 265f580 / G12
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+MariaDB Connector/J connects over a Unix domain socket only when JNA
+(`net.java.dev.jna:jna`, `jna-platform`) is on the classpath. The aa-maven WARs
+ship no JNA, so aa-env cannot render a working `localSocket` DataSource until
+aa-maven adds the dependency. Affects M9 step 2 (MariaDB/UDS).
+
+aa-maven register row: to be assigned by the aa-maven session when the request
+is routed (dependency management is aa-maven's domain, D9).
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit that adds JNA and confirms
+  `mariadb-java-client` `localSocket` connects over the socket.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none. JNA verified absent at aa-maven `3c96141d`: no `jna`/`jnr` in the pom or source tree, and the runtime-dependency allowlist names only `mariadb-java-client` and `sqlite-jdbc`.
+
 ## Backlog
 
 ### Work
@@ -1411,7 +1701,10 @@ including servlet-api 9.0.121), M5 (CI on Maven), M10 (Ant removal).
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Open | No | M1, D7 | Assign when the EPICS-env provisioning work that carries the archiver is scheduled; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Open | No | D7 | Follows M2 when assigned; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
-| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign when aa-maven lands the new mgmt interface; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
+| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign if the EPICS-Arche UI change requires an aa-env skin update; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
+| Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
+| Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
+| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Open | No | M17, D14 | Update the T6 prose and source SVG so files whose first samples pass the 12:30 MTS cutoff are shown in LTS, regenerate T1-T6 PNGs, and rerun documentation verification; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
 
 ### Backlog Details
 
@@ -1430,22 +1723,26 @@ reading this repository's Makefiles.
 
 ##### Scope
 
-- One document under `docs/` listing, in order: packages, java-env, MariaDB
-  secure/admin/create/fill, Tomcat get/install, `make init build install`,
-  systemd enable/start, and the health probe.
+- One document under `docs/` listing, in order: packages (distro-JDK toolchain,
+  no java-env, per D10), the DB step for the selected backend (per M9/D16 — where
+  the provisioning operator creates the database and account, aa-env runs only
+  `make sql.fill`), Tomcat get/install, `make init build install`, systemd
+  enable/start, and the health probe.
 - For each step: the command, the variables it consumes, the files it writes,
   and the check that proves it ran.
 - The `RELEASE.local` pin from M1.
 - Handoff message to the ansible/cloud session.
 
 Out of scope: writing the role; changing any Makefile behavior; MariaDB
-hardening beyond `make db.secure`.
+account/database creation and hardening (the provisioning operator owns these in
+the ansible/cloud path, per M9).
 
 ##### Completion Criteria
 
 - The document is committed on `modernize`.
 - The handoff message has been sent with the document path and both tags.
-- The deployment result itself is gate G5 on M8, not on this row.
+- The deployment result is recorded in Backlog gate G5; it does not gate M8
+  under D7.
 
 ##### Dependencies And Decisions
 
@@ -1454,6 +1751,16 @@ hardening beyond `make db.secure`.
 - D7 (moved to Backlog 2026-09-11)
 - 2026-09-11: G5 moved from this row to M8; the deployment cannot precede the
   document it follows.
+- 2026-09-19 coordination with LAB-ansible-provision and LAB-cloud-provision
+  (see D16 and M9): the archiver-dev increment starts on TCP MariaDB
+  (`skip_networking=false`, `127.0.0.1:3306`). The provisioning operator creates
+  the database and account, so the aa-env sequence skips db.secure/db.addAdmin/
+  db.create and runs only `make sql.fill`; `DB_USER_PASS` is aa-env's value in
+  `CONFIG_SITE.local` and the account is created to match it. The account grant
+  host-spec must match MariaDB `skip-name-resolve` (`@'localhost'` vs
+  `@'127.0.0.1'`); IPv4 loopback, no `::1`. The sequence document reflects the
+  distro-JDK toolchain (D10, no java-env) and the selectable backend (M9), not
+  the original java-env/MariaDB-only steps.
 
 ##### Implementation Plan
 
@@ -1502,7 +1809,8 @@ Status: Open (Backlog since 2026-09-11, D7)
 ##### Summary
 
 The ansible/cloud session deploys the M1 baseline following the M2
-sequence and reports the result. Affects M8 (Release Verification 3).
+sequence and reports the result. This is Backlog deployment work under D7;
+M8 Release Verification 3 is its own pre-PR installation check.
 
 ##### Completion Criteria
 
@@ -1606,8 +1914,9 @@ Out of scope: the interface itself (EPICS-Arche).
 
 ##### Completion Criteria
 
-- `make build` with the new aa-maven UI produces a mgmt WAR whose home page
-  renders the site skin without errors in the browser console.
+- After assignment defines the EPICS-Arche interface and aa-env's role, the
+  resulting skin renders correctly on that interface. The current WAR skin
+  remains unchanged until that scope is defined.
 
 ##### Dependencies And Decisions
 
@@ -1626,7 +1935,7 @@ Superseded Plan Artifacts: none
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | UI | Open `http://localhost:17665/mgmt/ui/index.html` after `make build install sd_start` | This host | Page renders with the site skin; no console errors |
+| T1 | UI | Define the actual interface and browser procedure when assigned | Agreed target interface | Page renders with the site skin; no console errors |
 
 ##### Verification Results
 
@@ -1647,3 +1956,212 @@ Observed State: none
 Observed Labels: none
 Observed Milestone: none
 Last Compared: never
+
+#### M18 - Investigate retrieval metadata HTTP 404
+
+Origin: 265f580 / M18
+Identity History: none
+GitHub Issue: [#24](https://github.com/jeonghanlee/epicsarchiverap-env/issues/24)
+Status: Open
+
+##### Summary
+
+The reported quick-chart and live retrieval requests receive HTTP 404 from the
+engine metadata endpoint. The issue has no resolution comment or current
+reproduction result.
+
+##### Scope
+
+- Reproduce the metadata request on an explicitly identified appliance source
+  and environment configuration; distinguish endpoint behavior from routing
+  or PV state.
+- Determine whether the fix belongs in aa-env or aa-maven before implementation.
+
+Out of scope: assuming that a passing compile test fixes the issue, changing
+the source repository without its own authorization, and closing the issue
+without runtime evidence.
+
+##### Completion Criteria
+
+- The original request is reproduced or an evidenced non-reproduction is
+  recorded with the source, environment, and PV setup.
+- Any required fix has a real request-path regression check and the issue has
+  an observed, authorized resolution.
+
+##### Dependencies And Decisions
+
+- D14; recorded 2026-09-15 as unresolved work. Assignment waits for a defined
+  reproduction environment and investigation priority.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Define the reproduction environment and request sequence when assigned.
+2. Reproduce the issue and select the owning repository from observed behavior.
+3. Plan the fix and regression check before changing runtime code.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Runtime | Reproduce the issue's quick-chart/live request through retrieval and the engine metadata endpoint | To be agreed on assignment | Observed HTTP result with the corresponding PV state and source revision |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Runtime environment not assigned | Pending | none |
+
+##### Closure Evidence
+
+- None; issue remains open.
+
+##### GitHub Projection
+
+Title: Investigate retrieval metadata HTTP 404
+Labels: none
+GitHub Milestone: none
+Observed State: open
+Observed Labels: none
+Observed Milestone: none
+Last Compared: 2026-09-15; GitHub REST issue #24 read, remote updated_at 2024-03-25T07:09:20Z
+
+#### M19 - Investigate ETL for PV names containing underscores
+
+Origin: 265f580 / M19
+Identity History: none
+GitHub Issue: [#25](https://github.com/jeonghanlee/epicsarchiverap-env/issues/25)
+Status: Open
+
+##### Summary
+
+The issue reports PVs remaining in STS when an underscore occurs before the
+final colon-separated name component. The reported namespace-separator setting
+is still present in `site-template/archappl.properties.in`; this does not by
+itself establish that the runtime defect persists or is fixed.
+
+##### Scope
+
+- Reproduce the reported PV-name cases with the generated separator settings
+  and inspect transfer from STS to MTS and LTS.
+- Identify whether the mismatch belongs to configuration or aa-maven's name
+  mapping and storage implementation.
+
+Out of scope: changing namespace separators on an existing data store without
+an approved compatibility plan, inventing a cause from the issue description,
+and closing the issue without runtime evidence.
+
+##### Completion Criteria
+
+- A real ETL run covers underscores in both namespace and final-name positions,
+  with a colon-only control case.
+- Stored samples remain retrievable after the verified transfer; any fix and
+  required compatibility handling are recorded before issue resolution.
+
+##### Dependencies And Decisions
+
+- D14; recorded 2026-09-15 as unresolved work. Assignment waits for a defined
+  reproduction environment and investigation priority.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Define source revision, PV fixture, storage configuration, and ETL schedule
+   when assigned.
+2. Reproduce the issue through the real archiving and retrieval path.
+3. Plan the fix in its owning repository and address compatibility before
+   changing how existing PV names map to stored paths.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Runtime | Archive the reported underscore cases and a control PV; run ETL and retrieve their samples | To be agreed on assignment | Observed tier paths and retrieval results tied to the source and configuration |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Runtime environment not assigned | Pending | none |
+
+##### Closure Evidence
+
+- None; issue remains open.
+
+##### GitHub Projection
+
+Title: Investigate ETL for PV names containing underscores
+Labels: none
+GitHub Milestone: none
+Observed State: open
+Observed Labels: none
+Observed Milestone: none
+Last Compared: 2026-09-15; GitHub REST issue #25 read, remote updated_at 2024-05-02T08:05:00Z
+
+#### M20 - Align T6 ETL timeline placement with the time cutoff
+
+Origin: 265f580 / M20
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The T6 timeline still shows File_B and File_C in MTS at 12:30, although the
+implemented MTS hold and gather calculation makes both files eligible for LTS.
+
+##### Scope
+
+- `docs/README.DataJourney.md` T6 explanation.
+- `docs/figures/datajourney.svg` T6 layer and all six PNG exports.
+- M17 verification evidence after the correction is applied.
+
+Out of scope: changing ETL code or storage policy values, and running live
+installation tests.
+
+##### Completion Criteria
+
+- T6 prose and artwork show File_B and File_C in LTS at the stated 12:30
+  evaluation, consistent with the real cutoff calculation.
+- All six PNG exports are regenerated from the corrected SVG and the
+  documentation and link checks pass.
+
+##### Dependencies And Decisions
+
+- M17; correction recorded as a carry-forward on 2026-09-16.
+- D14.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Update the T6 prose and SVG layer to match the 12:30 MTS cutoff.
+2. Regenerate all six PNG exports with Inkscape.
+3. Re-run the documentation and figure checks, then update M17 evidence.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Documentation | Re-derive the MTS cutoff with the built `TimeUtils`, inspect T6 SVG/PNG, and run local link and register checks | aa-env working tree; source `35282494` | File_B and File_C are shown in LTS at 12:30 and all checks pass |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | aa-env working tree | Pending | none |
+
+##### Closure Evidence
+
+- none; owner deferred the correction during the 2026-09-16 session wrap-up.

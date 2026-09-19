@@ -3,11 +3,11 @@ This repository provides the Configuration Environment for the [EPICS Archiver A
 
 The source code for the [EPICS Archiver Appliance with MAVEN](https://github.com/jeonghanlee/epicsarchiverap-maven) build **IS** fundamentally based on the community version. However, its building method **IS NOT** the same as the community version. While the goal is to maintain minimal code differences from the community release, some variations may be present. The primary distinction is the use of **MAVEN** as the core build environment for that project, though **ANT** is also currently utilized for certain auxiliary tasks. For a more detailed understanding of the build system and specific modifications in that version, please refer to the [EPICS Archiver Appliance with MAVEN](https://github.com/jeonghanlee/epicsarchiverap-maven) repository.
 
-**Project Status**: Confirmed that the current version can archive a few PV signals. However, it requires more fine-tuning for maximizing the archiver appliance performance.
+**Project Status**: Implementation status and observed verification results are recorded in the [work register](docs/milestone-265f580.md).
 
 ## Scope
 
-This document covers setup and build of the EPICS Archiver Appliance with MAVEN on Debian 13: prerequisites, MariaDB configuration, Tomcat 9 as a build-time dependency, and systemd service management.
+This document covers setup and build of the EPICS Archiver Appliance with MAVEN on Debian 13: prerequisites, MariaDB configuration, the four Tomcat 9 runtime instances, and systemd service management.
 
 **Out of scope:**
 * Archiving policy configuration and storage tier tuning — see [docs/README.policies.md](docs/README.policies.md).
@@ -37,7 +37,7 @@ sudo bash scripts/install_os_packages.bash
 make init
 ```
 ### MariaDB
-This section covers the setup and configuration of the MariaDB database, which will store the archived data and appliance configuration.
+MariaDB stores appliance configuration, including archive requests, PV type information, aliases, and external data server definitions. Archived samples are stored in `.pb` files in the STS, MTS, and LTS directories, not in MariaDB.
 
 ```bash
 # Start MariaDB service and check its status
@@ -57,7 +57,7 @@ make sql.show
 ```
 
 ### Tomcat 9
-In this environment, Apache Tomcat 9 is used as a source for essential Java libraries (like the Servlet API) and provides a structured directory layout. It is primarily used as a build-time dependency and is not run as a continuous service for hosting the web applications.
+Apache Tomcat 9.0.121 hosts the four WARs in separate `mgmt`, `engine`, `etl`, and `retrieval` instances. They share `CATALINA_HOME` and have separate `CATALINA_BASE` directories. The `epicsarchiverap-maven.service` unit runs `archappl.bash`, which starts and stops these instances in their required order. The separate generic Tomcat service is not required.
 
 ```bash
 # Set or display Tomcat-specific variables used in the build process
@@ -66,7 +66,7 @@ make vars FILTER=TOMCAT
 # Download the specified version of Tomcat 9
 make tomcat.get
 
-# Install Tomcat 9 to the designated location, making its libraries and tools available
+# Install the shared Tomcat runtime
 make tomcat.install
 
 # Verify that Tomcat has been installed correctly and its components are accessible
@@ -86,7 +86,7 @@ make install
 # Check if the application components exist in their installed locations
 make exist
 
-# Start the Archiver Appliance service (likely a systemd service)
+# Start the Archiver Appliance systemd service
 make sd_start
 
 # Check the current status of the Archiver Appliance service
@@ -94,7 +94,7 @@ make sd_status
 ```
 
 ### Home Screenshot
-![Archiver Appliance Home Screen](docs/images/home-2025-06-05.png)
+![Archiver Appliance Home Screen](docs/technicaldocs/images/home-2025-06-05.png)
 
 *Figure 1 — Archiver Appliance Home Screen*
 
