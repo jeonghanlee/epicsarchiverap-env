@@ -8,11 +8,12 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API
 
-Next session entry point: two rows are Ready now — M9 (selectable MariaDB/SQLite
-backend, G9 Complete) and M21 (remove the retired Sphinx docs build, G11
-Complete). M17 landed at `a159b79` on origin/modernize (2026-09-19); its T6
-follow-up is carried as M20. M8 still waits for the remaining aa-maven gates and
-install verification.
+Next session entry point: M2 (install-sequence doc `docs/README.install.md`) is
+written, handed off, and adopted by ansible-provision — commit pending. Two rows
+are Ready — M9 (selectable MariaDB/SQLite backend, G9 Complete) and M21 (remove
+the retired Sphinx docs build, G11 Complete). M17 landed at `a159b79`
+(2026-09-19); its T6 follow-up is M20. M8's install verification will be
+exercised by the ansible-provision archiver-dev run.
 
 ## Milestone
 
@@ -35,6 +36,7 @@ install verification.
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Not started | Yes | G11 | No Sphinx/Python/docs-build assumption remains and phase 2 asserts the mgmt WAR `ui/api` reference; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
+| Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | In progress | No | M1, D7 | `docs/README.install.md` written and handed off; adopted by ansible-provision; commit and remote landing pending; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -74,6 +76,7 @@ install verification.
 | M2, G5 (`docs/milestone-265f580.md`) | Milestone section, branch modernize | Backlog section, branch modernize | `621312f` | `621312f` |
 | M9, M11 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retitled per D10/D11) | this synchronization commit | this synchronization commit |
 | M12 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retired per D11) | this synchronization commit | this synchronization commit |
+| M2 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1285,6 +1288,93 @@ the T6 artwork and prose remain unchanged in this session.
   runtime issue reproduction were not part of these checks; the T6 timeline
   correction is carried as M20.
 
+#### M2 - Non-interactive install sequence for the ansible role
+
+Origin: 265f580 / M2
+Identity History: Backlog to Milestone (assigned) 2026-09-19
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+Turn the install procedure into a linear, non-interactive sequence with every
+input named, so the ansible/cloud role drives the make targets without reading
+the Makefiles. Delivered as `docs/README.install.md`.
+
+##### Scope
+
+- `docs/README.install.md`: the ordered targets (init, db.conf,
+  conf.archapplproperties, build.mvn, sql.fill, conf.storage, install, sd_start),
+  the per-step privilege (build-user vs root), the inputs each consumes, the
+  paths each writes, and the check that proves it ran.
+- Host prerequisites, variable placement (`configure/RELEASE.local` SRC_TAG;
+  `../CONFIG_SITE.local` for AA_USERID/AA_GROUPID, DB_*, DB_HOST_NAME, toolchain),
+  the aa-env/host ownership boundary, the skipped targets (db.secure/addAdmin/
+  create, install_os_packages.bash, tomcat.get/install), and the health check.
+- Handoff of the sequence to the ansible/cloud session.
+
+Out of scope: writing the role; changing any Makefile behavior; MariaDB
+account/database creation and hardening (the provisioning operator owns these,
+per M9).
+
+##### Completion Criteria
+
+- `docs/README.install.md` is committed on `modernize`.
+- The sequence has been handed off to and confirmed by the ansible/cloud session.
+- The deployment result is recorded in Backlog gate G5; it does not gate M8
+  under D7.
+
+##### Dependencies And Decisions
+
+- M1 (tags and pin recipe); D7 (deployment is Backlog); D10 (distro toolchain);
+  D16 (DB rollout); M9 (selectable backend).
+- 2026-09-19 coordination with LAB-ansible-provision and LAB-cloud-provision: the
+  archiver-dev increment starts on TCP MariaDB; the operator creates the DB and
+  account, so the sequence skips db.secure/db.addAdmin/db.create and runs only
+  `make sql.fill`; `/opt/tomcat9` is provided read-only by P_tomcat; the document
+  reflects the distro-JDK toolchain and the selectable backend.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-09-19, owner directed writing the sequence document in session
+Implementation Authorization: 2026-09-19
+Superseded Plan Artifacts: none
+
+1. Record each target's inputs, outputs, privilege, and check from the Makefiles.
+   Done 2026-09-19.
+2. Write `docs/README.install.md`. Done 2026-09-19.
+3. Hand the sequence to the ansible/cloud session. Done 2026-09-19; adopted by
+   LAB-ansible-provision (archiver_build operator, archiver-dev species).
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Review | The ansible/cloud session confirms by message that every step names its command, inputs, outputs, and check | Peer session | Confirmation received, or a list of gaps to close |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-09-19 | Peer session | Pass | LAB-ansible-provision adopted the sequence, confirmed the privilege and ownership boundaries, and is building the archiver_build operator from it; no gaps flagged |
+
+##### Closure Evidence
+
+- `docs/README.install.md` written and the sequence handed off and adopted
+  (2026-09-19). Commit and remote landing pending, so this row stays In progress.
+  The live deployment result is Backlog gate G5 (does not gate M8, D7).
+
+##### GitHub Projection
+
+Title: Document the non-interactive install sequence for the ansible role
+Labels: documentation
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
 #### M21 - Remove the retired Sphinx docs build from aa-env
 
 Origin: 265f580 / M21
@@ -1704,7 +1794,6 @@ is routed (dependency management is aa-maven's domain, D9).
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Open | No | M1, D7 | Assign when the EPICS-env provisioning work that carries the archiver is scheduled; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Open | No | D7 | Follows M2 when assigned; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign if the EPICS-Arche UI change requires an aa-env skin update; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
@@ -1713,98 +1802,6 @@ is routed (dependency management is aa-maven's domain, D9).
 | Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Open | No | M17, D14 | Update the T6 prose and source SVG so files whose first samples pass the 12:30 MTS cutoff are shown in LTS, regenerate T1-T6 PNGs, and rerun documentation verification; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
 
 ### Backlog Details
-
-#### M2 - Non-interactive install sequence for the ansible role
-
-Origin: 265f580 / M2
-Identity History: none
-GitHub Issue: none
-Status: Open (2026-09-11, D7)
-
-##### Summary
-
-Turn the README procedure into a linear, non-interactive sequence with every
-input named, so the ansible/cloud session can write a role from it without
-reading this repository's Makefiles.
-
-##### Scope
-
-- One document under `docs/` listing, in order: packages (distro-JDK toolchain,
-  no java-env, per D10), the DB step for the selected backend (per M9/D16 — where
-  the provisioning operator creates the database and account, aa-env runs only
-  `make sql.fill`), Tomcat get/install, `make init build install`, systemd
-  enable/start, and the health probe.
-- For each step: the command, the variables it consumes, the files it writes,
-  and the check that proves it ran.
-- The `RELEASE.local` pin from M1.
-- Handoff message to the ansible/cloud session.
-
-Out of scope: writing the role; changing any Makefile behavior; MariaDB
-account/database creation and hardening (the provisioning operator owns these in
-the ansible/cloud path, per M9).
-
-##### Completion Criteria
-
-- The document is committed on `modernize`.
-- The handoff message has been sent with the document path and both tags.
-- The deployment result is recorded in Backlog gate G5; it does not gate M8
-  under D7.
-
-##### Dependencies And Decisions
-
-- M1 (tags and pin recipe)
-- G1 (aa-maven tag name)
-- D7 (moved to Backlog 2026-09-11)
-- 2026-09-11: G5 moved from this row to M8; the deployment cannot precede the
-  document it follows.
-- 2026-09-19 coordination with LAB-ansible-provision and LAB-cloud-provision
-  (see D16 and M9): the archiver-dev increment starts on TCP MariaDB
-  (`skip_networking=false`, `127.0.0.1:3306`). The provisioning operator creates
-  the database and account, so the aa-env sequence skips db.secure/db.addAdmin/
-  db.create and runs only `make sql.fill`; `DB_USER_PASS` is aa-env's value in
-  `CONFIG_SITE.local` and the account is created to match it. The account grant
-  host-spec must match MariaDB `skip-name-resolve` (`@'localhost'` vs
-  `@'127.0.0.1'`); IPv4 loopback, no `::1`. The sequence document reflects the
-  distro-JDK toolchain (D10, no java-env) and the selectable backend (M9), not
-  the original java-env/MariaDB-only steps.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Walk the README procedure on this host and record each step's inputs and
-   observable outputs.
-2. Write the sequence document.
-3. Send the handoff request to the ansible/cloud session.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Review | The ansible/cloud session confirms by message that every step in the document names its command, inputs, outputs, and check | Peer session | Confirmation received, or a list of gaps to close |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Peer session | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Document the non-interactive install sequence for the ansible role
-Labels: documentation
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
 
 #### G5 - Baseline deployment reported by the ansible/cloud session
 
