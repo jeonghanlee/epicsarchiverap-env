@@ -9,8 +9,8 @@ Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API
 
 Next session entry point: M9 (selectable MariaDB/SQLite backend, G9 Complete) is
-Ready. M21 (Sphinx cleanup) is implemented and locally verified — commit pending.
-M2 (install-sequence doc, `b6a80af`) and M17 (`a159b79`) have landed; M20 carries
+Ready. M21 (Sphinx cleanup) is Complete — landed at `a12516d`. M2
+(install-sequence doc, `b6a80af`) and M17 (`a159b79`) have landed; M20 carries
 M17's T6 follow-up. M8's install verification will be exercised by the
 ansible-provision archiver-dev run.
 
@@ -34,7 +34,7 @@ ansible-provision archiver-dev run.
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
-| Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | In progress | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); commit pending; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
+| Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | In progress | No | M1, D7 | `docs/README.install.md` written and handed off; adopted by ansible-provision; commit and remote landing pending; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -1382,7 +1382,7 @@ Last Compared: never
 Origin: 265f580 / M21
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1447,8 +1447,8 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- Code changes applied and verified 2026-09-20 (T1, T2). Commit and remote
-  landing evidence pending, so this row stays In progress.
+- Code changes applied and verified 2026-09-20 (T1, T2); landed at `a12516d` on
+  origin/modernize 2026-09-20. G11 Complete; no linked issue.
 
 ##### GitHub Projection
 
