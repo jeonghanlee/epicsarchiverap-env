@@ -8,12 +8,11 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API
 
-Next session entry point: M2 (install-sequence doc `docs/README.install.md`) is
-written, handed off, and adopted by ansible-provision — commit pending. Two rows
-are Ready — M9 (selectable MariaDB/SQLite backend, G9 Complete) and M21 (remove
-the retired Sphinx docs build, G11 Complete). M17 landed at `a159b79`
-(2026-09-19); its T6 follow-up is M20. M8's install verification will be
-exercised by the ansible-provision archiver-dev run.
+Next session entry point: M9 (selectable MariaDB/SQLite backend, G9 Complete) is
+Ready. M21 (Sphinx cleanup) is implemented and locally verified — commit pending.
+M2 (install-sequence doc, `b6a80af`) and M17 (`a159b79`) have landed; M20 carries
+M17's T6 follow-up. M8's install verification will be exercised by the
+ansible-provision archiver-dev run.
 
 ## Milestone
 
@@ -35,7 +34,7 @@ exercised by the ansible-provision archiver-dev run.
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
-| Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Not started | Yes | G11 | No Sphinx/Python/docs-build assumption remains and phase 2 asserts the mgmt WAR `ui/api` reference; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
+| Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | In progress | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); commit pending; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | In progress | No | M1, D7 | `docs/README.install.md` written and handed off; adopted by ansible-provision; commit and remote landing pending; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -859,7 +858,10 @@ remains open.
 ##### Dependencies And Decisions
 
 - G7 (aa-maven M5, CI on Maven); resume as Not started
-- D9
+- D9. 2026-09-20: `build.mvn` now skips tests (`-DskipTests`); the test suite
+  runs in aa-maven CI (D9), so aa-env no longer duplicates it. This is a partial
+  step toward M15; the full reduction of phase 2 to a wrapper check stays gated
+  on G7 (M15 stays Blocked).
 
 ##### Implementation Plan
 
@@ -1380,7 +1382,7 @@ Last Compared: never
 Origin: 265f580 / M21
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -1393,7 +1395,7 @@ assumptions; remove them so the build and its tests match the current source.
 - `configure/RULES_SRC`: drop the now-inert `-Dsphinx.skip=true` from
   `build.mvn2`, `build.mvn3`, and `build.war`.
 - `tests/phase2-compile.bash`: replace the `docs/docs/build/index.html`
-  assertion with the mgmt WAR `ui/api/index.html` reference.
+  assertion with the mgmt WAR `ui/api/index.html` and `ui/api/api.json` references.
 - `README.md` and `tests/README.md`: remove the Sphinx build-step description.
 - `configure/os/debian13.pkgs`: drop `python3`, `python3-pip`,
   `python-is-python3`, and `python3-venv` (the WAR build needs no system Python;
@@ -1406,25 +1408,28 @@ check (M15); narrative-docs hosting.
 
 - No `sphinx`, `docs/docs/build`, or Python-for-docs assumption remains in
   `configure/`, `scripts/`, `tests/`, or `README.md`.
-- Phase 2 asserts the in-WAR mgmt `ui/api/index.html` and passes against the
-  current aa-maven source.
+- Phase 2 asserts the in-WAR mgmt `ui/api/index.html` and `ui/api/api.json`, and
+  passes against the current aa-maven source.
 
 ##### Dependencies And Decisions
 
 - G11 Complete 2026-09-18 (aa-maven Sphinx retired, mdBook on Pages)
-- The `tests/phase2-compile.bash`, `README.md`, and `tests/README.md` edits
-  overlap the uncommitted M17 working tree; sequence them with M17.
+- D10 (distro toolchain; the docs build needed no system Python). The earlier
+  M17 working-tree overlap is resolved: M17 landed at `a159b79`.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-20, owner directed the cleanup in session
+Implementation Authorization: 2026-09-20
 Superseded Plan Artifacts: none
 
-1. Remove the inert `-Dsphinx.skip=true` and the Python docs packages.
-2. Repoint the phase 2 docs assertion to the mgmt WAR `ui/api/index.html`.
-3. Remove the Sphinx step from the READMEs; run phase 1 and 2.
+1. Removed the inert `-Dsphinx.skip=true` (RULES_SRC build.mvn2/3/war) and the
+   Python docs packages (debian13.pkgs). Done 2026-09-20.
+2. Repointed the phase 2 check to assert `ui/api/index.html` and `ui/api/api.json`
+   in the mgmt WAR and removed the `docs/docs/build` and `python3` assertions.
+   Done 2026-09-20.
+3. Removed the Sphinx step from README.md and tests/README.md. Done 2026-09-20.
 
 ##### Test Plan
 
@@ -1437,12 +1442,13 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
+| T1 | 2026-09-20 | This host | Pass | `tests/run-all-tests.bash --phase=1`: passed=37 failed=0 |
+| T2 | 2026-09-20 | This host, source `3c96141d` | Pass | `tests/run-all-tests.bash --phase=2` ran end-to-end: `make build.mvn` (clean package, tests skipped) built the four WARs and the release assembly, and the redone P2.7 (`assert_file` on `ui/api/index.html` and `ui/api/api.json` extracted from the mgmt WAR) passed. Phase 2 passed=23 failed=0; no `docs/docs/build` reference remains. |
 
 ##### Closure Evidence
 
-- none
+- Code changes applied and verified 2026-09-20 (T1, T2). Commit and remote
+  landing evidence pending, so this row stays In progress.
 
 ##### GitHub Projection
 
