@@ -8,7 +8,7 @@ the check that proves it ran.
 
 ## Architecture
 
-- aa-env clones the source (aa-maven) and drives its Maven Wrapper build, then
+- aa-env clones the source repository (https://github.com/jeonghanlee/epicsarchiverap-maven) and drives its Maven Wrapper build, then
   installs four Tomcat instances under a single systemd service: `mgmt` (17665),
   `engine` (17666), `etl` (17667), `retrieval` (17668).
 - The source WARs are site-built: the default `als` site overlay is copied into
@@ -37,8 +37,8 @@ the check that proves it ran.
 
 ## Configuration (variable placement)
 
-- `configure/RELEASE.local`: `SRC_TAG` — the aa-maven source pin (a commit,
-  tag, or branch). `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
+- `configure/RELEASE.local`: `SRC_TAG` — the source pin for
+  https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
   is overridden here only when the source is hosted elsewhere. This file is not
   rewritten by the per-OS config targets.
 - `../CONFIG_SITE.local` (one directory above the checkout top): `AA_USERID`,

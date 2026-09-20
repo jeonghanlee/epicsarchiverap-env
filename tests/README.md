@@ -10,7 +10,7 @@ Tests execute in strict order, from least to most privilege:
 | Phase | Validates | Setup cost |
 | :--- | :--- | :--- |
 | 1. Logic | configure/ structure, Makefile parsing, doc set integrity | none |
-| 2. Compile | full Maven build with sphinx; four service WARs produced | distro JDK 21, Python, network (the Maven Wrapper self-provisions) |
+| 2. Compile | Maven build (tests skipped; run in the CI at https://github.com/jeonghanlee/epicsarchiverap-maven); four service WARs + assembly produced | distro JDK 21, network (the Maven Wrapper self-provisions) |
 | 3. Infrastructure | `make install` end-to-end inside a Debian 13 container | Docker daemon |
 | 4. System | full systemd stack inside a libvirt VM; HTTP probes | KVM, libvirt, cloud-init |
 
@@ -55,13 +55,12 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - `run_logged` preserves both success and a nonzero exit status from real child commands.
 
 ### Phase 2 — Compile
-- `python3` is on PATH for `docs/build_docs.sh` to bootstrap its sphinx venv.
 - `make init` clones `epicsarchiverap-maven-src` (skipped if the directory already exists).
 - `make conf.archapplproperties` generates the site configuration required by the WAR build; it does not provision the host storage directories.
-- `make build.mvn` (full clean + package) must return success before any artifact is accepted. A failed build stops the phase even if previous artifacts remain.
+- `make build.mvn` (clean + package, tests skipped — the CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite) must return success before any artifact is accepted. A failed build stops the phase even if previous artifacts remain.
 - Exactly one WAR for each service (`mgmt`, `engine`, `etl`, `retrieval`) is produced under `target/`, each at least 1 MB. All four share a build prefix chosen by the source POM, including the `aa-<date>-<hash>` naming scheme.
 - Exactly one release `.tar.gz` and `target/stage/RELEASE_NOTES` are produced. The source assembly plugin owns the tarball name.
-- `docs/docs/build/index.html` confirms the sphinx documentation step ran end-to-end.
+- The mgmt WAR's `ui/api/index.html` confirms the generated API reference is packaged.
 
 ### Phase 3 — Infrastructure (planned)
 - `make install` populates `${AA_INSTALL_LOCATION}/{mgmt,engine,etl,retrieval}/webapps` with the four exploded WAR trees.
@@ -72,6 +71,5 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` returns 200.
 - The `archappl` MariaDB database contains `ArchivePVRequests`, `ExternalDataServers`, `PVAliases`, and `PVTypeInfo`.
 
-The source repository owns the documentation build, including the current
-`docs/build_docs.sh` venv bootstrap. Planned changes to that build are tracked
-in its own work register rather than as aa-env test work.
+The source repository owns the documentation build. Planned changes to that
+build are tracked in its own work register rather than as aa-env test work.

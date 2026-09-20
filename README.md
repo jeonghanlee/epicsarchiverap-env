@@ -23,8 +23,6 @@ This repository provides a set of `Makefiles` and scripts to automate the setup 
 * **Git**: Required for generating release notes from commit history (this is part of the documentation generation process).
 * **Operating System**:
     * Core build (JARs/WARs) is generally OS-agnostic.
-    * Sphinx documentation (`build_docs.sh`) is primarily for Linux.
-* **Sphinx Tools**: nothing to install by hand. The package step provides Python and `python3-venv`, and the documentation build (`build_docs.sh`) bootstraps Sphinx into its own venv on the first run.
 
 ## Debian 13 Setup Guide
 This guide outlines the setup and build process on a Debian 13 system.

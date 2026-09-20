@@ -69,21 +69,21 @@ clean.mvn: info.mvn
 ## issues. It requires the significant work to change the sources codes,
 ## So, I am good for cd && solution.
 ## 2025-06-03
-## Build
+## Build (tests skipped -- CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite)
 build.mvn: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package -DskipTests && cd ..
 
 ## Build 2
 build.mvn2: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package && cd ..
 
 ## Build 3
 build.mvn3: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -Dsphinx.skip=true -X && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -X && cd ..
 
 ## Build 4 
 build.war: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) war:exploded -Dsphinx.skip=true && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) war:exploded && cd ..
 
 ## Build 4 
 build.mvndeps: info.mvn copy.sitespecific
