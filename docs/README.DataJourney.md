@@ -111,7 +111,11 @@ Let's trace the journey of data with a concrete timeline to visualize the flow.
 
 ### [T6] Long After T5 (Continuous Operation)
 
-After a longer period, the system reaches a steady state where both STS and MTS buffers are full, and data is being continuously moved to LTS as new files are created. This final image illustrates the complete end-to-end data flow.
+After a longer period, the system reaches a steady state: STS keeps completing files and handing the oldest one to MTS, MTS keeps assembling them, and data that has aged past the MTS `hold` boundary keeps moving on to LTS. This final image illustrates the complete end-to-end data flow.
+
+* **STS:** `File_11 (12:30-12:45)` is receiving data, while `File_10`, `File_9` and `File_8` wait in the Completed buffer. `File_8 (11:45-12:00)` is the one ETL is moving out.
+* **MTS:** `File_D` is being assembled from the arriving `File_7` and `File_8`. Its Completed buffer is empty.
+* **LTS:** `File_C (11:00-11:30)`, `File_B (10:30-11:00)` and `File_A (10:00-10:30)` now sit in permanent storage. At this 12:30 evaluation the MTS `hold` of 2 over a 30-minute partition puts the boundary at 11:29:59, and any file whose first sample is at or before it has already left MTS. `File_B` and `File_C` both qualify, which is why the MTS Completed buffer is empty.
 
 |![T6](./figures/T6.png)|
 | :---: |
