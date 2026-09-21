@@ -60,7 +60,7 @@ def getFieldsArchivedAsPartOfStream():
 # ARCHAPPL_MEDIUM_TERM_FOLDER to determine the location of the STS and the
 # MTS in the appliance
 STS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=PARTITION_HOUR&hold=2&gather=1&consolidateOnShutdown=true'
-MTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_MONTH&hold=2&gather=1'
+MTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=2&gather=1'
 LTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=PARTITION_YEAR'
 
 
