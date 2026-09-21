@@ -2301,7 +2301,7 @@ aa-maven register row: none carries the closure; the declaration is theirs
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
-| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | In progress | No | M17, D14 | Artwork corrected and all six PNGs regenerated 2026-09-21 (T1 Pass); the prose half of the criterion awaits an owner call; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
+| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
 
 ### Backlog Details
 
@@ -2619,7 +2619,7 @@ Last Compared: 2026-09-15; GitHub REST issue #25 read, remote updated_at 2024-05
 Origin: 265f580 / M20
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -2686,6 +2686,12 @@ Superseded Plan Artifacts: none
    convention was read off the layers first: bright green marks the active
    file, light blue a completed one, dark blue one in transit. Done 2026-09-21.
 3. Regenerated all six PNGs with the recipe above. Done 2026-09-21.
+4. `docs/README.DataJourney.md`, T6: wrote the prose half the criterion asks
+   for, in the STS/MTS/LTS bullet form the other sections use, naming File_C,
+   File_B and File_A in LTS and giving the 11:29:59 boundary that puts them
+   there. The section's opening sentence had said both buffers were full,
+   which the corrected figure contradicts, so it now says data ages past the
+   MTS `hold` boundary and moves on. Done 2026-09-21.
 
 1. Update the T6 prose and SVG layer to match the 12:30 MTS cutoff.
 2. Regenerate all six PNG exports with Inkscape.
@@ -2706,12 +2712,13 @@ Superseded Plan Artifacts: none
 ##### Closure Evidence
 
 - Artwork and export corrected 2026-09-21 (T1 Pass); the 2026-09-16 deferral is
-  lifted. One question is left for the owner before this row closes: the
-  completion criterion names "T6 prose and artwork", and the restored
-  `docs/README.DataJourney.md` carries only a one-line T6 caption with no
-  File_B or File_C prose. Nothing there now contradicts the cutoff, but neither
-  does it state the placement, so whether the prose half is satisfied or still
-  wants a sentence is the owner's call.
+  lifted. The artwork and the regenerated exports landed at `9fb3b29` on
+  origin/modernize.
+- The owner answered the prose question on 2026-09-21: match the text to the
+  figure. The T6 prose was written the same day, states the placement and the
+  boundary that produces it, and landed at `e513267`. Both halves of the
+  completion criterion are met and both carry landing evidence, so this row
+  closes.
 
 #### M27 - LTS retrieval pre-processing (`pp`)
 
