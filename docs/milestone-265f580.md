@@ -8,18 +8,20 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: add a test-oriented set of store URLs to
-`site-template/policies.py.in` with short `partitionGranularity` and `hold`
-(M26) — the shipped MTS at `PARTITION_MONTH&hold=2` holds samples for about two
-months, so the second ETL hop cannot be observed in any test run, and the
-archive store also sits on the root filesystem with no threshold. Seven rows are
+Next session entry point: give the archive store its own filesystem on a test
+host and name that requirement among the host prerequisites in
+`docs/README.install.md` (M26) — the store resolves to the root volume with no
+quota, so an archiver that fills it takes the whole host, and the fill rate is
+still unknown. The other half of M26 is settled: the shipped MTS granularity is
+now `PARTITION_DAY`, matching the storage guide's recommended default, so the
+second ETL hop becomes eligible after about two days instead of two months and a
+soak can observe the whole chain. Seven rows are
 Ready: M9, M15 and M22-M26. M22's `256M` candidate default is validated only at
 idle; the load test requested from ansible-provision supplies the figure under
 load, the disk growth rate M26 needs, and the first observation of ETL movement
 anywhere. M8's Release Verification 2 and 3 passed on three provisioned hosts;
 Release Verification 1 and 4 remain, and M8 still waits on M9 and M15. M2
-(`b6a80af`), M17 (`a159b79`) and M21 (`a12516d`) have landed; M20 carries M17's
-T6 follow-up.
+(`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
 
@@ -1895,6 +1897,19 @@ test environment.
 - The fill rate is unknown until the pending load test reports disk growth with
   a PV sampling. That figure sets the threshold value; it does not change the
   shape of this work, so this row does not wait on it.
+- 2026-09-21: the shipped MTS granularity moved from `PARTITION_MONTH` to
+  `PARTITION_DAY`, matching the recommended default the storage guide already
+  carried in its "Final Recommended Default Policy" section. The guide and the
+  template had disagreed since both were first committed; the owner settled it
+  by changing the template rather than annotating the guide. The second ETL hop
+  now becomes eligible after roughly two days instead of roughly two months, so
+  a soak can observe the whole chain and the remaining question for this row is
+  only whether two days is short enough for quick iteration.
+- The LTS `pp=mean_3600` half of that same recommendation is deliberately not
+  applied: `pp` adds auxiliary files and therefore disk, which is the opposite
+  of what this row is protecting against while the fill rate is unknown, and it
+  cannot coexist with the `reducedata` the Fast, VeryFast, Medium and Slow
+  policies already set on LTS. M27 carries that question.
 
 ##### Implementation Plan
 
