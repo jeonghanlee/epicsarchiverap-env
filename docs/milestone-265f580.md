@@ -6,13 +6,15 @@ Canonical path: `docs/milestone-265f580.md`
 Canonical branch or ref: modernize
 Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
-Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API
+Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M9 (selectable MariaDB/SQLite backend, G9 Complete) is
-Ready. M21 (Sphinx cleanup) is Complete — landed at `a12516d`. M2
-(install-sequence doc, `b6a80af`) and M17 (`a159b79`) have landed; M20 carries
-M17's T6 follow-up. M8's install verification will be exercised by the
-ansible-provision archiver-dev run.
+Next session entry point: two rows are Ready — M9 (selectable MariaDB/SQLite
+backend, G9 Complete) and M15 (reduce phase 2 to a build-wrapper check, G7
+Complete 2026-09-20). D17 closed G10 on aa-maven's own Phase 1 definition and
+deferred M14 (Ant removal) on both sides, so M8 is no longer Blocked: it waits
+on M9 and M15, then on the install verification the ansible-provision
+archiver-dev run exercises. M2 (`b6a80af`), M17 (`a159b79`), and M21
+(`a12516d`) have landed; M20 carries M17's T6 follow-up.
 
 ## Milestone
 
@@ -30,21 +32,21 @@ ansible-provision archiver-dev run.
 | DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | Not started | Yes | G9, M11, D15 | One PV archives and retrieves under each backend selected in `context.xml`; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Blocked | No | M1, M4, M6, M9, M11, M14, M15, M16, M17, G10 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
-| Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D9 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package; build still passes; [detail](#m14---remove-ant-leftovers-from-aa-env) |
-| Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Blocked | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
+| Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Deferred | No | G6, D9, D17 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package, build still passes; deferred 2026-09-20 (D17) with Ant removal out of Phase 1 on both sides, returning to Not started only by a new dated decision; [detail](#m14---remove-ant-leftovers-from-aa-env) |
+| Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Not started | Yes | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
-| Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | In progress | No | M1, D7 | `docs/README.install.md` written and handed off; adopted by ansible-provision; commit and remote landing pending; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
+| Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
 | Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Complete | No | | Retired 2026-09-12: Tomcat 9 fixed, no jakarta migration (aa-maven D13); [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
-| Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | aa-maven M10 complete, commit and post-Ant sitespecific contract reported; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
-| Gate | G7 | aa-maven CI builds on Maven | External gate | Open | No | | aa-maven rebuilds CI on Maven and reports a passing run; [detail](#g7---aa-maven-ci-builds-on-maven) |
+| Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Closes when aa-maven removes Ant and reports the commit with the post-Ant per-site contract; their M10 is deferred to backlog (2026-09-19) and Ant still drives the per-site build at `3c96141d`, so this blocks no row under D17; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
+| Gate | G7 | aa-maven CI builds on Maven | External gate | Complete | No | | `maven.yml` runs `./mvnw -B -ntp clean verify` on JDK 21; passing run 35423900164 / `b0fcbb61`, re-derived at `3c96141d` 2026-09-20; [detail](#g7---aa-maven-ci-builds-on-maven) |
 | Gate | G8 | aa-maven Maven Wrapper build verified | External gate | Complete | No | | Fresh-clone `./mvnw` build passed at `c1dd0b1`, reported 2026-09-12; [detail](#g8---aa-maven-maven-wrapper-build-verified) |
 | Gate | G9 | aa-maven ships both DB drivers with dialect auto-detection | External gate | Complete | No | | Both `mariadb-java-client` and `sqlite-jdbc` ship; the source auto-detects the dialect from DataSource metadata (aa-maven `ab324afb`); [detail](#g9---aa-maven-ships-both-db-drivers-with-dialect-auto-detection) |
-| Gate | G10 | aa-maven Phase 1 complete (servlet-api 9.0.121, Ant removed, CI on Maven) | External gate | Open | No | | aa-maven reports Phase 1 done with the commit; the source modernize branch is release-ready; [detail](#g10---aa-maven-phase-1-complete-servlet-api-90121-ant-removed-ci-on-maven) |
+| Gate | G10 | aa-maven Phase 1 complete (servlet-api 9.0.122, CI on Maven) | External gate | Complete | No | | Phase 1 closed on the D17 basis: servlet-api 9.0.122 and Maven CI verified at `3c96141d` 2026-09-20; Ant removal deferred; [detail](#g10---aa-maven-phase-1-complete-servlet-api-90122-ci-on-maven) |
 | Gate | G11 | aa-maven retires the Sphinx docs pipeline (mdBook on Pages) | External gate | Complete | No | | Sphinx/RTD removed on aa-maven modernize `263805a1`; mdBook live on GitHub Pages; [detail](#g11---aa-maven-retires-the-sphinx-docs-pipeline-mdbook-on-pages) |
 | Gate | G12 | aa-maven adds JNA for MariaDB Unix-socket support | External gate | Open | No | | aa-maven ships `net.java.dev.jna:jna` (+ jna-platform) so `mariadb-java-client` `localSocket` works; needed for M9 step 2 (UDS); [detail](#g12---aa-maven-adds-jna-for-mariadb-unix-socket-support) |
 ### Decisions
@@ -67,6 +69,7 @@ ansible-provision archiver-dev run.
 | D9 | Boundary between the two repositories: aa-env owns provisioning, deployment layout, service configuration, source baseline pinning, and the site skin; aa-maven owns source, the Maven build (Ant and Gradle leftovers consolidated onto Maven), dependency management, upstream cherry-pick policy, and independent bug fixes. Build-flavored leftovers inside aa-env are aa-env cleanup rows gated on aa-maven rows; compile verification moves to aa-maven CI and aa-env keeps install tests. No aa-env row migrates; the legacy build items already exist on the aa-maven register. | 2026-09-11 |
 | D15 | MariaDB and SQLite run in parallel as selectable persistence backends, not SQLite-only. The backend is chosen at install in `context.xml` (a `DB_BACKEND` selector renders the driver class, URL, and initialization); the aa-maven source auto-detects the dialect from the DataSource metadata, so both `mariadb-java-client` and `sqlite-jdbc` stay shipped in the WARs. Supersedes the SQLite-only clause of D11; aa-maven records the same model as its D28/D29 (`ab324afb`, `263805a1`). | 2026-09-18 |
 | D16 | DB-backend rollout order: MariaDB over TCP first, then MariaDB over Unix domain socket, then SQLite3 as the end state. The ansible/cloud provisioning starts on TCP MariaDB, agreed with LAB-ansible-provision and LAB-cloud-provision. Refines D15. | 2026-09-19 |
+| D17 | Align aa-env with aa-maven on Ant removal: it is deferred out of Phase 1 on both sides. aa-maven moved its Ant-removal row (their M10) to the backlog on 2026-09-19 (their D7). aa-env confirmed this first-hand at aa-maven modernize `3c96141d`, whose commit subject is `Move M7 and M10 to the backlog and close out Phase 1`: their register `docs/milestone-daff1b7.md` carries M10 as `Deferred` with an assignment-history row recording the 2026-09-19 move, and the `maven-antrun-plugin` execution `sitespecificantscript` there still drives `build.xml` target `sitespecificbuild`. G10's completion criterion therefore covers the tomcat-servlet-api pin (observed 9.0.122, not the 9.0.121 the gate first named) and the Maven CI only, and G10 closes on that basis. aa-env M14 (Ant leftovers) becomes Deferred and leaves M8's dependency list; G6 stays Open and blocks no row; M14 returns to Not started only by a new dated decision. | 2026-09-20 |
 
 ### Assignment History
 
@@ -634,7 +637,7 @@ Last Compared: never
 Origin: 265f580 / M8
 Identity History: none
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Not started
 
 ##### Summary
 
@@ -659,8 +662,11 @@ Out of scope: any new feature.
 
 ##### Dependencies And Decisions
 
-- M1, M4, M6, M9, M11, M14, M15, M16, M17
-- G10 (aa-maven Phase 1 complete); resume as Not started
+- M1, M4, M6, M9, M11, M15, M16, M17
+- G10 (aa-maven Phase 1 complete); Complete 2026-09-20 on the D17 basis, so this
+  row resumes at the recorded Not started
+- D17. 2026-09-20: M14 (Ant leftovers) is Deferred and leaves this list; Ant
+  removal is out of the release scope on both sides.
 - The install verification (Release Verification 2 and 3) runs against the
   aa-maven Phase 1 source before any PR; fast-forward merge per owner choice
   2026-09-12.
@@ -745,7 +751,7 @@ Last Compared: never
 Origin: 265f580 / M14
 Identity History: none
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Deferred
 
 ##### Summary
 
@@ -779,9 +785,13 @@ which aa-maven confirmed survive Ant removal.
 
 ##### Dependencies And Decisions
 
-- G6 (aa-maven M10 and the post-Ant sitespecific contract); resume as Not
-  started
+- G6 (aa-maven M10 and the post-Ant sitespecific contract); still Open, and it
+  no longer blocks this row
 - D9
+- D17. 2026-09-20: Ant removal is deferred out of Phase 1 on both sides, so this
+  row moves to Deferred and leaves M8's dependency list. aa-maven moved its M10
+  to the backlog 2026-09-19; this row returns to Not started only by a new dated
+  decision.
 
 ##### Implementation Plan
 
@@ -828,7 +838,7 @@ Last Compared: never
 Origin: 265f580 / M15
 Identity History: none
 GitHub Issue: none
-Status: Blocked (resume as Not started)
+Status: Not started
 
 ##### Summary
 
@@ -857,11 +867,12 @@ remains open.
 
 ##### Dependencies And Decisions
 
-- G7 (aa-maven M5, CI on Maven); resume as Not started
+- G7 (aa-maven M5, CI on Maven); Complete 2026-09-20, so this row resumes at the
+  recorded Not started
 - D9. 2026-09-20: `build.mvn` now skips tests (`-DskipTests`); the test suite
-  runs in aa-maven CI (D9), so aa-env no longer duplicates it. This is a partial
-  step toward M15; the full reduction of phase 2 to a wrapper check stays gated
-  on G7 (M15 stays Blocked).
+  runs in aa-maven CI (D9), so aa-env no longer duplicates it. That was a
+  partial step toward M15; with G7 Complete, the full reduction of phase 2 to a
+  wrapper check is unblocked.
 
 ##### Implementation Plan
 
@@ -1295,7 +1306,7 @@ the T6 artwork and prose remain unchanged in this session.
 Origin: 265f580 / M2
 Identity History: Backlog to Milestone (assigned) 2026-09-19
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1364,8 +1375,10 @@ Superseded Plan Artifacts: none
 ##### Closure Evidence
 
 - `docs/README.install.md` written and the sequence handed off and adopted
-  (2026-09-19). Commit and remote landing pending, so this row stays In progress.
-  The live deployment result is Backlog gate G5 (does not gate M8, D7).
+  (2026-09-19); T1 Pass. Landed at `b6a80af` on origin/modernize and refined at
+  `a12516d` (source references spelled as the full aa-maven URL); both observed
+  on origin 2026-09-20. The live deployment result is Backlog gate G5 (does not
+  gate M8, D7).
 
 ##### GitHub Projection
 
@@ -1585,10 +1598,11 @@ Status: Open
 aa-maven removes Ant from its build (its register row M10) and reports the
 commit together with the post-Ant contract for the per-site build step that
 `build.xml` target `sitespecificbuild` used to run inside
-`src/sitespecific/<site>`. Affects M14.
+`src/sitespecific/<site>`. Affected M14, which D17 deferred; this gate now
+blocks no row and stays Open until aa-maven takes the work up again.
 
-aa-maven register row: `docs/milestone-daff1b7.md` M10 (Ant removal,
-Deferred to the end of aa-maven Phase 1, their D7).
+aa-maven register row: `docs/milestone-daff1b7.md` M10 (Ant removal, Deferred
+and moved to the aa-maven backlog 2026-09-19, their D7).
 
 ##### Completion Criteria
 
@@ -1599,7 +1613,7 @@ Deferred to the end of aa-maven Phase 1, their D7).
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-20 | Pending | aa-maven reports M10 (Ant removal) Deferred and moved to its backlog 2026-09-19 (their D7), with no landing commit. aa-env re-derived it at aa-maven modernize `3c96141d`: their register `docs/milestone-daff1b7.md` carries M10 as `Deferred` with an assignment-history row for the 2026-09-19 move, and the `maven-antrun-plugin` execution `sitespecificantscript` still runs `<ant antfile="${project.basedir}/build.xml" target="sitespecificbuild"/>`, so the per-site contract is still Ant-based. Recheck by reading that path and the pom at the then-current aa-maven `modernize` head. |
 
 ##### Closure Evidence
 
@@ -1609,16 +1623,16 @@ Deferred to the end of aa-maven Phase 1, their D7).
 
 Origin: 265f580 / G7
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
 aa-maven rebuilds CI on Maven and reports a passing workflow run. It removed
-the Gradle workflows (aa-maven M1); the readthedocs build already runs
-`./mvnw javadoc:javadoc`. Affects M15.
+the Gradle workflows (aa-maven M1); the retired readthedocs build is covered by
+G11. Affects M15.
 
 aa-maven register row: `docs/milestone-daff1b7.md` M5 (Maven-centric CI and docs
-build), observed Not started at `35282494` on 2026-09-15.
+build), reported Complete at `9a3855cd` on 2026-09-20.
 
 ##### Completion Criteria
 
@@ -1629,11 +1643,12 @@ build), observed Not started at `35282494` on 2026-09-15.
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-20 | Pass | aa-maven reports `.github/workflows/maven.yml` running `./mvnw -B -ntp clean verify` on JDK 21, passing run 35423900164 at commit `b0fcbb61` (CI added `a4952f3d`, verify build restored `54683b6c`, their M5 Complete at `9a3855cd`). aa-env re-derived at aa-maven modernize `3c96141d`: the workflow runs on JDK 21 with `./mvnw -B -ntp clean verify`; all four cited commits exist (`git cat-file -e <sha>^{commit}`) and `b0fcbb61` is an ancestor of `origin/modernize` (`git merge-base --is-ancestor`). The Actions run status itself stays peer-reported; recheck with `gh run view 35423900164 -R jeonghanlee/epicsarchiverap-maven`. |
 
 ##### Closure Evidence
 
-- none
+- aa-maven cross-session response of 2026-09-20 (their M5 Complete, run
+  35423900164 / `b0fcbb61`) and the aa-env workflow read above.
 
 #### G8 - aa-maven Maven Wrapper build verified
 
@@ -1698,39 +1713,40 @@ aa-maven register rows: `docs/milestone-daff1b7.md` M11 (sqlite-jdbc) and M13
 
 - aa-maven cross-session response of 2026-09-18 (parallel/selectable model, `ab324afb`) and the aa-env pom read above.
 
-#### G10 - aa-maven Phase 1 complete (servlet-api 9.0.121, Ant removed, CI on Maven)
+#### G10 - aa-maven Phase 1 complete (servlet-api 9.0.122, CI on Maven)
 
 Origin: 265f580 / G10
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
 aa-maven finishes its Phase 1 and reports the commit: the dependency refresh
-(tomcat-servlet-api 9.0.121 and the other current-stable pins), Ant removal
-with the per-site build contract, and CI rebuilt on Maven. Only then is the
-source `modernize` branch release-ready for the aa-env install verification
-that gates M8. This gate subsumes the earlier per-item gates G6 (Ant) and G7
-(CI) for release purposes; those stay as their own rows until each is
-reported.
+(tomcat-servlet-api and the other current-stable pins) and CI rebuilt on Maven.
+Under D17 Ant removal is deferred out of Phase 1 on both sides, so this gate no
+longer carries the Ant clause; G6 keeps that item as its own Open row. With
+Phase 1 closed on that basis, the source `modernize` branch is release-ready for
+the aa-env install verification that gates M8. G7 (CI) stays its own row.
 
-aa-maven register rows: `docs/milestone-daff1b7.md` M4 (dependency refresh
-including servlet-api 9.0.121), M5 (CI on Maven), M10 (Ant removal).
+aa-maven register rows: `docs/milestone-daff1b7.md` M4 (dependency refresh),
+M5 (CI on Maven); M10 (Ant removal) moved to their backlog 2026-09-19.
 
 ##### Completion Criteria
 
 - A cross-session response names the aa-maven commit and confirms Phase 1 is
-  complete (servlet-api 9.0.121 in the pom, no Ant, CI green on Maven).
+  complete on the D17 basis: the tomcat-servlet-api pin present in the pom and
+  CI green on Maven, with Ant removal deferred.
 
 ##### Verification Results
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-20 | Pass | aa-maven reports Phase 1 closed with Ant removal deferred to its backlog: servlet-api pinned at 9.0.122 and Maven CI green (run 35423900164 / `b0fcbb61`). aa-env re-derived both at aa-maven modernize `3c96141d`: `org.apache.tomcat:tomcat-servlet-api` version `9.0.122` in the pom, and `.github/workflows/maven.yml` running `./mvnw -B -ntp clean verify` on JDK 21. The Actions run status itself stays peer-reported (see G7 for its recheck command). The Ant clause is out of scope per D17; `build.xml` is still driven by antrun there (see G6). |
 
 ##### Closure Evidence
 
-- none
+- aa-maven cross-session response of 2026-09-20 and the aa-env pom and workflow
+  reads above; closed on the D17 basis (Ant removal deferred, not done).
 
 #### G11 - aa-maven retires the Sphinx docs pipeline (mdBook on Pages)
 
