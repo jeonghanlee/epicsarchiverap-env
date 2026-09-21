@@ -8,13 +8,14 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: two rows are Ready — M9 (selectable MariaDB/SQLite
-backend, G9 Complete) and M15 (reduce phase 2 to a build-wrapper check, G7
-Complete 2026-09-20). D17 closed G10 on aa-maven's own Phase 1 definition and
-deferred M14 (Ant removal) on both sides, so M8 is no longer Blocked: it waits
-on M9 and M15, then on the install verification the ansible-provision
-archiver-dev run exercises. M2 (`b6a80af`), M17 (`a159b79`), and M21
-(`a12516d`) have landed; M20 carries M17's T6 follow-up.
+Next session entry point: lower `AA_JAVA_HEAPSIZE` in `configure/CONFIG_SITE`
+and state the resulting host memory requirement in `docs/README.install.md`
+(M22) — the ansible-provision run lost instances to the kernel OOM killer on a
+4 GB host. Six rows are Ready: M9, M15, and the install-to-running follow-ups
+M22-M25 (D18). M8's Release Verification 2 and 3 passed on three provisioned
+hosts at aa-env `fb43522` with aa-maven `3c96141d`; Release Verification 1 and 4
+remain, and M8 still waits on M9 and M15. M2 (`b6a80af`), M17 (`a159b79`) and
+M21 (`a12516d`) have landed; M20 carries M17's T6 follow-up.
 
 ## Milestone
 
@@ -38,6 +39,10 @@ archiver-dev run exercises. M2 (`b6a80af`), M17 (`a159b79`), and M21
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
+| Runtime | M22 | Size the JVM heap default to the host | Milestone | Not started | Yes | D18 | A default install on a 4 GB host runs the four instances beside MariaDB with no kernel OOM kill, and the host memory requirement is documented; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
+| Runtime | M23 | Make a dead instance visible to systemd | Milestone | Not started | Yes | D12, D18, D19 | A killed instance puts a systemd unit into `failed` within the timer interval while the appliance service and the surviving instances are untouched; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
+| Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Not started | Yes | D12, D18 | No function in `scripts/archappl.bash` is defined without a caller, and `jsvc` is listed only where something invokes it; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
+| Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Not started | Yes | D10, D18 | The hook's name and comment describe mvn command-line flags, and any proxy guidance names the settings-file route; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -70,6 +75,8 @@ archiver-dev run exercises. M2 (`b6a80af`), M17 (`a159b79`), and M21
 | D15 | MariaDB and SQLite run in parallel as selectable persistence backends, not SQLite-only. The backend is chosen at install in `context.xml` (a `DB_BACKEND` selector renders the driver class, URL, and initialization); the aa-maven source auto-detects the dialect from the DataSource metadata, so both `mariadb-java-client` and `sqlite-jdbc` stay shipped in the WARs. Supersedes the SQLite-only clause of D11; aa-maven records the same model as its D28/D29 (`ab324afb`, `263805a1`). | 2026-09-18 |
 | D16 | DB-backend rollout order: MariaDB over TCP first, then MariaDB over Unix domain socket, then SQLite3 as the end state. The ansible/cloud provisioning starts on TCP MariaDB, agreed with LAB-ansible-provision and LAB-cloud-provision. Refines D15. | 2026-09-19 |
 | D17 | Align aa-env with aa-maven on Ant removal: it is deferred out of Phase 1 on both sides. aa-maven moved its Ant-removal row (their M10) to the backlog on 2026-09-19 (their D7). aa-env confirmed this first-hand at aa-maven modernize `3c96141d`, whose commit subject is `Move M7 and M10 to the backlog and close out Phase 1`: their register `docs/milestone-daff1b7.md` carries M10 as `Deferred` with an assignment-history row recording the 2026-09-19 move, and the `maven-antrun-plugin` execution `sitespecificantscript` there still drives `build.xml` target `sitespecificbuild`. G10's completion criterion therefore covers the tomcat-servlet-api pin (observed 9.0.122, not the 9.0.121 the gate first named) and the Maven CI only, and G10 closes on that basis. aa-env M14 (Ant leftovers) becomes Deferred and leaves M8's dependency list; G6 stays Open and blocks no row; M14 returns to Not started only by a new dated decision. | 2026-09-20 |
+| D18 | The four install-to-running findings from the ansible-provision archiver-dev run are taken as aa-env milestone work (M22-M25), not raised as issues on the reporting side: the JVM heap default, instance supervision under the single systemd unit, the dead jsvc shutdown path, and the `MAVEN_OPTS` name and proxy semantics. Each was re-derived in this repository before assignment. The same run supplies M8's Release Verification 2 and 3 observations, taken at aa-env `fb43522` with aa-maven `3c96141d`; the install and runtime paths (`site-template/`, `scripts/`, `configure/CONFIG_SITE`, `configure/CONFIG_SRC`) are unchanged between `fb43522` and `e06c554`, so those observations carry to the current tree. | 2026-09-21 |
+| D19 | M23 reports a dead instance and does not recover it: no automatic restart, and the report comes from a health unit separate from the appliance service. A watcher running as the service's own main process was rejected because `systemd.service` states the stop operation is always performed once a service started successfully, "even if the processes in the service terminated on their own or were killed", so `ExecStop` would run `archappl.bash shutdown` and take the surviving instances down with it -- not the report-only behaviour wanted. Per-instance units stay excluded by D12 and are independently unsound here: the asymmetric start and stop order exists because the four components depend on one another, so restarting one alone bypasses that dependency. Consolidating the four webapps into a single Tomcat would dissolve both this and the M22 heap arithmetic, but it trades away per-component isolation and changes the install layout, so it stays a separate question outside M23. | 2026-09-21 |
 
 ### Assignment History
 
@@ -728,8 +735,8 @@ Superseded Plan Artifacts: none
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | Release Verification 1 | Not run | This host | Pending | none |
-| Release Verification 2 | Not run | This host | Pending | none |
-| Release Verification 3 | Not run | This host | Pending | none |
+| Release Verification 2 | 2026-09-21 | Three provisioned hosts (Rocky 8.10 x2, one built from bare for this check; Debian 13), aa-env `fb43522`, aa-maven `3c96141d`, Tomcat 9.0.121, OpenJDK 21, MariaDB over loopback TCP | Pass | LAB-ansible-provision drove the documented make sequence as root through its operator: `init`, `db.conf`, `conf.archapplproperties`, `build.mvn` and `sql.fill` completed under `set -e`; the als `classpathfiles` (`appliances.xml`, `archappl.properties`, `policies.py`) are packed in `WEB-INF/classes` of all four deployed webapps; four instances sit under the install root with the unit enabled and active and the storage root owned by the service account (0755); mgmt `/bpl/getApplianceInfo` returned 200 with identity `appliance0` and version 2025-6 on all three hosts. The privilege split was measured rather than derived: built as root, the four JVMs run as the service account. Observed on the reporting side, not on this host. Re-observed 2026-09-21 directly at `e06c554` on a freshly provisioned Rocky 8.10 host: a forced reinstall completed with failed=0 and left four instances, the unit active, the als `classpathfiles` in the deployed webapp, and mgmt returning 200 with identity `appliance0` and version 2025-6 on the first probe. The result therefore no longer rests on the D18 path-equivalence argument, which the reporting side also re-derived (`fb43522` is an ancestor of `e06c554`, and their diff touches nothing under `site-template/`, `scripts/`, `configure/CONFIG_SITE` or `configure/CONFIG_SRC`). |
+| Release Verification 3 | 2026-09-21 | The same three hosts as Release Verification 2 | Pass | A 1 Hz calc record submitted through mgmt `/bpl/archivePV` moved Initial sampling to Appliance assigned to Being archived in about two minutes; `retrieval/data/getData.json` then returned 68 points carrying the record EGU at one-second spacing with incrementing values, and the short-term store held the expected `.pb` file. The fixture was removed afterwards. Re-applying the role reported no change, with the install tree, the four instance PIDs and the unit start time identical before and after. |
 | Release Verification 4 | Not run | aa-env checkout | Pending | none |
 
 ##### Closure Evidence
@@ -915,7 +922,7 @@ Last Compared: never
 
 Origin: 265f580 / M9
 Identity History: Backlog "SQLite as the configuration database" to Milestone, retitled 2026-09-12 (D11), reframed to the selectable model 2026-09-18 (D15)
-GitHub Issue: none
+GitHub Issue: #43
 Status: Not started
 
 ##### Summary
@@ -1027,13 +1034,13 @@ Superseded Plan Artifacts: none
 
 ##### GitHub Projection
 
-Title: Selectable persistence backend: MariaDB and SQLite
+Title: Selectable persistence backend
 Labels: enhancement
 GitHub Milestone: none
-Observed State: none
-Observed Labels: none
+Observed State: open
+Observed Labels: enhancement
 Observed Milestone: none
-Last Compared: never
+Last Compared: 2026-09-21
 
 #### M16 - Run the Tomcat 9 instances under systemd template units
 
@@ -1466,6 +1473,333 @@ Superseded Plan Artifacts: none
 ##### GitHub Projection
 
 Title: Remove the retired Sphinx docs build from aa-env
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M22 - Size the JVM heap default to the host
+
+Origin: 265f580 / M22
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+`AA_JAVA_HEAPSIZE` defaults to `1G` in `configure/CONFIG_SITE`, and
+`configure/CONFIG_SRC` applies it to both `-Xms` and `-Xmx` through
+`CATALINA_OPTS`, so each of the four instances commits a gigabyte at start.
+On a 4 GB host running MariaDB beside them the kernel OOM killer removed an
+instance twice during the ansible-provision archiver-dev run, roughly 2h50m
+and 4h after install. The `CONFIG_SITE` comment already records that the value
+was sized for a 64 GB server; nothing sizes it to the actual host.
+
+##### Scope
+
+- `configure/CONFIG_SITE`: the `AA_JAVA_HEAPSIZE` default and the comment that
+  says how to size it.
+- `configure/CONFIG_SRC`: whether `-Xms` and `-Xmx` should carry the same value,
+  since `-Xms` is what commits the memory up front.
+- `docs/README.install.md`: state the memory the four instances need among the
+  host prerequisites.
+
+Out of scope: per-instance heap values; container or cgroup memory limits; the
+MariaDB side of the same host budget.
+
+##### Completion Criteria
+
+- A default install on a 4 GB host runs the four instances beside MariaDB with
+  no kernel OOM kill across the interval that previously failed.
+- The documented host prerequisite states the memory requirement implied by the
+  chosen default.
+
+##### Dependencies And Decisions
+
+- D18. Re-derived here 2026-09-21: `AA_JAVA_HEAPSIZE="1G"` at
+  `configure/CONFIG_SITE`, expanded into `-Xms` and `-Xmx` at
+  `configure/CONFIG_SRC`. The reporting side overrides to `256M` and has since
+  run past both failure intervals with no kernel OOM.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Config | `make -s print-AA_JAVA_HEAPSIZE` and the rendered `CATALINA_OPTS` | This host | Both match the chosen default |
+| T2 | Runtime | Install with the default, then run past the interval that previously OOMed | 4 GB host with MariaDB | Four instances stay up; no kernel OOM kill |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | 4 GB host with MariaDB | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Size the JVM heap default to the host
+Labels: bug
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M23 - Make a dead instance visible to systemd
+
+Origin: 265f580 / M23
+Identity History: none
+GitHub Issue: #44
+Status: Not started
+
+##### Summary
+
+One `epicsarchiverap-maven.service` starts four Tomcat instances through
+`scripts/archappl.bash`. The unit is `Type=forking` with no `PIDFile=` and no
+`Restart=`, so systemd picks one main process by heuristic out of four
+independently daemonized JVMs; while that one survives the unit stays active
+whatever happened to the other three. During the ansible-provision archiver-dev
+run a host reported the unit active while mgmt served nothing, and the operator
+had to check the four processes itself. Under D19 this row makes that failure
+visible and deliberately does not recover it.
+
+##### Scope
+
+- `scripts/archappl.bash`: a `health` subcommand that checks every entry of
+  `startup_services` with `get_pid` and exits nonzero naming the missing ones.
+  `status_archappl` stays what it is today, a human-readable dump that prints
+  and exits zero.
+- `site-template/systemd/epicsarchiverap-maven-health.service.in`: a
+  `Type=oneshot` unit running that subcommand as the service account, with no
+  `Restart=`.
+- `site-template/systemd/epicsarchiverap-maven-health.timer.in`: the interval
+  at which it runs.
+- The install and systemd rules that render, install and enable the pair beside
+  the existing unit.
+- `tests/`: a phase 1 guard for the new templates and for the appliance unit
+  staying unchanged.
+
+Out of scope: automatic restart of anything (D19); per-instance systemd units
+(D12, and unsound here per D19); any change to the appliance unit's `Type=`,
+`ExecStart=`, `ExecStop=` or its ordering; consolidating the four webapps into
+a single Tomcat, which D19 keeps as its own question.
+
+##### Completion Criteria
+
+- With one instance killed, a systemd unit reports `failed` within the timer
+  interval and the host shows it in `systemctl --failed`.
+- That detection leaves the appliance service, the surviving instances and the
+  D12 ordering untouched: nothing is stopped and nothing is restarted.
+
+##### Dependencies And Decisions
+
+- D12 (single service, `scripts/archappl.bash` launcher, asymmetric start and
+  stop order). This row leaves that design untouched.
+- D18. Re-derived here 2026-09-21: the unit is `Type=forking` with
+  `ExecStart=/bin/bash -c "... startup"`, no `PIDFile=` and no `Restart=`.
+- D19 (detect and report, no recovery; the report lives in a separate unit).
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-09-21, owner chose the detect-and-report design in session
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Add the `health` subcommand to `scripts/archappl.bash`, reusing
+   `startup_services` and `get_pid`, exiting nonzero and listing every instance
+   whose PID is absent.
+2. Add the oneshot unit and the timer templates under `site-template/systemd/`,
+   carrying the same `User=` and `Group=` as the appliance unit.
+3. Render, install and enable the pair through the existing systemd install
+   path, leaving `epicsarchiverap-maven.service` untouched.
+4. Add the phase 1 guard, then run phases 1 and 2.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new guard | This host | The health unit and timer templates are present and the appliance unit still carries no `Restart=` |
+| T2 | Runtime | Run the `health` subcommand with all four instances up | This host or a provisioned host | Exit 0; the health unit is not failed |
+| T3 | Runtime | Kill the etl instance's JVM, then wait one timer interval | This host or a provisioned host | The health unit is `failed` and names etl, while the appliance service stays active, the other three keep running and mgmt still returns 200 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+| T3 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Service reports active after an instance dies
+Labels: bug
+GitHub Milestone: none
+Observed State: open
+Observed Labels: bug
+Observed Milestone: none
+Last Compared: 2026-09-21
+
+#### M24 - Remove the dead jsvc shutdown path
+
+Origin: 265f580 / M24
+Identity History: none
+GitHub Issue: #45
+Status: Not started
+
+##### Summary
+
+`jsvc_shutdown_archappl` is defined at `scripts/archappl.bash:94` and never
+called; start and stop both run each instance's `startup.sh` and `shutdown.sh`.
+Its presence implies a `jsvc` dependency the launcher does not have, and `jsvc`
+is listed only in `configure/os/debian13.pkgs`, not in `rocky8.pkgs`, so the
+package lists disagree about a tool nothing invokes.
+
+##### Scope
+
+- `scripts/archappl.bash`: remove the unused function, or wire it up if a jsvc
+  stop path is actually wanted.
+- `configure/os/debian13.pkgs`: the `jsvc` entry, once the script settles the
+  question.
+- `tests/`: a phase 1 guard for the outcome.
+
+Out of scope: the start and stop ordering D12 fixed; other differences between
+the per-OS package lists.
+
+##### Completion Criteria
+
+- No function in `scripts/archappl.bash` is defined without a caller.
+- `jsvc` appears in an OS package list only if something invokes it.
+
+##### Dependencies And Decisions
+
+- D12 (the launcher owns start and stop through the per-instance scripts).
+- D18. Re-derived here 2026-09-21: the only `jsvc` references in
+  `scripts/archappl.bash` are the function definition and its own body, and
+  `configure/os/debian13.pkgs` is the only package list naming `jsvc`.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with a guard for the settled symbol | This host | Guard passes; no uncalled jsvc function remains |
+| T2 | Runtime | Start and stop the service after the change | This host | Four instances start and stop unchanged |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Remove the uncalled jsvc shutdown function
+Labels: enhancement
+GitHub Milestone: none
+Observed State: open
+Observed Labels: enhancement
+Observed Milestone: none
+Last Compared: 2026-09-21
+
+#### M25 - Correct the MAVEN_OPTS name and proxy guidance
+
+Origin: 265f580 / M25
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+`MAVEN_OPTS` in `configure/CONFIG_SITE` is expanded onto the mvn command line
+by the `configure/RULES_SRC` build targets, so it carries mvn command-line
+flags, not the JVM options the identically named Maven environment variable
+carries. The reporting side measured that JVM proxy properties passed that way
+do not reach Maven's dependency resolution, and neither do the shell proxy
+variables nor a real `MAVEN_OPTS` environment variable; only a settings file
+works, which they select with `-gs` through this same hook.
+
+##### Scope
+
+- `configure/CONFIG_SITE`: the hook's name and the comment describing what it
+  carries.
+- `configure/RULES_SRC`: the build targets that expand it.
+- Any documentation that mentions the hook, including proxy guidance.
+
+Out of scope: shipping a settings file; the Maven Wrapper pin (D10); proxy
+configuration for anything other than the Maven build.
+
+##### Completion Criteria
+
+- The hook's name and comment describe mvn command-line flags, and any proxy
+  guidance names the settings-file route rather than this hook alone.
+- The build targets still parse and still pass the flags through.
+
+##### Dependencies And Decisions
+
+- D10 (the Maven Wrapper committed in aa-maven is the only Maven; aa-env
+  installs none).
+- D18. Re-derived here 2026-09-21: `configure/CONFIG_SITE` defines
+  `MAVEN_OPTS:=` and the `RULES_SRC` targets expand it as
+  `$(MAVEN_CMD) $(MAVEN_OPTS) <goal>`, which is a command-line position.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | Passes after the rename |
+| T2 | Build system | `make -n build.mvn` with the hook set | This host | The flags appear in the same command-line position as before |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Correct the MAVEN_OPTS name and proxy guidance
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
