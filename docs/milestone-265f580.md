@@ -8,14 +8,18 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: lower `AA_JAVA_HEAPSIZE` in `configure/CONFIG_SITE`
-and state the resulting host memory requirement in `docs/README.install.md`
-(M22) — the ansible-provision run lost instances to the kernel OOM killer on a
-4 GB host. Six rows are Ready: M9, M15, and the install-to-running follow-ups
-M22-M25 (D18). M8's Release Verification 2 and 3 passed on three provisioned
-hosts at aa-env `fb43522` with aa-maven `3c96141d`; Release Verification 1 and 4
-remain, and M8 still waits on M9 and M15. M2 (`b6a80af`), M17 (`a159b79`) and
-M21 (`a12516d`) have landed; M20 carries M17's T6 follow-up.
+Next session entry point: add a test-oriented set of store URLs to
+`site-template/policies.py.in` with short `partitionGranularity` and `hold`
+(M26) — the shipped MTS at `PARTITION_MONTH&hold=2` holds samples for about two
+months, so the second ETL hop cannot be observed in any test run, and the
+archive store also sits on the root filesystem with no threshold. Seven rows are
+Ready: M9, M15 and M22-M26. M22's `256M` candidate default is validated only at
+idle; the load test requested from ansible-provision supplies the figure under
+load, the disk growth rate M26 needs, and the first observation of ETL movement
+anywhere. M8's Release Verification 2 and 3 passed on three provisioned hosts;
+Release Verification 1 and 4 remain, and M8 still waits on M9 and M15. M2
+(`b6a80af`), M17 (`a159b79`) and M21 (`a12516d`) have landed; M20 carries M17's
+T6 follow-up.
 
 ## Milestone
 
@@ -43,6 +47,7 @@ M21 (`a12516d`) have landed; M20 carries M17's T6 follow-up.
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | Not started | Yes | D12, D18, D19 | A killed instance puts a systemd unit into `failed` within the timer interval while the appliance service and the surviving instances are untouched; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Not started | Yes | D12, D18 | No function in `scripts/archappl.bash` is defined without a caller, and `jsvc` is listed only where something invokes it; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Not started | Yes | D10, D18 | The hook's name and comment describe mvn command-line flags, and any proxy guidance names the settings-file route; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
+| Storage | M26 | Test-environment archive store and ETL timing | Milestone | Not started | Yes | D18, D21 | The archive store sits off the root filesystem with a threshold that reports first, and a short run shows samples moving STS to MTS to LTS; both documented; [detail](#m26---test-environment-archive-store-and-etl-timing) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -78,6 +83,7 @@ M21 (`a12516d`) have landed; M20 carries M17's T6 follow-up.
 | D18 | The four install-to-running findings from the ansible-provision archiver-dev run are taken as aa-env milestone work (M22-M25), not raised as issues on the reporting side: the JVM heap default, instance supervision under the single systemd unit, the dead jsvc shutdown path, and the `MAVEN_OPTS` name and proxy semantics. Each was re-derived in this repository before assignment. The same run supplies M8's Release Verification 2 and 3 observations, taken at aa-env `fb43522` with aa-maven `3c96141d`; the install and runtime paths (`site-template/`, `scripts/`, `configure/CONFIG_SITE`, `configure/CONFIG_SRC`) are unchanged between `fb43522` and `e06c554`, so those observations carry to the current tree. | 2026-09-21 |
 | D19 | M23 reports a dead instance and does not recover it: no automatic restart, and the report comes from a health unit separate from the appliance service. A watcher running as the service's own main process was rejected because `systemd.service` states the stop operation is always performed once a service started successfully, "even if the processes in the service terminated on their own or were killed", so `ExecStop` would run `archappl.bash shutdown` and take the surviving instances down with it -- not the report-only behaviour wanted. Per-instance units stay excluded by D12 and are independently unsound here: the asymmetric start and stop order exists because the four components depend on one another, so restarting one alone bypasses that dependency. Consolidating the four webapps into a single Tomcat would dissolve both this and the M22 heap arithmetic, but it trades away per-component isolation and changes the install layout, so it stays a separate question outside M23. | 2026-09-21 |
 | D20 | aa-env follows the aa-maven `modernize` branch through `SRC_TAG` instead of pinning a verified commit. Source-side improvements then arrive on the next checkout with no re-pin, at the cost of the build basis moving whenever aa-maven moves; verification therefore records the source commit it actually observed rather than assuming a fixed one, and the release step re-checks the source commit in force at that time. Confirmed 2026-09-21, after aa-maven moved `3c96141d` to `85f0f179`. | 2026-09-21 |
+| D21 | The archive store's filesystem and the ETL timing become aa-env work (M26), scoped to the test environment first rather than to production storage architecture. Two facts drive it. On the provisioned hosts the archive store resolves to the root volume, nothing in the install path mounts a dedicated one, and `ARCHAPPL_STORAGE_TOP` only names a directory, so an archiver that fills its store fills `/` and takes the whole host; no quota or threshold exists anywhere in the chain. Separately, the shipped store configuration puts MTS at `PARTITION_MONTH` with `hold=2`, so samples do not leave MTS for roughly two months and the second ETL hop cannot be observed in any realistic test run. Production storage sizing, per-tier media selection and retention for real data stay outside this row. | 2026-09-21 |
 
 ### Assignment History
 
@@ -993,9 +999,11 @@ Out of scope: the driver dependencies and dialect detection in the source
   the TCP loopback login re-verified green on Rocky 8 and Debian 13 (reported
   2026-09-19): `skip_name_resolve=1`, TCP to `127.0.0.1` authenticates as
   `archappl@127.0.0.1`, listener `127.0.0.1:3306` only, no `::1`. This is the
-  DB-login check only; the full bring-up is not yet done — G5's mgmt-probe
-  deployment report and M9's own PV archive-and-retrieve are separate checks, and
-  G5 stays Open.
+  DB-login check only. The bring-up has since been reported: G5 closed
+  2026-09-21 on the mgmt probe returning 200 on three provisioned hosts, and the
+  same run archived and retrieved a PV over MariaDB/TCP. That does not close
+  this row, because the PV ran against the current MariaDB-only wiring rather
+  than a selected backend; T1 still needs the selector in place.
 - G12 Complete 2026-09-21: the WARs already carry `jna` and `jna-platform`, so
   the MariaDB/UDS step needs nothing from aa-maven. An explicit declaration of
   those jars was requested there the same day as hardening, since they arrive
@@ -1525,6 +1533,12 @@ MariaDB side of the same host budget.
   `configure/CONFIG_SITE`, expanded into `-Xms` and `-Xmx` at
   `configure/CONFIG_SRC`. The reporting side overrides to `256M` and has since
   run past both failure intervals with no kernel OOM.
+- The `256M` figure is not yet a validated default. Reported 2026-09-21: with
+  that override a host ran 15 h 32 min continuously, zero kernel OOM on both
+  surviving hosts, `NRestarts` 0, all four instances live. The appliance was
+  idle for the whole window, so the run exercised steady-state memory and never
+  load. Choosing the shipped default needs a figure observed with a PV actually
+  sampling, which the pending load test is expected to supply.
 
 ##### Implementation Plan
 
@@ -1614,6 +1628,20 @@ a single Tomcat, which D19 keeps as its own question.
 - D18. Re-derived here 2026-09-21: the unit is `Type=forking` with
   `ExecStart=/bin/bash -c "... startup"`, no `PIDFile=` and no `Restart=`.
 - D19 (detect and report, no recovery; the report lives in a separate unit).
+- Readiness window, measured by the reporting side 2026-09-21 and binding on
+  this design: mgmt answers 500 while it initialises, for roughly 20 to 30
+  seconds after a plain service restart and about 48 seconds after a host
+  reboot (observed 500 at 28 s and 38 s, then 200 at 48 s). A reboot therefore
+  needs roughly twice the restart allowance. The health check must not report
+  failure inside that window, or every boot produces a false failure.
+- The same host returned unaided after a reboot: the unit was active 5 seconds
+  in and the first journal line for it that boot is systemd starting it, so
+  nothing here needs to add boot-time recovery.
+- Do not build the check on scanning the journal for error words. On hosts
+  provisioned this way `sudo` records the full text of the scripts it runs, so
+  such a scan matches script text and reports events that did not happen; the
+  reporting side counted phantom OOM entries that way. Checking the processes
+  is the reliable path, which is what this design already does.
 
 ##### Implementation Plan
 
@@ -1803,6 +1831,101 @@ Superseded Plan Artifacts: none
 ##### GitHub Projection
 
 Title: Correct the MAVEN_OPTS name and proxy guidance
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M26 - Test-environment archive store and ETL timing
+
+Origin: 265f580 / M26
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+Two findings from the provisioned deployment runs meet in the same place. The
+archive store resolves to the root volume: nothing in the install path mounts a
+dedicated filesystem for it and `ARCHAPPL_STORAGE_TOP` only names a directory,
+so an archiver that fills its store fills `/` and takes the whole host instead
+of just archiving. No quota or threshold exists anywhere in the chain, and the
+fill rate is unknown because no run has yet had a PV sampling.
+
+Separately, the shipped store configuration makes the ETL chain untestable.
+`site-template/policies.py.in` sets STS to `PARTITION_HOUR&hold=2`, MTS to
+`PARTITION_MONTH&hold=2` and LTS to `PARTITION_YEAR`, so samples leave STS after
+about two hours but do not leave MTS for about two months. A test environment
+cannot observe the second hop at all, which is also the lens the old "no mts and
+lts" report needs before anyone reads an empty LTS as a defect.
+
+##### Scope
+
+- A dedicated filesystem for the archive store on test hosts, or at minimum a
+  store that is not on the root filesystem, with a threshold that reports before
+  the root filesystem is endangered.
+- `docs/README.install.md`: name the storage volume among the host
+  prerequisites, which today it does not.
+- A test-oriented set of store URLs with short `partitionGranularity` and
+  `hold`, selectable without editing the shipped default, so the whole
+  STS to MTS to LTS chain is observable within a short run.
+- `docs/README.policies.md`: record the test configuration beside the shipped
+  defaults and the media recommendations already there.
+
+Out of scope: production storage sizing and per-tier media selection; retention
+policy for real data; the reduction operators (`reducedata`, `pp`); and any
+change to the shipped default for real deployments. D21 scopes this row to the
+test environment.
+
+##### Completion Criteria
+
+- On a test host the archive store is not on the root filesystem, and a
+  threshold reports before the root filesystem is affected.
+- With the test configuration selected, a run of a few hours shows samples
+  present in STS, then MTS, then LTS.
+- The host prerequisites and the policy guide both state what the test
+  environment requires.
+
+##### Dependencies And Decisions
+
+- D18 (the findings come from the provisioned deployment runs).
+- D21 (scoped to the test environment first).
+- The fill rate is unknown until the pending load test reports disk growth with
+  a PV sampling. That figure sets the threshold value; it does not change the
+  shape of this work, so this row does not wait on it.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Config | Render the test store URLs and read the generated `policies.py` | This host | STS, MTS and LTS carry the short granularity and hold values |
+| T2 | Runtime | Archive one PV with the test configuration for a few hours | provisioned host | Samples appear in STS, then MTS, then LTS |
+| T3 | Runtime | Grow the store toward the threshold | provisioned host | The threshold reports before the root filesystem is affected |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | provisioned host | Pending | none |
+| T3 | Not run | provisioned host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Test-environment archive store and ETL timing
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
@@ -2172,12 +2295,13 @@ aa-maven register row: none carries the closure; the declaration is theirs
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Open | No | D7 | Follows M2 when assigned; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
+| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign if the EPICS-Arche UI change requires an aa-env skin update; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
-| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Open | No | M17, D14 | Update the T6 prose and source SVG so files whose first samples pass the 12:30 MTS cutoff are shown in LTS, regenerate T1-T6 PNGs, and rerun documentation verification; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
+| Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
+| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | In progress | No | M17, D14 | Artwork corrected and all six PNGs regenerated 2026-09-21 (T1 Pass); the prose half of the criterion awaits an owner call; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
 
 ### Backlog Details
 
@@ -2185,13 +2309,14 @@ aa-maven register row: none carries the closure; the declaration is theirs
 
 Origin: 265f580 / G5
 GitHub Issue: none
-Status: Open (Backlog since 2026-09-11, D7)
+Status: Complete
 
 ##### Summary
 
 The ansible/cloud session deploys the M1 baseline following the M2
-sequence and reports the result. This is Backlog deployment work under D7;
-M8 Release Verification 3 is its own pre-PR installation check.
+sequence and reports the result. This is Backlog deployment work under D7,
+moved to the Backlog on 2026-09-11 (see Assignment History); M8 Release
+Verification 3 is its own pre-PR installation check.
 
 ##### Completion Criteria
 
@@ -2202,11 +2327,13 @@ M8 Release Verification 3 is its own pre-PR installation check.
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-21 | Pass | LAB-ansible-provision reported mgmt `/bpl/getApplianceInfo` returning 200 with identity `appliance0` and version 2025-6 on three provisioned hosts (two Rocky 8.10, one of them built from bare for the check, and one Debian 13), driven from aa-env `fb43522` with aa-maven `3c96141d`; re-observed at aa-env `e06c554` on a freshly provisioned Rocky 8.10 host, 200 on the first probe. Observed on the reporting side, not on this host. The same run is recorded under M8 Release Verification 2 and 3. |
 
 ##### Closure Evidence
 
-- none
+- Closed 2026-09-21 on the cross-session report above, which names both tags
+  the deployment used, as the completion criterion requires. Closing this row
+  releases nothing: M8 carries its own pre-PR installation check.
 
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
@@ -2492,12 +2619,21 @@ Last Compared: 2026-09-15; GitHub REST issue #25 read, remote updated_at 2024-05
 Origin: 265f580 / M20
 Identity History: none
 GitHub Issue: none
-Status: Open
+Status: In progress
 
 ##### Summary
 
 The T6 timeline still shows File_B and File_C in MTS at 12:30, although the
 implemented MTS hold and gather calculation makes both files eligible for LTS.
+Re-checked 2026-09-21 against the restored artwork: with the figure's MTS at
+30 minutes and `hold=2`, the boundary at 12:30 falls at 11:29:59, and both
+files start before it, so the defect is present as described.
+
+The same artwork also labels each ETL Flow box "Trigger when completed files
+exceed hold (2)". That is the file-count reading of `hold`, which the source
+does not implement, and `docs/README.policies.md` was corrected on 2026-09-21
+to describe an age boundary instead. The figures now contradict the prose, so
+the trigger wording is part of this correction, not a separate one.
 
 ##### Scope
 
@@ -2519,13 +2655,37 @@ installation tests.
 
 - M17; correction recorded as a carry-forward on 2026-09-16.
 - D14.
+- The committed PNGs were not reproducible from the committed SVG. Exporting
+  the untouched SVG reproduced the text, layout and colours exactly but drew
+  the File_8 arrow as a diagonal where the committed PNG shows an elbow: the
+  arrows are Inkscape auto-routed connectors (`inkscape:connector-type`), so
+  their path depends on the rendering version. The figures published before
+  this correction therefore came from an SVG state that is not the one in the
+  repository. Regenerating them settles that; the connector shape changes in
+  all six, which is appearance rather than information.
+- Export recipe, previously undocumented: make exactly one `T` layer visible
+  (BG stays visible) and run
+  `inkscape --export-type=png --export-width=640 --export-filename=docs/figures/T<n>.png <svg>`.
+  All six now render at 640x808; before this the set was inconsistent, T6
+  alone being 640x807.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-21, owner directed the figure correction in session
+Implementation Authorization: 2026-09-21
 Superseded Plan Artifacts: none
+
+1. `docs/figures/datajourney.svg`, BG layer: replaced the ETL Flow trigger text
+   "when completed files / exceed hold (2)" with "when the oldest sample / is
+   older than hold (2)", matching the corrected `docs/README.policies.md`. BG
+   is shared, so this reaches all six figures. Done 2026-09-21.
+2. Same file, T6 layer: moved File_C and File_B from the MTS column to the LTS
+   column by shifting x by the column offset 61.4869, which lands them on the
+   same x as File_A, and recoloured both to the LTS pink `#dc8add`. The colour
+   convention was read off the layers first: bright green marks the active
+   file, light blue a completed one, dark blue one in transit. Done 2026-09-21.
+3. Regenerated all six PNGs with the recipe above. Done 2026-09-21.
 
 1. Update the T6 prose and SVG layer to match the 12:30 MTS cutoff.
 2. Regenerate all six PNG exports with Inkscape.
@@ -2541,8 +2701,92 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | aa-env working tree | Pending | none |
+| T1 | 2026-09-21 | aa-env working tree; built classes from source `3c96141d` | Pass | The cutoff was re-derived with the built `TimeUtils`, not by hand: `TimeUtils.getPreviousPartitionLastSecond(now - hold * PARTITION_30MIN.getApproxSecondsPerChunk(), PARTITION_30MIN)` with `hold=2` and an evaluation time of 12:30 returned a hold boundary of 11:29:59, making File_B (first sample 10:30) and File_C (11:00) both eligible to leave MTS while a file starting at 11:30 stays. The regenerated T6 was inspected and shows both in the LTS column beside File_A. Local link check over the tracked Markdown: 21 links, 0 missing. Register check: row-to-detail status parity and detail anchors both clean. The plan named source `35282494`; the classes on hand are the newer `3c96141d`, and the derivation is recorded against what actually ran. |
 
 ##### Closure Evidence
 
-- none; owner deferred the correction during the 2026-09-16 session wrap-up.
+- Artwork and export corrected 2026-09-21 (T1 Pass); the 2026-09-16 deferral is
+  lifted. One question is left for the owner before this row closes: the
+  completion criterion names "T6 prose and artwork", and the restored
+  `docs/README.DataJourney.md` carries only a one-line T6 caption with no
+  File_B or File_C prose. Nothing there now contradicts the cutoff, but neither
+  does it state the placement, so whether the prose half is satisfied or still
+  wants a sentence is the owner's call.
+
+#### M27 - LTS retrieval pre-processing (`pp`)
+
+Origin: 265f580 / M27
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+`docs/README.policies.md` recommends `pp=mean_3600` on LTS, and the shipped
+`site-template/policies.py.in` sets no `pp` on any tier. The gap is real but the
+answer is not obvious from the documents, so it waits for operating experience
+rather than being settled now.
+
+Two facts shape the question. `pp` preserves the raw data and writes auxiliary
+pre-calculated files beside it, so it *increases* disk use, which runs against
+the open concern that the archive store sits on the root filesystem with an
+unknown fill rate. And `pp` is mutually exclusive with `reducedata`, which the
+shipped Fast, VeryFast, Medium and Slow policies already set on LTS; the
+recommendation can therefore only apply to the Default and VerySlow policies.
+
+##### Scope
+
+- Whether the Default and VerySlow policies gain `pp` on LTS, and with which
+  operator and interval.
+- `site-template/policies.py.in` and the policy guide, if the answer is yes.
+
+Out of scope: `reducedata` on the other policies; the retrieval API; the
+storage filesystem work, which M26 carries.
+
+##### Completion Criteria
+
+- After the appliance has run with real queries and a known disk growth rate,
+  a dated decision either adds `pp` to the named policies or records that the
+  retrieval gain does not justify the additional storage.
+
+##### Dependencies And Decisions
+
+- Condition for taking this up: an operating installation with a measured disk
+  growth rate and real retrieval patterns to judge against. Owner decided
+  2026-09-21 to look at it during operation over the long term rather than now.
+- D21 (the storage work is scoped to the test environment first).
+- The disk growth figure comes from the load test requested of the
+  ansible-provision session.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Function | Compare retrieval time and disk use for a long span with and without `pp` on LTS | operating installation | The difference is large enough, or not, to settle the decision |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | operating installation | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: LTS retrieval pre-processing
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
