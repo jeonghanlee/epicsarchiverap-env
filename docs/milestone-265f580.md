@@ -53,7 +53,7 @@ M21 (`a12516d`) have landed; M20 carries M17's T6 follow-up.
 | Gate | G9 | aa-maven ships both DB drivers with dialect auto-detection | External gate | Complete | No | | Both `mariadb-java-client` and `sqlite-jdbc` ship; the source auto-detects the dialect from DataSource metadata (aa-maven `ab324afb`); [detail](#g9---aa-maven-ships-both-db-drivers-with-dialect-auto-detection) |
 | Gate | G10 | aa-maven Phase 1 complete (servlet-api 9.0.122, CI on Maven) | External gate | Complete | No | | Phase 1 closed on the D17 basis: servlet-api 9.0.122 and Maven CI verified at `3c96141d` 2026-09-20; Ant removal deferred; [detail](#g10---aa-maven-phase-1-complete-servlet-api-90122-ci-on-maven) |
 | Gate | G11 | aa-maven retires the Sphinx docs pipeline (mdBook on Pages) | External gate | Complete | No | | Sphinx/RTD removed on aa-maven modernize `263805a1`; mdBook live on GitHub Pages; [detail](#g11---aa-maven-retires-the-sphinx-docs-pipeline-mdbook-on-pages) |
-| Gate | G12 | aa-maven adds JNA for MariaDB Unix-socket support | External gate | Open | No | | aa-maven ships `net.java.dev.jna:jna` (+ jna-platform) so `mariadb-java-client` `localSocket` works; needed for M9 step 2 (UDS); [detail](#g12---aa-maven-adds-jna-for-mariadb-unix-socket-support) |
+| Gate | G12 | JNA on the WAR classpath for MariaDB Unix-socket support | External gate | Complete | No | | `jna` and `jna-platform` 5.13.0 present in all four WARs built from `3c96141d`, verified 2026-09-21; transitive, so an explicit declaration was requested of aa-maven as hardening; [detail](#g12---jna-on-the-war-classpath-for-mariadb-unix-socket-support) |
 ### Decisions
 
 | ID | Decision | Decision Date |
@@ -77,6 +77,7 @@ M21 (`a12516d`) have landed; M20 carries M17's T6 follow-up.
 | D17 | Align aa-env with aa-maven on Ant removal: it is deferred out of Phase 1 on both sides. aa-maven moved its Ant-removal row (their M10) to the backlog on 2026-09-19 (their D7). aa-env confirmed this first-hand at aa-maven modernize `3c96141d`, whose commit subject is `Move M7 and M10 to the backlog and close out Phase 1`: their register `docs/milestone-daff1b7.md` carries M10 as `Deferred` with an assignment-history row recording the 2026-09-19 move, and the `maven-antrun-plugin` execution `sitespecificantscript` there still drives `build.xml` target `sitespecificbuild`. G10's completion criterion therefore covers the tomcat-servlet-api pin (observed 9.0.122, not the 9.0.121 the gate first named) and the Maven CI only, and G10 closes on that basis. aa-env M14 (Ant leftovers) becomes Deferred and leaves M8's dependency list; G6 stays Open and blocks no row; M14 returns to Not started only by a new dated decision. | 2026-09-20 |
 | D18 | The four install-to-running findings from the ansible-provision archiver-dev run are taken as aa-env milestone work (M22-M25), not raised as issues on the reporting side: the JVM heap default, instance supervision under the single systemd unit, the dead jsvc shutdown path, and the `MAVEN_OPTS` name and proxy semantics. Each was re-derived in this repository before assignment. The same run supplies M8's Release Verification 2 and 3 observations, taken at aa-env `fb43522` with aa-maven `3c96141d`; the install and runtime paths (`site-template/`, `scripts/`, `configure/CONFIG_SITE`, `configure/CONFIG_SRC`) are unchanged between `fb43522` and `e06c554`, so those observations carry to the current tree. | 2026-09-21 |
 | D19 | M23 reports a dead instance and does not recover it: no automatic restart, and the report comes from a health unit separate from the appliance service. A watcher running as the service's own main process was rejected because `systemd.service` states the stop operation is always performed once a service started successfully, "even if the processes in the service terminated on their own or were killed", so `ExecStop` would run `archappl.bash shutdown` and take the surviving instances down with it -- not the report-only behaviour wanted. Per-instance units stay excluded by D12 and are independently unsound here: the asymmetric start and stop order exists because the four components depend on one another, so restarting one alone bypasses that dependency. Consolidating the four webapps into a single Tomcat would dissolve both this and the M22 heap arithmetic, but it trades away per-component isolation and changes the install layout, so it stays a separate question outside M23. | 2026-09-21 |
+| D20 | aa-env follows the aa-maven `modernize` branch through `SRC_TAG` instead of pinning a verified commit. Source-side improvements then arrive on the next checkout with no re-pin, at the cost of the build basis moving whenever aa-maven moves; verification therefore records the source commit it actually observed rather than assuming a fixed one, and the release step re-checks the source commit in force at that time. Confirmed 2026-09-21, after aa-maven moved `3c96141d` to `85f0f179`. | 2026-09-21 |
 
 ### Assignment History
 
@@ -951,8 +952,8 @@ initialization.
 - `site-template/systemd/epicsarchiverap-maven.service.in`: the `mariadb.service`
   dependency applies only when the MariaDB backend is selected.
 - MariaDB over UDS (step 2): the driver's `localSocket` needs JNA on the
-  classpath, which the aa-maven WARs do not ship; this step is gated on G12
-  (aa-maven adds JNA), verified absent at aa-maven `3c96141d`.
+  classpath, and the WARs built from aa-maven `3c96141d` carry `jna` and
+  `jna-platform` 5.13.0 (G12 Complete 2026-09-21), so this step is not gated.
 - Package list: MariaDB packages for the MariaDB backend, `sqlite3` for SQLite.
 - Documentation.
 
@@ -962,8 +963,8 @@ Out of scope: the driver dependencies and dialect detection in the source
 ##### Completion Criteria
 
 - One PV archives and retrieves under each backend in the D16 order —
-  MariaDB/TCP, then MariaDB/UDS, then SQLite3 — with the selector (and, for UDS,
-  the G12 JNA dependency) the only change between them.
+  MariaDB/TCP, then MariaDB/UDS, then SQLite3 — with the selector the only
+  change between them.
 
 ##### Dependencies And Decisions
 
@@ -995,8 +996,10 @@ Out of scope: the driver dependencies and dialect detection in the source
   DB-login check only; the full bring-up is not yet done — G5's mgmt-probe
   deployment report and M9's own PV archive-and-retrieve are separate checks, and
   G5 stays Open.
-- The MariaDB/UDS step is gated on G12 (aa-maven adds JNA); route the request to
-  aa-maven when the step is reached.
+- G12 Complete 2026-09-21: the WARs already carry `jna` and `jna-platform`, so
+  the MariaDB/UDS step needs nothing from aa-maven. An explicit declaration of
+  those jars was requested there the same day as hardening, since they arrive
+  transitively; it is not a precondition for this step.
 
 ##### Implementation Plan
 
@@ -1007,8 +1010,8 @@ Superseded Plan Artifacts: none
 
 1. MariaDB/TCP: add the `DB_BACKEND` selector, render `context.xml` for
    MariaDB/TCP, run `make sql.fill`, start the units, and verify one PV.
-2. MariaDB/UDS: once aa-maven ships JNA, render the `localSocket` URL form and
-   verify over the socket.
+2. MariaDB/UDS: render the `localSocket` URL form and verify over the socket;
+   the JNA jars the driver needs are already in the WARs.
 3. SQLite3: render the SQLite DataSource and initialization and verify with no
    DB service present.
 
@@ -1017,7 +1020,7 @@ Superseded Plan Artifacts: none
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | Function | Select MariaDB/TCP; run `make sql.fill`; start the units; archive one PV; retrieve | This host or a provisioned host (Rocky 8 / Debian 13) | Non-empty samples |
-| T2 | Function | Select MariaDB/UDS (after G12, the aa-maven JNA dependency, lands); start the units; archive one PV; retrieve | provisioned host (Rocky 8 / Debian 13) | Non-empty samples over the socket |
+| T2 | Function | Select MariaDB/UDS; start the units; archive one PV; retrieve | provisioned host (Rocky 8 / Debian 13) | Non-empty samples over the socket |
 | T3 | Function | Select SQLite3; start the units; archive one PV; retrieve | This host | Non-empty samples; no MariaDB required |
 
 ##### Verification Results
@@ -2113,36 +2116,55 @@ aa-maven register rows: `docs/milestone-daff1b7.md` M9 (mdBook docs) and M16
 
 - aa-maven cross-session response of 2026-09-18 (mdBook live on Pages, `263805a1`) and the aa-env fetch and ls-remote observations above.
 
-#### G12 - aa-maven adds JNA for MariaDB Unix-socket support
+#### G12 - JNA on the WAR classpath for MariaDB Unix-socket support
 
 Origin: 265f580 / G12
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
 MariaDB Connector/J connects over a Unix domain socket only when JNA
-(`net.java.dev.jna:jna`, `jna-platform`) is on the classpath. The aa-maven WARs
-ship no JNA, so aa-env cannot render a working `localSocket` DataSource until
-aa-maven adds the dependency. Affects M9 step 2 (MariaDB/UDS).
+(`net.java.dev.jna:jna`, `jna-platform`) is on the classpath. This gate asks
+whether the aa-maven WARs carry it, and they do, so aa-env can render a working
+`localSocket` DataSource against the current source with no change on the
+aa-maven side. Affects M9 step 2 (MariaDB/UDS).
 
-aa-maven register row: to be assigned by the aa-maven session when the request
-is routed (dependency management is aa-maven's domain, D9).
+At `3c96141d` the jars arrived transitively through `mariadb-java-client` and
+`waffle-jna` rather than by declaration, so a later dependency bump could have
+dropped them with no build failure and the symptom would have appeared only at
+runtime. aa-env asked aa-maven to close that hole on 2026-09-21 and it landed
+the same day at `85f0f179`: `jna` and `jna-platform` 5.13.0 are declared
+directly at runtime scope and allowlisted for the analyze-only gate, so a bump
+that drops either now fails the build instead of the socket.
+
+aa-maven register row: none carries the closure; the declaration is theirs
+(dependency management is their domain, D9).
 
 ##### Completion Criteria
 
-- A cross-session response names the aa-maven commit that adds JNA and confirms
-  `mariadb-java-client` `localSocket` connects over the socket.
+- The built WARs carry `jna` and `jna-platform` on the deployed classpath, so
+  `mariadb-java-client` can honour `localSocket`.
 
 ##### Verification Results
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-21 | Pass | aa-env inspected the four WARs it had built itself from aa-maven `3c96141d`: `aa-20260920-3c96141d-{mgmt,engine,etl,retrieval}.war` each carry `WEB-INF/lib/jna-5.13.0.jar` and `WEB-INF/lib/jna-platform-5.13.0.jar` beside `mariadb-java-client-3.3.3.jar`. aa-maven reports the resolution path as `mariadb-java-client` to `waffle-jna` to `jna`, both runtime-scoped; that path is their observation, the jar presence is ours. Recheck with `unzip -l <war> | grep WEB-INF/lib/jna`. |
 
 ##### Closure Evidence
 
-- none. JNA verified absent at aa-maven `3c96141d`: no `jna`/`jnr` in the pom or source tree, and the runtime-dependency allowlist names only `mariadb-java-client` and `sqlite-jdbc`.
+- Closed 2026-09-21 on the built artifact above; the MariaDB/UDS step is not
+  blocked. An earlier reading of this gate recorded JNA as absent. That reading
+  inspected the declared pom dependencies and the source tree instead of the
+  resolved WAR, and was wrong; it is recorded here so the same check is not
+  repeated the same way.
+- Hardened the same day at aa-maven `85f0f179`, which aa-env verified by
+  reading that commit's `pom.xml`: `net.java.dev.jna:jna` and `jna-platform`
+  5.13.0 declared at runtime scope and both named in the analyze-only
+  allowlist. `origin/modernize` moved `3c96141d` to `85f0f179`; aa-env tracks
+  the branch through `SRC_TAG`, so the declared state arrives on the next
+  checkout with no re-pin.
 
 ## Backlog
 
