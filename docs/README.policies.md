@@ -16,15 +16,6 @@ The Archiver Appliance manages data through a sophisticated tiered storage model
 
 Beyond storage, this document explores the system's data processing capabilities, distinguishing between real-time retrieval operations and permanent ETL-based data reduction (`reducedata`, `pp`). Finally, it provides a deep dive into the `policies.py` script, clarifying how sampling methods (Monitor vs. Scan) and field archiving rules are defined, applied, and managed throughout the service lifecycle.
 
-## Scope
-
-This document covers the storage tier architecture (STS/MTS/LTS), URL-style data store parameters (`partitionGranularity`, `hold`, `gather`), retrieval-time and ETL-time data processing operators, and the `policies.py` script for sampling rules and field archiving.
-
-**Out of scope:**
-* The retrieval REST API specification and web UI configuration.
-* Operational deployment, system installation, and service management — see the project [README](../README.md).
-* Conceptual ETL timeline and `hold`/`gather` interaction visualisation — see [README.DataJourney.md](README.DataJourney.md).
-
 ## 1. Storage Tier Architecture
 The Archiver Appliance utilizes a tiered storage strategy to balance high-speed data acquisition with long-term capacity management. Data moves between these tiers via the ETL service.
 
@@ -77,50 +68,50 @@ In the Archiver Appliance, data is stored in `.pb` (Protocol Buffer) files. Befo
 * The time duration defined by `partitionGranularity` for this file has not yet elapsed.
 
 #### 2.2.2 Completed State
-* This state refers to a `.pb` file in a partition before the current partition.
-* Elapsed partition time does not guarantee a complete set of samples or prevent later transfers from appending data to that partition.
-* **ETL eligibility**: `PlainPBStoragePlugin.getETLStreams` selects paths before the current partition. It compares their first sample timestamps with the `hold` and `gather` time boundaries; it does not count completed files to trigger a transfer.
+* This state refers to a `.pb` file that has completely stored data for the entire duration defined by `partitionGranularity`.
+* Once the time elapses, the file is closed and considered a complete archive unit.
+* **Important**: Only files in this completed state are subject to the `hold` parameter and subsequent ETL migration. The `hold` boundary is applied to these fully formed, archived data files waiting to be moved.
 
 ### 2.3 ETL Flow Control
 These parameters manage the movement of data between storage tiers. This process primarily interacts with files in the **Completed State**.
 
 #### 2.3.1 Definition of ETL Cycle
 * The ETL Cycle is the specific operation where the ETL service moves a batch of data files (`.pb`) from one storage tier to the next (e.g., `STS` → `MTS`).
-* Three parameters determine which available files are eligible during an ETL evaluation:
-    1. **Unit**: `partitionGranularity` defines partition boundaries and their approximate duration.
-    2. **Trigger**: The oldest candidate's first sample must be at or before the `hold` time boundary.
-    3. **Transfer range**: First sample timestamps at or before the `gather` time boundary are selected.
+* It is dynamically defined by the interaction of three key parameters:
+    1.  **Unit**: The size of a single file, defined by `partitionGranularity`.
+    2.  **Trigger**: The cycle starts when the oldest sample still in the tier is older than `hold` partitions.
+    3.  **Batch Size**: The transfer boundary is set by `gather`, which commonly moves `gather` partitions per cycle.
 
 #### 2.3.2 Retention Period (`hold`)
 * This parameter is directly related to the `partitionGranularity` setting.
-* The implementation subtracts `hold * approximate partition duration` from the ETL evaluation time, then finds the last second of the partition preceding that time. This is the `hold` boundary.
-* Missing data partitions do not postpone eligibility until a fixed number of files exists. Eligibility depends on the oldest available sample's age.
+* Specifies an **age**, not a file count: the implementation subtracts `hold` times the approximate partition duration from the ETL evaluation time and takes the last second of the preceding partition as the boundary. A file becomes eligible when its first sample is at or before that boundary.
+* Example: with `partitionGranularity=PARTITION_HOUR` and `hold=6`, data becomes eligible to leave once its oldest sample is about six hours old. A gap in the data does not postpone this; eligibility follows the oldest available sample's age, not how many files have accumulated.
 
 #### 2.3.3 Batch Move Size (`gather`)
 * This parameter is related to both the `partitionGranularity` and `hold` settings.
-* The implementation computes a second boundary using `hold - (gather - 1)` partition durations, then selects eligible files whose first samples are at or before that boundary.
-* For continuous data and an ETL run at each partition boundary, this commonly moves `gather` partitions. A delayed ETL run can select more files; missing partitions can result in fewer.
+* The implementation computes a second boundary at `hold - (gather - 1)` partition durations and selects the files whose first samples are at or before it.
+* Example: with `hold=6` and `gather=4`, continuous data and an ETL run at each partition boundary commonly moves 4 partitions. A delayed run can select more; missing partitions can yield fewer.
 
 #### 2.3.4 Flow Constraints (`hold` vs. `gather`)
-* Use nonnegative values with `hold >= gather`; equality is allowed by the implementation.
-* The setters reject `gather > hold` with an `IOException`.
-* Both values default to zero. With `hold=0` and `gather=0`, the implementation skips the hold/gather boundaries and selects available candidates before the current partition.
+* Use nonnegative values with `hold >= gather`. Equality is allowed: the implementation rejects only `gather > hold`.
+* `setHoldETLForPartions` and `setGatherETLinPartitions` throw an `IOException` when `hold - gather` would be negative.
+* Both default to zero. With `hold=0` and `gather=0` the implementation skips these boundaries and takes the available candidates before the current partition.
 
 #### 2.3.5 Configuration Strategies and Impact
 The behavior of the Archiver Appliance varies significantly based on how `hold` and `gather` are configured.
 
 * **Scenario A: Without `hold` and `gather` (Unconfigured)**
-    * The zero defaults add no hold/gather retention delay to ETL candidates.
-    * File partitioning still follows `partitionGranularity`; omitting retention settings does not itself make file generation irregular.
+    * No retention delay: both parameters default to zero, so the implementation skips the hold and gather boundaries and moves the available candidates out as soon as the partition boundary is reached.
+    * File generation is unaffected: partitioning still follows `partitionGranularity`. Leaving these settings out does not by itself make file creation irregular; it removes the delay before ETL takes the completed files.
 
 * **Scenario B: With `hold` & `gather` (Custom Configuration)**
-    * Retention: `hold` delays ETL eligibility by partition age; `gather` controls the transfer boundary once the oldest candidate is eligible.
-    * Storage Tuning: A larger `hold` retains older samples in the source tier for longer; storage capacity and retrieval workload determine whether that is useful.
+    * Consistency: Both data movement and data visualization become consistent and predictable.
+    * Performance Tuning: A larger `hold` is beneficial when data extraction requires optimized reading performance from the storage media (by keeping more recent data in the faster tier before moving it).
     * As noted in flow constraints, setting `gather > hold` will immediately cause an `IOException`.
 
-* **Scenario C: Shipped Configuration**
-    * The site template uses `hold=2&gather=1` for STS and MTS.
-    * This is the configured retention policy, not a measured guarantee of optimal performance for every storage medium.
+* **Scenario C: Optimized Configuration (Recommended)**
+    * Best Practice: The setting `hold=2&gather=1` is recommended as the smoothest configuration for ETL data movement and data display.
+    * This setting is particularly effective and recommended when the `STS` and `MTS` storage media are identical (e.g., both utilize the same high-speed storage volume).
 
 ## 3. Data Processing & Reduction
 The Archiver Appliance utilizes the **Apache Commons Math** library to perform statistical analysis and data reduction. This processing capability is applied in two distinct stages:
@@ -237,16 +228,31 @@ The `policies.py` script defines the logic for how different Process Variables (
 ### 4.1 Standard Policy Configurations
 The system provides a set of predefined policies mapped to specific sampling rates and storage strategies. The policy is determined by the `determinePolicy` function.
 
-`MONITOR` archives whenever the PV value changes (within the sampling period limit). `SCAN` forces a data read at fixed intervals regardless of value changes.
+#### 4.1.1 Monitor-Based Policies
+These policies use the `MONITOR` sampling method, meaning data is archived whenever the PV value changes (within the sampling period limit).
 
-| Policy | Method | Sampling Rate | LTS Reduction |
-| :--- | :--- | :--- | :--- |
-| Default | MONITOR | 1.0 s (1 Hz) | None (standard retention) |
-| VeryFast | MONITOR | 0.1 s (10 Hz) | `lastSample_10` (10 s) |
-| Fast | MONITOR | 1.0 s (1 Hz) | `lastSample_30` (30 s) |
-| Medium | MONITOR | 10.0 s | `lastSample_60` (60 s) |
-| Slow | SCAN | 60.0 s | `lastSample_180` (180 s) |
-| VerySlow | SCAN | 900.0 s (15 min) | None |
+* **Default**
+    * Sampling: 1.0 second (1 Hz)
+    * LTS Reduction: None (Standard retention)
+* **VeryFast**
+    * Sampling: 0.1 second (10 Hz)
+    * LTS Reduction: Reduced to 10 seconds (`lastSample_10`)
+* **Fast**
+    * Sampling: 1.0 second (1 Hz)
+    * LTS Reduction: Reduced to 30 seconds (`lastSample_30`)
+* **Medium**
+    * Sampling: 10.0 seconds
+    * LTS Reduction: Reduced to 60 seconds (`lastSample_60`)
+
+#### 4.1.2 Scan-Based Policies
+These policies use the `SCAN` sampling method, forcing a data read at fixed intervals regardless of value changes.
+
+* **Slow**
+    * Sampling: 60.0 seconds
+    * LTS Reduction: Reduced to 180 seconds (`lastSample_180`)
+* **VerySlow**
+    * Sampling: 900.0 seconds (15 minutes)
+    * LTS Reduction: None
 
 ### 4.2 Controlled Archiving
 Policies with the "Controlled" suffix allow archiving to be paused or resumed dynamically based on an external signal.
@@ -258,28 +264,45 @@ Policies with the "Controlled" suffix allow archiving to be paused or resumed dy
 ### 4.3 Field Archiving Logic
 In addition to the main value (`.VAL`), the archiver captures auxiliary fields to provide operational context (limits, drive values, etc.). The list of archived fields is determined dynamically based on the EPICS Record Type (`RTYP`).
 
-| Group | Fields | Applicable RTYPs |
-| :--- | :--- | :--- |
-| A. Standard Limits | `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR`, `HOPR` | `ai`, `calc`, `calcout`, `longin`, `dfanout`, `sub` |
-| B. Limits with Drive Values | A + `DRVH`, `DRVL` | `ao`, `longout` |
-| C. Motor Specific | A + `VELO`, `RBV` | `motor` |
+#### 4.3.1 Group A: Standard Limits
+Records in this group archive the standard alarm limits and operating ranges.
+* **Fields**: `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR`, `HOPR`
+* **Applicable RTYPs**:
+    * `ai` (Analog Input)
+    * `calc`, `calcout` (Calculation)
+    * `longin` (Long Input)
+    * `dfanout` (Data Fanout)
+    * `sub` (Subroutine)
 
-#### Global Stream Fields
-The system defines a default set of fields considered part of every PV stream structure regardless of RTYP.
+#### 4.3.2 Group B: Limits with Drive Values
+Output records often include drive limits in addition to the standard operating limits.
+* **Fields**: Group A Fields + `DRVH` (Drive High), `DRVL` (Drive Low)
+* **Applicable RTYPs**:
+    * `ao` (Analog Output)
+    * `longout` (Long Output)
 
+#### 4.3.3 Group C: Motor Specific
+Motor records require velocity and readback information in addition to standard limits.
+* **Fields**: Group A Fields + `VELO` (Velocity), `RBV` (Readback Value)
+* **Applicable RTYPs**:
+    * `motor`
+
+#### 4.3.4 Global Stream Fields
+The system defines a default set of fields considered part of every PV stream structure.
 * **Default List**: `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR`, `HOPR`, `DRVH`, `DRVL`.
 
 ## 5. Policy Application & Lifecycle
-The archiving logic defined in `policies.py` is evaluated when the management service computes policy for a PV.
+The archiving logic defined in `policies.py` is integrated into the system during the service initialization phase.
 
 ### 5.1 Loading Mechanism
-`DefaultConfigService` creates an `ExecutePolicy` object that reads and executes the policy text. The policy-computation cache expires one minute after creation and is rebuilt on a subsequent policy request. Listing available policies creates a separate `ExecutePolicy` instance.
+The policy script is loaded into the Java environment when each specific service (Management, Engine, ETL, Retrieval) starts up.
+The loading process is managed by `ConfigService.java` and `DefaultConfigService.java` within the `archiverappliance` source code.
 
 ### 5.2 Runtime vs. Build Time
 It is important to distinguish between the software build and the configuration application.
 * **Build Time**: The web application archives (WAR files: `mgmt.war`, `engine.war`, `etl.war`, `retrieval.war`) are created during the build process.
-* **Configuration**: The environment generates `policies.py` from the site template, copies it into the build overlay, and installs an external copy under `AA_INSTALL_LOCATION`.
-* **Policy Evaluation**: The configured external file takes precedence over the WAR's classpath copy. Changes can be read on a later policy evaluation without rebuilding the WARs.
+* **Startup Time**: The services run with the WAR files unzipped. The `policies.py` file is read from the external file system when the service starts, not baked into the build.
+* **Conclusion**: Policies are applied at service startup, allowing for configuration changes without rebuilding the software.
 
 ### 5.3 Configuration Path
 The system locates the policy script using a specific environment variable.
@@ -288,24 +311,43 @@ The system locates the policy script using a specific environment variable.
 * **Example**: `ARCHAPPL_POLICIES="/opt/epicsarchiverap-maven/policies.py"`
 
 ### 5.4 Update Workflow
-1. Update the active external `policies.py` identified by `ARCHAPPL_POLICIES`.
-2. After the one-minute computation cache expires, a subsequent policy evaluation reads the updated script. A service restart also discards the cache, but is not required solely to reload the script.
-3. Check the resulting policy when requesting a PV to be archived. Reloading the script does not by itself rewrite the stored sampling or storage settings of PVs that are already archived.
-
-The loading and ETL descriptions follow `DefaultConfigService`, `ExecutePolicy`,
-and `PlainPBStoragePlugin` in aa-maven `35282494`.
+Since the policy file is loaded only at initialization, changes to `policies.py` are not applied dynamically.
+1.  **Shutdown**: Stop the Archiver Appliance services.
+2.  **Modification**: Edit or replace the `policies.py` file at the path defined by `ARCHAPPL_POLICIES`.
+3.  **Startup**: Start the services to load and apply the new logic.
 
 ## 6. Storage Media & Hardware Recommendations
-The media-specific rows are configuration examples, not measured performance guarantees. The final three rows show the actual defaults in `site-template/policies.py.in`. Dashes indicate that the template omits the parameter for the final LTS tier.
+The selection of `partitionGranularity`, `hold`, and `gather` should be optimized based on the physical storage media being used.
 
-| Media | Tier | `partitionGranularity` | `hold` | `gather` | Notes |
-| :--- | :--- | :--- | :---: | :---: | :--- |
-| SATA | STS | `PARTITION_HOUR` | 5 | 1 | RAM file system or high-RAM host (64 GB+) |
-| SATA | MTS | `PARTITION_DAY` | 2 | 1 | |
-| SATA | LTS | `PARTITION_MONTH` | — | — | |
-| NVMe (M.2) | STS | `PARTITION_DAY` | 2 | 1 | |
-| NVMe (M.2) | MTS | `PARTITION_MONTH` | 2 | 1 | |
-| NVMe (M.2) | LTS | `PARTITION_YEAR` | — | — | Live data; migrate to recovery storage after 1/3/5 years |
-| **Shipped default** | STS | `PARTITION_HOUR` | 2 | 1 | `consolidateOnShutdown=true` |
-| **Shipped default** | MTS | `PARTITION_MONTH` | 2 | 1 | |
-| **Shipped default** | LTS | `PARTITION_YEAR` | — | — | No `pp` or `reducedata` for the Default policy |
+### 6.1 SATA Disk (Local Storage)
+* **STS Configuration**:
+    * Recommended for RAM file systems or high-RAM environments (64GB+).
+    * `partitionGranularity`: `HOUR`
+    * `hold`: 5
+    * `gather`: 1
+* **MTS Configuration**:
+    * `partitionGranularity`: `DAY`
+    * `hold`: 2
+    * `gather`: 1
+* **LTS Configuration**:
+    * `partitionGranularity`: `MONTH`
+
+### 6.2 NVMe (M.2) Storage
+* **STS Configuration**:
+    * `partitionGranularity`: `DAY`
+    * `hold`: 2
+    * `gather`: 1
+* **MTS Configuration**:
+    * `partitionGranularity`: `MONTH`
+    * `hold`: 2
+    * `gather`: 1
+* **LTS Configuration**:
+    * `partitionGranularity`: `YEAR` (Live data)
+    * Recommendation: Move to recovery storage after 1, 3, or 5 years depending on the experiment requirements.
+
+### 6.3 Final Recommended Default Policy
+For a standard robust deployment, the following parameters are recommended to ensure reliability and performance:
+
+* **STS**: `PARTITION_HOUR`, `hold=2`, `gather=1`, `consolidateOnShutdown=true`
+* **MTS**: `PARTITION_DAY`, `hold=2`, `gather=1`
+* **LTS**: `PARTITION_YEAR`, `pp=mean_3600`
