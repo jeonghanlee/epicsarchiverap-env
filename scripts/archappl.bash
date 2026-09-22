@@ -91,22 +91,6 @@ function shutdown_archappl
 }
 
 # shellcheck disable=SC2120
-function jsvc_shutdown_archappl
-{
-    local archappl_top="$1";shift;
-
-    if [ -z "$archappl_top" ]; then
-	    archappl_top="${SC_TOP}"
-    fi
-
-    # Does tomcat user can shutdown all without sudo?
-    for service in "${startup_services[@]}"; do
-        "${JAVA_HOME}"/bin/jsvc -stop -pidfile "${archappl_top}/${service}/temp/${service}.pid" org.apache.catalina.startup.Bootstrap
- #      sudo "${JAVA_HOME}"/bin/jsvc -stop -pidfile "${archappl_top}/${service}/temp/${service}.pid" org.apache.catalina.startup.Bootstrap
-    done  
-}
-
-# shellcheck disable=SC2120
 function status_archappl
 {
 

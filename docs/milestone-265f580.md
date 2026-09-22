@@ -15,8 +15,9 @@ quota, so an archiver that fills it takes the whole host, and the fill rate is
 still unknown. The other half of M26 is settled: the shipped MTS granularity is
 now `PARTITION_DAY`, matching the storage guide's recommended default, so the
 second ETL hop becomes eligible after about two days instead of two months and a
-soak can observe the whole chain. Seven rows are
-Ready: M9, M15 and M22-M26. M22's `256M` candidate default is validated only at
+soak can observe the whole chain. M24's unused jsvc cleanup is implemented and
+locally verified; landing evidence and issue #45 closure remain. Six rows are
+Ready: M9, M15, M22, M23, M25 and M26. M22's `256M` candidate default is validated only at
 idle; the load test requested from ansible-provision supplies the figure under
 load, the disk growth rate M26 needs, and the first observation of ETL movement
 anywhere. M8's Release Verification 2 and 3 passed on three provisioned hosts;
@@ -47,7 +48,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9 and M15. M2
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Runtime | M22 | Size the JVM heap default to the host | Milestone | Not started | Yes | D18 | A default install on a 4 GB host runs the four instances beside MariaDB with no kernel OOM kill, and the host memory requirement is documented; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | Not started | Yes | D12, D18, D19 | A killed instance puts a systemd unit into `failed` within the timer interval while the appliance service and the surviving instances are untouched; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
-| Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Not started | Yes | D12, D18 | No function in `scripts/archappl.bash` is defined without a caller, and `jsvc` is listed only where something invokes it; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
+| Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | In progress | No | D12, D18 | No function in `scripts/archappl.bash` is defined without a caller, and `jsvc` is listed only where something invokes it; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Not started | Yes | D10, D18 | The hook's name and comment describe mvn command-line flags, and any proxy guidance names the settings-file route; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Storage | M26 | Test-environment archive store and ETL timing | Milestone | Not started | Yes | D18, D21 | The archive store sits off the root filesystem with a threshold that reports first, and a short run shows samples moving STS to MTS to LTS; both documented; [detail](#m26---test-environment-archive-store-and-etl-timing) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
@@ -1696,23 +1697,25 @@ Last Compared: 2026-09-21
 Origin: 265f580 / M24
 Identity History: none
 GitHub Issue: #45
-Status: Not started
+Status: In progress
 
 ##### Summary
 
-`jsvc_shutdown_archappl` is defined at `scripts/archappl.bash:94` and never
+At the pre-change commit `f0d2a979bb0283c956c055e4fce7fe1496b9bf23`,
+`jsvc_shutdown_archappl` was defined at `scripts/archappl.bash:94` and never
 called; start and stop both run each instance's `startup.sh` and `shutdown.sh`.
-Its presence implies a `jsvc` dependency the launcher does not have, and `jsvc`
-is listed only in `configure/os/debian13.pkgs`, not in `rocky8.pkgs`, so the
-package lists disagree about a tool nothing invokes.
+Its presence implied a `jsvc` dependency the launcher does not have, and `jsvc`
+was listed only in `configure/os/debian13.pkgs`, not in `rocky8.pkgs`, so the
+package lists disagreed about a tool nothing invokes. The function and Debian
+package entry are now removed in the working tree.
 
 ##### Scope
 
-- `scripts/archappl.bash`: remove the unused function, or wire it up if a jsvc
-  stop path is actually wanted.
-- `configure/os/debian13.pkgs`: the `jsvc` entry, once the script settles the
-  question.
-- `tests/`: a phase 1 guard for the outcome.
+- `scripts/archappl.bash`: remove `jsvc_shutdown_archappl` and its attached
+  ShellCheck directive.
+- `configure/os/debian13.pkgs`: remove the unused `jsvc` package entry.
+- `tests/phase1-logic.bash`: add a structural guard against restoring the dead
+  function or the unused package dependency.
 
 Out of scope: the start and stop ordering D12 fixed; other differences between
 the per-OS package lists.
@@ -1728,31 +1731,63 @@ the per-OS package lists.
 - D18. Re-derived here 2026-09-21: the only `jsvc` references in
   `scripts/archappl.bash` are the function definition and its own body, and
   `configure/os/debian13.pkgs` is the only package list naming `jsvc`.
+- Decision Date: 2026-09-21. Remove the unused function and package entry;
+  do not introduce a jsvc launcher or shutdown path. Add the Phase 1 guard.
+- No external test host is required for this cleanup. The removed function has
+  no caller in the shipped scripts; the active dispatch and Tomcat script
+  invocations are outside the change. D12 constrains those paths to remain
+  unchanged. Package selection can be exercised locally through the real
+  installer's `--list-only` mode, which returns before package installation.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-21; corrected plan accepted after the second-person review
+Implementation Authorization: 2026-09-21; implement the accepted cleanup and local checks
 Superseded Plan Artifacts: none
+
+1. Remove the entire `jsvc_shutdown_archappl` definition and its attached
+   ShellCheck directive from `scripts/archappl.bash`. Preserve the active
+   startup, shutdown and restart dispatch, including both service-order arrays.
+   Inspect the remaining function definitions and their callers against the
+   completion criterion, and check the script with `bash -n`.
+2. Remove only the `jsvc` entry from `configure/os/debian13.pkgs`. Check the
+   launcher and all shipped OS package lists for remaining jsvc references;
+   leave unrelated package differences unchanged.
+3. Extend `tests/phase1-logic.bash` with assertions against the actual launcher
+   and package installer: the dead function and jsvc invocation are absent,
+   and `bash scripts/install_os_packages.bash --os <id> --list-only` succeeds with
+   nonempty output and no `jsvc` entry for each shipped OS package list.
+   Use the installer's real parser rather than reproducing it in the test.
+4. Run T1 and T2 locally, inspect the diff to confirm that active service paths
+   and unrelated package entries are unchanged, and record the actual results.
+   These checks establish the cleanup and package selection; they do not claim
+   service runtime verification. No service restart or package installation
+   is part of this work.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` with a guard for the settled symbol | This host | Guard passes; no uncalled jsvc function remains |
-| T2 | Runtime | Start and stop the service after the change | This host | Four instances start and stop unchanged |
+| T1 | Logic | Run `bash -n scripts/archappl.bash`, inspect remaining function callers, and run `tests/run-all-tests.bash --phase=1` with the launcher and package-list guards | This host | Script parses, every remaining function has a caller, and the real Phase 1 runner passes with no dead jsvc function or package entry |
+| T2 | Package selection | Run `bash scripts/install_os_packages.bash --os <id> --list-only` for each shipped `configure/os/<id>.pkgs` through the Phase 1 guard | This host; no root or network required | Every invocation exits 0 with a nonempty resolved package list containing no `jsvc` entry |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
+| T1 | 2026-09-22T03:27:40Z | Local working tree based on `f0d2a97` | Pass | `bash -n scripts/archappl.bash` and `TMPDIR=/tmp tests/run-all-tests.bash --phase=1` exit 0; Phase 1 reports 47 passed, 0 failed. All nine remaining launcher functions have callers. The new P1.14 launcher check was first run against the original function and exited 1 at the jsvc reference. The launcher diff removes only that function and its attached directive. |
+| T2 | 2026-09-22T03:27:40Z | Local working tree; real package installer | Pass | P1.14 executes `bash scripts/install_os_packages.bash --os <id> --list-only` for debian13, macos and rocky8: each exits 0 with nonempty output and no jsvc entry. With the function removed but the original Debian list still present, the real Phase 1 runner exited 1 at the Debian jsvc assertion. No package installation or service operation ran. |
 
 ##### Closure Evidence
 
-- none
+- Implementation and both local checks are finished in the working tree. The
+  accepted plan preserves the active launcher paths and service-order arrays;
+  the diff contains no changes to those paths.
+- Repository landing evidence and issue #45 closure remain outstanding; this
+  row stays In progress. The issue read attempted on 2026-09-21 returned HTTP
+  401, so its live state was not refreshed. Recheck with `gh issue view 45
+  --repo jeonghanlee/epicsarchiverap-env`. No remote mutation was performed.
 
 ##### GitHub Projection
 

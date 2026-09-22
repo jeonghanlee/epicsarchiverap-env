@@ -138,4 +138,24 @@ logged_rc=0
 run_logged "Failing child command" bash -c 'exit 23' || logged_rc=$?
 assert_status "${logged_rc}" 23 "run_logged preserves failure"
 
+# P1.14 The launcher uses Tomcat scripts and needs no jsvc package.
+launcher_text=$(cat "${TOP}/scripts/archappl.bash")
+case "${launcher_text}" in
+    *jsvc*) _record_fail "Launcher has no jsvc path" "Found a jsvc reference" ;;
+    *)      _record_pass "Launcher has no jsvc path" ;;
+esac
+for package_list in "${TOP}/configure/os/"*.pkgs; do
+    package_os="${package_list##*/}"
+    package_os="${package_os%.pkgs}"
+    package_rc=0
+    package_output=$(bash "${TOP}/scripts/install_os_packages.bash" \
+        --os "${package_os}" --list-only) || package_rc=$?
+    assert_status "${package_rc}" 0 "Package selection succeeds for ${package_os}"
+    assert_nonempty "${package_output}" "Resolved package list for ${package_os} is nonempty"
+    case $'\n'"${package_output}"$'\n' in
+        *$'\njsvc\n'*) _record_fail "No jsvc package for ${package_os}" "Found jsvc in the resolved list" ;;
+        *)             _record_pass "No jsvc package for ${package_os}" ;;
+    esac
+done
+
 phase_pass "Phase 1: Logic"

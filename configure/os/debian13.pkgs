@@ -17,5 +17,4 @@ mariadb-client
 libmariadb-dev
 libmariadb-dev-compat
 openjdk-21-jdk-headless
-jsvc
 chrony
