@@ -5,7 +5,7 @@
 # all earlier phases have passed.
 #
 #   Phase 1 — Logic           (no setup, no network)
-#   Phase 2 — Compile         (full Maven build with sphinx)
+#   Phase 2 — Build wrapper   (Make command generation; no build or network)
 #   Phase 3 — Infrastructure  (Docker container, no systemd)
 #   Phase 4 — System          (libvirt VM, full systemd stack)
 #

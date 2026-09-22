@@ -1,7 +1,7 @@
 # EPICS Archiver Appliance Environment — Automated Tests
 
-Phased install test suite that validates the Makefile system, Maven
-build, container deployment, and full VM-based integration.
+Phased install test suite that validates the Makefile system and build-wrapper
+command generation, with container deployment and VM integration planned.
 
 ## Phased SOP
 
@@ -10,7 +10,7 @@ Tests execute in strict order, from least to most privilege:
 | Phase | Validates | Setup cost |
 | :--- | :--- | :--- |
 | 1. Logic | configure/ structure, Makefile parsing, doc set integrity | none |
-| 2. Compile | Maven build (tests skipped; run in the CI at https://github.com/jeonghanlee/epicsarchiverap-maven); four service WARs + assembly produced | distro JDK 21, network (the Maven Wrapper self-provisions) |
+| 2. Build wrapper | Real `make -n build`: configuration, site-overlay copy, Maven package command and ordering | none; no source checkout, JDK or network required |
 | 3. Infrastructure | `make install` end-to-end inside a Debian 13 container | Docker daemon |
 | 4. System | full systemd stack inside a libvirt VM; HTTP probes | KVM, libvirt, cloud-init |
 
@@ -23,7 +23,7 @@ under `tests/docker/` and `tests/vm/`.
 # Run all phases that are implemented.
 tests/run-all-tests.bash
 
-# Local-only phases (no privilege required).
+# Local command-generation checks (no build, network or privilege required).
 tests/run-all-tests.bash --local
 
 # Targeted phase (cumulative: --phase=N runs phases 1..N).
@@ -33,7 +33,7 @@ tests/run-all-tests.bash --phase=2
 ## Workspace and Logs
 
 Each run creates a workspace under `${TMPDIR:-/dev/shm}` and writes
-detailed Maven and shell logs to `${WORKSPACE}/run.log`. The workspace
+phase command output to `${WORKSPACE}/run.log`. The workspace
 is removed on success and retained on failure for post-mortem
 inspection. Force retention with `KEEP_WORKSPACE=1`.
 
@@ -55,13 +55,14 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - `run_logged` preserves both success and a nonzero exit status from real child commands.
 - All six Maven targets parse with `MAVEN_FLAGS` and render those flags immediately after the Maven Wrapper command. The check uses the real Makefile with `make -n`; it does not run Maven, read the example settings file, or verify proxy connectivity.
 
-### Phase 2 — Compile
-- `make init` clones `epicsarchiverap-maven-src` (skipped if the directory already exists).
-- `make conf.archapplproperties` generates the site configuration required by the WAR build; it does not provision the host storage directories.
-- `make build.mvn` (clean + package, tests skipped — the CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite) must return success before any artifact is accepted. A failed build stops the phase even if previous artifacts remain.
-- Exactly one WAR for each service (`mgmt`, `engine`, `etl`, `retrieval`) is produced under `target/`, each at least 1 MB. All four share a build prefix chosen by the source POM, including the `aa-<date>-<hash>` naming scheme.
-- Exactly one release `.tar.gz` and `target/stage/RELEASE_NOTES` are produced. The source assembly plugin owns the tarball name.
-- The mgmt WAR's `ui/api/index.html` confirms the generated API reference is packaged.
+### Phase 2 — Build wrapper
+- The real `make -n build` target parses and generates commands successfully.
+- The package command runs from the configured source directory and invokes its Maven Wrapper with `clean package -DskipTests`.
+- Only simple unquoted environment assignments may precede the wrapper; another command such as `echo` does not pass the invocation check.
+- The six configuration-generation commands precede the site-overlay copy, which precedes the Maven package command.
+- `MAVEN_FLAGS` is empty for this check; Phase 1 separately verifies nonempty flags across all six Maven targets.
+- The check does not clone sources, execute Java or Maven, generate configuration, provision storage, or inspect WARs and release artifacts. Compilation and artifact verification belong to [aa-maven CI](https://github.com/jeonghanlee/epicsarchiverap-maven/actions).
+- The script remains `tests/phase2-compile.bash` for direct callers. Both `--local` and `--phase=2` still run Phase 1 followed by Phase 2.
 
 ### Phase 3 — Infrastructure (planned)
 - `make install` populates `${AA_INSTALL_LOCATION}/{mgmt,engine,etl,retrieval}/webapps` with the four exploded WAR trees.

@@ -1,89 +1,75 @@
 #!/usr/bin/env bash
-# Phase 2: Compile.
-# Runs the Maven build (clean package, tests skipped) and validates that the
-# four service WARs and the release assembly are produced, and that the mgmt
-# WAR carries the generated API reference. The test suite runs in the CI at
-# https://github.com/jeonghanlee/epicsarchiverap-maven, not here.
-#
-# Network access is required for the initial source clone and for
-# Maven dependency resolution; subsequent runs reuse ~/.m2.
+# Phase 2: Build wrapper.
+# Inspect command generation from the real Makefile. No source clone, JDK,
+# Maven execution, configuration generation, or build artifacts are required.
+# Compilation and artifact verification belong to aa-maven CI.
 
 set -euo pipefail
 
-readonly TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-readonly SRC_PATH="${TOP}/epicsarchiverap-maven-src"
-readonly TARGET_DIR="${SRC_PATH}/target"
-readonly MIN_WAR_BYTES=1000000
+TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly TOP
 
 # shellcheck source=lib/common.bash
 source "${TOP}/tests/lib/common.bash"
 
-phase_header "Phase 2: Compile"
+phase_header "Phase 2: Build wrapper"
 
-# P2.1 Toolchain present.
-assert_dir "${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}" "JAVA_HOME directory"
+# P2.1 Resolve paths from the same configuration used by the dry run.
+# Empty CLI flags isolate the build contract from optional local Maven flags.
+make_cmd=(make -C "${TOP}" --no-print-directory MAVEN_FLAGS=)
+config_output=$("${make_cmd[@]}" -s print-SRC_PATH print-MAVEN_CMD \
+    print-AA_SITE_TEMPLATE_PATH print-ARCHAPPL_SITEID_TEMPATE_PATH \
+    print-ARCHAPPL_SITEID_TARGET_PATH)
+mapfile -t config_values <<< "${config_output}"
+assert_eq "${#config_values[@]}" 5 "Build configuration resolves five paths"
+for value in "${config_values[@]}"; do
+    assert_nonempty "${value}" "Build configuration path is nonempty"
+done
+src_path="${config_values[0]}"
+mvncmd="${config_values[1]}"
+template_path="${config_values[2]}"
+overlay_path="${config_values[3]}"
+target_path="${config_values[4]}"
 
-# P2.2 Source tree: clone via make init when absent, otherwise skip.
-if [[ ! -d "${SRC_PATH}" ]]; then
-    if run_logged "make init (cloning source)" make -C "${TOP}" init; then
-        _record_pass "make init succeeded"
-    else
-        _record_fail "make init" "see ${LOGFILE}"
-    fi
-else
-    _record_pass "Source tree already present (skipping make init)"
-fi
-assert_dir "${SRC_PATH}" "source tree at ${SRC_PATH}"
-assert_file "${SRC_PATH}/mvnw" "Maven Wrapper present in the source tree"
+# P2.2 Render the public build target without executing its recipes.
+build_rc=0
+build_output=$("${make_cmd[@]}" -n build 2>&1) || build_rc=$?
+printf '%s\n' "${build_output}" >> "${LOGFILE}"
+assert_status "${build_rc}" 0 "make -n build succeeds (see ${LOGFILE})"
 
-# P2.3 Generate the site overlay through the same configuration target
-# used by make build, without provisioning the host storage directories.
-if run_logged "make conf.archapplproperties" make -C "${TOP}" conf.archapplproperties; then
-    _record_pass "Site configuration generated"
-else
-    _record_fail "make conf.archapplproperties" "see ${LOGFILE}"
-fi
+# P2.3 Match the build invocation, not the informational mvnw --version line.
+# Only simple unquoted environment assignments may precede the executable.
+assignment_pattern='([a-zA-Z_][a-zA-Z0-9_]*=[a-zA-Z0-9_./:+-]*[[:space:]]+)*'
+build_prefix="cd ${src_path} && "
+maven_suffix="${mvncmd}  clean package -DskipTests && cd .."
+maven_line=""
+maven_count=0
+while IFS= read -r line; do
+    case "${line}" in
+        "${build_prefix}"*"${maven_suffix}")
+            assignments="${line#"${build_prefix}"}"
+            assignments="${assignments%"${maven_suffix}"}"
+            if [[ "${assignments}" =~ ^${assignment_pattern}$ ]]; then
+                maven_line="${line}"
+                maven_count=$((maven_count + 1))
+            fi
+            ;;
+    esac
+done <<< "${build_output}"
+assert_eq "${maven_count}" 1 "Build invokes the source Maven Wrapper with clean package -DskipTests"
 
-# Full build (war + assembly).
-if run_logged "make build.mvn (full Maven package)" make -C "${TOP}" build.mvn; then
-    _record_pass "make build.mvn succeeded"
-else
-    _record_fail "make build.mvn" "see ${LOGFILE}"
-fi
-
-# P2.4 A successful clean build produces one WAR per service, with a
-# common prefix chosen by the source POM rather than this environment.
-shopt -s nullglob
-artifact_prefix=""
-for service in mgmt engine etl retrieval; do
-    wars=("${TARGET_DIR}/"*-"${service}.war")
-    assert_eq "${#wars[@]}" "1" "Exactly one ${service}.war"
-    war="${wars[0]}"
-    assert_file_size_min "${war}" "${MIN_WAR_BYTES}" "${service}.war size"
-    prefix="${war%-"${service}".war}"
-    if [[ -z "${artifact_prefix}" ]]; then
-        artifact_prefix="${prefix}"
-    else
-        assert_eq "${prefix}" "${artifact_prefix}" "${service}.war shares the build prefix"
-    fi
+# P2.4 Each rendered configuration precedes the overlay copy and Maven build.
+copy_command="cp -rf ${overlay_path} ${target_path}"
+for config_file in appliances.xml archappl.properties policies.py context.xml archappl.conf log4j.properties; do
+    config_redirection="< ${template_path}/${config_file}.in > ${template_path}/${config_file}"
+    case $'\n'"${build_output}"$'\n' in
+        *"${config_redirection}"$'\n'*$'\n'"${copy_command}"$'\n'*"${maven_line}"$'\n'*)
+            _record_pass "${config_file} generation precedes overlay copy and Maven build"
+            ;;
+        *)
+            _record_fail "${config_file} build ordering" "see ${LOGFILE}"
+            ;;
+    esac
 done
 
-# P2.5 The assembly plugin owns the release tarball name.
-tarballs=("${TARGET_DIR}/"*.tar.gz)
-assert_eq "${#tarballs[@]}" "1" "Exactly one release tarball"
-assert_file "${tarballs[0]}" "release tarball produced"
-
-# P2.6 RELEASE_NOTES generated by the prepare-package phase.
-assert_file "${TARGET_DIR}/stage/RELEASE_NOTES" "RELEASE_NOTES staged"
-
-# P2.7 The mgmt WAR carries the generated API reference (replaces the retired
-# Sphinx docs build): the HTML reference and its machine-readable sibling.
-mgmt_wars=("${TARGET_DIR}/"*-mgmt.war)
-assert_eq "${#mgmt_wars[@]}" "1" "Exactly one mgmt.war for the API reference check"
-api_extract="${TARGET_DIR}/mgmt-api-ref"
-rm -rf "${api_extract}"
-unzip -q -o "${mgmt_wars[0]}" 'ui/api/*' -d "${api_extract}" || true
-assert_file "${api_extract}/ui/api/index.html" "mgmt WAR ui/api/index.html"
-assert_file "${api_extract}/ui/api/api.json" "mgmt WAR ui/api/api.json"
-
-phase_pass "Phase 2: Compile"
+phase_pass "Phase 2: Build wrapper"
