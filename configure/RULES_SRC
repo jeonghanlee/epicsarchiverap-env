@@ -62,7 +62,7 @@ info.mvn:
 
 ## Clean
 clean.mvn: info.mvn
-	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean && cd ..
+	cd $(SRC_PATH) && ARCHAPPLSITE=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) clean && cd ..
 
 ## -f $(SRC_PATH)/pom.xml does not work, since we will have the
 ## java.io.FileNotFoundException: docs/api/mgmt_scriptables.txt
@@ -71,23 +71,23 @@ clean.mvn: info.mvn
 ## 2025-06-03
 ## Build (tests skipped -- CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite)
 build.mvn: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) clean package -DskipTests && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) clean package -DskipTests && cd ..
 
 ## Build 2
 build.mvn2: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) package && cd ..
 
 ## Build 3
 build.mvn3: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) package -X && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) package -X && cd ..
 
 ## Build 4 
 build.war: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) war:exploded && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) war:exploded && cd ..
 
 ## Build 4 
 build.mvndeps: info.mvn copy.sitespecific
-	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_OPTS) dependency:tree && cd ..
+	cd $(SRC_PATH) && ARCHAPPL_SITEID=als JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) dependency:tree && cd ..
 
 copy.sitespecific: | FORCE
 	$(QUIET)echo "-------------------------------------------------------------"

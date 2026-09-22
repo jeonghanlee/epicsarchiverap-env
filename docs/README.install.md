@@ -51,6 +51,32 @@ the check that proves it ran.
   overrides in `configure/CONFIG_SITE.local` when `make <os>.conf` is used, since
   that target overwrites the file.
 
+### Maven flags and proxy settings
+
+`MAVEN_FLAGS` supplies Maven command-line arguments to `clean.mvn`, `build.mvn`,
+`build.mvn2`, `build.mvn3`, `build.war`, and `build.mvndeps`. Its default is empty.
+Set it in `../CONFIG_SITE.local`, or pass it as a Make command-line override.
+
+Migrate existing `MAVEN_OPTS` assignments used for command-line flags in local
+Make settings or `make` invocations to `MAVEN_FLAGS`. There is no compatibility
+alias. The standard `MAVEN_OPTS` environment variable remains for Maven's JVM
+options, such as `-Xmx512m`; do not put Maven command-line flags in it.
+
+For Maven dependency downloads through a proxy, configure the `<proxies>`
+section in an existing Maven settings file. Select an alternate global settings
+file with `-gs`, for example in `../CONFIG_SITE.local`:
+
+```makefile
+MAVEN_FLAGS := -B -ntp -gs /absolute/path/maven-settings.xml
+```
+
+Use an absolute settings-file path because these targets run Maven from the
+source checkout. The environment does not generate or supply that file.
+`MAVEN_FLAGS` selects the file; the proxy configuration belongs inside it.
+Do not rely on shell proxy variables or JVM proxy properties as a portable
+replacement for Maven settings. These settings cover Maven dependency
+resolution, not Git or Maven Wrapper distribution downloads.
+
 ## Ordered sequence
 
 `U` runs as an ordinary build user; `R` requires root (an automation role that

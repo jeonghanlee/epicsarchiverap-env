@@ -159,4 +159,18 @@ for package_list in "${TOP}/configure/os/"*.pkgs; do
     esac
 done
 
+# P1.15 Maven CLI flags reach every target through the real Makefile.
+# The settings path is only rendered by make -n; no settings file is read.
+maven_flags="-B -ntp -gs ${WORKSPACE}/maven-settings.xml"
+for maven_target in clean.mvn build.mvn build.mvn2 build.mvn3 build.war build.mvndeps; do
+    maven_rc=0
+    maven_output=$(make -C "${TOP}" --no-print-directory -n "${maven_target}" \
+        "MAVEN_FLAGS=${maven_flags}" 2>&1) || maven_rc=$?
+    assert_status "${maven_rc}" 0 "make -n ${maven_target} parses with MAVEN_FLAGS"
+    case "${maven_output}" in
+        *"${mvncmd} ${maven_flags} "*) _record_pass "${maven_target} passes MAVEN_FLAGS after the wrapper" ;;
+        *) _record_fail "${maven_target} passes MAVEN_FLAGS after the wrapper" "got: ${maven_output}" ;;
+    esac
+done
+
 phase_pass "Phase 1: Logic"

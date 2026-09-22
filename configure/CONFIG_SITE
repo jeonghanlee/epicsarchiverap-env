@@ -48,7 +48,9 @@ ANT_OPTS+=-Dwardest=$(ARCHAPPL_WARS_TARGET_PATH)
 ANT_OPTS+=-Dtomcathome=$(TOMCAT_HOME)
 ANT_OPTS+=-Darchapplsite=$(ARCHAPPL_SITEID)
 
-MAVEN_OPTS:=
+## Maven command-line flags, such as -B or -gs /absolute/path/settings.xml.
+## MAVEN_OPTS is Maven's JVM-options environment variable, not this Make hook.
+MAVEN_FLAGS:=
 
 # export JAVA_OPTS="-XX:MaxPermSize=128M -XX:+UseG1GC -Xmx4G -Xms4G -ea"
 #

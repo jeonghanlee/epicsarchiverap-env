@@ -53,6 +53,7 @@ inspection. Force retention with `KEEP_WORKSPACE=1`.
 - The legacy package scripts are gone; `scripts/install_os_packages.bash` parses and `configure/os/debian13.pkgs` names the distro JDK.
 - No `java-env`, `MAVEN_HOME`, or local-install reference survives in `configure/`, `scripts/`, or `README.md`; `MAVEN_CMD` is the source tree's `mvnw`.
 - `run_logged` preserves both success and a nonzero exit status from real child commands.
+- All six Maven targets parse with `MAVEN_FLAGS` and render those flags immediately after the Maven Wrapper command. The check uses the real Makefile with `make -n`; it does not run Maven, read the example settings file, or verify proxy connectivity.
 
 ### Phase 2 — Compile
 - `make init` clones `epicsarchiverap-maven-src` (skipped if the directory already exists).

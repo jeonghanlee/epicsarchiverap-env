@@ -16,8 +16,8 @@ still unknown. The other half of M26 is settled: the shipped MTS granularity is
 now `PARTITION_DAY`, matching the storage guide's recommended default, so the
 second ETL hop becomes eligible after about two days instead of two months and a
 soak can observe the whole chain. M24's unused jsvc cleanup is implemented and
-locally verified; landing evidence and issue #45 closure remain. Six rows are
-Ready: M9, M15, M22, M23, M25 and M26. M22's `256M` candidate default is validated only at
+locally verified; landing evidence and issue #45 closure remain. M25 is implemented
+and locally verified, with landing evidence outstanding. Five rows are Ready: M9, M15, M22, M23 and M26. M22's `256M` candidate default is validated only at
 idle; the load test requested from ansible-provision supplies the figure under
 load, the disk growth rate M26 needs, and the first observation of ETL movement
 anywhere. M8's Release Verification 2 and 3 passed on three provisioned hosts;
@@ -49,7 +49,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9 and M15. M2
 | Runtime | M22 | Size the JVM heap default to the host | Milestone | Not started | Yes | D18 | A default install on a 4 GB host runs the four instances beside MariaDB with no kernel OOM kill, and the host memory requirement is documented; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | Not started | Yes | D12, D18, D19 | A killed instance puts a systemd unit into `failed` within the timer interval while the appliance service and the surviving instances are untouched; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | In progress | No | D12, D18 | No function in `scripts/archappl.bash` is defined without a caller, and `jsvc` is listed only where something invokes it; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
-| Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Not started | Yes | D10, D18 | The hook's name and comment describe mvn command-line flags, and any proxy guidance names the settings-file route; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
+| Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | In progress | No | D10, D18 | The hook's name and comment describe mvn command-line flags, and any proxy guidance names the settings-file route; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Storage | M26 | Test-environment archive store and ETL timing | Milestone | Not started | Yes | D18, D21 | The archive store sits off the root filesystem with a threshold that reports first, and a short run shows samples moving STS to MTS to LTS; both documented; [detail](#m26---test-environment-archive-store-and-etl-timing) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -1804,14 +1804,14 @@ Last Compared: 2026-09-21
 Origin: 265f580 / M25
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
-`MAVEN_OPTS` in `configure/CONFIG_SITE` is expanded onto the mvn command line
-by the `configure/RULES_SRC` build targets, so it carries mvn command-line
-flags, not the JVM options the identically named Maven environment variable
-carries. The reporting side measured that JVM proxy properties passed that way
+Before this change, `MAVEN_OPTS` in `configure/CONFIG_SITE` was expanded onto
+the mvn command line by the six `configure/RULES_SRC` targets, despite sharing
+its name with Maven's JVM-options environment variable. The Make variable is
+now `MAVEN_FLAGS`; the installation guide describes migration and proxy settings. The reporting side measured that JVM proxy properties passed that way
 do not reach Maven's dependency resolution, and neither do the shell proxy
 variables nor a real `MAVEN_OPTS` environment variable; only a settings file
 works, which they select with `-gs` through this same hook.
@@ -1821,7 +1821,9 @@ works, which they select with `-gs` through this same hook.
 - `configure/CONFIG_SITE`: the hook's name and the comment describing what it
   carries.
 - `configure/RULES_SRC`: the build targets that expand it.
-- Any documentation that mentions the hook, including proxy guidance.
+- `docs/README.install.md`: variable migration and Maven proxy guidance.
+- `tests/phase1-logic.bash` and `tests/README.md`: command-generation checks
+  for all six targets that consume the flags.
 
 Out of scope: shipping a settings file; the Maven Wrapper pin (D10); proxy
 configuration for anything other than the Maven build.
@@ -1840,30 +1842,52 @@ configuration for anything other than the Maven build.
   `MAVEN_OPTS:=` and the `RULES_SRC` targets expand it as
   `$(MAVEN_CMD) $(MAVEN_OPTS) <goal>`, which is a command-line position.
 
+- Decision Date: 2026-09-22. Rename the Make variable directly to
+  `MAVEN_FLAGS` without a compatibility alias. Existing local Make settings
+  must migrate their command-line flags to the new name; the standard Maven
+  `MAVEN_OPTS` environment variable retains its JVM-option meaning.
+
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-22; direct rename, migration guidance and local checks
+Implementation Authorization: 2026-09-22; implement the accepted plan
 Superseded Plan Artifacts: none
+
+1. Rename the empty Make variable in `configure/CONFIG_SITE` to `MAVEN_FLAGS`
+   and describe its command-line role separately from JVM options.
+2. Replace its expansion in the six Maven targets in `configure/RULES_SRC`;
+   preserve their goals, existing fixed flags and prerequisites.
+3. Document migration of local Make settings and command-line overrides in
+   `docs/README.install.md`. Describe proxy configuration through a supplied
+   settings file and the `-gs` flag; do not ship or generate that file.
+4. Extend Phase 1 to run the real Makefile with `make -n` and nonempty flags
+   for `clean.mvn`, `build.mvn`, `build.mvn2`, `build.mvn3`, `build.war` and
+   `build.mvndeps`. Require successful expansion and the flags immediately
+   after the Maven Wrapper command. Record this as command generation, not
+   Maven execution or a network proxy test, and update `tests/README.md`.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | Passes after the rename |
-| T2 | Build system | `make -n build.mvn` with the hook set | This host | The flags appear in the same command-line position as before |
+| T2 | Build system | Through Phase 1, run `make -n` for all six Maven targets with `MAVEN_FLAGS` containing batch and settings-file options | This host; no Maven or network execution | Every target parses and places the flags immediately after the Maven Wrapper command, retaining its existing goals |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
+| T1 | 2026-09-22T07:13:00Z | Local working tree based on `4b4cb41` | Pass | `TMPDIR=/tmp tests/run-all-tests.bash --phase=1` exits 0 with 59 passed, 0 failed; `bash -n tests/phase1-logic.bash` and `git diff --check` also exit 0. Before renaming the real Makefile variable, the new check exited 1 because `clean.mvn` omitted MAVEN_FLAGS from the generated command. |
+| T2 | 2026-09-22T07:13:00Z | Real Makefile through Phase 1 P1.15 | Pass | All six targets expand successfully with batch and global-settings flags immediately after the Maven Wrapper command. Source diff inspection confirms their existing goals, fixed flags and prerequisites are retained. This verifies command generation only; Maven and proxy connectivity were not exercised. |
 
 ##### Closure Evidence
 
-- none
+- The direct rename, migration and proxy guidance, and local checks are
+  implemented and verified in the working tree. Existing local Make settings
+  and command-line overrides must use `MAVEN_FLAGS` for CLI flags.
+- Repository landing evidence remains outstanding; status stays In progress.
+  No GitHub issue is assigned to this row.
 
 ##### GitHub Projection
 
