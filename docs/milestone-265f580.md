@@ -15,14 +15,15 @@ quota, so an archiver that fills it takes the whole host, and the fill rate is
 still unknown. The other half of M26 is settled: the shipped MTS granularity is
 now `PARTITION_DAY`, matching the storage guide's recommended default, so the
 second ETL hop becomes eligible after about two days instead of two months and a
-soak can observe the whole chain. M24's unused jsvc cleanup is implemented and
-locally verified; landing evidence and issue #45 closure remain. M25 is implemented
-and locally verified, with landing evidence outstanding. M15 is implemented and locally verified, with landing evidence outstanding.
+soak can observe the whole chain. M24 is Complete at `4b4cb41`; issue #45 was
+updated and closed on 2026-09-22. M25 is Complete
+at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
+was verified on 2026-09-22.
 Four rows are Ready: M9, M22, M23 and M26. M22's `256M` candidate default is validated only at
 idle; the load test requested from ansible-provision supplies the figure under
 load, the disk growth rate M26 needs, and the first observation of ETL movement
 anywhere. M8's Release Verification 2 and 3 passed on three provisioned hosts;
-Release Verification 1 and 4 remain, and M8 still waits on M9 and M15. M2
+Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
@@ -43,14 +44,14 @@ Release Verification 1 and 4 remain, and M8 still waits on M9 and M15. M2
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
 | Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Deferred | No | G6, D9, D17 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package, build still passes; deferred 2026-09-20 (D17) with Ant removal out of Phase 1 on both sides, returning to Not started only by a new dated decision; [detail](#m14---remove-ant-leftovers-from-aa-env) |
-| Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | In progress | No | G7, D9 | Phase 2 no longer compiles; aa-maven CI owns compile verification; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
+| Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Complete | No | G7, D9 | Implemented and locally verified; landed at `d748d4f` on origin/modernize, verified 2026-09-22; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Runtime | M22 | Size the JVM heap default to the host | Milestone | Not started | Yes | D18 | A default install on a 4 GB host runs the four instances beside MariaDB with no kernel OOM kill, and the host memory requirement is documented; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | Not started | Yes | D12, D18, D19 | A killed instance puts a systemd unit into `failed` within the timer interval while the appliance service and the surviving instances are untouched; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
-| Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | In progress | No | D12, D18 | No function in `scripts/archappl.bash` is defined without a caller, and `jsvc` is listed only where something invokes it; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
-| Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | In progress | No | D10, D18 | The hook's name and comment describe mvn command-line flags, and any proxy guidance names the settings-file route; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
+| Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
+| Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Storage | M26 | Test-environment archive store and ETL timing | Milestone | Not started | Yes | D18, D21 | The archive store sits off the root filesystem with a threshold that reports first, and a short run shows samples moving STS to MTS to LTS; both documented; [detail](#m26---test-environment-archive-store-and-etl-timing) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -856,7 +857,7 @@ Last Compared: never
 Origin: 265f580 / M15
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -941,8 +942,8 @@ Superseded Plan Artifacts: none
   The accepted scope is command generation only, not compilation or runtime
   installation. Code and reader-facing documentation were checked against
   the accepted plan and the real execution results with no blocking finding.
-- Repository landing evidence remains outstanding; status stays In progress.
-  No GitHub issue is assigned to this row.
+- Complete 2026-09-22. Landed at `d748d4f2bcbde9440e44d2cdc293f9245494b3e0` on `origin/modernize`; no GitHub issue is assigned to this row.
+- Observed 2026-09-22T19:05:49Z after `git fetch origin`: `git merge-base --is-ancestor d748d4f origin/modernize` exited 0. Comparing HEAD with `origin/modernize` at `d748d4f` using `git diff --exit-code` for every path listed by `git diff-tree --no-commit-id --name-only -r d748d4f` found no differences. Together with T1-T4 and the completed G7 dependency, this satisfies the completion criteria.
 
 ##### GitHub Projection
 
@@ -1723,7 +1724,7 @@ Last Compared: 2026-09-21
 Origin: 265f580 / M24
 Identity History: none
 GitHub Issue: #45
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1733,7 +1734,7 @@ called; start and stop both run each instance's `startup.sh` and `shutdown.sh`.
 Its presence implied a `jsvc` dependency the launcher does not have, and `jsvc`
 was listed only in `configure/os/debian13.pkgs`, not in `rocky8.pkgs`, so the
 package lists disagreed about a tool nothing invokes. The function and Debian
-package entry are now removed in the working tree.
+package entry were removed in `4b4cb41` on `origin/modernize`.
 
 ##### Scope
 
@@ -1807,30 +1808,29 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- Implementation and both local checks are finished in the working tree. The
+- Implementation and both local checks are finished. The
   accepted plan preserves the active launcher paths and service-order arrays;
   the diff contains no changes to those paths.
-- Repository landing evidence and issue #45 closure remain outstanding; this
-  row stays In progress. The issue read attempted on 2026-09-21 returned HTTP
-  401, so its live state was not refreshed. Recheck with `gh issue view 45
-  --repo jeonghanlee/epicsarchiverap-env`. No remote mutation was performed.
+- Landed at `4b4cb4185584ccaed4200a9d0cf67db748c3e20d` on `origin/modernize`. Observed 2026-09-22T19:05:49Z after `git fetch origin`: `git merge-base --is-ancestor 4b4cb41 origin/modernize` exited 0. Comparing HEAD with `origin/modernize` at `d748d4f` using `git diff --exit-code` for every path listed by `git diff-tree --no-commit-id --name-only -r 4b4cb41` found no differences.
+- Complete 2026-09-22. Issue #45's body was synchronized with the shipped implementation, accepted scope and verification results, then closed as completed at 2026-09-22T20:06:50Z. The remote body matched the prepared content before closure. Observed 2026-09-22T20:07:07Z through `gh api repos/jeonghanlee/epicsarchiverap-env/issues/45`: state `closed`, state_reason `completed`, label `enhancement`, no milestone. Together with T1-T2 and repository landing evidence, this satisfies the completion criteria. The local verification does not claim service runtime verification.
 
 ##### GitHub Projection
 
 Title: Remove the uncalled jsvc shutdown function
 Labels: enhancement
 GitHub Milestone: none
-Observed State: open
+Observed State: closed
 Observed Labels: enhancement
 Observed Milestone: none
-Last Compared: 2026-09-21
+Observed Updated At: 2026-09-22T20:06:50Z
+Last Compared: 2026-09-22T20:07:07Z
 
 #### M25 - Correct the MAVEN_OPTS name and proxy guidance
 
 Origin: 265f580 / M25
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1910,10 +1910,10 @@ Superseded Plan Artifacts: none
 ##### Closure Evidence
 
 - The direct rename, migration and proxy guidance, and local checks are
-  implemented and verified in the working tree. Existing local Make settings
+  implemented and verified. Existing local Make settings
   and command-line overrides must use `MAVEN_FLAGS` for CLI flags.
-- Repository landing evidence remains outstanding; status stays In progress.
-  No GitHub issue is assigned to this row.
+- Complete 2026-09-22. Landed at `84b38e579800fd76e34f164a67ba5100b6ad76fc` on `origin/modernize`; no GitHub issue is assigned to this row.
+- Observed 2026-09-22T19:05:49Z after `git fetch origin`: `git merge-base --is-ancestor 84b38e5 origin/modernize` exited 0. Comparing HEAD with `origin/modernize` at `d748d4f` using `git diff --exit-code` for every path listed by `git diff-tree --no-commit-id --name-only -r 84b38e5` found no differences. Together with T1-T2, this satisfies the completion criteria.
 
 ##### GitHub Projection
 
