@@ -5,7 +5,8 @@
 
 set -euo pipefail
 
-readonly TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly TOP
 readonly EXPECTED_BRANCH="${EXPECTED_BRANCH:-modernize}"
 readonly EXPECTED_SRC_PATH="epicsarchiverap-maven-src"
 
