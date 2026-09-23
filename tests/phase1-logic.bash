@@ -208,6 +208,39 @@ for db_script in mariadb_generic_function.bash mariadb_setup.bash; do
     esac
 done
 
+# P1.17 Backup listing and restore stop with a non-zero status and a stderr
+# message when they cannot run. The real mariadb_setup.bash runs from an
+# isolated copy of the Make system, whose site-template/mariadb.conf comes
+# from the real db.conf rule; every case fails before a database client runs.
+db_env="${WORKSPACE}/db-env"
+backup_stderr="${WORKSPACE}/db-backup-stderr.txt"
+mkdir -p "${db_env}" "${WORKSPACE}/db-backup-empty"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${db_env}/"
+rm -f "${db_env}/site-template/mariadb.conf" "${db_env}/configure/"*.local
+make -C "${db_env}" -s db.conf > /dev/null 2>&1
+assert_file "${db_env}/site-template/mariadb.conf" "db.conf renders mariadb.conf in the isolated copy"
+db_cases=(
+    "dbBackupList with a missing directory|There is no >>|dbBackupList ${WORKSPACE}/db-backup-missing"
+    "dbRestore without a date|Date is missing|dbRestore"
+    "dbRestore with a missing directory|There is no >>|dbRestore 2601010000 ${WORKSPACE}/db-backup-missing"
+    "dbRestore with an absent backup file|There is no readable >>|dbRestore 2601010000 ${WORKSPACE}/db-backup-empty"
+)
+for db_case in "${db_cases[@]}"; do
+    IFS='|' read -r case_desc case_text case_args <<< "${db_case}"
+    db_rc=0
+    # shellcheck disable=SC2086  # case_args holds the dispatch word and its arguments
+    bash "${db_env}/scripts/mariadb_setup.bash" ${case_args} > /dev/null 2> "${backup_stderr}" || db_rc=$?
+    if [[ "${db_rc}" -ne 0 ]]; then
+        _record_pass "${case_desc} exits non-zero (rc=${db_rc})"
+    else
+        _record_fail "${case_desc} exits non-zero" "got rc=0"
+    fi
+    case "$(cat "${backup_stderr}")" in
+        *"${case_text}"*) _record_pass "${case_desc} reports on stderr" ;;
+        *) _record_fail "${case_desc} reports on stderr" "stderr: $(cat "${backup_stderr}")" ;;
+    esac
+done
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

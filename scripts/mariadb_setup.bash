@@ -241,8 +241,8 @@ function backup_db_list
 
     dbDir=$(isDir "${db_backup_path}");
     if [[ $dbDir -ne "$EXIST" ]]; then
-	printf "\nThere is no >> %s << directory, please check your enviornment.\n\n" "${db_backup_path}"
-	exit;
+	printf "\nThere is no >> %s << directory, please check your enviornment.\n\n" "${db_backup_path}" >&2
+	exit 1;
     fi
 
     ls --almost-all -m -o --author --human-readable --time-style=iso -v  "${db_backup_path}"
@@ -261,21 +261,30 @@ function restore_db
     dbDate=$(isVar "${date}")
 
     if [[ $dbDate -ne "$EXIST" ]]; then
-	printf "\nDate is missing, please check the backup data file name.\n\n"
-	exit;
+	printf "\nDate is missing, please check the backup data file name.\n\n" >&2
+	exit 1;
     fi
 
     dbDir=$(isDir "${db_backup_path}")
 
     if [[ $dbDir -ne "$EXIST" ]]; then
-	printf "\nThere is no >> %s << directory, please check your enviornment.\n\n" "${db_backup_path}"
-	exit;
+	printf "\nThere is no >> %s << directory, please check your enviornment.\n\n" "${db_backup_path}" >&2
+	exit 1;
     fi
 
     db_backup_file="${DB_NAME}_${date}.sql.gz"
+    if [[ ! -r "${db_backup_path}/${db_backup_file}" ]]; then
+	printf "\nThere is no readable >> %s << backup file, please check the backup data file name.\n\n" "${db_backup_path}/${db_backup_file}" >&2
+	exit 1;
+    fi
     cmd="${SQL_ADMIN_CMD} ${DB_NAME}";
 
-    gunzip < "${db_backup_path}/${db_backup_file}" | ${cmd} ;
+    # The restore fails when either gunzip or the client fails; the subshell
+    # confines pipefail without requiring 'local -'.
+    if ! ( set -o pipefail; gunzip < "${db_backup_path}/${db_backup_file}" | ${cmd} ); then
+	printf "\nRestoring >> %s << into >> %s << failed.\n\n" "${db_backup_file}" "${DB_NAME}" >&2
+	exit 1;
+    fi
 }
 
 

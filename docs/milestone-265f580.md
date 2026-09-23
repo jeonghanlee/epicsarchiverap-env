@@ -8,8 +8,9 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M29 (issue #48) awaits plan acceptance in this
-file; M28 is Complete at `1fc20a8`. Then select a systemd VM and an interruption
+Next session entry point: M29 (issue #48) is implemented with T1-T2 passing;
+record its landing and close issue #48; M28 is Complete at `1fc20a8`.
+Then select a systemd VM and an interruption
 window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
@@ -24,8 +25,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Three rows are
-Ready: M9, M26 and M29. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -70,7 +71,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
-| DB | M29 | Fail the backup listing and restore on error | Milestone | Not started | Yes | | `dbBackupList` and `dbRestore` exit non-zero with a stderr message when they cannot run; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
+| DB | M29 | Fail the backup listing and restore on error | Milestone | In progress | No | | Implemented; T1-T2 pass; commit, landing and issue #48 closure remain; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -3229,7 +3230,7 @@ Last Compared: 2026-09-23T20:27:01Z; `gh api repos/jeonghanlee/epicsarchiverap-e
 Origin: 265f580 / M29
 Identity History: none
 GitHub Issue: #48
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -3268,9 +3269,9 @@ Out of scope: the account `restore_db` uses; backup creation (`backup_db`).
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-23; plan at `9a1a0cd` accepted
+Implementation Authorization: 2026-09-23; implement the accepted plan and run T1-T2
 Superseded Plan Artifacts: none
 
 1. In `backup_db_list` and `restore_db`, send each failure message to stderr
@@ -3293,8 +3294,8 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | A disposable MariaDB server | Pending | none |
+| T1 | 2026-09-23T21:39:51Z | Local working tree based on `8abd039` | Pass | `bash -n` and `shellcheck -x` report nothing for `scripts/mariadb_setup.bash` and `tests/phase1-logic.bash`; `TMPDIR=/tmp tests/run-all-tests.bash --phase=1` exits 0 with 74 passed, 0 failed. P1.17 runs the real `mariadb_setup.bash` from an isolated copy of the Make system with `mariadb.conf` rendered by the real `db.conf` rule: `dbBackupList` with a missing directory and `dbRestore` without a date, with a missing directory and with an absent backup file each exit 1 with the expected stderr message. With only `scripts/` reverted to `8abd039`, the same runner exits 1 at P1.17 with rc=0 from `dbBackupList` (observed 2026-09-23T21:13:14Z). |
+| T2 | 2026-09-23T21:57:44Z | Disposable Rocky Linux 8 VM from cloud-provision, MariaDB 10.3.39; aa-env working tree based on `8abd039` with the restore pipeline in a `pipefail` subshell; local mode through `db.secure`, `db.addAdmin`, `db.create`, plus a sample table `m29` with one row | Pass | `dbBackup` exits 0 and writes `archappl_<date>.sql.gz`; `dbBackupList` on it exits 0. Exit 1 with the stderr message for: `dbBackupList` with a missing directory; `dbRestore` without a date, with a missing directory, and with an absent backup file; a corrupt `.sql.gz` (`not in gzip format` plus the restore-failed message); a wrong `DB_ADMIN_PASS` (`Access denied` plus the restore-failed message). The table held its one row after both the corrupt-file and wrong-password cases. After dropping the table, `dbRestore <date> <dir>` exits 0 and the row returns. An earlier run at 2026-09-23T21:21:53Z against the superseded `local -` form passed the same cases; with only `scripts/` reverted to `8abd039` (2026-09-23T21:22:01Z), the missing-directory, missing-date, absent-file and corrupt-file cases all exit 0, and the absent file reports only the shell's redirection error, so the client ran on empty input and still exited 0. |
 
 ##### Closure Evidence
 
