@@ -35,6 +35,43 @@ the check that proves it ran.
 - The service group and user (`AA_GROUPID`, `AA_USERID`) may be pre-created; the
   install leaves an existing group/user unchanged.
 
+### Memory budget for a test VM
+
+The VM test default is `AA_JAVA_HEAPSIZE="256M"` per instance. Each of the four
+JVMs receives `-Xms256M -Xmx256M` and `-XX:MaxMetaspaceSize=256M`.
+
+| Memory setting | Per JVM | Four JVMs |
+| --- | --- | --- |
+| Initial heap (`-Xms`) | 256 MiB | 1 GiB |
+| Maximum heap (`-Xmx`) | 256 MiB | 1 GiB |
+| Maximum metaspace | 256 MiB | 1 GiB |
+| Maximum heap plus maximum metaspace | 512 MiB | 2 GiB |
+
+`-Xms` and `-Xmx` describe the same heap and must not be added together. The
+heap calculation is `4 * 256 MiB = 1024 MiB = 1 GiB`; adding the four metaspace
+limits gives `4 * (256 + 256) MiB = 2048 MiB = 2 GiB`. These are configured
+limits, not measured memory usage or a cap on total process memory.
+
+For a VM with 4 GiB of RAM, subtracting those two regions leaves
+`4 GiB - 2 GiB = 2 GiB` for JVM native allocations, thread stacks, code caches,
+MariaDB, the OS and filesystem caching. That remainder is a budget to verify,
+not a guarantee that the workload fits. On a VM reporting 3.58 GiB of actual
+guest RAM, the same calculation leaves approximately 1.58 GiB, so use measured
+guest RAM rather than the VM's nominal allocation.
+
+An operator-reported test with a 256 MiB heap override ran 10 scalar PVs at
+1 Hz each for approximately 21 hours on a 3.58 GiB Rocky Linux VM with MariaDB
+and no swap, with no reported OOM or JVM restart. That result covers the tested
+light workload; it does not validate the changed default through deployment or
+establish capacity for arrays, larger PV populations or sustained retrieval.
+See [the heap verification record](milestone-265f580.md#m22---size-the-jvm-heap-default-to-the-host)
+for the deployment basis, measurement limits and pending default-install test.
+Validate the intended workload before using this value as an operating default.
+
+Set `AA_JAVA_HEAPSIZE` in `../CONFIG_SITE.local` when the measured workload
+needs a different heap. Both heap options follow this value; for example,
+`512M` means 2 GiB of heap across four instances, plus up to 1 GiB of metaspace.
+
 ## Configuration (variable placement)
 
 - `configure/RELEASE.local`: `SRC_TAG` — the source pin for

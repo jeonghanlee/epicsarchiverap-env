@@ -52,14 +52,12 @@ ANT_OPTS+=-Darchapplsite=$(ARCHAPPL_SITEID)
 ## MAVEN_OPTS is Maven's JVM-options environment variable, not this Make hook.
 MAVEN_FLAGS:=
 
-# export JAVA_OPTS="-XX:MaxPermSize=128M -XX:+UseG1GC -Xmx4G -Xms4G -ea"
-#
-#  -XX:MaxPermSize=size  This option was deprecated in JDK 8,
-#   and superseded by the -XX:MaxMetaspaceSize option.
-#
-# The physical memory  :  64G, so I use 8G instead of 4G, since we don't have any other application on the server.
-# Set MaxMetaspaceSize : 256M, so it reduces the GC execution to compare with the original option.
-AA_JAVA_HEAPSIZE="1G"
+## Per-instance defaults for VM testing; CONFIG_SRC uses the heap for Xms and Xmx.
+## Four instances: 4 * 256 MiB heap = 1 GiB; metaspace caps add another 1 GiB.
+## The combined 2 GiB is not a process-memory cap; allow additional memory for
+## JVM native allocations, MariaDB and the OS. Validate with the intended PV load.
+## Override AA_JAVA_HEAPSIZE in ../CONFIG_SITE.local for the measured workload.
+AA_JAVA_HEAPSIZE="256M"
 AA_JAVA_MAXMETASPACE="256M"
 # https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for
 # https://www.openssl.org/blog/blog/2017/08/12/random/
