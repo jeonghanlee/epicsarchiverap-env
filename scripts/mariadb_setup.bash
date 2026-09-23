@@ -81,11 +81,11 @@ function drop_procedures
     local db_exist;
     local cmd;
     local dropCmd;
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd+="$SQL_DBUSER_CMD";
         cmd+=" ";
@@ -136,21 +136,21 @@ function generate_admin_local_password
     
     local adminWithLocalPassword;
 
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
-        adminWithLocalPassword=$(query_from_sql_file "${db_name}" "${ENV_TOP}/site-template/sql/check_cdb_admin.sql" -N)
+        adminWithLocalPassword=$(query_from_sql_file "${db_name}" "${ENV_TOP}/site-template/sql/check_cdb_admin.sql" -N) || exit 1
         if [ -z "$adminWithLocalPassword" ]; then
             printf ">>> We've found there is the CDB admin user %s with a local password.\n" "$db_user_name"
             printf "    Updating ........ \n"
 #           echo "$db_name, $db_user_name, $local_password, $python_path"
 #            cmd="PYTHONPATH=${python_path} ${python_cmd} -c \"from cdb.common.utility.cryptUtility import CryptUtility; print CryptUtility.cryptPasswordWithPbkdf2('${local_password}')\""
 #            echo "$cmd"
-            adminCryptPassword=$(get_admin_crypt_password  "${db_name}" "$local_password" "${python_path}" "${python_cmd}")
+            adminCryptPassword=$(get_admin_crypt_password  "${db_name}" "$local_password" "${python_path}" "${python_cmd}") || exit 1
 #            echo $adminCryptPassword
             ## we have to create a temp file to handle this crypt password, because bash cannot handle these special character well within 
             ##
@@ -183,7 +183,7 @@ function get_admin_crypt_password
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd="PYTHONPATH=${python_path} ${python_cmd} -c \"from cdb.common.utility.cryptUtility import CryptUtility; print CryptUtility.cryptPasswordWithPbkdf2('${local_password}')\""
         adminCryptPassword=$(eval "$cmd")
@@ -219,11 +219,11 @@ function backup_db
     local dbDir;
     local db_exist;
 
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
 	dbDir=$(isDir "${db_backup_path}")
 	if [[ $dbDir -ne "$EXIST" ]]; then
@@ -290,11 +290,11 @@ function show_archappl
     local i;
     i=0;
 
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd+="$SQL_DBUSER_CMD";
         cmd+=" ";

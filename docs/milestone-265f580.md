@@ -8,10 +8,10 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: accept M28's draft plan in this file, then
-implement it in `scripts/mariadb_generic_function.bash` and
-`scripts/mariadb_setup.bash`; externally provisioned archiver-dev builds stop
-after `sql.fill` until it lands. Then select a systemd VM and an interruption
+Next session entry point: M28 is implemented and T1-T4 pass; record its
+landing on origin/modernize, then synchronize and close issue #47;
+externally provisioned archiver-dev builds stop after `sql.fill` until it
+lands. Then select a systemd VM and an interruption
 window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
@@ -26,8 +26,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Three rows are
-Ready: M9, M26 and M28. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -71,7 +71,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
-| DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Not started | Yes | D22 | `sql.fill` loads the schema with only the application account and exits non-zero when it cannot; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
+| DB | M28 | Load the schema without an admin account and fail loudly | Milestone | In progress | No | D22 | Implemented; T1-T4 pass, T2 also with `skip-name-resolve` on; landing and issue #47 closure remain; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -3093,7 +3093,7 @@ Last Compared: never
 Origin: 265f580 / M28
 Identity History: none
 GitHub Issue: #47
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -3161,9 +3161,9 @@ only DB step in the externally provisioned mode).
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-23; plan at `51b8846` accepted after third- and second-person review
+Implementation Authorization: 2026-09-23; implement the accepted plan and run T1-T4
 Superseded Plan Artifacts: none
 
 1. Give `isDb` the account to check with, so application-account callers use
@@ -3191,10 +3191,10 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | A disposable MariaDB server | Pending | none |
-| T3 | Not run | A disposable MariaDB server | Pending | none |
-| T4 | Not run | A disposable MariaDB server | Pending | none |
+| T1 | 2026-09-23T16:23:05Z | Local working tree based on `51b8846` | Pass | `bash -n` on both scripts exits 0; `shellcheck -x` reports nothing for both scripts before and after the change and nothing for `tests/phase1-logic.bash`; `TMPDIR=/tmp tests/run-all-tests.bash --phase=1` exits 0 with 65 passed, 0 failed. P1.16 runs the real `query_from_sql_file` against a closed loopback port: rc=1 with `Cannot check the database >> archappl <<` on stderr. With only `scripts/` reverted to `51b8846`, the same runner exits 1 at P1.16 with rc=0 from `query_from_sql_file`. |
+| T2 | 2026-09-23T19:53:33Z | Disposable Rocky Linux 8 VM from cloud-provision, MariaDB 10.3.39, `skip_name_resolve` 0; aa-env working tree based on `51b8846`, source `b7d4b1e4` | Pass | Accounts `archappl`@`localhost` and `archappl`@`127.0.0.1` on an empty `archappl` database, no admin account (`DB_ADMIN=m28_absent`). `make sql.fill` exits 0 with empty stderr; `make sql.show` lists `ArchivePVRequests`, `ExternalDataServers`, `PVAliases`, `PVTypeInfo`, matching `information_schema.tables`. With only `scripts/` reverted to `51b8846` under the same setup, `make sql.fill` exits 0, prints the not-found message and `Access denied for user 'm28_absent'@'localhost'`, and leaves 0 tables. Repeated 2026-09-23T20:04:26Z on a recreated VM with `skip-name-resolve` and `bind-address=127.0.0.1` set as the archiver-dev MariaDB role sets them (`@@skip_name_resolve` 1): `make sql.fill` exits 0 with empty stderr and `make sql.show` lists the four tables; with `scripts/` reverted to `51b8846`, `make sql.fill` exits 0 with `Access denied for user 'm28_absent'@'127.0.0.1'` and leaves 0 tables. |
+| T3 | 2026-09-23T19:53:43Z | Disposable Rocky Linux 8 VM from cloud-provision, MariaDB 10.3.39, `skip_name_resolve` 0; aa-env working tree based on `51b8846`, source `b7d4b1e4` | Pass | Database dropped as root: `make sql.fill` exits 2 (`sql.table.fill` Error 1) with the not-found message on stderr; no `archappl` schema. Database recreated and `DB_USER_PASS` wrong after `make db.conf`: exits 2 with `Access denied for user 'archappl'@'localhost'`, `Cannot check the database >> archappl <<` and the not-found message on stderr; 0 tables. |
+| T4 | 2026-09-23T19:56:53Z | Recreated disposable Rocky Linux 8 VM with only MariaDB's default accounts; same aa-env tree and source | Pass | With `DB_ADMIN=admin` set in `configure/CONFIG_SITE.local` and `make db.conf`, `db.secure`, `db.addAdmin`, `db.create` and `sql.fill` each exit 0 with empty stderr; `make sql.show` lists the four tables. Remaining accounts: `root`@`localhost`, `admin`@`localhost`, `archappl`@`127.0.0.1`. |
 
 ##### Closure Evidence
 

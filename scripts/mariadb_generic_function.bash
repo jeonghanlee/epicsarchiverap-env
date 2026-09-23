@@ -67,7 +67,7 @@ function noDbMessage
 {
     local db_name="$1"; shift;
     if [ "${VERBOSE}" == "YES" ]; then
-        printf ">> There is no >> %s << in the dababase, please check your SQL enviornment.\\n" "${db_name}"
+        printf ">> There is no >> %s << in the dababase, please check your SQL enviornment.\\n" "${db_name}" >&2
     fi
 }
 
@@ -331,24 +331,33 @@ function show_dbs
 }
 
 # 1 : database name
+# 2 : verbose
+# 3 : client command for the check (default: SQL_ADMIN_CMD); callers that act
+#     as the application account pass SQL_DBUSER_CMD
 # If the database exists,        it returns 1
 # If the database doesn't exist, it returns 0
-function isDb 
+# A failed client invocation is reported on stderr and returns 0
+function isDb
 {
     local db_name="$1"; shift;
     local verbose="$1"; shift;
+    local sql_cmd="${1:-${SQL_ADMIN_CMD}}";
 
     local outputs;
     local cmd;
-    cmd+="$SQL_ADMIN_CMD";
+    cmd+="${sql_cmd}";
     cmd+=" ";
     cmd+="-N";
-    cmd+=" ";   
+    cmd+=" ";
     cmd+="--execute=\"";
     # The following cmd contains only mysql standard query
     cmd+="SELECT schema_name FROM information_schema.schemata WHERE schema_name='${db_name}'";
     cmd+="\"";
-    outputs=$(eval "${cmd}" | awk '{print $1}')
+    if ! outputs=$(eval "${cmd}"); then
+        printf ">> Cannot check the database >> %s <<, the database client failed.\\n" "${db_name}" >&2
+        outputs="";
+    fi
+    outputs=$(printf "%s\n" "${outputs}" | awk '{print $1}')
     if [ "$verbose" == "YES" ]; then
         commandPrn "$cmd"
         printf "We've found the DB -%s- \\n" "$outputs";
@@ -398,11 +407,11 @@ function query_from_sql_file
         verbose="NO"
     fi
 
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
     if [[ $db_exist -ne "$EXIST" ]]; then
    	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd+="$SQL_DBUSER_CMD";
         cmd+=" ";
@@ -432,11 +441,11 @@ function show_tables
     local cmd;
     local i;
     i=0;
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
     
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd+="$SQL_DBUSER_CMD";
         cmd+=" ";
@@ -474,11 +483,11 @@ function show_procedures
     local i;
     i=0;
 
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
     
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd+="$SQL_DBUSER_CMD";
         cmd+=" ";
@@ -518,11 +527,11 @@ function drop_tables
     local db_exist;
     local cmd;
     local dropCmd;
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd+="$SQL_DBUSER_CMD";
         cmd+=" ";
@@ -577,11 +586,11 @@ function execute_query
     local db_exist;
     local cmd;
 
-    db_exist=$(isDb "${db_name}");
+    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
     if [[ $db_exist -ne "$EXIST" ]]; then
    	    noDbMessage "${db_name}";
-	    exit;
+	    exit 1;
     else
         cmd+="$SQL_DBUSER_CMD";
         cmd+=" ";

@@ -173,6 +173,41 @@ for maven_target in clean.mvn build.mvn build.mvn2 build.mvn3 build.war build.mv
     esac
 done
 
+# P1.16 A database existence check that cannot confirm the database stops the
+# caller with a non-zero status and a stderr message. The real
+# query_from_sql_file runs against a closed loopback port, so the client fails
+# before any server is reached. Application-account callers check existence
+# through SQL_DBUSER_CMD; only get_admin_crypt_password keeps the admin check.
+db_stderr="${WORKSPACE}/db-check-stderr.txt"
+db_rc=0
+DB_ADMIN=p1_admin DB_ADMIN_PASS=x DB_USER=p1_user DB_USER_PASS=x \
+DB_HOST_NAME=127.0.0.1 DB_HOST_PORT=1 bash -c '
+    source "$1/scripts/mariadb_generic_function.bash"
+    query_from_sql_file archappl /dev/null
+' _ "${TOP}" > /dev/null 2> "${db_stderr}" || db_rc=$?
+if [[ "${db_rc}" -ne 0 ]]; then
+    _record_pass "query_from_sql_file exits non-zero when the check fails (rc=${db_rc})"
+else
+    _record_fail "query_from_sql_file exits non-zero when the check fails" "got rc=0"
+fi
+case "$(cat "${db_stderr}")" in
+    *"Cannot check the database >> archappl <<"*) _record_pass "Failed existence check is reported on stderr" ;;
+    *) _record_fail "Failed existence check is reported on stderr" "stderr: $(cat "${db_stderr}")" ;;
+esac
+for db_script in mariadb_generic_function.bash mariadb_setup.bash; do
+    # shellcheck disable=SC2016  # the pattern matches the literal source text
+    zero_exits=$(grep -A1 'noDbMessage "${db_name}";' "${TOP}/scripts/${db_script}" \
+        | grep -E '^[[:space:]]*exit;?[[:space:]]*$' || true)
+    assert_empty "${zero_exits}" "No zero-status exit after noDbMessage in ${db_script}"
+    admin_checks=$(awk '/^function /{f=$2} /db_exist=\$\(isDb / && !/SQL_DBUSER_CMD/{print f}' \
+        "${TOP}/scripts/${db_script}")
+    case "${db_script}" in
+        mariadb_setup.bash) assert_eq "${admin_checks}" "get_admin_crypt_password" \
+            "Only get_admin_crypt_password checks through the admin account in ${db_script}" ;;
+        *) assert_empty "${admin_checks}" "Every existence check uses the application account in ${db_script}" ;;
+    esac
+done
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.
