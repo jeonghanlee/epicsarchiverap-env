@@ -218,6 +218,7 @@ function backup_db
     local db_backup_path="$1"; shift;
     local dbDir;
     local db_exist;
+    local backup_file;
 
     db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
 
@@ -229,7 +230,14 @@ function backup_db
 	if [[ $dbDir -ne "$EXIST" ]]; then
 	    mkdir -p "${db_backup_path}"
 	fi
-	${SQL_BACKUP_CMD} "${db_name}" | gzip -9 > "${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
+	backup_file="${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
+	# The backup fails when either the dump or gzip fails; the partial file is
+	# removed so it cannot be mistaken for a backup.
+	if ! ( set -o pipefail; ${SQL_BACKUP_CMD} "${db_name}" | gzip -9 > "${backup_file}" ); then
+	    rm -f "${backup_file}"
+	    printf "\nBacking up >> %s << into >> %s << failed.\n\n" "${db_name}" "${backup_file}" >&2
+	    exit 1;
+	fi
     fi
 }
 

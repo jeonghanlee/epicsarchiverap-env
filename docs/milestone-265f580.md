@@ -8,7 +8,7 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M30 (issue #49) awaits plan acceptance in this file;
+Next session entry point: M30 (issue #49) is In progress under its accepted plan;
 M28 and M29 are Complete at `1fc20a8` and `9f22eac`. Then select a systemd VM
 and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
@@ -24,8 +24,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Three rows are
-Ready: M9, M26 and M30. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -71,7 +71,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
-| DB | M30 | Fail the backup when the dump fails | Milestone | Not started | Yes | | `dbBackup` exits non-zero with a stderr message and leaves no file when the dump fails; [detail](#m30---fail-the-backup-when-the-dump-fails) |
+| DB | M30 | Fail the backup when the dump fails | Milestone | In progress | No | | Implemented; T1-T2 pass; commit, landing and issue #49 closure remain; [detail](#m30---fail-the-backup-when-the-dump-fails) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -3328,7 +3328,7 @@ Last Compared: 2026-09-23T22:08:34Z; `gh api repos/jeonghanlee/epicsarchiverap-e
 Origin: 265f580 / M30
 Identity History: none
 GitHub Issue: #49
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -3365,9 +3365,9 @@ and the account the dump uses.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-23; plan at `93c6baa` accepted
+Implementation Authorization: 2026-09-23; implement the accepted plan and run T1-T2
 Superseded Plan Artifacts: none
 
 1. In `backup_db`, run the dump pipeline with `pipefail` confined to a
@@ -3387,8 +3387,8 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | A disposable MariaDB server | Pending | none |
+| T1 | 2026-09-23T22:31:57Z | Local working tree based on `6557e75` | Pass | `bash -n` and `shellcheck -x` report nothing for `scripts/mariadb_setup.bash`; `TMPDIR=/tmp tests/run-all-tests.bash --phase=1` exits 0 with 74 passed, 0 failed. Phase 1 does not reach the dump, which needs a database that passes the existence check; T2 covers it. |
+| T2 | 2026-09-23T22:38:28Z | Disposable Rocky Linux 8 VM from cloud-provision, MariaDB 10.3.39; aa-env working tree based on `6557e75`; local mode through `db.secure`, `db.addAdmin`, `db.create`, plus a sample table `m30` with one row | Pass | `dbBackup` exits 0 with empty stderr and writes a 673-byte `archappl_<date>.sql.gz`; after dropping the table, `dbRestore` from it exits 0 and the row returns. With `DB_USER` switched to an account holding only `SELECT` on `archappl` (so the existence check passes) and `make db.conf`, `dbBackup` exits 1 with `mysqldump` error 1044 on `LOCK TABLES` and the backup-failed message on stderr, and the backup directory is empty. With only `scripts/` reverted to `6557e75` under the same account (2026-09-23T22:40:28Z), `dbBackup` exits 0 with the same `mysqldump` error and leaves a 355-byte `.sql.gz`. |
 
 ##### Closure Evidence
 
