@@ -9,7 +9,9 @@ Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
 Next session entry point: select a systemd VM and an interruption window for
-M23's remaining real-process/runtime checks; local implementation review passed.
+M23's remaining real-process/runtime checks using the implementation at `9ee6ac0`;
+local implementation review passed. The heap default at `0df950d` also awaits
+deployment verification without an override under M22 / T2.
 M26 remains Ready for a test-host archive filesystem separate from the root
 volume, with the requirement documented in `docs/README.install.md`.
 The other half of M26 is settled: the shipped MTS granularity is
@@ -20,14 +22,16 @@ updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
-review passed; real-VM verification and repository landing remain. Two rows are
+review passed; implementation landed at `9ee6ac0` on origin/modernize on
+2026-09-23, and real-VM verification remains. Two rows are
 Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
 another 1 GiB. The operator report supplies approximately 21 hours of light
 sampling-load evidence with the 256M override; it reports no OOM or restart.
-Default-install runtime verification and landing remain outstanding. The
+The heap default landed at `0df950d` on origin/modernize on 2026-09-23;
+default-install runtime verification remains outstanding. The
 report does not provide a quantified disk growth rate for M26. M8's Release Verification 2 and 3 passed on three provisioned hosts;
 Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
@@ -54,8 +58,8 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
-| Runtime | M22 | Size the JVM heap default to the host | Milestone | In progress | No | D18 | 256M override passed the reported approximately 21-hour light-load run; changed-default deployment/runtime verification and landing remain; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
-| Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Report stable instance failure through the health unit within the 45-second VM acceptance target; monitoring causes no stop/restart and preserves existing dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
+| Runtime | M22 | Size the JVM heap default to the host | Milestone | In progress | No | D18 | Default landed at `0df950d`; 256M override passed the reported approximately 21-hour light-load run; changed-default deployment/runtime verification remains; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
+| Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; VM checks remain for the 45-second failure-reporting target, no monitor-initiated stop/restart and preserved dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Storage | M26 | Test-environment archive store and ETL timing | Milestone | Not started | Yes | D18, D21 | The archive store sits off the root filesystem with a threshold that reports first, and a short run shows samples moving STS to MTS to LTS; both documented; [detail](#m26---test-environment-archive-store-and-etl-timing) |
@@ -1678,7 +1682,7 @@ Arithmetic and interpretation:
   no intervening restarts. Those retained records have not been independently
   inspected here. The recorded PASS is limited to the reported survival,
   no-OOM and sampling/retrieval criteria for this light workload.
-- T2 remains Pending: identify and deploy the eventual heap-default commit,
+- T2 remains Pending: deploy `0df950d` or a descendant containing the heap default,
   verify effective options without a heap override, and record its loaded run.
   A capacity claim for larger PV populations, arrays or sustained retrieval
   would require a separate representative workload; it is not implied by T3.
@@ -1688,8 +1692,12 @@ Arithmetic and interpretation:
 - The 256M VM test default, comments and memory budget are implemented and
   locally verified (T1). Supplemental T3 records the operator-reported PASS
   for the 256M override under light sampling load for approximately 21 hours.
-  Default-install runtime verification (T2) and repository landing evidence
-  remain outstanding; status stays In progress.
+  Default-install runtime verification (T2) remains outstanding; status stays
+  In progress.
+- The heap default and memory-budget documentation landed at `0df950d` on
+  origin/modernize on 2026-09-23. The commit is an ancestor of the pushed tip
+  `75d3460`; recheck with `git merge-base --is-ancestor 0df950d origin/modernize`.
+  Repository landing does not establish deployment or satisfy T2.
 
 ##### GitHub Projection
 
@@ -1983,14 +1991,15 @@ result; do not change the criterion to fit an observed outcome.
 
 ##### Implementation State
 
-Local implementation is present in the working tree, authorized 2026-09-22.
+Implementation was authorized 2026-09-22 and landed at `9ee6ac0` on
+origin/modernize on 2026-09-23.
 Raw health uses read-only Linux process identity checks; scheduled dispatch uses
 verified health invocation and appliance monotonic timestamps, buffering results
 across state observations. Skip exit 3 is explicit and is not recovery evidence.
 The generated oneshot/timer have finite execution/termination, recurring checks,
 and one-way timer activation. Installation stops existing monitoring first and
 never starts it implicitly. Monitor-only disable/clean targets preserve appliance
-operation. Full runtime evidence and repository landing remain outstanding.
+operation. Full runtime evidence remains outstanding.
 
 Independent PID and systemd implementation reviews accepted the local result on
 2026-09-22, including the operator-document pass. The PID correction pass verified
@@ -2026,7 +2035,11 @@ the IEEE Reference Guide's I. Manuals, Manual (Online) format.
 
 ##### Closure Evidence
 
-- none
+- Implementation, tests and operator documentation landed at `9ee6ac0` on
+  origin/modernize on 2026-09-23. The commit is an ancestor of the pushed tip
+  `75d3460`; recheck with `git merge-base --is-ancestor 9ee6ac0 origin/modernize`.
+- Repository landing completes no additional runtime check. T1's real Tomcat
+  cross-instance case and T4-T8 remain Pending; status stays In progress.
 
 ##### GitHub Projection
 
