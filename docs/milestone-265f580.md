@@ -1545,7 +1545,7 @@ Last Compared: never
 
 Origin: 265f580 / M22
 Identity History: none
-GitHub Issue: none
+GitHub Issue: #46
 Status: In progress
 
 ##### Summary
@@ -1706,12 +1706,13 @@ Arithmetic and interpretation:
 ##### GitHub Projection
 
 Title: Size the JVM heap default to the host
-Labels: bug
+Labels: enhancement
 GitHub Milestone: none
-Observed State: none
-Observed Labels: none
+Observed State: open
+Observed Labels: enhancement
 Observed Milestone: none
-Last Compared: never
+Observed Updated At: 2026-09-23T20:53:26Z
+Last Compared: 2026-09-23T20:53:27Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/46` read after the body was synchronized with the 256M default at `0df950d` and the title set to Title; title, labels and milestone match
 
 #### M23 - Make a dead instance visible to systemd
 
