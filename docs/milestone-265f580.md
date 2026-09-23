@@ -8,10 +8,9 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M29 (issue #48) is implemented with T1-T2 passing;
-record its landing and close issue #48. M30 (issue #49) awaits plan acceptance;
-M28 is Complete at `1fc20a8`. Then select a systemd VM and an interruption
-window for M23's remaining real-process/runtime checks using the
+Next session entry point: M30 (issue #49) awaits plan acceptance in this file;
+M28 and M29 are Complete at `1fc20a8` and `9f22eac`. Then select a systemd VM
+and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
 M26 remains Ready for a test-host archive filesystem separate from the root
@@ -71,7 +70,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
-| DB | M29 | Fail the backup listing and restore on error | Milestone | In progress | No | | Implemented; T1-T2 pass; commit, landing and issue #48 closure remain; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
+| DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Not started | Yes | | `dbBackup` exits non-zero with a stderr message and leaves no file when the dump fails; [detail](#m30---fail-the-backup-when-the-dump-fails) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -3231,7 +3230,7 @@ Last Compared: 2026-09-23T20:27:01Z; `gh api repos/jeonghanlee/epicsarchiverap-e
 Origin: 265f580 / M29
 Identity History: none
 GitHub Issue: #48
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -3300,17 +3299,29 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation, T1 and T2 are finished against the accepted plan; the
+  restore pipeline confines `pipefail` in a subshell.
+- Landed at `9f22eac` on `origin/modernize`. Observed 2026-09-23T22:02:56Z
+  after `git fetch origin`: `git merge-base --is-ancestor 9f22eac
+  origin/modernize` exited 0 and `origin/modernize` resolved to `93c6baa`.
+- Complete 2026-09-23. Issue #48's body was synchronized with the shipped
+  implementation and verification results, then closed as completed.
+  Observed 2026-09-23T22:08:34Z through
+  `gh api repos/jeonghanlee/epicsarchiverap-env/issues/48`: state `closed`,
+  state_reason `completed`, label `bug`, no milestone; the remote body matched
+  the prepared content. The commit's `Closes #48` takes effect only on the
+  default branch.
 
 ##### GitHub Projection
 
 Title: dbRestore and dbBackupList exit 0 on failure
 Labels: bug
 GitHub Milestone: none
-Observed State: open
+Observed State: closed
 Observed Labels: bug
 Observed Milestone: none
-Last Compared: 2026-09-23; `gh issue view 48` read after creation
+Observed Updated At: 2026-09-23T22:08:34Z
+Last Compared: 2026-09-23T22:08:34Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/48` read
 
 #### M30 - Fail the backup when the dump fails
 
