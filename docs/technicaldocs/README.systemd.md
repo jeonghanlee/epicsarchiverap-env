@@ -37,3 +37,147 @@ Type=forking
 WantedBy=multi-user.target
 Alias=archappl.service
 ```
+
+## Process monitoring
+
+`epicsarchiverap-maven-health.timer` periodically invokes a separate oneshot
+service as `AA_USERID:AA_GROUPID`. It observes the appliance state and, when
+eligible, runs the launcher's process check. It has no dependency that starts,
+stops or restarts the appliance. The existing appliance unit and its asymmetric
+startup/shutdown order remain the lifecycle authority. MainPID loss can still
+trigger the appliance's existing stop behavior, and dependent JVMs can fail
+or lose functionality. Monitoring provides no survivor guarantee.
+
+This section describes the shipped contract. Runtime acceptance evidence,
+including target systemd compatibility, is tracked in
+[M23](../milestone-265f580.md#m23---make-a-dead-instance-visible-to-systemd).
+HTTP readiness, sample continuity and retrieval correctness require separate
+application checks.
+
+### Direct process check
+
+Use the installed launcher, replacing the default account and path if configured:
+
+```bash
+sudo -u tomcat /opt/epicsarchiverap-maven/archappl.bash health
+```
+
+The Linux-only `health` command checks every instance in startup order. Each
+line names the instance, the observed PID when available, and `PRESENT`, `FAIL`
+or `ERROR` with a reason. An aggregate line follows. It reads the installed
+configuration, validates each PID file, checks the actual Java executable,
+Tomcat bootstrap arguments, `catalina.base`, `catalina.home`, process state and
+start time, then repeats observations to reject inconsistent identities. It
+does not delete PID files or signal processes. Other launcher commands retain
+their existing behavior; `status` is a diagnostic listing, not this check.
+
+| Exit | Meaning |
+| --- | --- |
+| 0 | Four expected JVM processes verified at the observation; no application-readiness claim |
+| 1 | One or more missing, dead or invalid instances |
+| 2 | Inspection incomplete, including unreadable/invalid configuration or inaccessible process identity |
+
+Exit 2 takes precedence when instance failures and inspection errors coexist.
+Configuration contents and full process command lines are not printed. Run as
+the service account so Linux process-access restrictions do not obscure its JVMs.
+
+### Scheduled checks and timing
+
+The oneshot queries systemd before and after process inspection and buffers its
+process output until the appliance state and activation identity agree. Its own
+`MainPID` and `ExecMainStartTimestampMonotonic` identify this check's start; the
+appliance's `InactiveExitTimestampMonotonic` identifies the current startup.
+This uses the same monotonic clock without depending on wall time or suspend
+time in `/proc/uptime`. The allowance is evaluated at check start, so the first
+eligible inspection need not occur exactly at the allowance boundary.
+
+| Appliance state | Scheduled behavior |
+| --- | --- |
+| Inactive with successful result, or stopping | `SKIP`; no missing-process alarm |
+| Starting/active within startup allowance | `SKIP`; the allowance is not renewed each tick |
+| Active after allowance | Run the full process check |
+| Still starting after allowance, or failed | `FAIL` with appliance reason |
+| Missing/unreadable unit, invalid timestamp or unknown state | `ERROR` |
+| Start newer than the check, or state/activation changes during inspection | `SKIP`; retry next tick without a mixed instance verdict |
+
+Scheduled skips return 3, listed in `SuccessExitStatus`; they are successful
+monitor executions, not healthy-process evidence. A successful check or skip
+leaves the oneshot inactive. A failed check leaves it failed until another
+activation, when it is temporarily activating again. A later success clears
+the current failure; a skip also ends that invocation successfully without
+establishing process recovery. The journal retains earlier results.
+
+| Make setting | Default | Effect |
+| --- | --- | --- |
+| `SYSTEMD_HEALTH_STARTUP_SECONDS` | 60 | Allowance from the current appliance start |
+| `SYSTEMD_HEALTH_INTERVAL_SECONDS` | 30 | Delay after a completed health invocation |
+| `SYSTEMD_HEALTH_ACCURACY_SECONDS` | 1 | Timer expiry window |
+| `SYSTEMD_HEALTH_TIMEOUT_SECONDS` | 5 | Maximum oneshot start/check duration |
+| `SYSTEMD_HEALTH_STOP_SECONDS` | 1 | Termination wait before final kill of the health control group |
+
+The timer first fires one second after activation, with randomized delay zero.
+The health service has no Restart or RemainAfterExit and disables start-rate
+limiting so repeated failures remain observable. Timeout termination is confined
+to the health service's control group. Settings can be overridden in
+`CONFIG_SITE.local`; regenerate and reinstall the units to apply them.
+The 45-second detection limit is a VM acceptance target for the defaults on an
+awake, responsive system, not a verified measurement or hard real-time guarantee.
+
+### Install, start and inspect
+
+`make install` stops the existing monitor before changing installed payloads.
+`make sd_install` stops monitoring and installs the units and existing Tomcat
+override; it does not install launcher/configuration changes. Use full install
+when those files changed. Generation precedes file installation, and enable
+runs after file installation, ownership and daemon reload. The repository's
+global `.NOTPARALLEL` remains in effect even with `make -j8`.
+
+Neither install nor enable starts monitoring. After installation:
+
+```bash
+make sd_start
+systemctl status --no-pager epicsarchiverap-maven-health.timer
+systemctl show epicsarchiverap-maven-health.service -p ActiveState -p Result -p ExecMainStatus
+journalctl -u epicsarchiverap-maven-health.service -o short-precise
+```
+
+The timer is enabled under both `timers.target` and the appliance's Wants
+directory. Direct systemctl starts therefore activate it at boot and appliance
+start, without a reverse dependency from monitoring to the appliance. For an
+already-running appliance after install, `make sd_start` explicitly starts the
+timer as well. It does not restart an active appliance. A deliberate appliance
+stop leaves the timer running and reporting skips.
+
+Inspect failure reasons, fix the diagnosed problem, and use the existing full
+appliance recovery procedure when a restart is necessary:
+
+```bash
+make sd_restart
+```
+
+This is an operator action, never an automatic health response. Confirm four
+processes with direct `health`, then observe eligible scheduled checks after
+the startup allowance and perform separate HTTP/functional checks.
+
+### Disable and remove monitoring
+
+```bash
+make sd_health_disable
+make sd_health_clean
+```
+
+The first target stops the timer, stops any running health check, then removes
+timer enable links. The second also removes the health unit files and reloads
+systemd. Neither stops or disables the appliance. A failed stop prevents removal.
+To restore the pair without changing an already-installed launcher:
+
+```bash
+make sd_install
+make sd_enable
+make sd_start
+```
+
+`sd_disable` additionally disables the appliance without stopping it; `sd_clean`
+additionally removes its unit file with the existing cleanup semantics. The
+Tomcat override remains separate. Full `uninstall` retains its explicit
+appliance stop and payload removal, and is not a monitor-only operation.

@@ -1,0 +1,12 @@
+[Unit]
+Description=EPICS Archiver Appliance recurring process observation
+
+[Timer]
+OnActiveSec=1s
+OnUnitInactiveSec=@HEALTH_INTERVAL_SECONDS@s
+AccuracySec=@HEALTH_ACCURACY_SECONDS@s
+RandomizedDelaySec=0
+Unit=@SYSTEMD_HEALTH_SERVICE@
+
+[Install]
+WantedBy=timers.target @SYSTEMD_FILENAME@

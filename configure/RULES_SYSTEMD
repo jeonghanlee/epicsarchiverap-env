@@ -1,19 +1,21 @@
 #
 #
 .PHONY: sd_install sd_status sd_start sd_stop sd_restart sd_clean sd_enable sd_disable
+.PHONY: sd_health_stop sd_health_disable sd_health_clean sd_health_status
 #
 #
 
-systemd_RULES_NAMES:=override systemd0
+systemd_RULES_NAMES:=override systemd0 health.service health.timer
 conf_systemd_RULES:=$(addprefix conf., $(systemd_RULES_NAMES))
 show_systemd_RULES:=$(addsuffix .show, $(conf_systemd_RULES))
 install_systemd_RULES:=$(addprefix install., $(systemd_RULES_NAMES))
 show_install_systemd_RULES:=$(addsuffix .show, $(install_systemd_RULES))
 
-sd_install: conf.systemd install.systemd
+sd_install: sd_health_stop conf.systemd install.systemd
 	$(QUIET)$(SUDO) systemctl daemon-reload
 
-.PHONY: conf.systemd conf.systemd.show
+.PHONY: conf.systemd conf.systemd.show install.systemd install.systemd.show
+.PHONY: conf.override conf.systemd0 install.override install.systemd0
 
 conf.systemd: $(conf_systemd_RULES)
 
@@ -47,18 +49,71 @@ conf.systemd0: $(SYSTEMD_FILENAME).in
 conf.systemd0.show: $(SYSTEMD_FILENAME).in
 	@cat -b $(basename $<)
 
-install.override: $(SYSTEMD_OVERRIDE_FILENAME).in
+install.override: $(SYSTEMD_OVERRIDE_FILENAME).in conf.override
 	$(QUIET)$(SUDO) $(INSTALL) -d  $(SYSTEMD_PATH)/tomcat9.service.d/
 	$(QUIET)$(SUDO) $(INSTALL_DATA) -b $(basename $<) $(SYSTEMD_PATH)/tomcat9.service.d/
 
 install.override.show: 
 	$(QUIET)cat -b $(SYSTEMD_PATH)/tomcat9.service.d/$(SYSTEMD_OVERRIDE_FILENAME)
 
-install.systemd0: $(SYSTEMD_FILENAME).in
-	$(QUIET)$(SUDO) $(INSTALL_DATA) -b $(basename $<) $(SYSTEMD_PATH)/
+install.systemd0: $(SYSTEMD_FILENAME).in conf.systemd0
+	$(QUIET)$(SUDO) $(INSTALL_DATA) -D -b $(basename $<) $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)
 
 install.systemd0.show:
 	$(QUIET)cat -b $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)
+
+# Both health units share the same rendering and file-install contract.
+define health_unit_rules
+.PHONY: conf.health.$(1) conf.health.$(1).show install.health.$(1) install.health.$(1).show
+conf.health.$(1): $(APPNAME)-health.$(1).in
+	$$(QUIET)sed -e 's|@USERID@|$$(AA_USERID)|g' \
+		-e 's|@GROUPID@|$$(AA_GROUPID)|g' \
+		-e 's|@INSTALL_LOCATION@|$$(AA_INSTALL_LOCATION)|g' \
+		-e 's|@ARCHAPPL_MAIN_SCRIPT@|$$(ARCHAPPL_MAIN_SCRIPT)|g' \
+		-e 's|@SYSTEMD_FILENAME@|$$(SYSTEMD_FILENAME)|g' \
+		-e 's|@SYSTEMD_HEALTH_SERVICE@|$$(SYSTEMD_HEALTH_SERVICE)|g' \
+		-e 's|@HEALTH_STARTUP_SECONDS@|$$(SYSTEMD_HEALTH_STARTUP_SECONDS)|g' \
+		-e 's|@HEALTH_INTERVAL_SECONDS@|$$(SYSTEMD_HEALTH_INTERVAL_SECONDS)|g' \
+		-e 's|@HEALTH_ACCURACY_SECONDS@|$$(SYSTEMD_HEALTH_ACCURACY_SECONDS)|g' \
+		-e 's|@HEALTH_TIMEOUT_SECONDS@|$$(SYSTEMD_HEALTH_TIMEOUT_SECONDS)|g' \
+		-e 's|@HEALTH_STOP_SECONDS@|$$(SYSTEMD_HEALTH_STOP_SECONDS)|g' \
+		< $$< > $$(basename $$<)
+
+conf.health.$(1).show: $(APPNAME)-health.$(1).in
+	$$(QUIET)cat -b $$(basename $$<)
+
+install.health.$(1): $(APPNAME)-health.$(1).in conf.health.$(1)
+	$$(QUIET)$$(SUDO) $$(INSTALL_DATA) -D -b $$(basename $$<) $$(SYSTEMD_PATH)/$(APPNAME)-health.$(1)
+
+install.health.$(1).show:
+	$$(QUIET)cat -b $$(SYSTEMD_PATH)/$(APPNAME)-health.$(1)
+endef
+$(foreach kind,service timer,$(eval $(call health_unit_rules,$(kind))))
+VARS_EXCLUDES+=health_unit_rules
+
+## Stop only the monitor; absent units are harmless, observation/stop errors are fatal.
+sd_health_stop:
+	$(QUIET)for unit in $(SYSTEMD_HEALTH_TIMER) $(SYSTEMD_HEALTH_SERVICE); do \
+		state=$$($(SUDO) systemctl show --property=LoadState --value "$$unit") || exit; \
+		case "$$state" in \
+			not-found) ;; \
+			loaded) $(SUDO) systemctl stop "$$unit" || exit ;; \
+			*) printf '%s\n' "Cannot stop monitor: $$unit has load state $$state" >&2; exit 1 ;; \
+		esac; \
+	done
+
+## Disable recurring monitoring without stopping or disabling the appliance.
+sd_health_disable: sd_health_stop
+	$(QUIET)$(SUDO) systemctl disable $(SYSTEMD_HEALTH_TIMER)
+
+## Remove the health pair after stopping its check and removing timer enable links.
+sd_health_clean: sd_health_disable
+	$(QUIET)$(SUDO) rm -f $(SYSTEMD_PATH)/$(SYSTEMD_HEALTH_TIMER) $(SYSTEMD_PATH)/$(SYSTEMD_HEALTH_SERVICE)
+	$(QUIET)$(SUDO) systemctl daemon-reload
+
+## Show current monitor state; journal and ExecMainStatus distinguish skips from checks.
+sd_health_status:
+	$(QUIET)systemctl status --no-pager $(SYSTEMD_HEALTH_TIMER) $(SYSTEMD_HEALTH_SERVICE)
 #
 #	
 sd_status:
@@ -67,6 +122,7 @@ sd_status:
 #
 sd_start:
 	$(QUIET)$(SUDO) systemctl start $(SYSTEMD_FILENAME)
+	$(QUIET)$(SUDO) systemctl start $(SYSTEMD_HEALTH_TIMER)
 #
 # We ignore its error
 sd_stop:
@@ -75,17 +131,19 @@ sd_stop:
 #
 sd_restart:
 	$(QUIET)$(SUDO) systemctl restart $(SYSTEMD_FILENAME)
+	$(QUIET)$(SUDO) systemctl start $(SYSTEMD_HEALTH_TIMER)
 #
 # We ignore its error
-sd_clean:
+sd_clean: sd_health_clean
 	$(if $(wildcard $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)), $(QUIET)$(SUDO) rm -f $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME))
 #
 #
 sd_enable:
-	$(if $(wildcard $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)), $(SUDO) systemctl enable $(SYSTEMD_FILENAME))
+	$(QUIET)$(SUDO) systemctl daemon-reload
+	$(QUIET)$(SUDO) systemctl enable $(SYSTEMD_FILENAME) $(SYSTEMD_HEALTH_TIMER)
 #
 #
-sd_disable:
+sd_disable: sd_health_disable
 	$(if $(wildcard $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)), $(SUDO) systemctl disable $(SYSTEMD_FILENAME))
 #
 #
@@ -124,4 +182,3 @@ stop:
 
 status:
 	$(QUIET) $(AA_INSTALL_LOCATION)/$(ARCHAPPL_MAIN_SCRIPT) status
-

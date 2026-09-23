@@ -6,11 +6,16 @@ conf_RULES_NAMES:=log4j2 archapplconf appliances properties policies serverxml a
 conf_install_RULES:=$(addsuffix .install, $(conf_RULES_NAMES))
 show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 
-.PHONY: install services.install
+.PHONY: install install.files services.install
 
 ## Install
-install:  src_install services.install serveroption.install sd_install sd_enable
+install: sd_health_stop
+	$(QUIET)$(MAKE) install.files
+
+# Monitor shutdown completes before any payload is changed; enable never starts it.
+install.files: src_install services.install serveroption.install sd_install
 	$(QUIET)$(SUDO)	chown -R $(AA_USERID):$(AA_GROUPID) $(AA_INSTALL_LOCATION)
+	$(QUIET)$(MAKE) sd_enable
 
 services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES)
 

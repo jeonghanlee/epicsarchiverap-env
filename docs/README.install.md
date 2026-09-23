@@ -30,6 +30,8 @@ the check that proves it ran.
   set in Configuration below).
 - Build tools: `git`, `make`, `unzip`, `sed`, `tree`, and `curl` or `wget`.
   `scripts/install_os_packages.bash` is skipped when the host supplies these.
+- Linux process monitoring requires Bash 4.4 or newer, coreutils and readable
+  `/proc` process state, executable links and arguments for the service account.
 - Outbound network for the build: the `git` clone of the source, and the Maven
   Wrapper (3.9.16) plus dependency downloads into a cold `~/.m2`.
 - The service group and user (`AA_GROUPID`, `AA_USERID`) may be pre-created; the
@@ -128,13 +130,18 @@ already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 | 4 | `make build.mvn` | U | source clone, `JAVA_HOME` | four WARs in `epicsarchiverap-maven-src/target` | four `*-{mgmt,engine,etl,retrieval}.war` |
 | 5 | `make sql.fill` | U | `DB_USER`/`DB_USER_PASS`, source SQL | schema loaded over TCP | `make sql.show` lists the tables |
 | 6 | `make conf.storage` | R | `ARCHAPPL_STORAGE_TOP` | `/arch/{sts,mts,lts}/ArchiverStore` | directories exist, owned by the service user |
-| 7 | `make install` | R | WARs, `AA_USERID`/`AA_GROUPID` | `/opt/epicsarchiverap-maven/{mgmt,engine,etl,retrieval}`, the systemd unit | instances present; unit installed and enabled |
-| 8 | `make sd_start` | R | the systemd unit | service started | mgmt probe returns HTTP 200 |
+| 7 | `make install` | R | WARs, `AA_USERID`/`AA_GROUPID` | four instances, appliance service, health service and timer | units installed; appliance and timer enabled, not started |
+| 8 | `make sd_start` | R | installed units and complete instance configuration | appliance and health timer started | timer active; process checks after startup allowance; separate mgmt probe returns HTTP 200 |
 
 Notes:
-- `make install` also creates the service account (idempotent) and installs and
-  enables the systemd unit `epicsarchiverap-maven.service`; only `make sd_start`
-  is a separate step.
+- `make install` creates the service account (idempotent), stops any existing
+  health timer/check before changing files, then installs the appliance and
+  health pair. It reloads systemd before enabling the appliance and timer, with
+  no implicit start. Run `make sd_start` after every install, including an
+  install on an already-running appliance, to start the timer explicitly.
+- The enabled timer is also wanted by the appliance service, so a direct
+  `systemctl start epicsarchiverap-maven.service` starts monitoring. Enabling a
+  timer does not retroactively activate it for an already-running appliance.
 - The unit declares `Requires=mariadb.service`, so that unit must resolve on the
   host.
 - The database and account are created by the host; the sequence therefore skips
@@ -143,17 +150,32 @@ Notes:
 ## Ownership boundary
 
 - aa-env owns: `/opt/epicsarchiverap-maven` (the four instances,
-  `CATALINA_BASE`), `/arch` (storage), and `epicsarchiverap-maven.service` (the
-  only service). `make install` and `conf.storage` chown these to
-  `AA_USERID:AA_GROUPID`.
+  `CATALINA_BASE`), `/arch` (storage), `epicsarchiverap-maven.service`, and the
+  `epicsarchiverap-maven-health.service` / `.timer` pair. Instance and storage
+  files are owned by `AA_USERID:AA_GROUPID`; unit files are installed mode 0644
+  through the privileged systemd install targets.
 - The host owns: `/opt/tomcat9` (`CATALINA_HOME`, read-only to aa-env), the
   MariaDB service and the application account, the base packages, and the service
   group and user when pre-created.
 
 ## Health check
 
-- Liveness: `curl http://<host>:17665/mgmt/bpl/getApplianceInfo` returns HTTP 200.
+- Process presence: run the installed `archappl.bash health` as the service
+  account. Exit 0 verifies the four expected JVM processes at that observation;
+  exit 1 names invalid/missing instances; exit 2 reports incomplete inspection.
+  The recurring health service reports failures independently of the appliance
+  service. A successful or skipped oneshot becomes inactive, so inactive alone
+  is not proof of four healthy processes. Inspect its journal and exit status.
+- HTTP readiness: `curl http://<host>:17665/mgmt/bpl/getApplianceInfo` returns HTTP 200.
 - Functional verification (archive a PV, then retrieve its samples through the
   mgmt and retrieval endpoints) is the M8/G5 runtime check, which owns the full
   procedure, the time-range parameters, and the archiving-delay wait; it is out
   of scope for this install sequence.
+
+Monitoring neither restarts nor protects surviving JVMs after a failure. Existing
+MainPID handling and component dependencies still apply. See the
+[systemd operating contract](technicaldocs/README.systemd.md#process-monitoring)
+for timing, skip results, operator recovery and monitor-only removal, and the
+[VM test procedure](../tests/README.md#process-monitoring-vm-verification)
+for runtime acceptance. Current verification evidence is maintained in
+[M23](milestone-265f580.md#m23---make-a-dead-instance-visible-to-systemd).

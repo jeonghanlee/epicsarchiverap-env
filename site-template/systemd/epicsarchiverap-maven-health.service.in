@@ -1,0 +1,14 @@
+[Unit]
+Description=EPICS Archiver Appliance process observation
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+User=@USERID@
+Group=@GROUPID@
+ExecStart=/bin/bash "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@" health --systemd @SYSTEMD_FILENAME@ @SYSTEMD_HEALTH_SERVICE@ @HEALTH_STARTUP_SECONDS@
+SuccessExitStatus=3
+TimeoutStartSec=@HEALTH_TIMEOUT_SECONDS@s
+TimeoutStopSec=@HEALTH_STOP_SECONDS@s
+KillMode=control-group
+SendSIGKILL=yes

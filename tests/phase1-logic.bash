@@ -174,3 +174,6 @@ for maven_target in clean.mvn build.mvn build.mvn2 build.mvn3 build.war build.mv
 done
 
 phase_pass "Phase 1: Logic"
+
+# Real launcher negatives and isolated unit installation; no systemd mutation.
+python3 "${TOP}/tests/health-local.py"
