@@ -8,9 +8,12 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: select a systemd VM and an interruption window for
-M23's remaining real-process/runtime checks using the implementation at `9ee6ac0`;
-local implementation review passed. The heap default at `0df950d` also awaits
+Next session entry point: accept M28's draft plan in this file, then
+implement it in `scripts/mariadb_generic_function.bash` and
+`scripts/mariadb_setup.bash`; externally provisioned archiver-dev builds stop
+after `sql.fill` until it lands. Then select a systemd VM and an interruption
+window for M23's remaining real-process/runtime checks using the
+implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
 M26 remains Ready for a test-host archive filesystem separate from the root
 volume, with the requirement documented in `docs/README.install.md`.
@@ -23,8 +26,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Three rows are
+Ready: M9, M26 and M28. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -68,6 +71,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
+| DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Not started | Yes | D22 | `sql.fill` loads the schema with only the application account and exits non-zero when it cannot; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -104,6 +108,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | D19 | M23 reports a dead instance and does not recover it: no automatic restart, and the report comes from a health unit separate from the appliance service. A watcher running as the service's own main process was rejected because `systemd.service` states the stop operation is always performed once a service started successfully, "even if the processes in the service terminated on their own or were killed", so `ExecStop` would run `archappl.bash shutdown` and take the surviving instances down with it -- not the report-only behaviour wanted. Per-instance units stay excluded by D12 and are independently unsound here: the asymmetric start and stop order exists because the four components depend on one another, so restarting one alone bypasses that dependency. Consolidating the four webapps into a single Tomcat would dissolve both this and the M22 heap arithmetic, but it trades away per-component isolation and changes the install layout, so it stays a separate question outside M23. | 2026-09-21 |
 | D20 | aa-env follows the aa-maven `modernize` branch through `SRC_TAG` instead of pinning a verified commit. Source-side improvements then arrive on the next checkout with no re-pin, at the cost of the build basis moving whenever aa-maven moves; verification therefore records the source commit it actually observed rather than assuming a fixed one, and the release step re-checks the source commit in force at that time. Confirmed 2026-09-21, after aa-maven moved `3c96141d` to `85f0f179`. | 2026-09-21 |
 | D21 | The archive store's filesystem and the ETL timing become aa-env work (M26), scoped to the test environment first rather than to production storage architecture. Two facts drive it. On the provisioned hosts the archive store resolves to the root volume, nothing in the install path mounts a dedicated one, and `ARCHAPPL_STORAGE_TOP` only names a directory, so an archiver that fills its store fills `/` and takes the whole host; no quota or threshold exists anywhere in the chain. Separately, the shipped store configuration puts MTS at `PARTITION_MONTH` with `hold=2`, so samples do not leave MTS for roughly two months and the second ETL hop cannot be observed in any realistic test run. Production storage sizing, per-tier media selection and retention for real data stay outside this row. | 2026-09-21 |
+| D22 | The empty configuration database reported by ansible-provision on three externally provisioned archiver-dev hosts becomes aa-env work (M28), tracked as issue #47, and is not raised on the reporting side. Re-derived in this repository: `sql.fill` checks database existence through the admin account, which the externally provisioned mode documented in `docs/README.install.md` never creates, and the not-found branch prints a message but exits 0, so the build continues. Paths that act as the application account check existence through that account; a not-found result or failed check reports and exits non-zero; paths that act as the admin account keep the admin check. The externally provisioned mode therefore needs no admin account. | 2026-09-23 |
 
 ### Assignment History
 
@@ -3082,6 +3087,128 @@ Observed State: none
 Observed Labels: none
 Observed Milestone: none
 Last Compared: never
+
+#### M28 - Load the schema without an admin account and fail loudly
+
+Origin: 265f580 / M28
+Identity History: none
+GitHub Issue: #47
+Status: Not started
+
+##### Summary
+
+In the externally provisioned mode of `docs/README.install.md`, `db.secure`,
+`db.addAdmin` and `db.create` are skipped and only `sql.fill` runs, needing
+only `DB_USER`/`DB_USER_PASS`. At `044cb62`, `sql.fill` reaches
+`query_from_sql_file` in `scripts/mariadb_generic_function.bash`, whose `isDb`
+check runs `SQL_ADMIN_CMD` (`DB_ADMIN`, default `admin`). That account does not
+exist in this mode, so the check reports the database absent. `noDbMessage`
+prints its message to stdout (the same script sets `VERBOSE=YES`
+unconditionally) beside the client's `Access denied` error on stderr, and a
+bare `exit` then returns 0, so the build continues. The schema load
+through `SQL_DBUSER_CMD` is never reached. Observed on the reporting side, not
+on this host, at 2026-09-23T09:05:24Z on three externally provisioned hosts
+built from `6a026d4`: the `archappl` database had zero tables and mgmt logged
+`Table 'archappl.PVTypeInfo' doesn't exist` on every PV registration. Recheck
+on a host by counting rows in `information_schema.tables` where
+`table_schema='archappl'` through the application account.
+
+##### Scope
+
+- `scripts/mariadb_generic_function.bash` and `scripts/mariadb_setup.bash`:
+  functions that act as the application account check database existence
+  through `SQL_DBUSER_CMD`; functions that act as the admin account keep the
+  admin check. Among the `isDb` callers, only `get_admin_crypt_password` acts
+  as the admin account; `backup_db` uses `SQL_BACKUP_CMD` (`DB_USER`) and
+  `generate_admin_local_password` queries through `query_from_sql_file`.
+- Every caller of `isDb` (`query_from_sql_file`, `show_tables`,
+  `show_procedures`, `drop_tables`, `execute_query`, `drop_procedures`,
+  `generate_admin_local_password`, `get_admin_crypt_password`, `backup_db`,
+  `show_archappl`): a not-found result or failed existence check prints its
+  message to stderr and exits non-zero, and callers that run these functions
+  inside command substitution propagate that status: in
+  `scripts/mariadb_setup.bash`, `generate_admin_local_password` captures
+  `query_from_sql_file` at line 146 and `get_admin_crypt_password` at line 153.
+- `tests/phase1-logic.bash`: a guard against restoring a zero exit on the
+  not-found path.
+- Exit-status change: no caller in this repository depends on the zero exit;
+  the DB targets are invoked only from `configure/RULES_SQL` and as manual
+  examples in `docs/technicaldocs/README.macos.md`. An external operator
+  running `sql.fill` now stops at that step instead of at a later table check.
+
+Out of scope: creating an admin account in the externally provisioned mode;
+the SQLite backend (M9); the schema content shipped by aa-maven;
+`docs/README.install.md`, whose lines 131 and 148 already describe the
+intended behavior (`sql.fill` needs only `DB_USER`/`DB_USER_PASS` and is the
+only DB step in the externally provisioned mode).
+
+##### Completion Criteria
+
+- With only the application account provisioned, `make sql.fill` loads the
+  schema and `make sql.show` lists `PVTypeInfo`, `PVAliases`,
+  `ArchivePVRequests` and `ExternalDataServers`.
+- When the database is absent or the existence check cannot connect,
+  `make sql.fill` exits non-zero with a message on stderr.
+- The full local mode (`db.secure`, `db.addAdmin`, `db.create`, `sql.fill`)
+  still loads the schema.
+
+##### Dependencies And Decisions
+
+- D22 (finding taken as aa-env work; the shape of the fix).
+- Decision Date: 2026-09-23. Implement the application-account existence check
+  and the non-zero exit; do not require an admin account in the externally
+  provisioned mode.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Give `isDb` the account to check with, so application-account callers use
+   `SQL_DBUSER_CMD` and admin-account callers keep `SQL_ADMIN_CMD`. Treat a
+   failed client invocation as a failed check, not as an absent database.
+2. Replace the zero-exit not-found branch in every `isDb` caller with a message
+   on stderr and a non-zero exit. Propagate the status at the two
+   command-substitution call sites in `generate_admin_local_password`
+   (`scripts/mariadb_setup.bash:146` and `:153`).
+3. Extend `tests/phase1-logic.bash` with a structural guard on the not-found
+   path of the real scripts.
+4. Run T1 locally, then T2-T4 on a disposable MariaDB server, and record the
+   observed results.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `bash -n` on both scripts and `tests/run-all-tests.bash --phase=1` with the new guard | This host | Scripts parse; Phase 1 passes; the guard fails against the pre-change not-found branch |
+| T2 | Runtime | Run `make init` so the source clone provides the schema file `sql.fill` reads. As root (`sudo mysql`), create an empty `DB_NAME` database and the application account with privileges on it only, for both `localhost` and `127.0.0.1`, matching the accounts on the externally provisioned hosts; create no `DB_ADMIN` account. Set `DB_NAME`, `DB_USER`, `DB_USER_PASS` and a `DB_ADMIN` absent from the server in `configure/CONFIG_SITE.local`, run `make db.conf` to regenerate `site-template/mariadb.conf`, then `make sql.fill` and `make sql.show` | A disposable MariaDB server (VM or container), never a shared one | `sql.fill` exits 0; the four tables are listed |
+| T3 | Runtime | With the T2 settings, run `make sql.fill` after dropping the database as root, and again with a wrong `DB_USER_PASS` after `make db.conf` | A disposable MariaDB server (VM or container), never a shared one | Both exit non-zero with a message on stderr; no table is created |
+| T4 | Runtime | On a fresh server, set in `configure/CONFIG_SITE.local` the `DB_ADMIN` and `DB_ADMIN_PASS` values that `db.addAdmin` creates, without creating that account by hand, run `make db.conf`, then the full local sequence `db.secure`, `db.addAdmin`, `db.create`, `sql.fill`, then `sql.show`. `db.secure` drops anonymous and remote root accounts and the `test` database as root | A disposable MariaDB server (VM or container), never a shared one | The four tables are listed |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | A disposable MariaDB server | Pending | none |
+| T3 | Not run | A disposable MariaDB server | Pending | none |
+| T4 | Not run | A disposable MariaDB server | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: sql.fill exits 0 with no schema loaded
+Labels: bug
+GitHub Milestone: none
+Observed State: open
+Observed Labels: bug
+Observed Milestone: none
+Last Compared: 2026-09-23T09:21:23Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/47` read, remote updated_at 2026-09-23T09:15:58Z
 
 ## Backlog
 
