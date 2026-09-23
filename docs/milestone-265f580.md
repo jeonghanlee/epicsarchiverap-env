@@ -9,8 +9,8 @@ Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
 Next session entry point: M29 (issue #48) is implemented with T1-T2 passing;
-record its landing and close issue #48; M28 is Complete at `1fc20a8`.
-Then select a systemd VM and an interruption
+record its landing and close issue #48. M30 (issue #49) awaits plan acceptance;
+M28 is Complete at `1fc20a8`. Then select a systemd VM and an interruption
 window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
@@ -25,8 +25,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Three rows are
+Ready: M9, M26 and M30. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -72,6 +72,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | In progress | No | | Implemented; T1-T2 pass; commit, landing and issue #48 closure remain; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
+| DB | M30 | Fail the backup when the dump fails | Milestone | Not started | Yes | | `dbBackup` exits non-zero with a stderr message and leaves no file when the dump fails; [detail](#m30---fail-the-backup-when-the-dump-fails) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -3310,6 +3311,88 @@ Observed State: open
 Observed Labels: bug
 Observed Milestone: none
 Last Compared: 2026-09-23; `gh issue view 48` read after creation
+
+#### M30 - Fail the backup when the dump fails
+
+Origin: 265f580 / M30
+Identity History: none
+GitHub Issue: #49
+Status: Not started
+
+##### Summary
+
+At `8abd039`, `backup_db` (`dbBackup`) in `scripts/mariadb_setup.bash` runs
+`${SQL_BACKUP_CMD} "${db_name}" | gzip -9 > <backup file>` without
+`pipefail`, so the pipeline returns `gzip`'s status. When `mysqldump` fails,
+`gzip` still writes a valid empty archive and exits 0, so `dbBackup` exits 0
+and leaves a file that looks like a backup. Reproduced on 2026-09-23 on this
+host with the same pipeline shape and a real `mysqldump` using an account that
+cannot log in: `Access denied`, pipeline status 0, and a 20-byte `.sql.gz`
+that passes `gunzip -t` and expands to 0 bytes. Found by the M29 third-person
+review as an out-of-scope observation.
+
+##### Scope
+
+- `scripts/mariadb_setup.bash` `backup_db`: return the dump's failure from the
+  backup pipeline, remove the partial backup file, print a message to stderr
+  and exit non-zero.
+
+Out of scope: `backup_db_list` and `restore_db` (M29); the backup file naming
+and the account the dump uses.
+
+##### Completion Criteria
+
+- When the dump fails after the database existence check passes,
+  `bash scripts/mariadb_setup.bash dbBackup <directory>` exits non-zero with a
+  message on stderr and leaves no backup file.
+- A backup of an existing database still exits 0, and the file restores
+  through `dbRestore`.
+
+##### Dependencies And Decisions
+
+- None. Assigned to Milestone on 2026-09-23 with issue #49.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. In `backup_db`, run the dump pipeline with `pipefail` confined to a
+   subshell, and on failure remove the backup file, print a stderr message and
+   exit non-zero.
+2. Run T1 locally and T2 on a disposable MariaDB server, and record the
+   observed results.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `bash -n`, `shellcheck -x` and `tests/run-all-tests.bash --phase=1` | This host | Script parses and lints; Phase 1 passes |
+| T2 | Runtime | Make the dump fail after the existence check passes, run `dbBackup`, then run a normal `dbBackup` and restore it with `dbRestore` | A disposable MariaDB server (VM or container), never a shared one | The failing backup exits non-zero with a stderr message and leaves no file; the normal backup exits 0 and restores |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | A disposable MariaDB server | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: dbBackup exits 0 when the dump fails
+Labels: bug
+GitHub Milestone: none
+Observed State: open
+Observed Labels: bug
+Observed Milestone: none
+Observed Updated At: 2026-09-23T21:48:20Z
+Last Compared: 2026-09-23T21:48:20Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/49` read after creation
 
 ## Backlog
 
