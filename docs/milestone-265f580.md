@@ -8,21 +8,27 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: give the archive store its own filesystem on a test
-host and name that requirement among the host prerequisites in
-`docs/README.install.md` (M26) — the store resolves to the root volume with no
-quota, so an archiver that fills it takes the whole host, and the fill rate is
-still unknown. The other half of M26 is settled: the shipped MTS granularity is
+Next session entry point: select a systemd VM and an interruption window for
+M23's remaining real-process/runtime checks; local implementation review passed.
+M26 remains Ready for a test-host archive filesystem separate from the root
+volume, with the requirement documented in `docs/README.install.md`.
+The other half of M26 is settled: the shipped MTS granularity is
 now `PARTITION_DAY`, matching the storage guide's recommended default, so the
 second ETL hop becomes eligible after about two days instead of two months and a
 soak can observe the whole chain. M24 is Complete at `4b4cb41`; issue #45 was
 updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
-Four rows are Ready: M9, M22, M23 and M26. M22's `256M` candidate default is validated only at
-idle; the load test requested from ansible-provision supplies the figure under
-load, the disk growth rate M26 needs, and the first observation of ETL movement
-anywhere. M8's Release Verification 2 and 3 passed on three provisioned hosts;
+M23 is In progress: local implementation, checks and independent implementation
+review passed; real-VM verification and repository landing remain. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
+M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
+unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
+selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
+another 1 GiB. The operator report supplies approximately 21 hours of light
+sampling-load evidence with the 256M override; it reports no OOM or restart.
+Default-install runtime verification and landing remain outstanding. The
+report does not provide a quantified disk growth rate for M26. M8's Release Verification 2 and 3 passed on three provisioned hosts;
 Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
@@ -48,11 +54,16 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
-| Runtime | M22 | Size the JVM heap default to the host | Milestone | Not started | Yes | D18 | A default install on a 4 GB host runs the four instances beside MariaDB with no kernel OOM kill, and the host memory requirement is documented; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
-| Runtime | M23 | Make a dead instance visible to systemd | Milestone | Not started | Yes | D12, D18, D19 | A killed instance puts a systemd unit into `failed` within the timer interval while the appliance service and the surviving instances are untouched; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
+| Runtime | M22 | Size the JVM heap default to the host | Milestone | In progress | No | D18 | 256M override passed the reported approximately 21-hour light-load run; changed-default deployment/runtime verification and landing remain; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
+| Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Report stable instance failure through the health unit within the 45-second VM acceptance target; monitoring causes no stop/restart and preserves existing dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Storage | M26 | Test-environment archive store and ETL timing | Milestone | Not started | Yes | D18, D21 | The archive store sits off the root filesystem with a threshold that reports first, and a short run shows samples moving STS to MTS to LTS; both documented; [detail](#m26---test-environment-archive-store-and-etl-timing) |
+| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
+| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
+| Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
+| Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
+| Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -98,6 +109,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | M9, M11 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retitled per D10/D11) | this synchronization commit | this synchronization commit |
 | M12 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retired per D11) | this synchronization commit | this synchronization commit |
 | M2 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize | this synchronization commit | this synchronization commit |
+| M10, M13, M18, M19, M27 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-22) | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1526,24 +1538,31 @@ Last Compared: never
 Origin: 265f580 / M22
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
-`AA_JAVA_HEAPSIZE` defaults to `1G` in `configure/CONFIG_SITE`, and
+The VM test default for `AA_JAVA_HEAPSIZE` is `256M` in `configure/CONFIG_SITE`.
 `configure/CONFIG_SRC` applies it to both `-Xms` and `-Xmx` through
-`CATALINA_OPTS`, so each of the four instances commits a gigabyte at start.
-On a 4 GB host running MariaDB beside them the kernel OOM killer removed an
-instance twice during the ansible-provision archiver-dev run, roughly 2h50m
-and 4h after install. The `CONFIG_SITE` comment already records that the value
-was sized for a 64 GB server; nothing sizes it to the actual host.
+`CATALINA_OPTS`. Four heaps total `4 * 256 MiB = 1 GiB`; four unchanged 256 MiB
+metaspace limits add another 1 GiB. The combined 2 GiB is not a cap on total
+process memory, so native JVM allocations, MariaDB and the OS require additional
+RAM. The installation guide includes the calculation and a 4 GiB VM example.
+
+The previous 1G heap default meant 4 GiB of heap across the four instances.
+On a 4 GB host running MariaDB beside them, the kernel OOM killer removed an
+instance roughly 2h50m and 4h after install. The lower value is selected for VM
+testing. An operator report dated 2026-09-22 supplies a passing light-load
+observation with the 256M override: 10 scalar PVs at 1 Hz each for 20 h 59 min
+39 s, without reported OOM or JVM restart. This is evidence for that workload,
+not verification of the changed repository default or larger workloads.
 
 ##### Scope
 
 - `configure/CONFIG_SITE`: the `AA_JAVA_HEAPSIZE` default and the comment that
   says how to size it.
-- `configure/CONFIG_SRC`: whether `-Xms` and `-Xmx` should carry the same value,
-  since `-Xms` is what commits the memory up front.
+- `configure/CONFIG_SRC`: retain the shared value for `-Xms` and `-Xmx` and
+  verify that the generated configuration receives both options.
 - `docs/README.install.md`: state the memory the four instances need among the
   host prerequisites.
 
@@ -1567,33 +1586,110 @@ MariaDB side of the same host budget.
   that override a host ran 15 h 32 min continuously, zero kernel OOM on both
   surviving hosts, `NRestarts` 0, all four instances live. The appliance was
   idle for the whole window, so the run exercised steady-state memory and never
-  load. Choosing the shipped default needs a figure observed with a PV actually
-  sampling, which the pending load test is expected to supply.
+  load. Retain this as historical idle evidence. The later loaded observation
+  is recorded separately under T3 and does not establish default-install T2.
+- Decision Date: 2026-09-22. Use 256M for both heap options as the VM test
+  default, retain the 256M metaspace limit, and document the four-instance
+  memory calculation. This accepts a test default, not a claim of runtime
+  validation under PV load.
+- Evidence received: the operator's 2026-09-22 report, supplied by the owner,
+  states a light-load PASS with the 256M override on aa-env `6a026d4` and
+  aa-maven `3c96141d`. This session checked the report and its arithmetic, not
+  the VM, collector or original logs. T3 records that provenance explicitly.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-22; 256M VM test default with matching heap options and documented memory arithmetic
+Implementation Authorization: 2026-09-22; change the default, add configuration comments, update documentation and verify locally
 Superseded Plan Artifacts: none
+
+1. Set `AA_JAVA_HEAPSIZE="256M"` in `configure/CONFIG_SITE`; retain the
+   metaspace limit and the existing `CONFIG_SRC` expansion for both heap options.
+2. Replace the old server-sizing comment with the four-instance calculation.
+   Document heap and metaspace separately, additional memory consumers and
+   the supported local override in `docs/README.install.md`.
+3. Run the real `conf.archappl` target in a copy of tracked working-tree files
+   with no local overrides. Check the generated options, repeat with a 512M
+   local override, and run the existing local tests.
+4. Record the received override-based light-load result as supplemental T3
+   evidence. Keep T2 pending until an identified commit containing the default
+   change is deployed without a heap override and its runtime is verified beyond
+   both earlier failure intervals. VM deployment is not part of the current
+   local configuration change. The accepted default-install criterion remains
+   unchanged; supplemental evidence does not replace it.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Config | `make -s print-AA_JAVA_HEAPSIZE` and the rendered `CATALINA_OPTS` | This host | Both match the chosen default |
-| T2 | Runtime | Install with the default, then run past the interval that previously OOMed | 4 GB host with MariaDB | Four instances stay up; no kernel OOM kill |
+| T1 | Config | Resolve heap and metaspace with the real Makefile; render `conf.archappl` with the default and a 512M local override; run existing local tests | This host and an isolated copy of tracked files | Default renders Xms/Xmx256M, override renders Xms/Xmx512M, metaspace remains 256M, and local tests pass |
+| T2 | Runtime | Install with the default and sample PVs beyond both earlier OOM intervals (more than four hours) | 4 GB host with MariaDB | Four instances stay up; no kernel OOM kill |
+| T3 | Supplemental runtime evidence | Review the supplied operator report of the real 256M override run; identify retained measurements and limits | Reported Rocky Linux 8.10 VM, 3.58 GiB guest RAM, MariaDB co-located | Record survival, OOM and sampling/retrieval outcome for the measured light workload separately from default-install T2 |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
+| T1 | 2026-09-22T20:49:32Z | Working tree based on `9a64fb6`; isolated copy of real tracked files | Pass | The real `make conf.archappl` output passes `bash -n` and, when sourced by Bash, supplies exactly one Xms/Xmx256M pair. A real parent `CONFIG_SITE.local` override produces exactly one Xms/Xmx512M pair; both retain MaxMetaspaceSize=256M. Four-instance arithmetic confirms 1024 MiB heap plus 1024 MiB metaspace caps, leaving 2048 MiB from a 4 GiB VM for other consumers. `TMPDIR=/tmp tests/run-all-tests.bash --local` passes 59 logic and 14 build-wrapper assertions; `git diff --check` passes. No JVM or VM runtime was exercised. |
 | T2 | Not run | 4 GB host with MariaDB | Pending | none |
+| T3 | 2026-09-22T01:00:19Z to 2026-09-22T21:59:58Z (reported) | aa-env `6a026d4`, aa-maven `3c96141d`; 256M override; Rocky Linux 8.10, 3.58 GiB RAM, no swap | Pass (operator report; light workload only) | Owner-supplied VM heap verification report, dated 2026-09-22; 10 scalar PVs at 1 Hz each for 20 h 59 min 39 s. Reports four JVMs with the effective 256M options, zero OOM/restarts, and successful sampling/retrieval. Original VM records were not inspected by this session; details and limits below. |
+
+##### Loaded Runtime Evidence And Limits
+
+Source: the owner-supplied report headed "In reply to: VM heap verification for
+the four-instance 256M configuration", dated 2026-09-22. The measurements below
+are operator-reported observations, not a local rerun. Retained records are the
+operator's `/usr/local/sbin/aasoak-sampler.sh`, `/var/tmp/aasoak-metrics.csv`,
+instance `catalina.out` logs and local journal. No GitHub comment is asserted as
+the source of this heap report.
+
+| Area | Reported observation |
+| --- | --- |
+| Environment | Rocky Linux 8.10; 2 vCPU; actual guest RAM 3.58 GiB; no swap; MariaDB on the same VM |
+| Deployment | aa-env `6a026d4`, aa-maven source `3c96141d`; OpenJDK 21.0.12.1 LTS; Tomcat 9.0.121; operator heap override, not a shipped-default test |
+| Effective configuration | All four JVM command lines show `-Xms256M -Xmx256M -XX:MaxMetaspaceSize=256M`; four Java processes reported |
+| Workload | 10 continuously updating scalar calc PVs at 1 Hz each; retrieval limited to periodic checks; no array or high-volume workload |
+| Interval | Loaded from 2026-09-22T01:00:19Z through 2026-09-22T21:59:58Z; four JVMs started at 00:29:00Z and reportedly did not restart |
+| Aggregate RSS | 85 samples at 15-minute cadence; start/minimum 1614, maximum/final 1697, with the report labeling this series MB |
+| Final memory snapshot | JVM RSS: mgmt 487, engine 416, etl 398 and retrieval 396 MiB; MariaDB about 80 MiB; MemAvailable 1.28 GiB |
+| Sampling/retrieval | STS/MTS bytes grew at each observation; retrieval returned 67 samples in the 01:00-01:03Z window and 182 in the 21:57-22:00Z window |
+| Failure evidence | Report states zero kernel OOM, zero Java OutOfMemoryError and zero JVM restarts over the interval; four instances and mgmt HTTP 200 at all 85 observations |
+| Unavailable interval metrics | No per-JVM RSS series, MariaDB RSS series or minimum MemAvailable series; only aggregate RSS and final snapshots were supplied |
+
+Arithmetic and interpretation:
+
+- The supplied timestamps span 75,579 seconds = 20 h 59 min 39 s, approximately
+  21 hours. This corrects the report's approximate 20.8-hour wording without
+  changing the reported timestamps or its observation scope.
+- The final per-JVM RSS values sum to 1697 MiB. The aggregate series is labeled
+  MB in the report; confirm the collector's conversion before equating those
+  units. Its reported change is `(1697 - 1614) / 1614 * 100 = 5.14%`.
+  Fifteen-minute samples do not establish the peak between samples or rule out
+  a memory leak; preserve the measured range rather than claim either.
+- Configured heap plus metaspace caps total 2 GiB. Against the reported actual
+  guest RAM, `3.58 GiB - 2 GiB = 1.58 GiB` is the approximate remaining budget
+  for native JVM memory, MariaDB, the OS and caching. This is not measured free
+  RAM; the separately reported final MemAvailable is 1.28 GiB.
+- The retrieved sample counts are evidence of data at both ends, not by
+  themselves proof of complete 1 Hz coverage for all ten PVs. The operator's
+  continuity assessment also uses the ongoing sampling and store observations.
+- The report states interval-complete kernel and JVM log coverage for OOM and
+  no intervening restarts. Those retained records have not been independently
+  inspected here. The recorded PASS is limited to the reported survival,
+  no-OOM and sampling/retrieval criteria for this light workload.
+- T2 remains Pending: identify and deploy the eventual heap-default commit,
+  verify effective options without a heap override, and record its loaded run.
+  A capacity claim for larger PV populations, arrays or sustained retrieval
+  would require a separate representative workload; it is not implied by T3.
 
 ##### Closure Evidence
 
-- none
+- The 256M VM test default, comments and memory budget are implemented and
+  locally verified (T1). Supplemental T3 records the operator-reported PASS
+  for the 256M override under light sampling load for approximately 21 hours.
+  Default-install runtime verification (T2) and repository landing evidence
+  remain outstanding; status stays In progress.
 
 ##### GitHub Projection
 
@@ -1610,15 +1706,16 @@ Last Compared: never
 Origin: 265f580 / M23
 Identity History: none
 GitHub Issue: #44
-Status: Not started
+Status: In progress
 
 ##### Summary
 
 One `epicsarchiverap-maven.service` starts four Tomcat instances through
 `scripts/archappl.bash`. The unit is `Type=forking` with no `PIDFile=` and no
-`Restart=`, so systemd picks one main process by heuristic out of four
-independently daemonized JVMs; while that one survives the unit stays active
-whatever happened to the other three. During the ansible-provision archiver-dev
+`Restart=`, so main-process identification depends on a heuristic across four
+independently daemonized JVMs. A selected surviving main process does not
+establish that the other three JVMs are alive; the heuristic may also fail to
+identify a main process. During the ansible-provision archiver-dev
 run a host reported the unit active while mgmt served nothing, and the operator
 had to check the four processes itself. Under D19 this row makes that failure
 visible and deliberately does not recover it.
@@ -1626,7 +1723,9 @@ visible and deliberately does not recover it.
 ##### Scope
 
 - `scripts/archappl.bash`: a `health` subcommand that checks every entry of
-  `startup_services` with `get_pid` and exits nonzero naming the missing ones.
+  `startup_services` against its PID file and actual process, and exits nonzero
+  naming every missing or invalid instance. `get_pid` only prints
+  the PID-file content and cannot serve as a liveness check.
   `status_archappl` stays what it is today, a human-readable dump that prints
   and exits zero.
 - `site-template/systemd/epicsarchiverap-maven-health.service.in`: a
@@ -1636,8 +1735,10 @@ visible and deliberately does not recover it.
   at which it runs.
 - The install and systemd rules that render, install and enable the pair beside
   the existing unit.
-- `tests/`: a phase 1 guard for the new templates and for the appliance unit
-  staying unchanged.
+- `tests/`: real launcher behavior checks, Make generation/install checks and
+  an explicit runtime procedure for the installed health pair.
+- `docs/technicaldocs/README.systemd.md`, `docs/README.install.md` and
+  `tests/README.md`: command behavior, unit ownership, lifecycle and test scope.
 
 Out of scope: automatic restart of anything (D19); per-instance systemd units
 (D12, and unsound here per D19); any change to the appliance unit's `Type=`,
@@ -1646,10 +1747,26 @@ a single Tomcat, which D19 keeps as its own question.
 
 ##### Completion Criteria
 
-- With one instance killed, a systemd unit reports `failed` within the timer
-  interval and the host shows it in `systemctl --failed`.
-- That detection leaves the appliance service, the surviving instances and the
-  D12 ordering untouched: nothing is stopped and nothing is restarted.
+- After the startup allowance, a stable instance failure while the appliance
+  remains active makes the separate health unit report `failed`, naming the
+  affected instances and reasons. The runtime acceptance target is detection
+  within 45 seconds on an awake, responsive test VM, including timer accuracy,
+  check execution and dispatch delay. This target requires measured verification;
+  it is not a hard real-time guarantee or a claim of current behavior.
+- The monitor issues no appliance/JVM start, stop, restart or terminating signal,
+  directly or through unit dependencies. Existing appliance supervision and D12
+  startup/shutdown order are preserved. JVM survival and continued operation of
+  dependent components after another instance fails are not guaranteed by M23.
+- Each successful process check means only that all four expected JVM processes
+  were verified at that observation. A skipped check, unreadable configuration
+  or failed observation must not be reported as healthy. HTTP readiness,
+  archiving and retrieval correctness are outside this process check.
+- Repeated checks, boot/restart allowance, intentional stop, operator recovery
+  and health-pair installation/removal behave as specified below and are
+  exercised through the actual shipped paths.
+- MainPID-related appliance shutdown is observed and reported as existing
+  appliance behavior, not prevented or presented as a monitor recovery action.
+  Test evidence distinguishes the monitor's actions from dependency effects.
 
 ##### Dependencies And Decisions
 
@@ -1658,12 +1775,17 @@ a single Tomcat, which D19 keeps as its own question.
 - D18. Re-derived here 2026-09-21: the unit is `Type=forking` with
   `ExecStart=/bin/bash -c "... startup"`, no `PIDFile=` and no `Restart=`.
 - D19 (detect and report, no recovery; the report lives in a separate unit).
-- Readiness window, measured by the reporting side 2026-09-21 and binding on
-  this design: mgmt answers 500 while it initialises, for roughly 20 to 30
-  seconds after a plain service restart and about 48 seconds after a host
-  reboot (observed 500 at 28 s and 38 s, then 200 at 48 s). A reboot therefore
-  needs roughly twice the restart allowance. The health check must not report
-  failure inside that window, or every boot produces a false failure.
+  Decision Date: 2026-09-22. The selected scope preserves existing appliance
+  supervision. The monitor must not cause stop/restart actions; preserving other
+  JVMs or their dependent functionality after failure is not a completion
+  condition. This clarifies the earlier survivor wording without changing D12.
+- HTTP readiness observation, reported 2026-09-21: mgmt returned 500 during
+  initialization for about 20 to 30 seconds after restart and until about 48
+  seconds after reboot. Preserve that observation, but do not use it as a
+  measured process-start delay: M23 checks JVM presence, not HTTP responses.
+  Measure PID creation and instance identity readiness separately. Use the
+  initial 60-second startup allowance below and verify it against those
+  measurements; the HTTP observation does not establish its adequacy.
 - The same host returned unaided after a reboot: the unit was active 5 seconds
   in and the first journal line for it that boot is systemd starting it, so
   nothing here needs to add boot-time recovery.
@@ -1673,37 +1795,234 @@ a single Tomcat, which D19 keeps as its own question.
   reporting side counted phantom OOM entries that way. Checking the processes
   is the reliable path, which is what this design already does.
 
+##### Planning Findings
+
+Confirmed against the planning baseline at `9a64fb6`:
+
+- `scripts/archappl.bash:get_pid` reads and prints a PID file without checking
+  process existence. Its successful output cannot prove a live JVM.
+  `site-template/startup.sh.in` supplies per-instance `CATALINA_PID` and
+  `CATALINA_BASE`; use that installed identity rather than a name-only search.
+- The launcher sources `archappl.conf` before dispatching commands without
+  explicitly rejecting a source failure. The new health path must report an
+  unreadable or invalid configuration as an inspection error, not healthy.
+- The baseline `configure/RULES_SYSTEMD` installs the appliance unit and Tomcat
+  override, but its enable, disable and clean targets cover only the appliance
+  unit. Health lifecycle extends those targets while leaving the override separate.
+- Baseline `sd_install` lists generation and installation as siblings, and
+  baseline `install` similarly lists `sd_install` and `sd_enable`.
+  `configure/RULES_VARS` globally declares `.NOTPARALLEL`, so these are not an
+  observed concurrent race in the shipped graph. Preserve serialization and add
+  explicit generation/install and reload/enable ordering, including direct
+  target entry points. A real `make -j8` still runs the shipped serialized graph.
+- `docs/README.install.md` describes one owned service and install-time enable;
+  that document must change with the added health pair, not only the systemd
+  technical note. `tests/phase4-vm.bash` currently skips runtime verification.
+
+Manual-based constraints, not observations from a deployed VM:
+
+- MainPID guessing can fail for a multi-process forking service. Once a
+  successfully started service stops, its stop command can run even after
+  process death [1]. With this repository's `ExecStop`, MainPID death and
+  non-main death therefore cannot share an assumed survivor guarantee.
+- Timer expiry includes `AccuracySec`, and a timer does not start another copy
+  of an already active service [2]. Use a completing oneshot, explicit timing
+  and timeout settings, and verify recurring checks after both success and
+  failure. Do not infer a detection bound from the interval alone.
+- Unit start limits also apply to timer activations [3]. Verify that persistent
+  failures do not silently disable subsequent health observations.
+
+Hypotheses requiring measurement:
+
+- The target VM's actual MainPID and stop behavior, process-start duration,
+  access to process identity under the service account, and detection latency
+  are not yet observed. T4-T8 provide these observations.
+- A PID can disappear or be reused during inspection. Re-read process identity
+  and start time when needed; an inconsistent or inaccessible observation must
+  not become a healthy verdict. This is a point-in-time check, not a guarantee
+  that a process remains alive until the next timer run.
+
+Accepted scope, Decision Date: 2026-09-22:
+
+Detect and report only. Keep the appliance unit and its dependency behavior.
+Do not introduce independent recovery, promise survivor availability, or reopen
+supervision design as part of M23. A remaining JVM may itself fail or lose
+functionality because another component died; process existence is not proof
+of appliance correctness. Capture this distinction in diagnostics and tests.
+
 ##### Implementation Plan
 
 Plan Status: accepted
-Plan Acceptance: 2026-09-21, owner chose the detect-and-report design in session
-Implementation Authorization: none
-Superseded Plan Artifacts: none
+Plan Acceptance: 2026-09-22, detect-and-report scope selected and strengthened plan confirmed
+Implementation Authorization: 2026-09-22; implement the accepted plan
+Superseded Plan Artifacts: earlier M23 plans in this canonical detail
 
-1. Add the `health` subcommand to `scripts/archappl.bash`, reusing
-   `startup_services` and `get_pid`, exiting nonzero and listing every instance
-   whose PID is absent.
-2. Add the oneshot unit and the timer templates under `site-template/systemd/`,
-   carrying the same `User=` and `Group=` as the appliance unit.
-3. Render, install and enable the pair through the existing systemd install
-   path, leaving `epicsarchiverap-maven.service` untouched.
-4. Add the phase 1 guard, then run phases 1 and 2.
+1. Establish the test baseline under the accepted D12/D19 constraints. VM
+   access is a runtime verification prerequisite, not a prerequisite for local
+   implementation. Before deploying the health pair, record the aa-env/source
+   commits, systemd version, effective unit including drop-ins, service account,
+   MainPID and four JVM PID/start times. Obtain original-unit failure observations
+   during the scheduled VM tests so later exits can be attributed correctly.
+2. Add `archappl.bash health` with an explicit command contract. Inspect every
+   configured instance even after one fails. Return 0 only for four verified
+   live instances, 1 for an invalid or missing instance, and 2 when inspection
+   cannot complete; inspection errors take precedence over instance failures.
+   Print one result per instance with its name, observed PID when available,
+   and process-check result or failure reason, followed by the aggregate result.
+   Label success as verified process presence, not application readiness. Keep
+   configuration contents and complete command lines out of diagnostic output.
+   Check PID syntax before use, reject zero/negative/multiple values, inspect
+   actual process state and exact Tomcat instance identity, and reject zombies,
+   unrelated processes and mismatched instances. Use read-only observations;
+   never delete PID files or signal a JVM. Preserve existing command behavior
+   and startup/shutdown order. The systemd integration is Linux-specific;
+   existing non-systemd commands must retain their current platform behavior.
+3. Add the health service and timer plus the minimal systemd-aware dispatch
+   needed to apply the state table below. Keep direct `health` independent of
+   appliance unit state so it remains usable for diagnosis. The scheduled path
+   reads appliance state and monotonic activation timestamps; it must not infer
+   a new startup allowance from each timer run or from HTTP responses.
+   Check for stop/restart transitions around the process observation to avoid
+   reporting a mixed snapshot as a stable failure. Use no dependency or command
+   that starts or restarts the appliance as a side effect of monitoring.
+4. Make timing explicit in `configure/CONFIG_SYSTEMD` and the generated pair.
+   Initial settings are startup allowance 60 seconds, repeat delay 30 seconds
+   after a completed check, timer accuracy 1 second, randomized delay 0 and
+   check timeout 5 seconds. Bound health-check termination as well so a timed-out
+   check cannot indefinitely postpone the next observation. The scheduled
+   command must finish without sleeping through the allowance. Verify the
+   45-second acceptance target with the actual schedule, including a fault
+   occurring just after its instance was inspected. An implementation that
+   exceeds that target requires correction or an explicit plan revision; do not
+   adjust the test limit after observing a failure. Confirm target-version
+   support and repeated activation after both success and failure. Do not leave
+   a successful oneshot active indefinitely.
+5. Extend `configure/RULES_SYSTEMD`, `configure/CONFIG_SYSTEMD` and only the
+   necessary dependencies in `configure/RULES_INSTALL`. Generation precedes
+   file installation, daemon reload precedes enable, and the real `make install`
+   path preserves those dependencies under parallel execution. Install/enable
+   must not implicitly start the appliance or monitor an incomplete install.
+   Specify how monitoring starts for both `make sd_start` and direct systemctl
+   starts, including installation on an already-running appliance. Disable and
+   clean must stop the timer and any running health check before removing the
+   health pair or its enable links; they must not stop the appliance. Keep the
+   existing appliance cleanup semantics and Tomcat override behavior separate.
+6. Add local checks through the existing runner and document the runtime SOP in
+   `tests/README.md`. Run the shipped launcher as a command, not extracted or
+   overridden internal functions. Filesystem fixtures may exercise invalid PID
+   inputs; real unrelated child processes may exercise identity rejection.
+   Do not make a fake Tomcat process or mocked process query stand in for the
+   healthy four-JVM integration path. That positive path belongs to T4.
+   Execute real Make generation and file installation into an isolated writable
+   destination. Dry-runs can inspect privileged command intent, but actual
+   systemctl effects and timer behavior require T4-T8 on a real systemd VM.
+7. Update both installation and systemd documentation: units owned by aa-env,
+   install versus start, check semantics, timing, skipped versus healthy,
+   failure output, operator recovery and monitoring removal. Verify Bash syntax,
+   ShellCheck and existing local tests. Keep the appliance template and original
+   launcher ordering unchanged. Document that dependent functionality and
+   surviving JVMs are not protected by this monitor.
+8. Run the VM tests outside M22's uninterrupted load observation. Capture the
+   pre-test state, terminate only a revalidated test-instance PID, and record
+   detection times, unit results and surviving process start times. Recovery
+   uses the existing full-appliance procedure under operator control; monitoring
+   never performs it. Retain failure evidence and restore the agreed test state
+   after each interruption before proceeding to the next case.
+
+##### Scheduled Check Contract
+
+This table is the implemented contract, not verified runtime behavior. A skipped scheduled check is not evidence that all four JVMs are
+healthy. Scheduled output must distinguish process-check success, detected
+failure, inspection error and skip, including the appliance state and reason.
+
+| Appliance state | Scheduled check result | Required behavior |
+| --- | --- | --- |
+| Inactive after a successful stop | Skip | Do not start the appliance or report missing JVMs as a new failure |
+| Starting, within the allowance | Skip | Use the current start's monotonic timestamp; do not renew the allowance on every check |
+| Active, within the allowance | Skip | Direct `health` remains available; scheduled checks begin after the allowance |
+| Active, beyond the allowance | Inspect | All four verified processes succeed; any invalid instance or inspection error fails the health unit |
+| Still starting beyond the allowance | Fail | Report exceeded startup allowance rather than skipping indefinitely |
+| Stopping | Skip | Avoid treating intentional teardown as a new instance failure |
+| Failed | Fail | Report appliance failure without attempting recovery; preserve the appliance's own evidence |
+| Missing unit, unknown state, unreadable state or invalid timestamp | Inspection error | Fail visibly; never interpret inability to observe as healthy or intentionally stopped |
+| State changes during inspection | Retry on the next tick | Identify the transition; do not publish an inconsistent healthy or failed instance snapshot |
+
+While an instance failure persists, successive completed checks must continue
+reporting it without a restart. A subsequent fully verified success clears the
+current health failure; the journal preserves the earlier event. Verify and
+document the temporary `activating` state during each check rather than promise
+an uninterrupted `failed` display. Skips and appliance state transitions must
+be identifiable in the output and must not be presented as recovery evidence.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new guard | This host | The health unit and timer templates are present and the appliance unit still carries no `Restart=` |
-| T2 | Runtime | Run the `health` subcommand with all four instances up | This host or a provisioned host | Exit 0; the health unit is not failed |
-| T3 | Runtime | Kill the etl instance's JVM, then wait one timer interval | This host or a provisioned host | The health unit is `failed` and names etl, while the appliance service stays active, the other three keep running and mgmt still returns 200 |
+| T1 | Local behavior | Run the shipped health command with absent/unreadable/empty/malformed/multiple PID values, absent process, wrong instance identity and simultaneous failures; use real unrelated processes for negative identity checks | Isolated workspace, non-root | All affected instances and reasons are reported; exit 1/2 follows the contract; no internal function replacement, PID deletion or JVM signal |
+| T2 | Generation/install | Run real configuration and file-install targets with -j1 and -j8 (shipped .NOTPARALLEL retained), using default and alternate install paths/account; inspect full install dependencies with Make | Isolated writable destination | No unresolved placeholders; correct installed units, mode and paths; required ordering is represented and exercised for local file operations; dry-runs are not claimed as systemd execution |
+| T3 | Regression | Run the existing local test entry point, Bash syntax checks and ShellCheck; inspect the appliance template and existing command paths | This host | Existing checks pass; no new warnings; original status/start/stop behavior and platform scope are preserved |
+| T4 | Runtime baseline | Observe the original appliance first, then install the real health pair and run direct and scheduled checks under the service account | Selected systemd VM, four real Tomcat JVMs | Correct instance identity and exit 0; at least three successful scheduled observations; effective units, MainPID, timestamps and versions recorded |
+| T5 | Runtime detection | Revalidate and terminate a non-main JVM, retain its PID file, observe repeated checks, then repeat with two non-main failures after restoring baseline; include a failure immediately after its instance check | Selected VM, outside M22 observation | Stable instance failures are named within 45 seconds while the appliance remains active; the monitor causes no restart/stop; record secondary exits and dependency effects without requiring continued JVM survival or mgmt availability |
+| T6 | Lifecycle | Observe reboot, direct systemctl restart, Make start, intentional stop and a startup failure beyond the allowance | Selected VM | Fresh bounded allowance for each start, no stop/start false alarm, no indefinite skip, monitoring resumes on both supported start paths |
+| T7 | Existing supervision | Compare original-unit and monitored-unit behavior on MainPID death where one is assigned; if MainPID is 0, record that fact and the observed process-group behavior rather than invent a representative PID | Selected VM, separately scheduled interruption | Existing appliance shutdown behavior is preserved; health diagnostics identify the observed appliance state, not a survivor guarantee; monitoring adds no stop/restart operation |
+| T8 | Monitoring failure/recovery | Observe at least three repeated failures, a bounded check timeout or observation error, operator recovery, then disable/clean and reinstall the health pair while preserving the appliance | Selected VM | Checks continue after failures; no false healthy result on an error; real success restores current health status; timer/check stops before removal, no stale enable links remain, and reinstall restores monitoring |
+
+For T5/T7, record the appliance and health-unit journal with precise timestamps,
+unit results, four PID/start times and the exact fault. Process loss alone is
+not proof that the monitor caused it. If attribution remains unclear, retain
+Pending evidence and resolve it before closure; do not claim non-interference
+from an unexamined exit. A changing appliance state is evaluated by the state
+contract rather than a guarantee that it stays active after any instance dies.
+
+T1/T2 validate only the paths actually executed locally. T4-T8 require the
+installed scripts, generated units, real systemd and real Tomcat instances.
+The existing phase 4 skip, a replacement shell service, or fabricated process
+identity does not satisfy these tests. Record unavailable coverage as Pending,
+not Pass. Before each runtime case, specify the exact fault method and expected
+result; do not change the criterion to fit an observed outcome.
+
+##### Implementation State
+
+Local implementation is present in the working tree, authorized 2026-09-22.
+Raw health uses read-only Linux process identity checks; scheduled dispatch uses
+verified health invocation and appliance monotonic timestamps, buffering results
+across state observations. Skip exit 3 is explicit and is not recovery evidence.
+The generated oneshot/timer have finite execution/termination, recurring checks,
+and one-way timer activation. Installation stops existing monitoring first and
+never starts it implicitly. Monitor-only disable/clean targets preserve appliance
+operation. Full runtime evidence and repository landing remain outstanding.
+
+Independent PID and systemd implementation reviews accepted the local result on
+2026-09-22, including the operator-document pass. The PID correction pass verified
+unrelated-Java rejection and inaccessible symlink error classification through
+the shipped launcher. No remaining local implementation finding was reported.
+This acceptance does not satisfy the real Tomcat cross-instance case in T1 or
+runtime T4-T8.
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
-| T3 | Not run | This host | Pending | none |
+| T1 | 2026-09-22T23:35Z | Isolated workspace, non-root; real installed JDK, unrelated child processes and zombie | Pending | Local negative cases in `tests/health-local.py` passed: configuration/PID errors, nonexistent process, wrong executable, zombie, multi-instance output, symlink traversal denial and exit precedence. A real unrelated Java main class with Tomcat-like VM properties or application arguments was rejected; PID files/processes were preserved. Both added regressions failed against the preceding implementation and passed after correction. Cross-instance identity using a real Tomcat PID remains for the documented VM case. No healthy JVM fixture was fabricated. |
+| T2 | 2026-09-22T23:22:58Z | Isolated real Make checkout and file destination; systemd-analyze 257 | Pass (local scope) | Real `install.systemd` under -j1 and -j8, default/alternate paths and accounts, plus site timing overrides passed. Unit modes/placeholders and generated-pair syntax verified. Global .NOTPARALLEL remained enabled. Full-install/cleanup ordering was checked by real Make dry-run only; live systemctl effects remain T4-T8. |
+| T3 | 2026-09-22T23:35Z | Linux local checkout, Bash, ShellCheck 0.10.0 | Pass | `TMPDIR=/tmp bash tests/run-all-tests.bash --local` passed existing 59 logic/14 wrapper assertions plus 15 health/file-install test methods, with no skips. Changed Bash syntax and `shellcheck -x -P SCRIPTDIR scripts/archappl.bash tests/phase1-logic.bash` passed. The earlier full tracked Bash ShellCheck comparison exactly matched HEAD under the same command/version; existing unrelated warnings remain, and the subsequently corrected launcher still reports no diagnostics. Appliance unit bytes and existing status/storage/start/stop helper bodies equal HEAD. `git diff --check` passed. |
+| T4 | Not run | Test VM not selected | Pending | none |
+| T5 | Not run | Test VM not selected | Pending | none |
+| T6 | Not run | Test VM not selected | Pending | none |
+| T7 | Not run | Test VM not selected | Pending | none |
+| T8 | Not run | Test VM not selected | Pending | none |
+
+##### References
+
+The cited versioned manuals establish design constraints only; compatibility
+and actual behavior must be checked on the selected VM. Entries [1]-[3] use
+the IEEE Reference Guide's I. Manuals, Manual (Online) format.
+
+[1] systemd Project. *systemd.service: Service unit configuration*, version 252. (n.d.). Accessed: Sep. 22, 2026. [Online]. Available: https://raw.githubusercontent.com/systemd/systemd/v252/man/systemd.service.xml
+
+[2] systemd Project. *systemd.timer: Timer unit configuration*, version 252. (n.d.). Accessed: Sep. 22, 2026. [Online]. Available: https://raw.githubusercontent.com/systemd/systemd/v252/man/systemd.timer.xml
+
+[3] systemd Project. *systemd.unit: Unit configuration*, version 252. (n.d.). Accessed: Sep. 22, 2026. [Online]. Available: https://raw.githubusercontent.com/systemd/systemd/v252/man/systemd.unit.xml
 
 ##### Closure Evidence
 
@@ -2389,52 +2708,6 @@ aa-maven register row: none carries the closure; the declaration is theirs
   the branch through `SRC_TAG`, so the declared state arrives on the next
   checkout with no re-pin.
 
-## Backlog
-
-### Work
-
-| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
-| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Assign when a CI or VM host is available; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
-| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Assign if the EPICS-Arche UI change requires an aa-env skin update; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
-| Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
-| Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Assign a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
-| Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
-| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
-
-### Backlog Details
-
-#### G5 - Baseline deployment reported by the ansible/cloud session
-
-Origin: 265f580 / G5
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-The ansible/cloud session deploys the M1 baseline following the M2
-sequence and reports the result. This is Backlog deployment work under D7,
-moved to the Backlog on 2026-09-11 (see Assignment History); M8 Release
-Verification 3 is its own pre-PR installation check.
-
-##### Completion Criteria
-
-- A cross-session response reports HTTP 200 from the mgmt probe on the
-  deployment host, with the aa-env and aa-maven tags it used.
-
-##### Verification Results
-
-| Observed At | Result | Evidence |
-| --- | --- | --- |
-| 2026-09-21 | Pass | LAB-ansible-provision reported mgmt `/bpl/getApplianceInfo` returning 200 with identity `appliance0` and version 2025-6 on three provisioned hosts (two Rocky 8.10, one of them built from bare for the check, and one Debian 13), driven from aa-env `fb43522` with aa-maven `3c96141d`; re-observed at aa-env `e06c554` on a freshly provisioned Rocky 8.10 host, 200 on the first probe. Observed on the reporting side, not on this host. The same run is recorded under M8 Release Verification 2 and 3. |
-
-##### Closure Evidence
-
-- Closed 2026-09-21 on the cross-session report above, which names both tags
-  the deployment used, as the completion criterion requires. Closing this row
-  releases nothing: M8 carries its own pre-PR installation check.
-
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
 Origin: 265f580 / M10
@@ -2461,6 +2734,7 @@ Out of scope: CI wiring.
 
 ##### Dependencies And Decisions
 
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The test host and implementation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
 - none
 
 ##### Implementation Plan
@@ -2470,7 +2744,7 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Not planned until assigned.
+1. Define the implementation plan for the assigned work.
 
 ##### Test Plan
 
@@ -2522,12 +2796,13 @@ Out of scope: the interface itself (EPICS-Arche).
 
 ##### Completion Criteria
 
-- After assignment defines the EPICS-Arche interface and aa-env's role, the
+- After planning defines the EPICS-Arche interface and aa-env's role, the
   resulting skin renders correctly on that interface. The current WAR skin
   remains unchanged until that scope is defined.
 
 ##### Dependencies And Decisions
 
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The target interface and the role of the aa-env skin remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
 - EPICS-Arche repository (mgmt UI rewrite), post-Phase-2
 
 ##### Implementation Plan
@@ -2537,13 +2812,13 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Not planned until assigned.
+1. Define the implementation plan for the assigned work.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | UI | Define the actual interface and browser procedure when assigned | Agreed target interface | Page renders with the site skin; no console errors |
+| T1 | UI | Define the actual interface and browser procedure during planning | Agreed target interface | Page renders with the site skin; no console errors |
 
 ##### Verification Results
 
@@ -2598,8 +2873,9 @@ without runtime evidence.
 
 ##### Dependencies And Decisions
 
-- D14; recorded 2026-09-15 as unresolved work. Assignment waits for a defined
-  reproduction environment and investigation priority.
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The reproduction environment and investigation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
+- D14; recorded 2026-09-15 as unresolved work. Reproduction still needs a defined
+  environment and investigation plan after assignment.
 
 ##### Implementation Plan
 
@@ -2608,7 +2884,7 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Define the reproduction environment and request sequence when assigned.
+1. Define the reproduction environment and request sequence during planning.
 2. Reproduce the issue and select the owning repository from observed behavior.
 3. Plan the fix and regression check before changing runtime code.
 
@@ -2616,7 +2892,7 @@ Superseded Plan Artifacts: none
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Runtime | Reproduce the issue's quick-chart/live request through retrieval and the engine metadata endpoint | To be agreed on assignment | Observed HTTP result with the corresponding PV state and source revision |
+| T1 | Runtime | Reproduce the issue's quick-chart/live request through retrieval and the engine metadata endpoint | To be agreed during planning | Observed HTTP result with the corresponding PV state and source revision |
 
 ##### Verification Results
 
@@ -2672,8 +2948,9 @@ and closing the issue without runtime evidence.
 
 ##### Dependencies And Decisions
 
-- D14; recorded 2026-09-15 as unresolved work. Assignment waits for a defined
-  reproduction environment and investigation priority.
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The reproduction environment and investigation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
+- D14; recorded 2026-09-15 as unresolved work. Reproduction still needs a defined
+  environment and investigation plan after assignment.
 
 ##### Implementation Plan
 
@@ -2683,7 +2960,7 @@ Implementation Authorization: none
 Superseded Plan Artifacts: none
 
 1. Define source revision, PV fixture, storage configuration, and ETL schedule
-   when assigned.
+   during planning.
 2. Reproduce the issue through the real archiving and retrieval path.
 3. Plan the fix in its owning repository and address compatibility before
    changing how existing PV names map to stored paths.
@@ -2692,7 +2969,7 @@ Superseded Plan Artifacts: none
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Runtime | Archive the reported underscore cases and a control PV; run ETL and retrieve their samples | To be agreed on assignment | Observed tier paths and retrieval results tied to the source and configuration |
+| T1 | Runtime | Archive the reported underscore cases and a control PV; run ETL and retrieve their samples | To be agreed during planning | Observed tier paths and retrieval results tied to the source and configuration |
 
 ##### Verification Results
 
@@ -2713,6 +2990,126 @@ Observed State: open
 Observed Labels: none
 Observed Milestone: none
 Last Compared: 2026-09-15; GitHub REST issue #25 read, remote updated_at 2024-05-02T08:05:00Z
+
+#### M27 - LTS retrieval pre-processing (`pp`)
+
+Origin: 265f580 / M27
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+`docs/README.policies.md` recommends `pp=mean_3600` on LTS, and the shipped
+`site-template/policies.py.in` sets no `pp` on any tier. The gap is real but the
+answer is not obvious from the documents, so it waits for operating experience
+rather than being settled now.
+
+Two facts shape the question. `pp` preserves the raw data and writes auxiliary
+pre-calculated files beside it, so it *increases* disk use, which runs against
+the open concern that the archive store sits on the root filesystem with an
+unknown fill rate. And `pp` is mutually exclusive with `reducedata`, which the
+shipped Fast, VeryFast, Medium and Slow policies already set on LTS; the
+recommendation can therefore only apply to the Default and VerySlow policies.
+
+##### Scope
+
+- Whether the Default and VerySlow policies gain `pp` on LTS, and with which
+  operator and interval.
+- `site-template/policies.py.in` and the policy guide, if the answer is yes.
+
+Out of scope: `reducedata` on the other policies; the retrieval API; the
+storage filesystem work, which M26 carries.
+
+##### Completion Criteria
+
+- After the appliance has run with real queries and a known disk growth rate,
+  a dated decision either adds `pp` to the named policies or records that the
+  retrieval gain does not justify the additional storage.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The operating measurements and pp selection remain unresolved. Status stays Open; assignment alone does not accept or authorize implementation.
+- Condition for taking this up: an operating installation with a measured disk
+  growth rate and real retrieval patterns to judge against. Owner decided
+  2026-09-21 to look at it during operation over the long term rather than now.
+- D21 (the storage work is scoped to the test environment first).
+- The disk growth figure comes from the load test requested of the
+  ansible-provision session.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Function | Compare retrieval time and disk use for a long span with and without `pp` on LTS | operating installation | The difference is large enough, or not, to settle the decision |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | operating installation | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: LTS retrieval pre-processing
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+## Backlog
+
+### Work
+
+| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
+| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
+
+### Backlog Details
+
+#### G5 - Baseline deployment reported by the ansible/cloud session
+
+Origin: 265f580 / G5
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+The ansible/cloud session deploys the M1 baseline following the M2
+sequence and reports the result. This is Backlog deployment work under D7,
+moved to the Backlog on 2026-09-11 (see Assignment History); M8 Release
+Verification 3 is its own pre-PR installation check.
+
+##### Completion Criteria
+
+- A cross-session response reports HTTP 200 from the mgmt probe on the
+  deployment host, with the aa-env and aa-maven tags it used.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-09-21 | Pass | LAB-ansible-provision reported mgmt `/bpl/getApplianceInfo` returning 200 with identity `appliance0` and version 2025-6 on three provisioned hosts (two Rocky 8.10, one of them built from bare for the check, and one Debian 13), driven from aa-env `fb43522` with aa-maven `3c96141d`; re-observed at aa-env `e06c554` on a freshly provisioned Rocky 8.10 host, 200 on the first probe. Observed on the reporting side, not on this host. The same run is recorded under M8 Release Verification 2 and 3. |
+
+##### Closure Evidence
+
+- Closed 2026-09-21 on the cross-session report above, which names both tags
+  the deployment used, as the completion criterion requires. Closing this row
+  releases nothing: M8 carries its own pre-PR installation check.
 
 #### M20 - Align T6 ETL timeline placement with the time cutoff
 
@@ -2819,81 +3216,3 @@ Superseded Plan Artifacts: none
   boundary that produces it, and landed at `e513267`. Both halves of the
   completion criterion are met and both carry landing evidence, so this row
   closes.
-
-#### M27 - LTS retrieval pre-processing (`pp`)
-
-Origin: 265f580 / M27
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-`docs/README.policies.md` recommends `pp=mean_3600` on LTS, and the shipped
-`site-template/policies.py.in` sets no `pp` on any tier. The gap is real but the
-answer is not obvious from the documents, so it waits for operating experience
-rather than being settled now.
-
-Two facts shape the question. `pp` preserves the raw data and writes auxiliary
-pre-calculated files beside it, so it *increases* disk use, which runs against
-the open concern that the archive store sits on the root filesystem with an
-unknown fill rate. And `pp` is mutually exclusive with `reducedata`, which the
-shipped Fast, VeryFast, Medium and Slow policies already set on LTS; the
-recommendation can therefore only apply to the Default and VerySlow policies.
-
-##### Scope
-
-- Whether the Default and VerySlow policies gain `pp` on LTS, and with which
-  operator and interval.
-- `site-template/policies.py.in` and the policy guide, if the answer is yes.
-
-Out of scope: `reducedata` on the other policies; the retrieval API; the
-storage filesystem work, which M26 carries.
-
-##### Completion Criteria
-
-- After the appliance has run with real queries and a known disk growth rate,
-  a dated decision either adds `pp` to the named policies or records that the
-  retrieval gain does not justify the additional storage.
-
-##### Dependencies And Decisions
-
-- Condition for taking this up: an operating installation with a measured disk
-  growth rate and real retrieval patterns to judge against. Owner decided
-  2026-09-21 to look at it during operation over the long term rather than now.
-- D21 (the storage work is scoped to the test environment first).
-- The disk growth figure comes from the load test requested of the
-  ansible-provision session.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Function | Compare retrieval time and disk use for a long span with and without `pp` on LTS | operating installation | The difference is large enough, or not, to settle the decision |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | operating installation | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: LTS retrieval pre-processing
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
