@@ -8,10 +8,8 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M28 is implemented and T1-T4 pass; record its
-landing on origin/modernize, then synchronize and close issue #47;
-externally provisioned archiver-dev builds stop after `sql.fill` until it
-lands. Then select a systemd VM and an interruption
+Next session entry point: M29 (issue #48) awaits plan acceptance in this
+file; M28 is Complete at `1fc20a8`. Then select a systemd VM and an interruption
 window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
@@ -26,8 +24,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Three rows are
+Ready: M9, M26 and M29. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -71,7 +69,8 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
-| DB | M28 | Load the schema without an admin account and fail loudly | Milestone | In progress | No | D22 | Implemented; T1-T4 pass, T2 also with `skip-name-resolve` on; landing and issue #47 closure remain; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
+| DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
+| DB | M29 | Fail the backup listing and restore on error | Milestone | Not started | Yes | | `dbBackupList` and `dbRestore` exit non-zero with a stderr message when they cannot run; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -3093,7 +3092,7 @@ Last Compared: never
 Origin: 265f580 / M28
 Identity History: none
 GitHub Issue: #47
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -3198,17 +3197,117 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation, T1-T4 and the accepted plan's checks are finished; the
+  changed functions match Scope, and only `get_admin_crypt_password` keeps the
+  admin-account check.
+- Landed at `1fc20a8c49f4a11b611700bd1a38e67b06be4d30` on `origin/modernize`.
+  Observed 2026-09-23T20:14:08Z after `git fetch origin`:
+  `git merge-base --is-ancestor 1fc20a8 origin/modernize` exited 0 and
+  `origin/modernize` resolved to `1fc20a8`.
+- Complete 2026-09-23. Issue #47's body was synchronized with the shipped
+  implementation and verification results, then closed as completed.
+  Observed 2026-09-23T20:27:01Z through
+  `gh api repos/jeonghanlee/epicsarchiverap-env/issues/47`: state `closed`,
+  state_reason `completed`, label `bug`, no milestone; the remote body matched
+  the prepared content. The commit's `Closes #47` takes effect only on the
+  default branch.
 
 ##### GitHub Projection
 
 Title: sql.fill exits 0 with no schema loaded
 Labels: bug
 GitHub Milestone: none
+Observed State: closed
+Observed Labels: bug
+Observed Milestone: none
+Observed Updated At: 2026-09-23T20:27:01Z
+Last Compared: 2026-09-23T20:27:01Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/47` read
+
+#### M29 - Fail the backup listing and restore on error
+
+Origin: 265f580 / M29
+Identity History: none
+GitHub Issue: #48
+Status: Not started
+
+##### Summary
+
+At `1fc20a8`, `backup_db_list` (`dbBackupList`) and `restore_db`
+(`dbRestore`) in `scripts/mariadb_setup.bash` print a message to stdout and end
+with a bare `exit`, which returns 0, when the backup directory is missing or
+the restore date is not given. `restore_db` then runs
+`gunzip < <backup file> | ${SQL_ADMIN_CMD} ${DB_NAME}` without `pipefail`, so
+a missing backup file restores nothing without making the function fail. A
+caller cannot tell a failed restore from a completed one. Found while checking
+M28's code paths for the same zero-status pattern; neither function calls
+`isDb`.
+
+##### Scope
+
+- `scripts/mariadb_setup.bash` `backup_db_list` and `restore_db`: each failure
+  message goes to stderr and the function exits non-zero.
+- `restore_db`: a missing or unreadable backup file fails before the client
+  runs, and a failure in the restore pipeline is returned.
+- `tests/phase1-logic.bash`: a guard for the non-zero exits.
+
+Out of scope: the account `restore_db` uses; backup creation (`backup_db`).
+
+##### Completion Criteria
+
+- `bash scripts/mariadb_setup.bash dbBackupList <missing directory>` exits
+  non-zero with a message on stderr.
+- `bash scripts/mariadb_setup.bash dbRestore` without a date, with a missing
+  directory, and with a date whose backup file does not exist each exit
+  non-zero with a message on stderr and restore nothing.
+- A restore from an existing backup file still exits 0.
+
+##### Dependencies And Decisions
+
+- None. Assigned to Milestone on 2026-09-23 with issue #48.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. In `backup_db_list` and `restore_db`, send each failure message to stderr
+   and replace each bare `exit` with a non-zero exit.
+2. In `restore_db`, check that the backup file is readable before the restore,
+   and return the pipeline's failure status.
+3. Extend `tests/phase1-logic.bash` with a guard that runs the real script's
+   failure paths.
+4. Run T1 locally and T2 on a disposable MariaDB server, and record the
+   observed results.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `bash -n` and `tests/run-all-tests.bash --phase=1` with the new guard | This host | Script parses; Phase 1 passes; the guard fails against the pre-change script |
+| T2 | Runtime | Run `dbBackupList` with a missing directory, and `dbRestore` without a date, with a missing directory and with an absent backup file; then back up and restore an existing database with `dbBackup` and `dbRestore` | A disposable MariaDB server (VM or container), never a shared one | Each failure exits non-zero with a message on stderr and restores nothing; the real restore exits 0 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | A disposable MariaDB server | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: dbRestore and dbBackupList exit 0 on failure
+Labels: bug
+GitHub Milestone: none
 Observed State: open
 Observed Labels: bug
 Observed Milestone: none
-Last Compared: 2026-09-23T09:21:23Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/47` read, remote updated_at 2026-09-23T09:15:58Z
+Last Compared: 2026-09-23; `gh issue view 48` read after creation
 
 ## Backlog
 
