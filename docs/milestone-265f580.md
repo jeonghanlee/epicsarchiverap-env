@@ -3756,8 +3756,16 @@ of D19. The launcher also tells users to tail `logs/archappl_service.log`
   with stdout and stderr through
   `systemd-cat --identifier=archappl-<component> --level-prefix=true` (no line
   carries a `<N>` prefix yet, so all lines take the default priority: JULI
-  and `java.util.logging` lines until M35, application lines until M34); wait on the Tomcat
-  processes (not the `systemd-cat` processes); on SIGTERM stop engine,
+  and `java.util.logging` lines until M35, application lines until M34). Each
+  child starts as `wrapper > >(systemd-cat ...) 2>&1 &`, not as a pipeline,
+  so `$!` is the wrapper and, through `exec catalina.sh run` and catalina.sh's
+  own `exec java`, the JVM; in a pipeline `$!` would be the `systemd-cat`
+  process. Rocky 8 ships bash 4.4, and `wait -n` takes PID arguments only
+  from bash 5.1, so the launcher runs a plain `wait -n` and, each time it
+  returns, checks the four JVM PIDs and the four `systemd-cat` PIDs with
+  `kill -0`. A dead `systemd-cat` is treated like a dead Tomcat, because the
+  JVM keeps running while `System.out` swallows the write errors and that
+  component's log would vanish silently. On SIGTERM stop engine,
   retrieval, etl, mgmt in that order by sending SIGTERM to each JVM PID and
   waiting for that PID to leave (the shutdown ports are `-1` by default,
   `configure/CONFIG_SRC:41-44` applied at install by `RULES_INSTALL`, so
@@ -3782,8 +3790,10 @@ of D19. The launcher also tells users to tail `logs/archappl_service.log`
   file; `ARCHAPPL_ROOT_LOGGER_LEVEL` reaches the appliance through M34 instead.
 - `docs/README.install.md` and `docs/technicaldocs/README.systemd.md`: the
   service shape, where each stream goes, `journalctl` usage by identifier,
-  the multi-line stack trace limit, and that a shell `shutdown` while the
-  service runs ends the unit failed.
+  the multi-line stack trace limit, that a shell `shutdown` while the
+  service runs ends the unit failed, and that a `systemd-cat` process dying
+  under a running Tomcat is handled the same way rather than losing that
+  component's log silently.
 - `tests/phase1-logic.bash`: guards on the rendered unit and the launcher.
 
 Out of scope: the log4j2 configuration (M34); Tomcat and `java.util.logging` output through log4j2 (M35); automatic restart (D19); the M23 health timer, which stays until a separate decision;
@@ -3799,8 +3809,8 @@ docs on the aa-maven side.
 - `systemctl stop <unit>` stops the components in the order engine, retrieval,
   etl, mgmt and the unit reaches inactive within `TimeoutStopSec`, with the
   measured ETL stop recorded.
-- Killing one Tomcat leaves the unit failed after the survivors stopped in
-  order, with no automatic restart.
+- Killing one Tomcat, or one `systemd-cat` process, leaves the unit failed
+  after the survivors stopped in order, with no automatic restart.
 - The access valve removes an access log file whose modification time is
   older than 90 days: a `localhost_access_log.*.txt` file dated 91 days back
   before start is gone after the first background pass of the running Tomcat;
@@ -3832,9 +3842,11 @@ Superseded Plan Artifacts: none
    remove `ExecStop`.
 2. In `scripts/archappl.bash`, add the service mode: foreground start of the
    four Tomcats in order through the per-instance wrapper and `systemd-cat`,
-   the JVM PID written to `temp/<service>.pid`, a SIGTERM trap that stops them
-   in order with SIGTERM to each JVM PID and a wait on that PID, `wait -n` on the
-   Tomcat PIDs, ordered stop of survivors the same way, removal
+   each started by process substitution so `$!` is the JVM, its PID written
+   to `temp/<service>.pid`, a SIGTERM trap that stops them in order with
+   SIGTERM to each JVM PID and a wait on that PID, a plain `wait -n` loop
+   with a `kill -0` check of the JVM and `systemd-cat` PIDs (bash 4.4 on
+   Rocky 8 has no `wait -n <pid>`), ordered stop of survivors the same way, removal
    of the pid files and a non-zero exit on a child death. Keep `startup` and
    `shutdown` for shells.
 3. Reduce `logging.properties` to the ConsoleHandler with `OneLineFormatter`;
@@ -3855,7 +3867,7 @@ Superseded Plan Artifacts: none
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | Logic | `bash -n`, `shellcheck -x` on the launcher; `tests/run-all-tests.bash --phase=1` with the new guards | This host | Unit renders with `Type=exec`, `KillMode=mixed`, `Restart=no` and no `ExecStop`; no JULI file handler; valve has `maxDays`; the guards fail against the pre-change tree |
-| T2 | Runtime | Full install and `make sd_start`; `journalctl -u <unit> -t archappl-<component>` per component; `systemctl stop` timed with samples in STS from a few `softIoc` PVs on the VM archived for some minutes; `kill` of one Tomcat; priority probe `printf '<3>probe\n' \| systemd-cat -t archappl-probe` read back with `journalctl -t archappl-probe -o json`; a `localhost_access_log.old.txt` created with `touch -d '91 days ago'` in one instance's `logs` before start; `archappl.bash status` and `archappl.bash health` (M23) while running | Disposable VM built from the aa-env tree with a `softIoc` (never a shared host) | Four identifiers present; `status` and `health` find every JVM through `temp/<service>.pid`; no `catalina.out` or dated JULI file; ordered stop within the recorded time; failed unit after an ordered stop, no restart; the probe lands with `PRIORITY` 3 and `<3>` stripped from `MESSAGE` on systemd 239; the old access log file is gone within a minute of start |
+| T2 | Runtime | Full install and `make sd_start`; `journalctl -u <unit> -t archappl-<component>` per component; `systemctl stop` timed with samples in STS from a few `softIoc` PVs on the VM archived for some minutes; `kill` of one Tomcat; priority probe `printf '<3>probe\n' \| systemd-cat -t archappl-probe` read back with `journalctl -t archappl-probe -o json`; a `localhost_access_log.old.txt` created with `touch -d '91 days ago'` in one instance's `logs` before start; `archappl.bash status` and `archappl.bash health` (M23) while running; `kill` of one `systemd-cat` process; `bash --version` and the launcher's `wait -n` loop observed on the VM's bash 4.4 | Disposable VM built from the aa-env tree with a `softIoc` (never a shared host) | Four identifiers present; `status` and `health` find every JVM through `temp/<service>.pid` (the JVM, not `systemd-cat`); a killed `systemd-cat` ends the unit failed after an ordered stop, like a killed Tomcat; the `wait -n` loop returns and re-checks on bash 4.4; no `catalina.out` or dated JULI file; ordered stop within the recorded time; failed unit after an ordered stop, no restart; the probe lands with `PRIORITY` 3 and `<3>` stripped from `MESSAGE` on systemd 239; the old access log file is gone within a minute of start |
 
 ##### Verification Results
 
