@@ -15,11 +15,11 @@ implementation at `9ee6ac0`; local implementation review passed. The heap defaul
 deployment verification without an override under M22 / T2.
 M26 remains Ready for a test-host archive filesystem separate from the root
 volume, with the requirement documented in `docs/README.install.md`. Its
-ETL-timing half moved to M31 (D23), In progress under its accepted plan: Make
-variables for the store granularity and hold, so test hosts shorten the
-chain without editing the shipped template. M32, the run that observes the
-chain with the test values, is Blocked on M31 and on G13, the
-ansible-provision soak. M24 is Complete at `4b4cb41`; issue #45 was
+ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
+the store granularity and hold, so test hosts shorten the chain without
+editing the shipped template. M32, the run that observes the chain with the
+test values, is Blocked on G13, the ansible-provision soak requested on
+2026-09-24. M24 is Complete at `4b4cb41`; issue #45 was
 updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
@@ -74,7 +74,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | D23 | The ETL-timing half of M26 moves to its own work item, M31, so it can proceed without the archive-store filesystem work; M26 keeps the filesystem half. The store granularity and hold become Make variables substituted into the existing `site-template/policies.py.in` instead of a second, test-only policy file, so the shipped defaults and a test host's values come from one template and differ only in `../CONFIG_SITE.local`, which `make <os>.conf` does not rewrite. aa-env rejects a granularity name outside aa-maven's `PartitionGranularity` and a hold that is not a positive integer; the cross-tier ordering check (STS no coarser than MTS, MTS no coarser than LTS) is requested from the ansible-provision operator, which writes the test values. | 2026-09-23 |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
-| Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | In progress | No | D21, D23 | Implemented; T1 pass; commit, landing and the ansible-provision notice remain; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
+| Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; ansible-provision notified 2026-09-24; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
 | Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS; [detail](#m32---observe-the-store-chain-with-the-test-values) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -3445,7 +3445,7 @@ Origin: 265f580 / M31
 Identity History: Split from M26 on 2026-09-23 (D23); M26 keeps the
 archive-store filesystem half.
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -3545,7 +3545,16 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation and T1 are finished against the accepted plan; the default
+  render is byte-identical to the pre-change template's.
+- Landed at `9eed006` on `origin/modernize`. Observed 2026-09-24T01:23:42Z
+  after `git fetch origin`: `git merge-base --is-ancestor 9eed006
+  origin/modernize` exited 0 and `origin/modernize` resolved to `9eed006`.
+- The ansible-provision operator was sent the variable names, accepted
+  values, the test values, the ordering-check request and the G13 soak
+  request on 2026-09-24 (plan step 6).
+- Complete 2026-09-24: every completion criterion is met by T1 and the landing
+  above; no issue is linked. The chain observation with these values is M32.
 
 ##### GitHub Projection
 
