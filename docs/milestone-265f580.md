@@ -9,8 +9,8 @@ Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
 Next session entry point: M33 (the journald logging model, D24) is Complete at `f75c84c`;
-M34 (the WAR log4j2 layout, G14 Complete at `a1155ef0`) and
-M35 (Tomcat and java.util.logging through log4j2, D25, G15 Complete at `9bbd69bf`) are Ready and await plan acceptance in this file.
+M34 (the WAR log4j2 layout, G14 Complete at `a1155ef0`) is Blocked on G16, aa-maven's site-independent layout, with its plan accepted and implementation authorized 2026-09-24;
+M35 (Tomcat and java.util.logging through log4j2, D25, G15 Complete at `9bbd69bf`) is Ready and awaits plan acceptance in this file.
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
@@ -27,8 +27,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Four rows are
-Ready: M9, M26, M34 and M35. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Three rows are
+Ready: M9, M26 and M35. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -78,7 +78,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; issue #50 records it and stays open for M32; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
 | Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS, then issue #50 closes; [detail](#m32---observe-the-store-chain-with-the-test-values) |
 | Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | Complete | No | D12, D19, D24 | Implemented and verified (T1-T2); landed at `f75c84c` on origin/modernize 2026-09-24; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
-| Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Not started | Yes | M33, G14, D24 | aa-env ships no `log4j2.xml` and exports `ARCHAPPL_ROOT_LOGGER_LEVEL`, so `journalctl -p err` selects application errors; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
+| Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Blocked | No | M33, G14, G16, D24 | aa-env ships no `log4j2.xml` and exports `ARCHAPPL_ROOT_LOGGER_LEVEL`, so `journalctl -p err` selects application errors; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
 | Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Not started | Yes | M33, G15, D25 | Each instance runs with `log4j-appserver` and `log4j-jul` on the Tomcat classpath and `log4j2-tomcat.xml`, so Tomcat's own lines and the CA client's `java.util.logging` lines reach the journal at their own priority; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -94,6 +94,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Gate | G13 | ansible-provision runs a soak with the M31 test values | External gate | Open | No | | The ansible-provision operator reports a run of a few hours with the M31 test values, showing samples in STS, then MTS, then LTS; [detail](#g13---ansible-provision-runs-a-soak-with-the-m31-test-values) |
 | Gate | G14 | aa-maven ships the log4j2 layout with the journal priority prefix | External gate | Complete | No | | `a1155ef0` on the aa-maven origin/modernize, read 2026-09-24: Console PatternLayout with `<2>` to `<7>` per level and root `${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}`; [detail](#g14---aa-maven-ships-the-log4j2-layout-with-the-journal-priority-prefix) |
 | Gate | G15 | aa-maven emits the Tomcat log4j jar set from its build | External gate | Complete | No | | `9bbd69bf` on the aa-maven origin/modernize, built here on 2026-09-24 through `make build.mvn`: `target/tomcat-log4j` holds the four jars at 2.26.1, the three shared with the engine WAR byte-identical; [detail](#g15---aa-maven-emits-the-tomcat-log4j-jar-set-from-its-build) |
+| Gate | G16 | aa-maven ships the log4j2 layout in every site build with a reload interval | External gate | Open | No | | aa-maven reports the commit whose WAR carries `log4j2.xml` for any `archapplsite`, with `monitorInterval` on its `Configuration`; [detail](#g16---aa-maven-ships-the-log4j2-layout-in-every-site-build-with-a-reload-interval) |
 ### Decisions
 
 | ID | Decision | Decision Date |
@@ -2820,6 +2821,40 @@ the WARs and the two never drift apart. The request went to aa-maven on
 
 - aa-maven reported `9bbd69bf` and the directory `target/tomcat-log4j` on 2026-09-24; verified as above the same day.
 
+#### G16 - aa-maven ships the log4j2 layout in every site build with a reload interval
+
+Origin: 265f580 / G16
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The layout of G14 lives in `src/sitespecific/default/classpathfiles/`, and the
+aa-maven pom packages `src/sitespecific/${archapplsite}/classpathfiles`, so a
+site build such as aa-env's `ARCHAPPL_SITEID=als` ships no `log4j2.xml` at
+all; the deployed webapp then has `log4j-core` but no configuration (observed
+2026-09-24 on a disposable VM with WARs from `9bbd69bf`). aa-maven moves the
+file to a site-independent place on the WAR classpath and adds
+`monitorInterval` to its `Configuration`, so a site copy outside the WAR
+reloads at runtime. The request went to aa-maven on 2026-09-24. Affects M34.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and the file's new path,
+  and aa-env re-derives it by building that commit through `make build.mvn`
+  with `ARCHAPPL_SITEID=als` and listing `WEB-INF/classes/log4j2.xml` (or the
+  reported path) in each WAR, with `monitorInterval` present.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
+
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
 Origin: 265f580 / M10
@@ -3915,7 +3950,7 @@ Last Compared: never
 Origin: 265f580 / M34
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: Blocked
 
 ##### Summary
 
@@ -3933,8 +3968,11 @@ application lines enter the journal with a priority through the
 - `site-template/log4j2.xml`, its `log4j2.install` rule and the `log4j2`
   entry in `conf_RULES_NAMES` (`configure/RULES_INSTALL`), and
   `ARCHAPPL_LOG4J_XML` (`configure/CONFIG_SITE`): removed; there is no
-  rendering rule for this file. `LOG4J_CONFIGURATION_FILE` stays in
-  `archappl.conf.in` as a site override, unset by default.
+  rendering rule for this file. A site override is the Make variable
+  `ARCHAPPL_LOG4J_SITE_FILE` (`configure/CONFIG_SITE`, empty by default):
+  when set in `../CONFIG_SITE.local`, `conf.archappl` renders
+  `LOG4J_CONFIGURATION_FILE=<that path>` into `archappl.conf`; when empty, a
+  commented hook line remains. An installed file is never edited by hand.
 - `site-template/archappl.conf.in` and `configure/CONFIG_SRC`: export
   `ARCHAPPL_ROOT_LOGGER_LEVEL` to the JVMs and change its default from the
   current `WARN` (`configure/CONFIG_SRC:71`) to `INFO` per D24.
@@ -3951,23 +3989,33 @@ under discussion with aa-maven.
   maps to its own journal priority.
 - Setting `ARCHAPPL_ROOT_LOGGER_LEVEL=WARN` in `../CONFIG_SITE.local` and
   reinstalling silences INFO lines.
-- `LOG4J_CONFIGURATION_FILE` set to a site file takes precedence.
+- `ARCHAPPL_LOG4J_SITE_FILE` set to a site copy of the layout with
+  `monitorInterval` takes precedence after a reinstall and restart, and a
+  logger level edited in that copy changes the journal output within the
+  interval with no restart.
 
 ##### Dependencies And Decisions
 
-- M33 (the launcher and `systemd-cat` path), G14 (the layout), D24. Blocked
-  from creation on G14; G14 Complete 2026-09-24 at `a1155ef0`, restored to Not started; Ready since M33 Complete 2026-09-24 at `f75c84c`.
+- M33 (the launcher and `systemd-cat` path), G14 (the layout), G16 (the
+  layout in every site build), D24. Blocked from creation on G14; G14
+  Complete 2026-09-24 at `a1155ef0`, restored to Not started; Ready since M33
+  Complete 2026-09-24 at `f75c84c`; Blocked again 2026-09-24 on G16 after T2
+  found no `log4j2.xml` in a site-built WAR; resume as In progress.
+- The root level reaches the JVMs as an environment variable, read once at
+  start, so a level change is a reinstall and restart; runtime changes need
+  a site copy of the layout with `monitorInterval`, selected through
+  `ARCHAPPL_LOG4J_SITE_FILE`.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-24, owner acceptance of the plan as recorded at c0c666a; revised the same day (site override as a Make variable, G16) and accepted by the owner in the same discussion
+Implementation Authorization: 2026-09-24, owner authorization for the plan accepted the same day
 Superseded Plan Artifacts: none
 
-1. Remove the site `log4j2.xml`, its install rule and its variable; keep the
-   `LOG4J_CONFIGURATION_FILE` line in `archappl.conf.in` commented as the
-   override hook.
+1. Remove the site `log4j2.xml`, its install rule and its variable; render
+   `LOG4J_CONFIGURATION_FILE` from `ARCHAPPL_LOG4J_SITE_FILE`, as an active
+   line when set and a commented hook when empty.
 2. Export `ARCHAPPL_ROOT_LOGGER_LEVEL` from `archappl.conf.in` and set the
    `CONFIG_SRC` default to `INFO`.
 3. Extend `tests/phase1-logic.bash` and the install guide; run T1, then T2 on
@@ -3977,14 +4025,14 @@ Superseded Plan Artifacts: none
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new guards | This host | No site `log4j2.xml` installed; `archappl.conf` exports the level |
-| T2 | Runtime | Install with a WAR at or after the G14 commit; `journalctl -p err..err` and `-p info..info` per identifier; WARN override; site override | Disposable VM | Each level lands at its own priority; the override silences INFO; the site file wins when set |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new guards | This host | No site `log4j2.xml` installed; `archappl.conf` exports the level; `ARCHAPPL_LOG4J_SITE_FILE` renders the active override line, and an empty value the commented hook |
+| T2 | Runtime | Install with a WAR built by `make build.mvn` at or after the G16 commit; `journalctl -p err..err` and `-p info..info` per identifier; WARN override through `../CONFIG_SITE.local`, reinstall and restart; a site copy with `monitorInterval` selected through `ARCHAPPL_LOG4J_SITE_FILE`, then a logger level edited in place | Disposable VM | Each level lands at its own priority; the override silences INFO; the site file wins when set and its edit shows in the journal without a restart |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
+| T1 | 2026-09-24T22:45:15Z | Local working tree based on `c0c666a`; an isolated copy of the Make system | Pass | `tests/run-all-tests.bash --phase=2` exits 0 with P1.20 passing: no `site-template/log4j2.xml`; `make -n services.install` names no log4j2 step; the real `conf.archappl` renders `ARCHAPPL_ROOT_LOGGER_LEVEL=INFO` by default and `WARN` under `ARCHAPPL_ROOT_LOGGER_LEVEL=WARN`, with `LOG4J_CONFIGURATION_FILE` a commented hook when `ARCHAPPL_LOG4J_SITE_FILE` is empty and an active `LOG4J_CONFIGURATION_FILE="/opt/site/log4j2-site.xml"` when it is set (re-run after the revision: `--phase=2` exits 0, 132 checks); `shellcheck -x` reports nothing new for the test |
 | T2 | Not run | Disposable VM | Pending | none |
 
 ##### Closure Evidence
