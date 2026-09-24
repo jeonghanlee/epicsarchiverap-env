@@ -3760,7 +3760,9 @@ of D19. The launcher also tells users to tail `logs/archappl_service.log`
   child starts as `wrapper > >(systemd-cat ...) 2>&1 &`, not as a pipeline,
   so `$!` is the wrapper and, through `exec catalina.sh run` and catalina.sh's
   own `exec java`, the JVM; in a pipeline `$!` would be the `systemd-cat`
-  process. Rocky 8 ships bash 4.4, and `wait -n` takes PID arguments only
+  process. The `systemd-cat` PID itself is `$!` right after
+  `exec {fd}> >(systemd-cat ...)`, so the launcher opens that descriptor
+  first, records the PID, and starts the wrapper writing to the descriptor. Rocky 8 ships bash 4.4, and `wait -n` takes PID arguments only
   from bash 5.1, so the launcher runs a plain `wait -n` and, each time it
   returns, checks the four JVM PIDs and the four `systemd-cat` PIDs with
   `kill -0`. A dead `systemd-cat` is treated like a dead Tomcat, because the
