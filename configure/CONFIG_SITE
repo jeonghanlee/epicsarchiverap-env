@@ -74,6 +74,16 @@ ARCHAPPL_STORAGE_TOP=/arch
 ARCHAPPL_SHORT_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore
 ARCHAPPL_MEDIUM_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore
 ARCHAPPL_LONG_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore
+## Store partition granularity and ETL hold per tier, rendered into
+## $(ARCHAPPL_POLICIES). A granularity must be one of the PartitionGranularity
+## names in the source (PARTITION_5MIN, PARTITION_15MIN, PARTITION_30MIN,
+## PARTITION_HOUR, PARTITION_DAY, PARTITION_MONTH, PARTITION_YEAR); a hold must
+## be a positive integer. A test host shortens the chain in ../CONFIG_SITE.local.
+ARCHAPPL_STS_GRANULARITY:=PARTITION_HOUR
+ARCHAPPL_STS_HOLD:=2
+ARCHAPPL_MTS_GRANULARITY:=PARTITION_DAY
+ARCHAPPL_MTS_HOLD:=2
+ARCHAPPL_LTS_GRANULARITY:=PARTITION_YEAR
 
 ## archappl.properties
 ## We only have three variables for the space holder for the future expansion

@@ -241,6 +241,52 @@ for db_case in "${db_cases[@]}"; do
     esac
 done
 
+# P1.18 The store granularity and hold reach the rendered policy through Make
+# variables, and a value the source cannot accept stops conf.policies before
+# policies.py is written. The real conf.policies rule runs from an isolated
+# copy of the Make system so nothing under the checkout is rewritten.
+policy_env="${WORKSPACE}/policy-env"
+mkdir -p "${policy_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/site-template" "${policy_env}/"
+rm -f "${policy_env}/site-template/policies.py" "${policy_env}/configure/"*.local
+policy_out="${policy_env}/site-template/policies.py"
+policy_rc=0
+make -C "${policy_env}" -s conf.policies > "${WORKSPACE}/policy-default.txt" 2>&1 || policy_rc=$?
+assert_status "${policy_rc}" 0 "conf.policies renders with the default store values"
+for expected in "name=STS&rootFolder=/arch/sts/ArchiverStore&partitionGranularity=PARTITION_HOUR&hold=2&" \
+                "name=MTS&rootFolder=/arch/mts/ArchiverStore&partitionGranularity=PARTITION_DAY&hold=2&" \
+                "name=LTS&rootFolder=/arch/lts/ArchiverStore&partitionGranularity=PARTITION_YEAR'"; do
+    case "$(cat "${policy_out}")" in
+        *"${expected}"*) _record_pass "Default policy carries ${expected%%&*}'s store settings" ;;
+        *) _record_fail "Default policy carries ${expected%%&*}'s store settings" "missing: ${expected}" ;;
+    esac
+done
+rm -f "${policy_out}"
+policy_rc=0
+make -C "${policy_env}" -s conf.policies ARCHAPPL_STS_GRANULARITY=PARTITION_5MIN ARCHAPPL_MTS_GRANULARITY=PARTITION_HOUR \
+    ARCHAPPL_LTS_GRANULARITY=PARTITION_DAY ARCHAPPL_STS_HOLD=3 > "${WORKSPACE}/policy-test.txt" 2>&1 || policy_rc=$?
+assert_status "${policy_rc}" 0 "conf.policies renders with test store values"
+for expected in "name=STS&rootFolder=/arch/sts/ArchiverStore&partitionGranularity=PARTITION_5MIN&hold=3&" \
+                "name=MTS&rootFolder=/arch/mts/ArchiverStore&partitionGranularity=PARTITION_HOUR&hold=2&" \
+                "name=LTS&rootFolder=/arch/lts/ArchiverStore&partitionGranularity=PARTITION_DAY'"; do
+    case "$(cat "${policy_out}")" in
+        *"${expected}"*) _record_pass "Test policy carries ${expected%%&*}'s store settings" ;;
+        *) _record_fail "Test policy carries ${expected%%&*}'s store settings" "missing: ${expected}" ;;
+    esac
+done
+for invalid in "ARCHAPPL_MTS_GRANULARITY=PARTITION_WEEK" "ARCHAPPL_STS_GRANULARITY=PARTITION_HOUR PARTITION_DAY" \
+               "ARCHAPPL_STS_HOLD=0" "ARCHAPPL_MTS_HOLD=two"; do
+    rm -f "${policy_out}"
+    policy_rc=0
+    make -C "${policy_env}" -s conf.policies "${invalid}" > "${WORKSPACE}/policy-invalid.txt" 2>&1 || policy_rc=$?
+    if [[ "${policy_rc}" -ne 0 ]]; then
+        _record_pass "conf.policies rejects ${invalid} (rc=${policy_rc})"
+    else
+        _record_fail "conf.policies rejects ${invalid}" "got rc=0"
+    fi
+    assert_not_file "${policy_out}" "No policies.py written for ${invalid}"
+done
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

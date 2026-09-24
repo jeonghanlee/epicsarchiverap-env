@@ -49,12 +49,35 @@ conf.properties.show: $(ARCHAPPL_PROPERTIES).in
 #	@cat -b $(call classpathfile_output, $<)
 	@cat -b $(basename $<)
 
+# Store settings rendered into the policy: each granularity must be a
+# PartitionGranularity name the source accepts, and each hold a positive
+# integer, so a wrong value stops here instead of failing inside the appliance.
+ARCHAPPL_PARTITION_GRANULARITIES:=PARTITION_5MIN PARTITION_15MIN PARTITION_30MIN PARTITION_HOUR PARTITION_DAY PARTITION_MONTH PARTITION_YEAR
+
+define check_store_granularity
+	$(if $(and $(filter 1,$(words $(2))),$(filter $(ARCHAPPL_PARTITION_GRANULARITIES),$(2))),,$(error $(1) must be one of: $(ARCHAPPL_PARTITION_GRANULARITIES) (got '$(2)')))
+endef
+
+define check_store_hold
+	$(if $(shell printf '%s' '$(2)' | grep -Eq '^[1-9][0-9]*$$' && echo ok),,$(error $(1) must be a positive integer (got '$(2)')))
+endef
+
 conf.policies: $(ARCHAPPL_POLICIES).in  | mkdir.sitesidpath
+	$(call check_store_granularity,ARCHAPPL_STS_GRANULARITY,$(ARCHAPPL_STS_GRANULARITY))
+	$(call check_store_granularity,ARCHAPPL_MTS_GRANULARITY,$(ARCHAPPL_MTS_GRANULARITY))
+	$(call check_store_granularity,ARCHAPPL_LTS_GRANULARITY,$(ARCHAPPL_LTS_GRANULARITY))
+	$(call check_store_hold,ARCHAPPL_STS_HOLD,$(ARCHAPPL_STS_HOLD))
+	$(call check_store_hold,ARCHAPPL_MTS_HOLD,$(ARCHAPPL_MTS_HOLD))
 	$(QUIET) echo ">>> Generate $(call classpathfile_output, $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_HOST_IPADDR@|$(ARCHAPPL_HOST_IPADDR)|g" \
 				-e "s|@ARCHAPPL_SHORT_TERM_FOLDER@|$(ARCHAPPL_SHORT_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_MEDIUM_TERM_FOLDER@|$(ARCHAPPL_MEDIUM_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_LONG_TERM_FOLDER@|$(ARCHAPPL_LONG_TERM_FOLDER)|g" \
+				-e "s|@ARCHAPPL_STS_GRANULARITY@|$(ARCHAPPL_STS_GRANULARITY)|g" \
+				-e "s|@ARCHAPPL_STS_HOLD@|$(ARCHAPPL_STS_HOLD)|g" \
+				-e "s|@ARCHAPPL_MTS_GRANULARITY@|$(ARCHAPPL_MTS_GRANULARITY)|g" \
+				-e "s|@ARCHAPPL_MTS_HOLD@|$(ARCHAPPL_MTS_HOLD)|g" \
+				-e "s|@ARCHAPPL_LTS_GRANULARITY@|$(ARCHAPPL_LTS_GRANULARITY)|g" \
                 < $< > $(basename $<)
 	rm -f $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(notdir $(basename $<))
 	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"

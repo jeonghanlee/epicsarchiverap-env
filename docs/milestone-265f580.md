@@ -15,7 +15,7 @@ implementation at `9ee6ac0`; local implementation review passed. The heap defaul
 deployment verification without an override under M22 / T2.
 M26 remains Ready for a test-host archive filesystem separate from the root
 volume, with the requirement documented in `docs/README.install.md`. Its
-ETL-timing half moved to M31 (D23), whose draft plan awaits acceptance: Make
+ETL-timing half moved to M31 (D23), In progress under its accepted plan: Make
 variables for the store granularity and hold, so test hosts shorten the
 chain without editing the shipped template. M32, the run that observes the
 chain with the test values, is Blocked on M31 and on G13, the
@@ -25,8 +25,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Three rows are
-Ready: M9, M26 and M31. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -74,7 +74,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | D23 | The ETL-timing half of M26 moves to its own work item, M31, so it can proceed without the archive-store filesystem work; M26 keeps the filesystem half. The store granularity and hold become Make variables substituted into the existing `site-template/policies.py.in` instead of a second, test-only policy file, so the shipped defaults and a test host's values come from one template and differ only in `../CONFIG_SITE.local`, which `make <os>.conf` does not rewrite. aa-env rejects a granularity name outside aa-maven's `PartitionGranularity` and a hold that is not a positive integer; the cross-tier ordering check (STS no coarser than MTS, MTS no coarser than LTS) is requested from the ansible-provision operator, which writes the test values. | 2026-09-23 |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
-| Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Not started | Yes | D21, D23 | Test hosts set the STS, MTS and LTS granularity and hold through Make variables, the default render is unchanged, and invalid values stop `conf.policies`; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
+| Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | In progress | No | D21, D23 | Implemented; T1 pass; commit, landing and the ansible-provision notice remain; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
 | Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS; [detail](#m32---observe-the-store-chain-with-the-test-values) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -3445,7 +3445,7 @@ Origin: 265f580 / M31
 Identity History: Split from M26 on 2026-09-23 (D23); M26 keeps the
 archive-store filesystem half.
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -3508,9 +3508,9 @@ policy file; production values.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-23; plan at `b92f47a` accepted after third- and second-person review
+Implementation Authorization: 2026-09-23; implement the accepted plan and run T1
 Superseded Plan Artifacts: none
 
 1. Add the five variables to `configure/CONFIG_SITE` with the current values
@@ -3541,7 +3541,7 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
+| T1 | 2026-09-24T01:06:24Z | Local working tree based on `b92f47a`; isolated copies of the Make system | Pass | Rendered `conf.policies` with no override in an isolated copy of `b92f47a` and of the changed tree: the two `policies.py` files are byte-identical (9471 bytes). `bash -n` and `shellcheck -x` report nothing for `tests/phase1-logic.bash`; `TMPDIR=/tmp tests/run-all-tests.bash --phase=1` exits 0 with 90 passed, 0 failed. P1.18 runs the real `conf.policies` rule in an isolated copy: the default values and the test values (`PARTITION_5MIN`/3, `PARTITION_HOUR`/2, `PARTITION_DAY`) reach the three store URLs, and `PARTITION_WEEK`, a two-word `PARTITION_HOUR PARTITION_DAY`, `hold=0` and `hold=two` each stop make (rc=2) with no `policies.py` written. With `configure/` and `site-template/` reverted to `b92f47a` (2026-09-24T00:39:29Z), the runner exits 1 at P1.18 because the test values do not reach the STS URL. |
 
 ##### Closure Evidence
 

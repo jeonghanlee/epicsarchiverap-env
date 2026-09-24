@@ -59,9 +59,9 @@ def getFieldsArchivedAsPartOfStream():
 # We use the environment variables ARCHAPPL_SHORT_TERM_FOLDER and
 # ARCHAPPL_MEDIUM_TERM_FOLDER to determine the location of the STS and the
 # MTS in the appliance
-STS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=PARTITION_HOUR&hold=2&gather=1&consolidateOnShutdown=true'
-MTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=PARTITION_DAY&hold=2&gather=1'
-LTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=PARTITION_YEAR'
+STS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=@ARCHAPPL_STS_GRANULARITY@&hold=@ARCHAPPL_STS_HOLD@&gather=1&consolidateOnShutdown=true'
+MTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=@ARCHAPPL_MTS_GRANULARITY@&hold=@ARCHAPPL_MTS_HOLD@&gather=1'
+LTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=@ARCHAPPL_LTS_GRANULARITY@'
 
 
 default_sts_plugin_url = '%s' % (STS_BASE_URL)

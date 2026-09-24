@@ -316,6 +316,33 @@ Since the policy file is loaded only at initialization, changes to `policies.py`
 2.  **Modification**: Edit or replace the `policies.py` file at the path defined by `ARCHAPPL_POLICIES`.
 3.  **Startup**: Start the services to load and apply the new logic.
 
+### 5.5 Store Settings as Build Variables
+`site-template/policies.py.in` takes the partition granularity and ETL hold of each tier from Make variables, so a host changes them in `../CONFIG_SITE.local` (one directory above the checkout top) without editing the shipped template. `make conf.policies` renders them into `policies.py`.
+
+On a new host, set the values before step 3 of the install sequence in `README.install.md`: `make conf.archapplproperties` includes `conf.policies`, and `make install` installs the rendered `policies.py`. On a host that is already installed, follow the order in section 5.4: stop the services with `make sd_stop`, change the values and run those two targets again, then start the services with `make sd_start`.
+
+| Variable | Default | Tier setting |
+| --- | --- | --- |
+| `ARCHAPPL_STS_GRANULARITY` | `PARTITION_HOUR` | STS `partitionGranularity` |
+| `ARCHAPPL_STS_HOLD` | `2` | STS `hold` |
+| `ARCHAPPL_MTS_GRANULARITY` | `PARTITION_DAY` | MTS `partitionGranularity` |
+| `ARCHAPPL_MTS_HOLD` | `2` | MTS `hold` |
+| `ARCHAPPL_LTS_GRANULARITY` | `PARTITION_YEAR` | LTS `partitionGranularity` |
+
+`gather=1` and `consolidateOnShutdown=true` on STS, and the `reducedata` operators on LTS, stay in the template. `conf.policies` stops before writing `policies.py` when a granularity is not one of the seven `PartitionGranularity` names in section 2.1 or a hold is not a positive integer; a hold of at least 1 keeps `hold - gather` non-negative with the fixed `gather=1`. It does not check that the tiers run from finer to coarser; the operator writing the values keeps that order.
+
+A test host that wants to watch samples move through all three tiers within hours sets, in `../CONFIG_SITE.local`:
+
+```make
+ARCHAPPL_STS_GRANULARITY:=PARTITION_5MIN
+ARCHAPPL_STS_HOLD:=2
+ARCHAPPL_MTS_GRANULARITY:=PARTITION_HOUR
+ARCHAPPL_MTS_HOLD:=2
+ARCHAPPL_LTS_GRANULARITY:=PARTITION_DAY
+```
+
+With these values a partition becomes eligible for ETL out of STS about ten minutes after it closes and out of MTS about two hours after it closes; the actual move waits for the next ETL pass, so it lands later than that. The shipped defaults stay for real deployments.
+
 ## 6. Storage Media & Hardware Recommendations
 The selection of `partitionGranularity`, `hold`, and `gather` should be optimized based on the physical storage media being used.
 
