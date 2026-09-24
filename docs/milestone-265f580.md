@@ -8,9 +8,11 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M28, M29 and M30 are Complete at `1fc20a8`,
-`9f22eac` and `18356d1`. Then select a systemd VM
-and an interruption window for M23's remaining real-process/runtime checks using the
+Next session entry point: M33 (the journald logging model, D24) awaits plan
+acceptance in this file; M34 waits on M33 (G14 Complete at `a1155ef0`);
+M35 (Tomcat and java.util.logging through log4j2, D25) waits on M33 (G15 Complete at `9bbd69bf`).
+M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
+select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
 M26 remains Ready for a test-host archive filesystem separate from the root
@@ -25,8 +27,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Three rows are
+Ready: M9, M26 and M33. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -71,11 +73,13 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
-| D23 | The ETL-timing half of M26 moves to its own work item, M31, so it can proceed without the archive-store filesystem work; M26 keeps the filesystem half. The store granularity and hold become Make variables substituted into the existing `site-template/policies.py.in` instead of a second, test-only policy file, so the shipped defaults and a test host's values come from one template and differ only in `../CONFIG_SITE.local`, which `make <os>.conf` does not rewrite. aa-env rejects a granularity name outside aa-maven's `PartitionGranularity` and a hold that is not a positive integer; the cross-tier ordering check (STS no coarser than MTS, MTS no coarser than LTS) is requested from the ansible-provision operator, which writes the test values. | 2026-09-23 |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
 | Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; issue #50 records it and stays open for M32; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
 | Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS, then issue #50 closes; [detail](#m32---observe-the-store-chain-with-the-test-values) |
+| Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | Not started | Yes | D12, D19, D24 | The service is Type=exec with KillMode=mixed and Restart=no; the launcher starts and stops the four Tomcats in the D12 order in the foreground, each through `systemd-cat` with `archappl-<component>`; JULI keeps only the ConsoleHandler; the access log has `maxDays`; `log4j.properties.in` is gone; the install guide says so; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
+| Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Not started | No | M33, G14, D24 | aa-env ships no `log4j2.xml` and exports `ARCHAPPL_ROOT_LOGGER_LEVEL`, so `journalctl -p err` selects application errors; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
+| Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Not started | No | M33, G15, D25 | Each instance runs with `log4j-appserver` and `log4j-jul` on the Tomcat classpath and `log4j2-tomcat.xml`, so Tomcat's own lines and the CA client's `java.util.logging` lines reach the journal at their own priority; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -88,6 +92,8 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Gate | G11 | aa-maven retires the Sphinx docs pipeline (mdBook on Pages) | External gate | Complete | No | | Sphinx/RTD removed on aa-maven modernize `263805a1`; mdBook live on GitHub Pages; [detail](#g11---aa-maven-retires-the-sphinx-docs-pipeline-mdbook-on-pages) |
 | Gate | G12 | JNA on the WAR classpath for MariaDB Unix-socket support | External gate | Complete | No | | `jna` and `jna-platform` 5.13.0 present in all four WARs built from `3c96141d`, verified 2026-09-21; transitive, so an explicit declaration was requested of aa-maven as hardening; [detail](#g12---jna-on-the-war-classpath-for-mariadb-unix-socket-support) |
 | Gate | G13 | ansible-provision runs a soak with the M31 test values | External gate | Open | No | | The ansible-provision operator reports a run of a few hours with the M31 test values, showing samples in STS, then MTS, then LTS; [detail](#g13---ansible-provision-runs-a-soak-with-the-m31-test-values) |
+| Gate | G14 | aa-maven ships the log4j2 layout with the journal priority prefix | External gate | Complete | No | | `a1155ef0` on the aa-maven origin/modernize, read 2026-09-24: Console PatternLayout with `<2>` to `<7>` per level and root `${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}`; [detail](#g14---aa-maven-ships-the-log4j2-layout-with-the-journal-priority-prefix) |
+| Gate | G15 | aa-maven emits the Tomcat log4j jar set from its build | External gate | Complete | No | | `9bbd69bf` on the aa-maven origin/modernize, built here on 2026-09-24 through `make build.mvn`: `target/tomcat-log4j` holds the four jars at 2.26.1, the three shared with the engine WAR byte-identical; [detail](#g15---aa-maven-emits-the-tomcat-log4j-jar-set-from-its-build) |
 ### Decisions
 
 | ID | Decision | Decision Date |
@@ -114,6 +120,9 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | D20 | aa-env follows the aa-maven `modernize` branch through `SRC_TAG` instead of pinning a verified commit. Source-side improvements then arrive on the next checkout with no re-pin, at the cost of the build basis moving whenever aa-maven moves; verification therefore records the source commit it actually observed rather than assuming a fixed one, and the release step re-checks the source commit in force at that time. Confirmed 2026-09-21, after aa-maven moved `3c96141d` to `85f0f179`. | 2026-09-21 |
 | D21 | The archive store's filesystem and the ETL timing become aa-env work (M26), scoped to the test environment first rather than to production storage architecture. Two facts drive it. On the provisioned hosts the archive store resolves to the root volume, nothing in the install path mounts a dedicated one, and `ARCHAPPL_STORAGE_TOP` only names a directory, so an archiver that fills its store fills `/` and takes the whole host; no quota or threshold exists anywhere in the chain. Separately, the shipped store configuration puts MTS at `PARTITION_MONTH` with `hold=2`, so samples do not leave MTS for roughly two months and the second ETL hop cannot be observed in any realistic test run. Production storage sizing, per-tier media selection and retention for real data stay outside this row. | 2026-09-21 |
 | D22 | The empty configuration database reported by ansible-provision on three externally provisioned archiver-dev hosts becomes aa-env work (M28), tracked as issue #47, and is not raised on the reporting side. Re-derived in this repository: `sql.fill` checks database existence through the admin account, which the externally provisioned mode documented in `docs/README.install.md` never creates, and the not-found branch prints a message but exits 0, so the build continues. Paths that act as the application account check existence through that account; a not-found result or failed check reports and exits non-zero; paths that act as the admin account keep the admin check. The externally provisioned mode therefore needs no admin account. | 2026-09-23 |
+| D23 | The ETL-timing half of M26 moves to its own work item, M31, so it can proceed without the archive-store filesystem work; M26 keeps the filesystem half. The store granularity and hold become Make variables substituted into the existing `site-template/policies.py.in` instead of a second, test-only policy file, so the shipped defaults and a test host's values come from one template and differ only in `../CONFIG_SITE.local`, which `make <os>.conf` does not rewrite. aa-env rejects a granularity name outside aa-maven's `PartitionGranularity` and a hold that is not a positive integer; the cross-tier ordering check (STS no coarser than MTS, MTS no coarser than LTS) is requested from the ansible-provision operator, which writes the test values. | 2026-09-23 |
+| D24 | Logging model for the four-Tomcat appliance, agreed with aa-maven on 2026-09-23 after a request from ansible-provision. journald collects and rotates: each JVM's logging writes only stdout and stderr, the access log is the one file stream that remains, and `catalina.out`, logrotate and the JULI dated file handlers go away. The single service stays (D12, D19): the launcher is the main process (`Type=exec`, `KillMode=mixed` so only the launcher gets SIGTERM and stops engine, retrieval, etl, mgmt in order, `Restart=no`, `TimeoutStopSec` from a measured ETL stop with `consolidateOnShutdown=true`), starts the four Tomcats in the foreground in the D12 order, waits on the Tomcat processes and exits non-zero after an ordered stop when one dies. Component identity is per stream: each child runs through `systemd-cat --identifier=archappl-<component> --level-prefix=true`, so `journalctl -t archappl-<component>` filters one component and the `<N>` prefix maps to journal priority; a multi-line stack trace becomes several entries and is documented as such. One `log4j2.xml`, aa-maven's in the WAR, with a Console PatternLayout without timestamp and with the `<N>` prefix, root level `${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}`; aa-env stops shipping its own and keeps `LOG4J_CONFIGURATION_FILE` as a site override, unset by default; `systemd-cat` parses the prefix by default, so the layout and the launcher land in either order, and application lines carry the default priority until the layout arrives. Shipped root level INFO. The access log stays as a file stream with `maxDays="90"`. Retention 8 weeks, matching the EPICS IOC runner's procServ logrotate policy (weekly, rotate 8), as journald `MaxRetentionSec` with `SystemMaxUse` winning; the ansible-provision operator sets the journald values from the soak's per-stream counts. Ownership: aa-maven owns the layout, levels, docs and the RollingFile fallback; aa-env owns the unit, launcher, JULI configuration, the access valve, dropping its `log4j2.xml`, and the install guide; ansible-provision owns the host journald settings. | 2026-09-23 |
+| D25 | Tomcat's internal logging and `java.util.logging` go through log4j2 instead of JULI. `org.apache.juli.SystemdFormatter`, named by `site-template/skel/conf/logging.properties` since `c83256e`, does not exist in any Tomcat release (the JULI formatters are `JdkLoggerFormatter`, `JsonFormatter`, `OneLineFormatter`, `VerbatimFormatter`), so `java.util.logging` falls back to `SimpleFormatter` and JULI cannot emit a priority prefix; the CA client's beacon messages also arrive through `java.util.logging`. Each instance therefore gets `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` at the WAR's log4j version in `$CATALINA_BASE/log4j`, put on the Tomcat classpath by `bin/setenv.sh`, which also sets `LOGGING_MANAGER` to `org.apache.logging.log4j.jul.LogManager`; `log4j-appserver` replaces `org.apache.juli.logging.Log` through its service file and reads `log4j2-tomcat.xml`, which aa-env ships with a Console layout carrying the same `<N>` prefix as the WAR layout and root level INFO. The WAR keeps its own `log4j2.xml` (D24). aa-maven's build emits the jar set next to the WARs so both come from one build and one version. Amends D24 in two places: the JULI configuration gives way to `log4j2-tomcat.xml`, and the appliance runs two log4j2 configurations, the WAR's for application lines and the Tomcat-level one for Tomcat and `java.util.logging` lines; the rest of D24 stands. | 2026-09-24 |
 
 ### Assignment History
 
@@ -2750,6 +2759,67 @@ writes. Affects M32.
 
 - none
 
+#### G14 - aa-maven ships the log4j2 layout with the journal priority prefix
+
+Origin: 265f580 / G14
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+aa-maven lands the WAR `log4j2.xml` agreed under D24: a Console PatternLayout
+without timestamp, with level, logger, thread and intact stack traces, whose
+level maps to the `<N>` journal priority prefix, and whose root level reads
+`${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}`. aa-maven reports the commit. Until
+it lands, application lines written through `systemd-cat --level-prefix=true`
+carry the default priority only, which is why M34 waits on this gate. Affects M34.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit, and aa-env re-derives
+  the prefix and the root-level lookup by reading that commit's `log4j2.xml`.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-09-24 | Pass | `git show a1155ef0:src/sitespecific/default/classpathfiles/log4j2.xml` in a fetched aa-maven clone, commit present on origin/modernize: `%level{FATAL=<2>, ERROR=<3>, WARN=<4>, INFO=<6>, DEBUG=<7>, TRACE=<7>}` on the Console layout, `<Root level="${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}">` |
+
+##### Closure Evidence
+
+- aa-maven reported `a1155ef0` on 2026-09-24; verified as above the same day.
+
+#### G15 - aa-maven emits the Tomcat log4j jar set from its build
+
+Origin: 265f580 / G15
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+Under D25 each Tomcat instance carries `log4j-api`, `log4j-core`,
+`log4j-appserver` and `log4j-jul` on its classpath, at the same log4j version
+as the WARs. aa-maven's build writes the four jars into one output directory
+next to the WARs, so aa-env installs them from the same build that produced
+the WARs and the two never drift apart. The request went to aa-maven on
+2026-09-24; aa-maven reports the output directory and the commit. Affects M35.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit and the output directory
+  relative to the build target, and aa-env re-derives the four jar names and
+  their version from a build of that commit through `make build.mvn`.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-09-24 | Pass | `make build.mvn` with the build source at `9bbd69bf` (present on origin/modernize): `target/tomcat-log4j` lists `log4j-api-2.26.1.jar`, `log4j-core-2.26.1.jar`, `log4j-appserver-2.26.1.jar`, `log4j-jul-2.26.1.jar`; sha256 of `log4j-api`, `log4j-core` and `log4j-jul` equal to the copies in `WEB-INF/lib` of the engine WAR from the same build; `log4j-appserver` carries `META-INF/services/org.apache.juli.logging.Log` |
+
+##### Closure Evidence
+
+- aa-maven reported `9bbd69bf` and the directory `target/tomcat-log4j` on 2026-09-24; verified as above the same day.
+
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
 Origin: 265f580 / M10
@@ -3638,6 +3708,372 @@ Observed Labels: enhancement
 Observed Milestone: none
 Observed Updated At: 2026-09-24T01:40:37Z
 Last Compared: 2026-09-24T01:40:37Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/50` read after creation; #50 is shared with M31 and closes on this row's soak criterion
+
+#### M33 - Run the four Tomcats in the foreground under one journald-collected service
+
+Origin: 265f580 / M33
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+At `f9433a3` each instance produces four streams: application log4j2 output
+(Console, into `catalina.out`), Tomcat JULI dated files (`catalina.<date>.log`,
+`localhost.<date>.log`, `maxDays = 90`), the access log
+(`site-template/skel/conf/server.xml:164`, daily files, no `maxDays`), and
+process stdout in an unrotated `catalina.out`, because
+`site-template/systemd/epicsarchiverap-maven.service.in` is `Type=forking` and
+`scripts/archappl.bash` starts each instance with `bin/startup.sh` in the
+background (`:71`). No Tomcat output reaches journald. D24 moves the appliance to the
+journald model while keeping the single service of D12 and the no-restart rule
+of D19. The launcher also tells users to tail `logs/archappl_service.log`
+(`archappl.bash:120`), which nothing writes.
+
+##### Scope
+
+- `site-template/systemd/epicsarchiverap-maven.service.in`: `Type=exec`,
+  `KillMode=mixed`, `Restart=no`, `TimeoutStopSec` sized from T2's measured ETL
+  stop, and no `ExecStop`: `systemctl stop` reaches the launcher as SIGTERM,
+  so a Tomcat exit during a stop is never read as a child death.
+- A foreground wrapper per instance, rendered like `site-template/startup.sh.in`
+  by `configure/RULES_FUNC` step 4 (source `archappl.conf` and the instance
+  conf, export `CATALINA_BASE` and `CATALINA_PID`, then `exec catalina.sh run`
+  so the process the launcher holds is the JVM), or the launcher exporting
+  that same environment itself. `catalina.sh run` writes no pid file, so the
+  launcher writes each JVM's PID to `temp/<service>.pid` after the start and
+  removes it after the exit; `get_pid` (`scripts/archappl.bash:53`) and M23's
+  `health_instance` (`:280`) read that file.
+- `scripts/archappl.bash`: as the service's main process, start mgmt, engine,
+  etl and retrieval in the foreground (`catalina.sh run`) in that order, each
+  with stdout and stderr through
+  `systemd-cat --identifier=archappl-<component> --level-prefix=true` (no line
+  carries a `<N>` prefix yet, so all lines take the default priority: JULI
+  and `java.util.logging` lines until M35, application lines until M34); wait on the Tomcat
+  processes (not the `systemd-cat` processes); on SIGTERM stop engine,
+  retrieval, etl, mgmt in that order by sending SIGTERM to each JVM PID and
+  waiting for that PID to leave (the shutdown ports are `-1` by default,
+  `configure/CONFIG_SRC:41-44` applied at install by `RULES_INSTALL`, so
+  today's `bin/shutdown.sh` already ends in a SIGTERM through the pid file;
+  with or without a port, `catalina.sh stop` follows after five seconds with
+  a `kill -3` thread dump, which the launcher must not reproduce); when a
+  Tomcat dies, stop the survivors the same way in that order and exit
+  non-zero. `bin/shutdown.sh` stays for shell users only. The interactive `startup` and `shutdown`
+  commands keep working for a shell user outside the service; a shell
+  `shutdown` while the service runs is a child death to the launcher and ends
+  the unit failed. Remove the stale `archappl_service.log` hint.
+- `site-template/skel/conf/logging.properties`: only the ConsoleHandler, with
+  `org.apache.juli.OneLineFormatter` in place of the non-existent
+  `SystemdFormatter` (D25) so each record is one journal entry; the `1catalina`
+  and `2localhost` AsyncFileHandlers go. M35 retires this file's role.
+- `site-template/skel/conf/server.xml`: `maxDays="90"` on the AccessLogValve.
+- `site-template/log4j.properties.in` and everything that renders it: the
+  `conf.log4j` and `conf.log4j.show` rules and the `log4j` entry in
+  `properties_RULES_NAMES` (`configure/RULES_PROPERTIES`),
+  `ARCHAPPL_LOG4JPROPERTIES` and its comment (`configure/CONFIG_SITE`), and
+  the `log4j.properties` line in `.gitignore`. Nothing under log4j2 reads the
+  file; `ARCHAPPL_ROOT_LOGGER_LEVEL` reaches the appliance through M34 instead.
+- `docs/README.install.md` and `docs/technicaldocs/README.systemd.md`: the
+  service shape, where each stream goes, `journalctl` usage by identifier,
+  the multi-line stack trace limit, and that a shell `shutdown` while the
+  service runs ends the unit failed.
+- `tests/phase1-logic.bash`: guards on the rendered unit and the launcher.
+
+Out of scope: the log4j2 configuration (M34); Tomcat and `java.util.logging` output through log4j2 (M35); automatic restart (D19); the M23 health timer, which stays until a separate decision;
+journald settings on the hosts (ansible-provision); the layout, levels and
+docs on the aa-maven side.
+
+##### Completion Criteria
+
+- On a test host, `make install` and `make sd_start` bring up four Tomcats as
+  children of the launcher under one active service; `journalctl -u <unit>
+  -t archappl-<component>` shows each component's lines and no `catalina.out`
+  or JULI dated file is written.
+- `systemctl stop <unit>` stops the components in the order engine, retrieval,
+  etl, mgmt and the unit reaches inactive within `TimeoutStopSec`, with the
+  measured ETL stop recorded.
+- Killing one Tomcat leaves the unit failed after the survivors stopped in
+  order, with no automatic restart.
+- The access valve removes an access log file whose modification time is
+  older than 90 days: a `localhost_access_log.*.txt` file dated 91 days back
+  before start is gone after the first background pass of the running Tomcat;
+  the install guide and the systemd guide describe the model.
+
+##### Dependencies And Decisions
+
+- D12 (single service, launcher owns the order), D19 (no automatic restart),
+  D24 (the model).
+- The `systemd-cat` binary is part of systemd on Rocky Linux 8 and Debian 13;
+  macOS keeps the interactive `startup` and `shutdown` path only.
+- M23 (In progress) reads `temp/<service>.pid` through `health_instance`;
+  the launcher keeps writing that file in the foreground mode, so M23's
+  checks stay valid without a change on its side.
+- `systemd-cat` parses `<N>` priority prefixes by default; the v239 and v257
+  man pages both state "enabled (the default)", and a probe on systemd 257
+  recorded `PRIORITY=3` with the prefix stripped. `--level-prefix=true` stays
+  explicit to record the intent, and T2 repeats the probe on systemd 239.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Change the unit template to `Type=exec`, `KillMode=mixed`, `Restart=no`
+   and a provisional `TimeoutStopSec`; keep `ExecStart` on the launcher and
+   remove `ExecStop`.
+2. In `scripts/archappl.bash`, add the service mode: foreground start of the
+   four Tomcats in order through the per-instance wrapper and `systemd-cat`,
+   the JVM PID written to `temp/<service>.pid`, a SIGTERM trap that stops them
+   in order with SIGTERM to each JVM PID and a wait on that PID, `wait -n` on the
+   Tomcat PIDs, ordered stop of survivors the same way, removal
+   of the pid files and a non-zero exit on a child death. Keep `startup` and
+   `shutdown` for shells.
+3. Reduce `logging.properties` to the ConsoleHandler with `OneLineFormatter`;
+   add `maxDays="90"` to the access valve; remove `log4j.properties.in` and
+   everything the scope lists for it; remove the stale log hint.
+4. Extend `tests/phase1-logic.bash`: the rendered unit carries the three
+   directives and no `ExecStop`; the launcher parses and lints; no JULI file handler remains;
+   the valve carries `maxDays`.
+5. On a disposable VM, install, start, observe the four identifiers in the
+   journal, archive a few PVs from a `softIoc` on the VM for some minutes,
+   measure an ETL stop with that data in STS, stop in order, kill one
+   Tomcat and observe the ordered stop and the failed unit; set
+   `TimeoutStopSec` from the measurement and record it.
+6. Update the two guides.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `bash -n`, `shellcheck -x` on the launcher; `tests/run-all-tests.bash --phase=1` with the new guards | This host | Unit renders with `Type=exec`, `KillMode=mixed`, `Restart=no` and no `ExecStop`; no JULI file handler; valve has `maxDays`; the guards fail against the pre-change tree |
+| T2 | Runtime | Full install and `make sd_start`; `journalctl -u <unit> -t archappl-<component>` per component; `systemctl stop` timed with samples in STS from a few `softIoc` PVs on the VM archived for some minutes; `kill` of one Tomcat; priority probe `printf '<3>probe\n' \| systemd-cat -t archappl-probe` read back with `journalctl -t archappl-probe -o json`; a `localhost_access_log.old.txt` created with `touch -d '91 days ago'` in one instance's `logs` before start; `archappl.bash status` and `archappl.bash health` (M23) while running | Disposable VM built from the aa-env tree with a `softIoc` (never a shared host) | Four identifiers present; `status` and `health` find every JVM through `temp/<service>.pid`; no `catalina.out` or dated JULI file; ordered stop within the recorded time; failed unit after an ordered stop, no restart; the probe lands with `PRIORITY` 3 and `<3>` stripped from `MESSAGE` on systemd 239; the old access log file is gone within a minute of start |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | Disposable VM | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Run the four Tomcats in the foreground under one journald-collected service
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M34 - Take the log4j2 configuration from the WAR with journal priorities
+
+Origin: 265f580 / M34
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+Under D24 one `log4j2.xml` ships, aa-maven's in the WAR, with the `<N>`
+priority prefix and a root level read from `ARCHAPPL_ROOT_LOGGER_LEVEL`. aa-env
+today installs its own Console-only `site-template/log4j2.xml` and points
+`LOG4J_CONFIGURATION_FILE` at it (`site-template/archappl.conf.in:12`); its
+`ARCHAPPL_ROOT_LOGGER_LEVEL` (`configure/CONFIG_SRC:71`) reaches nothing under
+log4j2. This row switches to the WAR configuration once G14 lands, so
+application lines enter the journal with a priority through the
+`--level-prefix` path M33 already runs.
+
+##### Scope
+
+- `site-template/log4j2.xml`, its `log4j2.install` rule and the `log4j2`
+  entry in `conf_RULES_NAMES` (`configure/RULES_INSTALL`), and
+  `ARCHAPPL_LOG4J_XML` (`configure/CONFIG_SITE`): removed; there is no
+  rendering rule for this file. `LOG4J_CONFIGURATION_FILE` stays in
+  `archappl.conf.in` as a site override, unset by default.
+- `site-template/archappl.conf.in` and `configure/CONFIG_SRC`: export
+  `ARCHAPPL_ROOT_LOGGER_LEVEL` to the JVMs and change its default from the
+  current `WARN` (`configure/CONFIG_SRC:71`) to `INFO` per D24.
+- `docs/README.install.md`: the override hook and the level variable.
+
+Out of scope: the layout itself (aa-maven, G14); the runtime level control
+under discussion with aa-maven.
+
+##### Completion Criteria
+
+- With no site override, the running JVMs load the WAR's `log4j2.xml`, and
+  per component identifier `journalctl -u <unit> -p err..err` returns the
+  application ERROR lines and `-p info..info` the INFO lines, so each level
+  maps to its own journal priority.
+- Setting `ARCHAPPL_ROOT_LOGGER_LEVEL=WARN` in `../CONFIG_SITE.local` and
+  reinstalling silences INFO lines.
+- `LOG4J_CONFIGURATION_FILE` set to a site file takes precedence.
+
+##### Dependencies And Decisions
+
+- M33 (the launcher and `systemd-cat` path), G14 (the layout), D24. Blocked
+  from creation on G14; G14 Complete 2026-09-24 at `a1155ef0`, restored to Not started; not Ready until M33 is Complete.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Remove the site `log4j2.xml`, its install rule and its variable; keep the
+   `LOG4J_CONFIGURATION_FILE` line in `archappl.conf.in` commented as the
+   override hook.
+2. Export `ARCHAPPL_ROOT_LOGGER_LEVEL` from `archappl.conf.in` and set the
+   `CONFIG_SRC` default to `INFO`.
+3. Extend `tests/phase1-logic.bash` and the install guide; run T1, then T2 on
+   a disposable VM with a WAR built at or after the G14 commit.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new guards | This host | No site `log4j2.xml` installed; `archappl.conf` exports the level |
+| T2 | Runtime | Install with a WAR at or after the G14 commit; `journalctl -p err..err` and `-p info..info` per identifier; WARN override; site override | Disposable VM | Each level lands at its own priority; the override silences INFO; the site file wins when set |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | Disposable VM | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Take the log4j2 configuration from the WAR with journal priorities
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M35 - Route Tomcat and java.util.logging output through log4j2
+
+Origin: 265f580 / M35
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+After M33 every Tomcat record still passes through JULI's ConsoleHandler with
+no priority prefix, because no JULI formatter emits one (D25). The same path
+carries the CA client's `java.util.logging` messages, which the
+ansible-provision soak measured as about half of the engine's stdout lines.
+Under D25 each instance runs Tomcat's internal logging and `java.util.logging`
+through log4j2: `log4j-appserver` replaces `org.apache.juli.logging.Log`,
+`log4j-jul` becomes the `java.util.logging` LogManager, and a
+`log4j2-tomcat.xml` shipped by aa-env gives every such line the `<N>` prefix
+that M33's `systemd-cat --level-prefix=true` already turns into a journal
+priority. The WAR's own `log4j2.xml` (M34) is untouched.
+
+##### Scope
+
+- `configure/RULES_FUNC` instance install: copy the four jars from the G15
+  output directory into `$CATALINA_BASE/log4j/`, and a `CONFIG_SITE` variable
+  naming that directory relative to the build target.
+- `site-template/setenv.sh.in`, rendered into each instance's `bin/setenv.sh`
+  by the same install step as `startup.sh.in`: `CLASSPATH` extended with
+  `$CATALINA_BASE/log4j/*` and `$CATALINA_BASE/log4j/`, and `LOGGING_MANAGER`
+  set to `-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager`.
+- `site-template/skel/log4j/log4j2-tomcat.xml`: one Console appender to
+  `SYSTEM_OUT` with the pattern
+  `%level{FATAL=<2>, ERROR=<3>, WARN=<4>, INFO=<6>, DEBUG=<7>, TRACE=<7>}%-5level [%t] %c - %m%n`
+  (the M18 pattern of aa-maven, without timestamp) and root level INFO.
+- `site-template/skel/conf/logging.properties`: removed from the skel;
+  `catalina.sh` passes `-Dnop` when the file is absent, and the `log4j-jul`
+  LogManager does not read it.
+- `docs/technicaldocs/README.systemd.md` and `docs/technicaldocs/README.tomcat.md`:
+  the two log4j2 contexts (Tomcat level and WAR level) and which lines each one
+  carries.
+- `tests/phase1-logic.bash`: guards on the rendered `setenv.sh`, the jar
+  install rule and the shipped `log4j2-tomcat.xml`.
+
+Out of scope: the WAR layout and its root level (M34, G14); the jar set
+itself (G15); a RollingFile fallback at the Tomcat level.
+
+##### Completion Criteria
+
+- On a test host after M33, `journalctl -u <unit> -t archappl-<component>
+  -o json` shows Tomcat's startup lines with `PRIORITY` 6 and no two-line
+  `SimpleFormatter` record.
+- `java.util.logging` lines raised inside a WAR take the Tomcat-level
+  configuration, since `log4j-jul` is the JVM-wide LogManager: with
+  `EPICS_CA_CONN_TMO=abc` added to the engine's `conf/engine.conf` for one
+  run, the CA client's "Cannot parse EPICS_CA_CONN_TMO" line (`Level.WARNING`
+  in `CAJContext.java`) appears under `archappl-engine` at `PRIORITY` 4, and
+  with two `softIoc` processes on the VM loading the same record name its
+  "More than one PVs with name" lines (`logger.info`) appear at `PRIORITY` 6.
+- `journalctl -u <unit> -p err..err` contains a Tomcat-level ERROR when one is
+  provoked: a directory `webapps/broken/WEB-INF/` in one instance with a
+  `web.xml` that is not well-formed XML, present at start.
+- No `catalina.out`, no dated JULI file, and no `SimpleFormatter` record in
+  the journal.
+
+##### Dependencies And Decisions
+
+- M33 (the foreground service and `systemd-cat` path), G15 (the jar set),
+  D25. Blocked from creation on G15; G15 Complete 2026-09-24 at `9bbd69bf`, restored to Not started; not Ready until M33 is Complete.
+- Verified on 2026-09-24: `log4j-appserver` 2.26.1 ships
+  `META-INF/services/org.apache.juli.logging.Log` and its `TomcatLogger`
+  looks for `log4j2-tomcat.xml`, `.json`, `.yaml`, `.yml` or `.properties` on
+  the classpath; all four jars exist at 2.26.1 on Maven Central.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Add the jar directory variable and the copy step to the instance install.
+2. Add `setenv.sh.in` and its rendering next to `startup.sh.in`.
+3. Add `skel/log4j/log4j2-tomcat.xml`; remove `skel/conf/logging.properties`.
+4. Extend the Phase 1 guards; update the two guides.
+5. On a disposable VM with a `softIoc`, run T2.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new guards | This host | Rendered `setenv.sh` carries the classpath and the LogManager; the install rule names the four jars; `log4j2-tomcat.xml` is shipped |
+| T2 | Runtime | Full install with a build at or after the G15 commit; `journalctl -o json` per identifier; one run with `EPICS_CA_CONN_TMO=abc` in the engine's `conf/engine.conf`; two `softIoc` processes with the same record name; a `webapps/broken/WEB-INF/web.xml` that is not well-formed XML | Disposable VM with a `softIoc` | Startup lines at `PRIORITY` 6, the CA client's parse warning at 4 and its duplicate-PV lines at 6, the provoked error at 3; no `SimpleFormatter` record, no `catalina.out`, no dated JULI file |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | Disposable VM | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Route Tomcat and java.util.logging output through log4j2
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
 
 ## Backlog
 
