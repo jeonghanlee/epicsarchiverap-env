@@ -68,7 +68,6 @@ test*
 /site-template/systemd/*.timer
 override.conf
 wars
-log4j.properties
 shutdown.sh
 startup.sh
 archappl.conf

@@ -11,9 +11,15 @@ SourcePath=@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@
 User=@USERID@
 Group=@GROUPID@
 #
-ExecStart=/bin/bash -c "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@ startup"
-ExecStop=/bin/bash -c "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@ shutdown"
-Type=forking
+# The launcher is the main process and runs the four Tomcats in the
+# foreground; systemd 239 predates Type=exec, so simple is used.
+ExecStart=/bin/bash "@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@" service
+Type=simple
+# Only the launcher receives SIGTERM and stops the Tomcats in order; the
+# remaining processes get SIGKILL after the timeout.
+KillMode=mixed
+Restart=no
+TimeoutStopSec=@TIMEOUT_STOP_SECONDS@s
 
 [Install]
 WantedBy=multi-user.target

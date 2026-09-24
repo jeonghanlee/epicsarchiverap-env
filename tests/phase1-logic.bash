@@ -287,6 +287,80 @@ for invalid in "ARCHAPPL_MTS_GRANULARITY=PARTITION_WEEK" "ARCHAPPL_STS_GRANULARI
     assert_not_file "${policy_out}" "No policies.py written for ${invalid}"
 done
 
+# P1.19 The appliance unit runs the launcher as its main process with the four
+# Tomcats in the foreground, and Tomcat's own logs leave no file behind. The
+# real conf.systemd0 rule renders the unit from an isolated copy of the Make
+# system; the launcher, the run wrapper and the skel configuration are read
+# as shipped.
+unit_env="${WORKSPACE}/unit-env"
+mkdir -p "${unit_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/site-template" "${unit_env}/"
+rm -f "${unit_env}/configure/"*.local "${unit_env}/site-template/systemd/"*.service
+unit_out="${unit_env}/site-template/systemd/epicsarchiverap-maven.service"
+unit_rc=0
+make -C "${unit_env}" -s conf.systemd0 > "${WORKSPACE}/unit-render.txt" 2>&1 || unit_rc=$?
+assert_status "${unit_rc}" 0 "conf.systemd0 renders the appliance unit"
+assert_file "${unit_out}" "Rendered appliance unit exists"
+unit_text=$(cat "${unit_out}")
+for directive in "Type=simple" "KillMode=mixed" "Restart=no" "TimeoutStopSec=300s" "/archappl.bash\" service"; do
+    case "${unit_text}" in
+        *"${directive}"*) _record_pass "Appliance unit carries ${directive}" ;;
+        *) _record_fail "Appliance unit carries ${directive}" "missing in ${unit_out}" ;;
+    esac
+done
+case "${unit_text}" in
+    *ExecStop=*|*Type=forking*) _record_fail "Appliance unit has no ExecStop and is not forking" "found one in ${unit_out}" ;;
+    *) _record_pass "Appliance unit has no ExecStop and is not forking" ;;
+esac
+launcher_rc=0
+bash -n "${TOP}/scripts/archappl.bash" || launcher_rc=$?
+assert_status "${launcher_rc}" 0 "Launcher parses"
+if command -v shellcheck > /dev/null 2>&1; then
+    launcher_rc=0
+    shellcheck -x "${TOP}/scripts/archappl.bash" > "${WORKSPACE}/launcher-shellcheck.txt" 2>&1 || launcher_rc=$?
+    assert_status "${launcher_rc}" 0 "Launcher passes shellcheck"
+fi
+launcher_text=$(cat "${TOP}/scripts/archappl.bash")
+for needle in "systemd-cat --identifier=\"archappl-\${service}\" --level-prefix=true" "wait -n" "bin/run.sh"; do
+    case "${launcher_text}" in
+        *"${needle}"*) _record_pass "Launcher service mode uses ${needle}" ;;
+        *) _record_fail "Launcher service mode uses ${needle}" "missing" ;;
+    esac
+done
+case "${launcher_text}" in
+    *archappl_service.log*) _record_fail "Launcher no longer points at archappl_service.log" "found the stale hint" ;;
+    *) _record_pass "Launcher no longer points at archappl_service.log" ;;
+esac
+run_wrapper=$(cat "${TOP}/site-template/run.sh.in")
+# shellcheck disable=SC2016
+case "${run_wrapper}" in
+    *'exec "${CATALINA_HOME}/bin/catalina.sh" run'*) _record_pass "Run wrapper execs catalina.sh run" ;;
+    *) _record_fail "Run wrapper execs catalina.sh run" "missing exec line" ;;
+esac
+install_rules=$(make -C "${unit_env}" --no-print-directory -n install.mgmt 2>&1 || true)
+case "${install_rules}" in
+    *"run.sh.in > "*"/mgmt/bin/run.sh"*) _record_pass "Instance install renders bin/run.sh" ;;
+    *) _record_fail "Instance install renders bin/run.sh" "got: ${install_rules}" ;;
+esac
+juli_text=$(cat "${TOP}/site-template/skel/conf/logging.properties")
+case "${juli_text}" in
+    *FileHandler*) _record_fail "JULI keeps only the ConsoleHandler" "a file handler remains" ;;
+    *"java.util.logging.ConsoleHandler.formatter = org.apache.juli.OneLineFormatter"*) _record_pass "JULI keeps only the ConsoleHandler" ;;
+    *) _record_fail "JULI keeps only the ConsoleHandler" "OneLineFormatter not configured" ;;
+esac
+case "$(cat "${TOP}/site-template/skel/conf/server.xml")" in
+    *'prefix="localhost_access_log" suffix=".txt" maxDays="90"'*) _record_pass "Access log valve carries maxDays=90" ;;
+    *) _record_fail "Access log valve carries maxDays=90" "attribute missing" ;;
+esac
+assert_not_file "${TOP}/site-template/log4j.properties.in" "Dead log4j.properties template is gone"
+log4j_rc=0
+make -C "${unit_env}" --no-print-directory -n conf.log4j > /dev/null 2>&1 || log4j_rc=$?
+if [[ "${log4j_rc}" -ne 0 ]]; then
+    _record_pass "conf.log4j is no longer a target (rc=${log4j_rc})"
+else
+    _record_fail "conf.log4j is no longer a target" "make -n conf.log4j succeeded"
+fi
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

@@ -114,11 +114,11 @@ function status_archappl
     printf "    http://%s:17665/mgmt/ui/index.html\n" "localhost";
     
     printf "\n";
-    printf ">>> Consult Service Logs \n";
-    
+    printf ">>> Consult Service Logs (journald, one identifier per instance)\n";
+
     for service in "${startup_services[@]}"; do
-        printf "  tail -f %s/%s/logs/archappl_service.log\n" "${archappl_top}" "${service}";
-    done  
+        printf "  journalctl -t archappl-%s\n" "${service}";
+    done
 
     printf ">>> Service PIDs \n"
     printf "    All Tomcat processes\n";
@@ -416,6 +416,113 @@ function health_systemd {
     return "$rc"
 }
 
+# Service mode: this shell is the unit's main process and owns the four
+# Tomcats. Each instance runs in the foreground behind its own systemd-cat,
+# which reads a FIFO so that both are ordinary children: bash 4.4 wakes
+# wait -n on a child's exit but not on a finished process substitution.
+# The instance's PID is the wrapper's, which execs catalina.sh run and then
+# java, and it is written to temp/<service>.pid for status, health and the
+# interactive shutdown. A dead JVM or a dead systemd-cat both end the
+# service: the survivors stop in order and the launcher exits non-zero.
+declare -A service_jvm_pids=()
+declare -A service_cat_pids=()
+declare -g service_stop_requested=0
+
+function service_fifo
+{
+    printf '%s/%s/temp/%s.log.fifo' "$1" "$2" "$2"
+}
+
+function service_start_instance
+{
+    local archappl_top="$1";shift;
+    local service="$1";shift;
+    local base fifo pidfile
+    base="${archappl_top}/${service}"
+    fifo=$(service_fifo "${archappl_top}" "${service}")
+    pidfile="${base}/temp/${service}.pid"
+    rm -f "${pidfile}" "${fifo}"
+    if ! mkfifo -m 600 "${fifo}"; then
+        printf 'archappl-%s: cannot create %s\n' "${service}" "${fifo}" >&2
+        return 1
+    fi
+    systemd-cat --identifier="archappl-${service}" --level-prefix=true < "${fifo}" &
+    service_cat_pids[${service}]=$!
+    "${base}/bin/run.sh" > "${fifo}" 2>&1 &
+    service_jvm_pids[${service}]=$!
+    printf '%s\n' "${service_jvm_pids[${service}]}" > "${pidfile}"
+    printf 'archappl-%s: started pid %s\n' "${service}" "${service_jvm_pids[${service}]}"
+}
+
+# Every JVM and every systemd-cat must still be alive; wait -n has reaped the
+# one that ended, so kill -0 fails for it.
+function service_alive
+{
+    local service pid
+    for service in "${startup_services[@]}"; do
+        for pid in "${service_jvm_pids[${service}]:-}" "${service_cat_pids[${service}]:-}"; do
+            if [[ -z ${pid} ]] || ! kill -0 "${pid}" 2>/dev/null; then
+                printf 'archappl-%s: process %s is gone\n' "${service}" "${pid:-none}" >&2
+                return 1
+            fi
+        done
+    done
+}
+
+# SIGTERM starts Tomcat's shutdown hook; the wait loop survives a signal that
+# interrupts the wait builtin while the JVM is still stopping.
+function service_stop_instance
+{
+    local archappl_top="$1";shift;
+    local service="$1";shift;
+    local pid="${service_jvm_pids[${service}]:-}"
+    if [[ -n ${pid} ]] && kill -0 "${pid}" 2>/dev/null; then
+        printf 'archappl-%s: stopping pid %s\n' "${service}" "${pid}"
+        kill -TERM "${pid}" 2>/dev/null
+        while kill -0 "${pid}" 2>/dev/null; do
+            wait "${pid}" 2>/dev/null || true
+        done
+    fi
+    if [[ -n ${service_cat_pids[${service}]:-} ]]; then
+        wait "${service_cat_pids[${service}]}" 2>/dev/null || true
+    fi
+    rm -f "${archappl_top}/${service}/temp/${service}.pid" "$(service_fifo "${archappl_top}" "${service}")"
+    unset "service_jvm_pids[${service}]" "service_cat_pids[${service}]"
+}
+
+# shellcheck disable=SC2120
+function service_archappl
+{
+    local archappl_top="$1";shift;
+    local service rc=0
+
+    if [ -z "$archappl_top" ]; then
+	    archappl_top="${SC_TOP}"
+    fi
+
+    trap 'service_stop_requested=1' TERM INT
+    for service in "${startup_services[@]}"; do
+        if ! service_start_instance "${archappl_top}" "${service}"; then
+            rc=1
+            break
+        fi
+    done
+    while (( rc == 0 && service_stop_requested == 0 )); do
+        wait -n 2>/dev/null || true
+        if (( service_stop_requested )); then
+            break
+        fi
+        if ! service_alive; then
+            rc=1
+        fi
+    done
+    for service in "${shutdown_services[@]}"; do
+        service_stop_instance "${archappl_top}" "${service}"
+    done
+    trap - TERM INT
+    return "${rc}"
+}
+
 function usage
 {
     {
@@ -426,6 +533,7 @@ function usage
         echo "";
         echo "               startup   : startup all services in order";
         echo "               shutdown  : shutdown all services in order ";
+        echo "               service   : run all services in the foreground (systemd main process)";
         echo "               restartup : shutdown and startup";
         echo "               storage   : show the storage status";
         echo "               status    : show summary for status";      
@@ -457,6 +565,11 @@ case "$1" in
 	    ;;
     shutdown)
 	    shutdown_archappl
+	    ;;
+    service)
+	    # shellcheck disable=SC2119
+	    service_archappl
+	    exit $?
 	    ;;
     restart)
 	    shutdown_archappl

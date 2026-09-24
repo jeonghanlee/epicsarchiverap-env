@@ -8,8 +8,8 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M33 (the journald logging model, D24) awaits plan
-acceptance in this file; M34 waits on M33 (G14 Complete at `a1155ef0`);
+Next session entry point: M33 (the journald logging model, D24) is In progress,
+plan accepted and implementation authorized 2026-09-24; M34 waits on M33 (G14 Complete at `a1155ef0`);
 M35 (Tomcat and java.util.logging through log4j2, D25) waits on M33 (G15 Complete at `9bbd69bf`).
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
@@ -27,8 +27,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Three rows are
-Ready: M9, M26 and M33. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -77,7 +77,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
 | Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; issue #50 records it and stays open for M32; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
 | Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS, then issue #50 closes; [detail](#m32---observe-the-store-chain-with-the-test-values) |
-| Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | Not started | Yes | D12, D19, D24 | The service is Type=exec with KillMode=mixed and Restart=no; the launcher starts and stops the four Tomcats in the D12 order in the foreground, each through `systemd-cat` with `archappl-<component>`; JULI keeps only the ConsoleHandler; the access log has `maxDays`; `log4j.properties.in` is gone; the install guide says so; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
+| Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | In progress | No | D12, D19, D24 | The service is Type=exec with KillMode=mixed and Restart=no; the launcher starts and stops the four Tomcats in the D12 order in the foreground, each through `systemd-cat` with `archappl-<component>`; JULI keeps only the ConsoleHandler; the access log has `maxDays`; `log4j.properties.in` is gone; the install guide says so; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
 | Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Not started | No | M33, G14, D24 | aa-env ships no `log4j2.xml` and exports `ARCHAPPL_ROOT_LOGGER_LEVEL`, so `journalctl -p err` selects application errors; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
 | Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Not started | No | M33, G15, D25 | Each instance runs with `log4j-appserver` and `log4j-jul` on the Tomcat classpath and `log4j2-tomcat.xml`, so Tomcat's own lines and the CA client's `java.util.logging` lines reach the journal at their own priority; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
@@ -3721,7 +3721,7 @@ Last Compared: 2026-09-24T01:40:37Z; `gh api repos/jeonghanlee/epicsarchiverap-e
 Origin: 265f580 / M33
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -3739,8 +3739,11 @@ of D19. The launcher also tells users to tail `logs/archappl_service.log`
 
 ##### Scope
 
-- `site-template/systemd/epicsarchiverap-maven.service.in`: `Type=exec`,
-  `KillMode=mixed`, `Restart=no`, `TimeoutStopSec` sized from T2's measured ETL
+- `site-template/systemd/epicsarchiverap-maven.service.in`: `Type=simple`
+  (`Type=exec` arrived with systemd 240 and Rocky 8 runs 239, which would
+  ignore the value with a parse warning; for a launcher that stays up the two
+  behave the same), `KillMode=mixed`, `Restart=no`, `TimeoutStopSec` from
+  `SYSTEMD_TIMEOUT_STOP_SECONDS` (default 300) sized from T2's measured ETL
   stop, and no `ExecStop`: `systemctl stop` reaches the launcher as SIGTERM,
   so a Tomcat exit during a stop is never read as a child death.
 - A foreground wrapper per instance, rendered like `site-template/startup.sh.in`
@@ -3757,13 +3760,17 @@ of D19. The launcher also tells users to tail `logs/archappl_service.log`
   `systemd-cat --identifier=archappl-<component> --level-prefix=true` (no line
   carries a `<N>` prefix yet, so all lines take the default priority: JULI
   and `java.util.logging` lines until M35, application lines until M34). Each
-  child starts as `wrapper > >(systemd-cat ...) 2>&1 &`, not as a pipeline,
-  so `$!` is the wrapper and, through `exec catalina.sh run` and catalina.sh's
-  own `exec java`, the JVM; in a pipeline `$!` would be the `systemd-cat`
-  process. The `systemd-cat` PID itself is `$!` right after
-  `exec {fd}> >(systemd-cat ...)`, so the launcher opens that descriptor
-  first, records the PID, and starts the wrapper writing to the descriptor. Rocky 8 ships bash 4.4, and `wait -n` takes PID arguments only
-  from bash 5.1, so the launcher runs a plain `wait -n` and, each time it
+  instance's `systemd-cat` reads a FIFO under `temp/` as an ordinary
+  background job, and the wrapper writes to that FIFO as a second background
+  job, so `$!` of the wrapper is, through `exec catalina.sh run` and
+  catalina.sh's own `exec java`, the JVM, and `$!` of the `systemd-cat` job
+  is its own PID. Neither a pipeline nor a process substitution serves: in a
+  pipeline `$!` is the `systemd-cat` process, and on Rocky 8's bash 4.4
+  `wait -n` does not return when a process substitution ends (measured
+  2026-09-24 in a Rocky 8 container with bash 4.4.20: a finished
+  `>(sleep 1)` left `wait -n` blocked until an unrelated child ended 30 s
+  later, a plain child's end returned it at once, and `wait -n <pid>` was
+  refused with 127). So the launcher runs a plain `wait -n` and, each time it
   returns, checks the four JVM PIDs and the four `systemd-cat` PIDs with
   `kill -0`. A dead `systemd-cat` is treated like a dead Tomcat, because the
   JVM keeps running while `System.out` swallows the write errors and that
@@ -3834,9 +3841,9 @@ docs on the aa-maven side.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-24, owner acceptance of the plan as recorded at c154a64 after aa-maven's review
+Implementation Authorization: 2026-09-24, owner authorization for the plan accepted the same day
 Superseded Plan Artifacts: none
 
 1. Change the unit template to `Type=exec`, `KillMode=mixed`, `Restart=no`
@@ -3844,7 +3851,9 @@ Superseded Plan Artifacts: none
    remove `ExecStop`.
 2. In `scripts/archappl.bash`, add the service mode: foreground start of the
    four Tomcats in order through the per-instance wrapper and `systemd-cat`,
-   each started by process substitution so `$!` is the JVM, its PID written
+   each started as a background job writing to a FIFO that a background
+   `systemd-cat` reads, so `$!` gives the JVM and the `systemd-cat` PID in
+   turn, the JVM PID written
    to `temp/<service>.pid`, a SIGTERM trap that stops them in order with
    SIGTERM to each JVM PID and a wait on that PID, a plain `wait -n` loop
    with a `kill -0` check of the JVM and `systemd-cat` PIDs (bash 4.4 on
@@ -3875,8 +3884,8 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | Disposable VM | Pending | none |
+| T1 | 2026-09-24T21:38:17Z | Local working tree based on `c154a64`; an isolated copy of the Make system for the unit render; the real `systemd-cat` of this host (systemd 257) with fake instances for a logic smoke test | Pass | `bash -n` and `shellcheck -x` report nothing for `scripts/archappl.bash`; `tests/run-all-tests.bash --phase=1` exits 0 with P1.19 passing: the rendered unit carries `Type=simple`, `KillMode=mixed`, `Restart=no`, `TimeoutStopSec=300s`, an `ExecStart` in service mode and no `ExecStop`; the launcher carries the identifier, the `wait -n` loop and `bin/run.sh`, and no `archappl_service.log`; `run.sh.in` execs `catalina.sh run`; `make -n install.mgmt` renders `bin/run.sh`; JULI keeps only the ConsoleHandler with `OneLineFormatter`; the valve carries `maxDays="90"`; `log4j.properties.in` and `conf.log4j` are gone; `tests/run-all-tests.bash --phase=2` also exits 0 after `log4j.properties` left the Phase 2 rendered-file list. Smoke test with four fake instances (a shell loop each) and the real `systemd-cat`: pid files hold the instance PIDs; killing one `systemd-cat` ends the launcher with rc 1 after the ordered stop engine, retrieval, etl, mgmt; SIGTERM ends it with rc 0 in the same order; no pid file remains; a `<6>` line landed at `PRIORITY` 6 with the prefix stripped |
+| T2 | 2026-09-24T21:55:21Z (last start; observations 21:44Z to 21:55Z) | Disposable Rocky Linux 8.10 VM from cloud-provision (bash 4.4.20, systemd 239, Tomcat 9.0.121 from `make tomcat`, MariaDB 10.3.39, WARs from aa-maven `9bbd69bf`), aa-env working tree based on `c154a64` with the M33 change, `java-21-openjdk-devel` added by hand for the `JAVA_HOME` link; a `softIoc` with three records on the host's bridge address, `EPICS_CA_ADDR_LIST` set to it | Pass | Full `make install` and `make sd_start`: unit active with `Type=simple`, `KillMode=mixed`, `Restart=no`, `TimeoutStopSec=300s`, no `ExecStop`; `journalctl -u <unit> -t archappl-<component>` shows 92 to 143 entries per identifier after start; `logs/` holds only `localhost_access_log.<date>.txt` per instance, no `catalina.out`, no dated JULI file; the four pid files name the JVMs (`/proc/<pid>/exe` is java) and `status` and `health` verify all four; a JULI line is one entry at `PRIORITY` 6 (all 202 mgmt entries at 6); `printf '<3>probe' | systemd-cat -t archappl-probe` lands at `PRIORITY` 3 with `MESSAGE=probe` on systemd 239; three PVs archived (`Being archived`, 234 samples each over ten minutes, one STS file per PV); a `localhost_access_log.old.txt` dated 91 days back is gone after a restart; `systemctl stop` with samples in STS stops engine, retrieval, etl, mgmt in that order in 10.3 s (engine 10.1 s, the others under 0.1 s, each through Tomcat's ProtocolHandler pause, stop and destroy), unit inactive, no pid file left; `kill -KILL` of the retrieval JVM: `process <pid> is gone`, survivors stopped in order, unit failed with status 1, no restart; `kill -TERM` of the etl `systemd-cat`: same outcome; after each restart exactly four java processes and four ports; the `wait -n` loop woke on both deaths on bash 4.4. `TimeoutStopSec` stays at the 300 s default: the measured stop is 10.3 s with three PVs and the bound leaves room for a loaded ETL |
 
 ##### Closure Evidence
 

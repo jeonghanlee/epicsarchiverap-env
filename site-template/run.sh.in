@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Foreground start of one instance for the service launcher: the same
+# environment as startup.sh, then catalina.sh run replaces this shell so the
+# PID the launcher holds is the JVM's.
+
+set -a
+# shellcheck source=/dev/null
+. "@ARCHAPPL_TOP@/archappl.conf"
+. "@ARCHAPPL_TOP@/@SERVICE_NAME@/conf/@SERVICE_NAME@.conf"
+set +a
+
+export CATALINA_BASE="@INSTALL_LOCATION@"
+export CATALINA_PID="@INSTALL_LOCATION@/temp/@SERVICE_NAME@.pid"
+exec "${CATALINA_HOME}/bin/catalina.sh" run "$@"

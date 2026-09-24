@@ -158,6 +158,22 @@ Notes:
   MariaDB service and the application account, the base packages, and the service
   group and user when pre-created.
 
+## Logs
+
+- The appliance service runs the launcher as its main process and the four
+  Tomcats in the foreground. Each instance's stdout and stderr go to the
+  journal under `archappl-<instance>` (`archappl-mgmt`, `archappl-engine`,
+  `archappl-etl`, `archappl-retrieval`):
+  `journalctl -u epicsarchiverap-maven.service -t archappl-engine`.
+- No `catalina.out` and no dated JULI file is written; the only file per
+  instance is the access log `logs/localhost_access_log.<date>.txt`, which
+  Tomcat rotates daily and prunes after 90 days.
+- Journal retention (`MaxRetentionSec`, `SystemMaxUse`) is a host setting.
+- `systemctl stop` stops the instances in order within
+  `SYSTEMD_TIMEOUT_STOP_SECONDS` (default 300); a dead instance leaves the unit
+  failed with no automatic restart. The systemd guide in
+  `docs/technicaldocs/README.systemd.md` describes the lifecycle.
+
 ## Health check
 
 - Process presence: run the installed `archappl.bash health` as the service

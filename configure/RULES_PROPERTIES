@@ -1,6 +1,4 @@
 
-## ---> $(TOMCAT_HOME)/lib
-## ARCHAPPL_LOG4JPROPERTIES:=log4j.properties
 ## ---> $(AA_INSTALL_LOCATION)/*/conf
 ## ARCHAPPL_CONTEXT_XML:=context.xml
 
@@ -8,7 +6,7 @@
 ## ARCHAPPL_CONF:=archappl.conf
 
 
-properties_RULES_NAMES:=appliances properties policies context archappl log4j
+properties_RULES_NAMES:=appliances properties policies context archappl
 conf_properties_RULES:=$(addprefix conf., $(properties_RULES_NAMES))
 show_properties_RULES:=$(addsuffix .show, $(conf_properties_RULES))
 
@@ -127,14 +125,6 @@ conf.archappl: $(ARCHAPPL_CONF).in
 			< $< > $(basename $<)
 
 conf.archappl.show: $(ARCHAPPL_CONF).in
-	@cat -b $(basename $<)
-
-conf.log4j: log4j.properties.in
-	$(QUIET) echo ">>> Generate $(basename $<) from $<"
-	$(QUIET)sed -e "s:@ARCHAPPL_ROOT_LOGGER_LEVEL@:$(ARCHAPPL_ROOT_LOGGER_LEVEL):g" \
-			< $< > $(basename $<)
-
-conf.log4j.show: log4j.properties.in
 	@cat -b $(basename $<)
 
 mkdir.sitesidpath:

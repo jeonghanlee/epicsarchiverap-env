@@ -44,6 +44,7 @@ conf.systemd0: $(SYSTEMD_FILENAME).in
 				-e "s|@ARCHAPPL_MAIN_SCRIPT@|$(ARCHAPPL_MAIN_SCRIPT)|g" \
 				-e "s|@ARCHAPPL_SITEID@|$(ARCHAPPL_SITEID)|g" \
 				-e 's|@SYSTEMD_SERVICES@|$(SYSTEMD_SERVICES)|g' \
+				-e 's|@TIMEOUT_STOP_SECONDS@|$(SYSTEMD_TIMEOUT_STOP_SECONDS)|g' \
                 < $< > $(basename $<)
 
 conf.systemd0.show: $(SYSTEMD_FILENAME).in

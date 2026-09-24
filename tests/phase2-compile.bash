@@ -60,7 +60,7 @@ assert_eq "${maven_count}" 1 "Build invokes the source Maven Wrapper with clean 
 
 # P2.4 Each rendered configuration precedes the overlay copy and Maven build.
 copy_command="cp -rf ${overlay_path} ${target_path}"
-for config_file in appliances.xml archappl.properties policies.py context.xml archappl.conf log4j.properties; do
+for config_file in appliances.xml archappl.properties policies.py context.xml archappl.conf; do
     config_redirection="< ${template_path}/${config_file}.in > ${template_path}/${config_file}"
     case $'\n'"${build_output}"$'\n' in
         *"${config_redirection}"$'\n'*$'\n'"${copy_command}"$'\n'*"${maven_line}"$'\n'*)

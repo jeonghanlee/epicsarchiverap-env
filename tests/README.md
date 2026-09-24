@@ -94,6 +94,16 @@ the console summary; a skipped check is not verification.
   and `-j8` retain the shipped `.NOTPARALLEL`. Full-install and removal command
   ordering is checked by dry-run only; no live systemctl mutation is executed.
   If available, `systemd-analyze verify` checks the generated pair's unit syntax.
+- The appliance unit rendered by the real `conf.systemd0` rule from an isolated
+  copy carries `Type=simple`, `KillMode=mixed`, `Restart=no`, the
+  `TimeoutStopSec` default and an `ExecStart` in service mode, with no
+  `ExecStop`. The launcher parses (and passes `shellcheck -x` when installed),
+  carries the per-instance `systemd-cat` identifier, the `wait -n` loop and the
+  `bin/run.sh` wrapper, and no longer names `archappl_service.log`. The run
+  wrapper template execs `catalina.sh run`; the instance install renders it.
+  JULI keeps only the `ConsoleHandler` with `OneLineFormatter`, the access
+  valve carries `maxDays="90"`, and the `log4j.properties` template and its
+  `conf.log4j` target are gone. No JVM or systemd-cat is started.
 
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.
