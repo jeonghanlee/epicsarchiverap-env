@@ -74,8 +74,8 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | D23 | The ETL-timing half of M26 moves to its own work item, M31, so it can proceed without the archive-store filesystem work; M26 keeps the filesystem half. The store granularity and hold become Make variables substituted into the existing `site-template/policies.py.in` instead of a second, test-only policy file, so the shipped defaults and a test host's values come from one template and differ only in `../CONFIG_SITE.local`, which `make <os>.conf` does not rewrite. aa-env rejects a granularity name outside aa-maven's `PartitionGranularity` and a hold that is not a positive integer; the cross-tier ordering check (STS no coarser than MTS, MTS no coarser than LTS) is requested from the ansible-provision operator, which writes the test values. | 2026-09-23 |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
-| Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; ansible-provision notified 2026-09-24; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
-| Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS; [detail](#m32---observe-the-store-chain-with-the-test-values) |
+| Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; issue #50 records it and stays open for M32; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
+| Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS, then issue #50 closes; [detail](#m32---observe-the-store-chain-with-the-test-values) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -3444,7 +3444,7 @@ Last Compared: 2026-09-23T23:04:57Z; `gh api repos/jeonghanlee/epicsarchiverap-e
 Origin: 265f580 / M31
 Identity History: Split from M26 on 2026-09-23 (D23); M26 keeps the
 archive-store filesystem half.
-GitHub Issue: none
+GitHub Issue: #50
 Status: Complete
 
 ##### Summary
@@ -3554,24 +3554,26 @@ Superseded Plan Artifacts: none
   values, the test values, the ordering-check request and the G13 soak
   request on 2026-09-24 (plan step 6).
 - Complete 2026-09-24: every completion criterion is met by T1 and the landing
-  above; no issue is linked. The chain observation with these values is M32.
+  above. Issue #50, filed the same day, records this change; it stays open for
+  the soak criterion, which M32 carries.
 
 ##### GitHub Projection
 
-Title: Selectable store granularity and hold for test hosts
+Title: Selectable store granularity and hold
 Labels: enhancement
 GitHub Milestone: none
-Observed State: none
-Observed Labels: none
+Observed State: open
+Observed Labels: enhancement
 Observed Milestone: none
-Last Compared: never
+Observed Updated At: 2026-09-24T01:40:37Z
+Last Compared: 2026-09-24T01:40:37Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/50` read after creation; the issue stays open until the soak criterion, which M32 carries, is observed
 
 #### M32 - Observe the store chain with the test values
 
 Origin: 265f580 / M32
 Identity History: Split from M31 on 2026-09-23 so M31 does not wait on the
 external soak.
-GitHub Issue: none
+GitHub Issue: #50
 Status: Blocked
 
 ##### Summary
@@ -3628,13 +3630,14 @@ Superseded Plan Artifacts: none
 
 ##### GitHub Projection
 
-Title: Observe the store chain with the test values
+Title: Selectable store granularity and hold
 Labels: enhancement
 GitHub Milestone: none
-Observed State: none
-Observed Labels: none
+Observed State: open
+Observed Labels: enhancement
 Observed Milestone: none
-Last Compared: never
+Observed Updated At: 2026-09-24T01:40:37Z
+Last Compared: 2026-09-24T01:40:37Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/50` read after creation; #50 is shared with M31 and closes on this row's soak criterion
 
 ## Backlog
 
