@@ -14,18 +14,19 @@ and an interruption window for M23's remaining real-process/runtime checks using
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
 M26 remains Ready for a test-host archive filesystem separate from the root
-volume, with the requirement documented in `docs/README.install.md`.
-The other half of M26 is settled: the shipped MTS granularity is
-now `PARTITION_DAY`, matching the storage guide's recommended default, so the
-second ETL hop becomes eligible after about two days instead of two months and a
-soak can observe the whole chain. M24 is Complete at `4b4cb41`; issue #45 was
+volume, with the requirement documented in `docs/README.install.md`. Its
+ETL-timing half moved to M31 (D23), whose draft plan awaits acceptance: Make
+variables for the store granularity and hold, so test hosts shorten the
+chain without editing the shipped template. M32, the run that observes the
+chain with the test values, is Blocked on M31 and on G13, the
+ansible-provision soak. M24 is Complete at `4b4cb41`; issue #45 was
 updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Three rows are
+Ready: M9, M26 and M31. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -63,15 +64,18 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; VM checks remain for the 45-second failure-reporting target, no monitor-initiated stop/restart and preserved dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
-| Storage | M26 | Test-environment archive store and ETL timing | Milestone | Not started | Yes | D18, D21 | The archive store sits off the root filesystem with a threshold that reports first, and a short run shows samples moving STS to MTS to LTS; both documented; [detail](#m26---test-environment-archive-store-and-etl-timing) |
+| Storage | M26 | Test-environment archive store | Milestone | Not started | Yes | D18, D21, D23 | The archive store sits off the root filesystem with a threshold that reports first, and the host prerequisites say so; [detail](#m26---test-environment-archive-store) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
+| D23 | The ETL-timing half of M26 moves to its own work item, M31, so it can proceed without the archive-store filesystem work; M26 keeps the filesystem half. The store granularity and hold become Make variables substituted into the existing `site-template/policies.py.in` instead of a second, test-only policy file, so the shipped defaults and a test host's values come from one template and differ only in `../CONFIG_SITE.local`, which `make <os>.conf` does not rewrite. aa-env rejects a granularity name outside aa-maven's `PartitionGranularity` and a hold that is not a positive integer; the cross-tier ordering check (STS no coarser than MTS, MTS no coarser than LTS) is requested from the ansible-provision operator, which writes the test values. | 2026-09-23 |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
+| Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Not started | Yes | D21, D23 | Test hosts set the STS, MTS and LTS granularity and hold through Make variables, the default render is unchanged, and invalid values stop `conf.policies`; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
+| Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS; [detail](#m32---observe-the-store-chain-with-the-test-values) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -83,6 +87,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Gate | G10 | aa-maven Phase 1 complete (servlet-api 9.0.122, CI on Maven) | External gate | Complete | No | | Phase 1 closed on the D17 basis: servlet-api 9.0.122 and Maven CI verified at `3c96141d` 2026-09-20; Ant removal deferred; [detail](#g10---aa-maven-phase-1-complete-servlet-api-90122-ci-on-maven) |
 | Gate | G11 | aa-maven retires the Sphinx docs pipeline (mdBook on Pages) | External gate | Complete | No | | Sphinx/RTD removed on aa-maven modernize `263805a1`; mdBook live on GitHub Pages; [detail](#g11---aa-maven-retires-the-sphinx-docs-pipeline-mdbook-on-pages) |
 | Gate | G12 | JNA on the WAR classpath for MariaDB Unix-socket support | External gate | Complete | No | | `jna` and `jna-platform` 5.13.0 present in all four WARs built from `3c96141d`, verified 2026-09-21; transitive, so an explicit declaration was requested of aa-maven as hardening; [detail](#g12---jna-on-the-war-classpath-for-mariadb-unix-socket-support) |
+| Gate | G13 | ansible-provision runs a soak with the M31 test values | External gate | Open | No | | The ansible-provision operator reports a run of a few hours with the M31 test values, showing samples in STS, then MTS, then LTS; [detail](#g13---ansible-provision-runs-a-soak-with-the-m31-test-values) |
 ### Decisions
 
 | ID | Decision | Decision Date |
@@ -2263,28 +2268,25 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
-#### M26 - Test-environment archive store and ETL timing
+#### M26 - Test-environment archive store
 
 Origin: 265f580 / M26
-Identity History: none
+Identity History: Retitled 2026-09-23 from "Test-environment archive store and
+ETL timing" when the ETL-timing half moved to M31 (D23).
 GitHub Issue: none
 Status: Not started
 
 ##### Summary
 
-Two findings from the provisioned deployment runs meet in the same place. The
-archive store resolves to the root volume: nothing in the install path mounts a
+A finding from the provisioned deployment runs: the archive store resolves to the root volume: nothing in the install path mounts a
 dedicated filesystem for it and `ARCHAPPL_STORAGE_TOP` only names a directory,
 so an archiver that fills its store fills `/` and takes the whole host instead
 of just archiving. No quota or threshold exists anywhere in the chain, and the
 fill rate is unknown because no run has yet had a PV sampling.
 
-Separately, the shipped store configuration makes the ETL chain untestable.
-`site-template/policies.py.in` sets STS to `PARTITION_HOUR&hold=2`, MTS to
-`PARTITION_MONTH&hold=2` and LTS to `PARTITION_YEAR`, so samples leave STS after
-about two hours but do not leave MTS for about two months. A test environment
-cannot observe the second hop at all, which is also the lens the old "no mts and
-lts" report needs before anyone reads an empty LTS as a defect.
+The ETL-timing finding that shared this row, a store configuration whose
+second hop could not be observed in a test run, moved to M31 on 2026-09-23
+(D23).
 
 ##### Scope
 
@@ -2293,11 +2295,6 @@ lts" report needs before anyone reads an empty LTS as a defect.
   the root filesystem is endangered.
 - `docs/README.install.md`: name the storage volume among the host
   prerequisites, which today it does not.
-- A test-oriented set of store URLs with short `partitionGranularity` and
-  `hold`, selectable without editing the shipped default, so the whole
-  STS to MTS to LTS chain is observable within a short run.
-- `docs/README.policies.md`: record the test configuration beside the shipped
-  defaults and the media recommendations already there.
 
 Out of scope: production storage sizing and per-tier media selection; retention
 policy for real data; the reduction operators (`reducedata`, `pp`); and any
@@ -2308,15 +2305,13 @@ test environment.
 
 - On a test host the archive store is not on the root filesystem, and a
   threshold reports before the root filesystem is affected.
-- With the test configuration selected, a run of a few hours shows samples
-  present in STS, then MTS, then LTS.
-- The host prerequisites and the policy guide both state what the test
-  environment requires.
+- The host prerequisites state what the test environment requires.
 
 ##### Dependencies And Decisions
 
 - D18 (the findings come from the provisioned deployment runs).
 - D21 (scoped to the test environment first).
+- D23 (the ETL-timing half moved to M31, and its runtime test to M32).
 - The fill rate is unknown until the pending load test reports disk growth with
   a PV sampling. That figure sets the threshold value; it does not change the
   shape of this work, so this row does not wait on it.
@@ -2326,8 +2321,8 @@ test environment.
   template had disagreed since both were first committed; the owner settled it
   by changing the template rather than annotating the guide. The second ETL hop
   now becomes eligible after roughly two days instead of roughly two months, so
-  a soak can observe the whole chain and the remaining question for this row is
-  only whether two days is short enough for quick iteration.
+  a soak can observe the whole chain; whether two days is short enough for
+  quick iteration is now M31's question (D23).
 - The LTS `pp=mean_3600` half of that same recommendation is deliberately not
   applied: `pp` adds auxiliary files and therefore disk, which is the opposite
   of what this row is protecting against while the fill rate is unknown, and it
@@ -2345,17 +2340,13 @@ Superseded Plan Artifacts: none
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Config | Render the test store URLs and read the generated `policies.py` | This host | STS, MTS and LTS carry the short granularity and hold values |
-| T2 | Runtime | Archive one PV with the test configuration for a few hours | provisioned host | Samples appear in STS, then MTS, then LTS |
-| T3 | Runtime | Grow the store toward the threshold | provisioned host | The threshold reports before the root filesystem is affected |
+| T1 | Runtime | Grow the store toward the threshold | provisioned host | The threshold reports before the root filesystem is affected |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | provisioned host | Pending | none |
-| T3 | Not run | provisioned host | Pending | none |
+| T1 | Not run | provisioned host | Pending | none |
 
 ##### Closure Evidence
 
@@ -2363,7 +2354,7 @@ Superseded Plan Artifacts: none
 
 ##### GitHub Projection
 
-Title: Test-environment archive store and ETL timing
+Title: Test-environment archive store
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
@@ -2726,6 +2717,38 @@ aa-maven register row: none carries the closure; the declaration is theirs
   allowlist. `origin/modernize` moved `3c96141d` to `85f0f179`; aa-env tracks
   the branch through `SRC_TAG`, so the declared state arrives on the next
   checkout with no re-pin.
+
+#### G13 - ansible-provision runs a soak with the M31 test values
+
+Origin: 265f580 / G13
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The ansible-provision operator writes the M31 test values (STS
+`PARTITION_5MIN`/`hold=2`, MTS `PARTITION_HOUR`/`hold=2`, LTS
+`PARTITION_DAY`, as listed in M31 Scope) into
+`../CONFIG_SITE.local` (one directory above the checkout top) on a
+provisioned test host, runs the appliance with at
+least one PV archiving for a few hours, and reports where the samples are.
+D23 also asks that operator to check the cross-tier ordering of the values it
+writes. Affects M32.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-env commit, the values used, the
+  interval, and observed samples in STS, then MTS, then LTS.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Not run | Pending | none |
+
+##### Closure Evidence
+
+- none
 
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
@@ -3415,6 +3438,194 @@ Observed Labels: bug
 Observed Milestone: none
 Observed Updated At: 2026-09-23T23:04:56Z
 Last Compared: 2026-09-23T23:04:57Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/49` read
+
+#### M31 - Selectable store granularity and hold for test hosts
+
+Origin: 265f580 / M31
+Identity History: Split from M26 on 2026-09-23 (D23); M26 keeps the
+archive-store filesystem half.
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+`site-template/policies.py.in` writes the store granularity and hold as
+literals: STS `PARTITION_HOUR` with `hold=2`, MTS `PARTITION_DAY` with
+`hold=2`, LTS `PARTITION_YEAR`. A test host cannot shorten the STS to MTS to
+LTS chain without editing the shipped template. The ansible-provision
+operator reported on 2026-09-23 that on its soak host the first STS to MTS
+movement took about four hours, so MTS to LTS at `PARTITION_DAY` takes two
+days or more, and asked for a test policy selectable through
+`ARCHAPPL_POLICIES`. `ARCHAPPL_POLICIES` already selects the policy file end
+to end (`configure/CONFIG_SITE`, `conf.policies` in
+`configure/RULES_PROPERTIES`, `policies.install` in `configure/RULES_INSTALL`,
+`site-template/archappl.conf.in`). D23 takes Make variables in the existing
+template instead of a second file.
+
+##### Scope
+
+- `configure/CONFIG_SITE`: `ARCHAPPL_STS_GRANULARITY`, `ARCHAPPL_STS_HOLD`,
+  `ARCHAPPL_MTS_GRANULARITY`, `ARCHAPPL_MTS_HOLD` and
+  `ARCHAPPL_LTS_GRANULARITY`, defaulting to the current values.
+- `site-template/policies.py.in`: the three store URLs take those values
+  through `@...@` placeholders.
+- `configure/RULES_PROPERTIES` `conf.policies`: substitute the values, and
+  stop before writing `policies.py` when a granularity is not one of the seven
+  `PartitionGranularity` names in aa-maven (`PARTITION_5MIN`,
+  `PARTITION_15MIN`, `PARTITION_30MIN`, `PARTITION_HOUR`, `PARTITION_DAY`,
+  `PARTITION_MONTH`, `PARTITION_YEAR`, read at aa-maven `b7d4b1e4` on
+  2026-09-23; recheck when the followed source changes, D20) or a hold is not
+  a positive integer. A hold of at least 1 keeps `hold - gather` non-negative
+  with the fixed `gather=1`, which `PlainPBStoragePlugin` reports as an error
+  otherwise.
+- `docs/README.policies.md`: the variables, their defaults and the test-host
+  example values, which are the M31 test values: STS `PARTITION_5MIN` with
+  `hold=2`, MTS `PARTITION_HOUR` with `hold=2`, LTS `PARTITION_DAY`. Each is
+  an accepted name, each hold satisfies `hold >= gather`, and the tiers run
+  from finer to coarser.
+- `tests/phase1-logic.bash`: a guard on the rendered policy.
+
+Out of scope: `gather`, `consolidateOnShutdown` and `reducedata`; `pp` (M27);
+the cross-tier ordering check, requested from the ansible-provision operator
+(D23); the run that observes the chain with the test values (M32); a separate
+policy file; production values.
+
+##### Completion Criteria
+
+- With no override, the generated `policies.py` is identical to the one the
+  template at the pre-change commit renders.
+- With test values in `../CONFIG_SITE.local`, the three store URLs carry them.
+- An unknown granularity name or a hold that is not a positive integer makes
+  `conf.policies` fail before `policies.py` is written.
+- `docs/README.policies.md` documents the variables.
+
+##### Dependencies And Decisions
+
+- D21 (test environment first) and D23 (variables in the existing template;
+  ordering check requested from ansible-provision).
+- The runtime observation of the chain is M32, which depends on this row and
+  on G13, so this row does not wait on the ansible-provision soak.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Add the five variables to `configure/CONFIG_SITE` with the current values
+   as defaults.
+2. Replace the literals in the three store URLs of
+   `site-template/policies.py.in` with placeholders.
+3. In `conf.policies`, validate each value and add the substitutions.
+4. Document the variables and a test-host example in
+   `docs/README.policies.md`.
+5. `conf.policies` writes `site-template/policies.py` and a copy under
+   `ARCHAPPL_SITEID_CLASSPATHFILES_PATH`, so render only in isolated copies
+   of the Make system, as the Phase 1 backup and restore check does. Render
+   the pre-change commit and the changed tree once each with no override,
+   diff the two `policies.py` files and record the result. Extend
+   `tests/phase1-logic.bash` so, in an isolated copy, the default values
+   reach the three URLs, test values reach them, and invalid values fail.
+6. After the change lands, send the ansible-provision operator the variable
+   names, the accepted values and the request for the ordering check, and ask
+   it for the G13 soak.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | In isolated copies of the Make system, diff the default render against the pre-change commit's render once; `bash -n` and `tests/run-all-tests.bash --phase=1` with the new guard | This host | No difference from the pre-change render; default and test values reach the URLs; invalid values stop `conf.policies`; the guard fails against the pre-change template |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Selectable store granularity and hold for test hosts
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M32 - Observe the store chain with the test values
+
+Origin: 265f580 / M32
+Identity History: Split from M31 on 2026-09-23 so M31 does not wait on the
+external soak.
+GitHub Issue: none
+Status: Blocked
+
+##### Summary
+
+With the M31 test values (listed in M31 Scope) on a provisioned test host, a
+run of a few hours should show samples moving from STS to MTS to LTS, which the shipped values
+make impossible to observe in a short run. The run is the ansible-provision
+operator's (G13).
+
+##### Scope
+
+- Record the soak G13 reports: aa-env commit, values, interval and the tiers
+  that hold samples.
+
+Out of scope: the variables and their checks (M31); production values.
+
+##### Completion Criteria
+
+- With the M31 test values on a test host, a run of a few hours shows samples
+  in STS, then MTS, then LTS.
+
+##### Dependencies And Decisions
+
+- M31 (the variables must land first) and G13 (the soak is run by the
+  ansible-provision operator); D23. Blocked from creation on G13; resume as
+  Not started.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. When G13 reports, re-derive what can be checked from aa-env (the commit and
+   the rendered values) and record the reported tier observations with their
+   source.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Runtime | Archive at least one PV with the M31 test values for a few hours (G13) | Provisioned test host (ansible-provision) | Samples appear in STS, then MTS, then LTS |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Provisioned test host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Observe the store chain with the test values
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
 
 ## Backlog
 
