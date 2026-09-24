@@ -3306,6 +3306,13 @@ Superseded Plan Artifacts: none
   state_reason `completed`, label `bug`, no milestone; the remote body matched
   the prepared content. The commit's `Closes #47` takes effect only on the
   default branch.
+- Confirmed on the real deploy path 2026-09-24, reported by the
+  LAB-epicsarchiverap-maven session: the ansible-provision role deployed
+  aa-env `1fc20a8` with aa-maven `b7d4b1e4` on a disposable Rocky 8.10 VM,
+  and `make sql.fill` loaded the four tables as the application account over
+  TCP during the deploy, with no admin account and no manual load (MariaDB
+  10.3.39, driver only in each WAR's `WEB-INF/lib`); a PV archived and
+  retrieved, and archiving resumed within 90 s of a unit restart.
 
 ##### GitHub Projection
 
