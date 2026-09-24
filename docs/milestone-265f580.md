@@ -8,9 +8,9 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M33 (the journald logging model, D24) is In progress,
-plan accepted and implementation authorized 2026-09-24; M34 waits on M33 (G14 Complete at `a1155ef0`);
-M35 (Tomcat and java.util.logging through log4j2, D25) waits on M33 (G15 Complete at `9bbd69bf`).
+Next session entry point: M33 (the journald logging model, D24) is Complete at `f75c84c`;
+M34 (the WAR log4j2 layout, G14 Complete at `a1155ef0`) and
+M35 (Tomcat and java.util.logging through log4j2, D25, G15 Complete at `9bbd69bf`) are Ready and await plan acceptance in this file.
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
@@ -27,8 +27,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Four rows are
+Ready: M9, M26, M34 and M35. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -77,9 +77,9 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
 | Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; issue #50 records it and stays open for M32; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
 | Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS, then issue #50 closes; [detail](#m32---observe-the-store-chain-with-the-test-values) |
-| Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | In progress | No | D12, D19, D24 | The service is Type=exec with KillMode=mixed and Restart=no; the launcher starts and stops the four Tomcats in the D12 order in the foreground, each through `systemd-cat` with `archappl-<component>`; JULI keeps only the ConsoleHandler; the access log has `maxDays`; `log4j.properties.in` is gone; the install guide says so; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
-| Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Not started | No | M33, G14, D24 | aa-env ships no `log4j2.xml` and exports `ARCHAPPL_ROOT_LOGGER_LEVEL`, so `journalctl -p err` selects application errors; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
-| Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Not started | No | M33, G15, D25 | Each instance runs with `log4j-appserver` and `log4j-jul` on the Tomcat classpath and `log4j2-tomcat.xml`, so Tomcat's own lines and the CA client's `java.util.logging` lines reach the journal at their own priority; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
+| Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | Complete | No | D12, D19, D24 | Implemented and verified (T1-T2); landed at `f75c84c` on origin/modernize 2026-09-24; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
+| Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Not started | Yes | M33, G14, D24 | aa-env ships no `log4j2.xml` and exports `ARCHAPPL_ROOT_LOGGER_LEVEL`, so `journalctl -p err` selects application errors; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
+| Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Not started | Yes | M33, G15, D25 | Each instance runs with `log4j-appserver` and `log4j-jul` on the Tomcat classpath and `log4j2-tomcat.xml`, so Tomcat's own lines and the CA client's `java.util.logging` lines reach the journal at their own priority; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -3721,7 +3721,7 @@ Last Compared: 2026-09-24T01:40:37Z; `gh api repos/jeonghanlee/epicsarchiverap-e
 Origin: 265f580 / M33
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -3889,7 +3889,16 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation, T1 and T2 and the accepted plan's steps are finished; two
+  mechanisms differ from the accepted wording with the measured reason recorded
+  in Scope: `Type=simple` for systemd 239, and a FIFO-fed `systemd-cat` job
+  instead of a process substitution because bash 4.4's `wait -n` does not
+  return when a process substitution ends.
+- Landed at `f75c84c3d119a3098f0e319950a7492cb10beadc` on `origin/modernize`.
+  Observed 2026-09-24T22:37:12Z after `git fetch origin`: `git merge-base
+  --is-ancestor f75c84c origin/modernize` exited 0 and `origin/modernize`
+  resolved to `f75c84c`; the working tree was clean.
+- Complete 2026-09-24. No linked issue.
 
 ##### GitHub Projection
 
@@ -3947,7 +3956,7 @@ under discussion with aa-maven.
 ##### Dependencies And Decisions
 
 - M33 (the launcher and `systemd-cat` path), G14 (the layout), D24. Blocked
-  from creation on G14; G14 Complete 2026-09-24 at `a1155ef0`, restored to Not started; not Ready until M33 is Complete.
+  from creation on G14; G14 Complete 2026-09-24 at `a1155ef0`, restored to Not started; Ready since M33 Complete 2026-09-24 at `f75c84c`.
 
 ##### Implementation Plan
 
@@ -4058,7 +4067,7 @@ itself (G15); a RollingFile fallback at the Tomcat level.
 ##### Dependencies And Decisions
 
 - M33 (the foreground service and `systemd-cat` path), G15 (the jar set),
-  D25. Blocked from creation on G15; G15 Complete 2026-09-24 at `9bbd69bf`, restored to Not started; not Ready until M33 is Complete.
+  D25. Blocked from creation on G15; G15 Complete 2026-09-24 at `9bbd69bf`, restored to Not started; Ready since M33 Complete 2026-09-24 at `f75c84c`.
 - Verified on 2026-09-24: `log4j-appserver` 2.26.1 ships
   `META-INF/services/org.apache.juli.logging.Log` and its `TomcatLogger`
   looks for `log4j2-tomcat.xml`, `.json`, `.yaml`, `.yml` or `.properties` on
