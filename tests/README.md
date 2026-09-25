@@ -63,11 +63,11 @@ the console summary; a skipped check is not verification.
 
 ### Phase 1 — Logic
 - `configure/CONFIG_COMMON` is fully removed; no surviving file in `configure/` references that name.
-- The five OS preset fragments (`debian12`, `rocky8`, `macos`, `macbrew`, `githubmac`) are present under `configure/os/`.
+- The two OS preset fragments (`debian12`, `rocky8`) are present under `configure/os/`.
 - `make -n build` parses without error.
-- The five `XXX.conf` Tomcat targets each generate a `CONFIG_SITE.local` line that includes the matching preset.
+- The two `XXX.conf` Tomcat targets each generate a `CONFIG_SITE.local` line that includes the matching preset.
 - `SRC_PATH` derives to `epicsarchiverap-maven-src` and downstream `ARCHAPPL_SITEID_TARGET_PATH` resolves under that subtree (regression guard for the CONFIG include reorder).
-- The four removed obsolete documents (`README.ant.md`, `README.centos7.md`, `README.centos8.md`, `README.javapkgs.md`) are not referenced from any surviving Markdown file.
+- The five removed obsolete documents (`README.ant.md`, `README.centos7.md`, `README.centos8.md`, `README.javapkgs.md`, `README.macos.md`) are not referenced from any tracked Markdown file other than `CHANGELOG.md`, the milestone register and `tests/`; the check fails when the search itself cannot run, such as outside a Git work tree.
 - `CHANGELOG.md` is present; the misspelled `CHANGLOG.md` is gone.
 - `checkfile` (expanded from the real `configure/RULES_FUNC` with `make -n`) selects the removal command for an existing file and no removal command for an absent one; its caller in `RULES_SQL` passes an unquoted path. This is a command-generation check, not an executed deletion test.
 - `serverxml.install` pairs engine and etl with their own `ARCHAPPL_SHUTDOWN_*_PORT` variables.

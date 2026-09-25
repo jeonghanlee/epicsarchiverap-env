@@ -18,9 +18,10 @@ implementation at `9ee6ac0`; local implementation review passed. The heap defaul
 deployment verification without an override under M22 / T2.
 M26 is Ready: it will make `make conf.storage` warn when the archive store
 shares the root filesystem or lies under a user home, and the health timer
-alarm at a usage threshold (D26). M39, also Ready, removes macOS support
-(D27). Both plans are drafts awaiting owner acceptance and implementation
-authorization before any code changes. M26's
+alarm at a usage threshold (D26). M39, In progress,
+removes macOS support (D27) under its plan accepted and authorized on
+2026-09-25. M26's plan is a draft awaiting owner acceptance and
+implementation authorization before any code changes. M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
 editing the shipped template. M32, the run that observes the chain with the
@@ -31,8 +32,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Three rows are
-Ready: M9, M26 and M39. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -87,7 +88,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M36 | Set log levels at runtime from the launcher | Milestone | Complete | No | M33, M34, G17 | Implemented and verified (T1-T2); landed at `6302b12` on origin/modernize 2026-09-25; [detail](#m36---set-log-levels-at-runtime-from-the-launcher) |
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
 | Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Complete | No | M36 | Implemented and verified (T1); landed at `2fc1a75` on origin/modernize 2026-09-25; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
-| Platform | M39 | Remove macOS support | Milestone | Not started | Yes | D24, D26, D27 | No macOS preset, launchd file or target, `darwin` branch or macOS guide remains; Phase 1 and Phase 2 pass and a Rocky 8 install succeeds on a disposable VM; [detail](#m39---remove-macos-support) |
+| Platform | M39 | Remove macOS support | Milestone | In progress | No | D24, D26, D27 | No macOS preset, launchd file or target, `darwin` branch or macOS guide remains; Phase 1 and Phase 2 pass and a Rocky 8 install succeeds on a disposable VM; [detail](#m39---remove-macos-support) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -4589,7 +4590,7 @@ Last Compared: never
 
 Origin: 265f580 / M39
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -4622,21 +4623,30 @@ unmaintained.
 - Tests: drop the three macOS presets and targets from the P1.3 and P1.5
   lists in `tests/phase1-logic.bash` and from `tests/README.md`, and change
   the counts those texts state ("All five OS conf targets", "The five OS
-  preset fragments") to the two that remain, `debian12` and `rocky8`.
+  preset fragments", "The five `XXX.conf` Tomcat targets") to the two that
+  remain, `debian12` and `rocky8`; add `README.macos.md` to the P1.7 list of
+  removed documents that no surviving document may link, with its count,
+  and exclude the register from that check as `CHANGELOG.md` is.
 
 Out of scope: `CHANGELOG.md` entries and this register's history, which
 record past states; the non-Linux guard in `health_archappl`, which still
-rejects a non-Linux host.
+rejects a non-Linux host; the interactive `startup` and `shutdown` commands
+and the `make start`, `stop` and `status` targets, which serve a shell user
+on Linux; the `.DS_Store` line in `.gitignore`, which keeps an editor's
+files out of the tree rather than supporting macOS as a host.
 
 ##### Completion Criteria
 
 - `git grep -n -i -E 'macos|macbrew|githubmac|darwin|launchctl|homebrew|/opt/local|\.plist|<plist|PLIST_'`
-  outside `CHANGELOG.md` and this register prints nothing (a bare `plist`
-  would also match `dbBackupList`).
+  outside `CHANGELOG.md` and this register, filtered through
+  `grep -v 'README\.macos\.md'`, prints nothing. A bare `plist` would also
+  match `dbBackupList`; the filter drops only the removed guide's name, which
+  the P1.7 list and `tests/README.md` carry on purpose, so a leftover macOS
+  preset or target in the test lists is still caught.
 - `make macos.conf` fails with no rule to make the target; `make rocky8.conf`
   and `make debian12.conf` write the same `CONFIG_SITE.local` as before.
 - Phase 1 and Phase 2 pass, and on a disposable Rocky 8 VM the database
-  targets and the ordered install sequence succeed, with `status` printing
+  targets and the ordered install sequence succeed, with `storage` printing
   the storage usage and `sql.show` listing the tables.
 
 ##### Dependencies And Decisions
@@ -4647,33 +4657,70 @@ rejects a non-Linux host.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-25, the six-step plan in this detail
+Implementation Authorization: 2026-09-25, owner authorized the accepted plan
 Superseded Plan Artifacts: none
 
-1. Remove the presets, the macOS environment targets and the launchd file and
-   targets.
-2. Remove the `darwin` branches from the three scripts.
-3. Remove the macOS guide and its image; update the Phase 1 lists and
-   `tests/README.md`.
-4. Run T1 and T2 on this host and T3 on a disposable VM.
+1. Environment presets. In `configure/RULES_TOMCAT`, delete the `macos.conf`
+   recipe, the `macos.conf: macbrew.conf` prerequisite line, and the
+   `macbrew.conf` and `githubmac.conf` recipes, from `macos.conf:` through the
+   end of the `githubmac.conf` recipe; `debian12.conf`, `rocky8.conf` and the
+   `centos7.conf` and `centos8.conf` aliases stay. Remove
+   `configure/os/macos.mk`, `macos.pkgs`, `macbrew.mk` and `githubmac.mk` with
+   `git rm`. Closed by `make -n rocky8.conf` and `make -n debian12.conf`
+   printing the same recipe as before and `make -n macos.conf` having no rule.
+2. launchd. In `configure/RULES_SYSTEMD`, delete from the
+   `# launchctl for MacOS` comment through the `launchctl_print` recipe, up to
+   the `start:` target. In `configure/CONFIG_SYSTEMD`, delete `LAUNCH_PATH`
+   and `LAUNCH_PLIST_FILENAME`. Remove `site-template/archappl.plist.in` with
+   `git rm`. In `.gitignore`, delete `.plist` and `site-template/*.plist`.
+   Closed by `make -n sd_enable` still succeeding, `make -n conf.launch`
+   having no rule, and P1.19 rendering the unit from an isolated copy in T1.
+3. Scripts, each closed by `bash -n` and `shellcheck` on the file.
+   - `scripts/archappl.bash` `status_storage`: replace the `darwin`/`else`
+     block with the Linux `sudo -E bash -c "du ..."` line alone.
+   - `scripts/mariadb_generic_function.bash`: replace the whole
+     `if [[ $OSTYPE == 'darwin'* ]]` block with the four assignments of its
+     final `else` branch (`SQL_ROOT_CMD`, `SQL_ADMIN_CMD`, `SQL_DBUSER_CMD`,
+     `SQL_BACKUP_CMD`) at top level, keeping their `shellcheck` directives.
+   - `scripts/install_os_packages.bash`: delete the macOS usage line (header
+     line 7), drop `, macos` from the `--os` line, narrow `usage` from
+     `sed -n '3,13p'` to `sed -n '3,12p'`, delete the `darwin` test in
+     `detect_os` and the `macos)` case in `install_pkgs`, and drop
+     `:/opt/homebrew/bin` from the exported `PATH`. Also closed by `--help`
+     ending at the `-h, --help` line and by `--list-only --os rocky8` and
+     `--list-only --os debian13` printing the same lists as before.
+4. Documents. Remove `docs/technicaldocs/README.macos.md` and
+   `docs/technicaldocs/images/macos.png` with `git rm`.
+5. Tests. In `tests/phase1-logic.bash`, set the P1.3 list to `debian12 rocky8`,
+   the P1.5 list to `debian12.conf rocky8.conf` with its comment naming both
+   targets, and add `README.macos.md` to the P1.7 list with its comment
+   counting five removed documents, and exclude the register from that
+   check as it already excludes `CHANGELOG.md`, since both record past
+   states; the check runs as `git grep` over tracked files (amended
+   2026-09-25 by owner direction, after T1 found it also scanned a
+   gitignored copy of the register under `work/`), and a `git grep` status
+   above 1, a search that did not run, fails the check instead of passing; in `tests/README.md`, change the preset,
+   the `XXX.conf` target and the removed-document lines to match.
+6. Run T1 and T2 on this host, then T3 on a disposable VM, which is deleted
+   afterwards.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | Logic | `tests/run-all-tests.bash --phase=2` | This host | Phase 1 and Phase 2 pass with the macOS presets and targets gone from the lists |
-| T2 | Logic | The `git grep` of the completion criteria; then, in an isolated copy of the tree (the `.conf` targets delete and rewrite `configure/CONFIG_SITE.local`, so they never run in this host's checkout), `make macos.conf`, and `make rocky8.conf` and `make debian12.conf` with each generated `CONFIG_SITE.local` compared against the one the same target wrote in a `git worktree` of `HEAD`, made while the implementation is still uncommitted | This host | The grep prints nothing, `make macos.conf` has no rule, and both generated files are unchanged |
-| T3 | Runtime | On a disposable Rocky 8 VM, first the host prerequisites of `docs/README.install.md`: the packages through `scripts/install_os_packages.bash`, Tomcat 9.0.121 at `/opt/tomcat9`, and MariaDB configured for the IPv4 loopback with `skip-name-resolve` and started; the VM has no host-provided database, so then `make db.conf`, then `db.secure`, `db.addAdmin` and `db.create`, which run the root and admin client commands the removed `darwin` branch sat beside; then the ordered sequence of `docs/README.install.md`, steps 1 to 8; then `archappl.bash status` and `make sql.show` | Disposable VM | Every database target and every sequence step succeeds, `status` prints the storage usage through the Linux `du` branch, and `sql.show` lists the tables |
+| T2 | Logic | The `git grep` of the completion criteria with its `grep -v 'README\.macos\.md'` filter; then, in an isolated copy of the tree (the `.conf` targets delete and rewrite `configure/CONFIG_SITE.local`, so they never run in this host's checkout), `make macos.conf`, and `make rocky8.conf` and `make debian12.conf` with each generated `CONFIG_SITE.local` compared against the one the same target wrote in a `git worktree` of `HEAD`, made while the implementation is still uncommitted | This host | The grep prints nothing, `make macos.conf` has no rule, and both generated files are unchanged |
+| T3 | Runtime | On a disposable Rocky 8 VM, first the host prerequisites of `docs/README.install.md`: the packages through `scripts/install_os_packages.bash`, Tomcat 9.0.121 at `/opt/tomcat9`, and MariaDB started with its distribution defaults (no `skip-name-resolve`: the aa-env admin account is `@'localhost'` and reaches the server over TCP `127.0.0.1`, which the provisioned hosts never do, since they create the database and accounts themselves and run only `sql.fill`; amended 2026-09-25 by owner direction); the VM has no host-provided database, so then `make db.conf`, then `db.secure`, `db.addAdmin` and `db.create`, which run the root and admin client commands the removed `darwin` branch sat beside; then the ordered sequence of `docs/README.install.md`, steps 1 to 8; then `archappl.bash storage` (the command that calls `status_storage`; amended 2026-09-25 from `status`, which does not) and `make sql.show` | Disposable VM | Every database target and every sequence step succeeds, `storage` prints the storage usage through the Linux `du` branch, and `sql.show` lists the tables |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
-| T3 | Not run | Disposable VM | Pending | none |
+| T1 | 2026-09-25T18:46:21Z | This host, working tree on `dba40c1` with the M39 changes | Pass | `tests/run-all-tests.bash --phase=2` exits 0: Phase 1 passed=136 failed=0, Phase 2 passed=13 failed=0; P1.3 and P1.5 cover `debian12` and `rocky8`, and P1.7 reports no live reference to `README.macos.md`. The shipped Phase 1 script also ran on two copies of the tracked tree: with one tracked document linking `README.macos.md` P1.7 failed naming that document, and without `.git` P1.7 failed with `git grep rc=128`. A first run at 17:26Z failed P1.7 on a gitignored register copy under `work/`, which led to the switch to `git grep` |
+| T2 | 2026-09-25T17:26:37Z | This host; the `.conf` targets in a copy of the tracked tree, compared with a `git worktree` of `dba40c1` | Pass | The criteria grep with its filter prints nothing; `rocky8.conf` and `debian12.conf` write byte-identical `CONFIG_SITE.local` files; `make macos.conf` and `make -n conf.launch` stop with no rule; `make -n sd_enable` exits 0; the three scripts pass `bash -n` and `shellcheck` with no finding; `install_os_packages.bash --help` ends at the `-h, --help` line and `--list-only` for `rocky8` and `debian13` matches the pre-change lists |
+| T3 | 2026-09-25T17:58:22Z (run 17:51Z to 17:58Z) | Disposable Rocky Linux 8.10 VM from cloud-provision, the same working tree, source `modernize` cloned by `make init` and built there, MariaDB with distribution defaults | Pass | `db.secure`, `db.addAdmin` and `db.create` completed and `db.create` listed `archappl` and the account `archappl@127.0.0.1`; steps 1 to 8 succeeded (`build.mvn` BUILD SUCCESS); the appliance unit was active with four instance PIDs; `archappl.bash storage` and `storage all` printed the `/arch` tree through `du --total --human-readable --time`, rc 0; `sql.show` listed four tables. An earlier run on another VM with `skip-name-resolve` stopped at `sql.fill` with ERROR 1130, the expected result of the `@'localhost'` admin account over TCP, which led to the T3 amendment |
 
 ##### Closure Evidence
 

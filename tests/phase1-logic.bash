@@ -28,7 +28,7 @@ remaining=$(grep -rl 'CONFIG_COMMON' "${TOP}/configure/" 2>/dev/null || true)
 assert_empty "${remaining}" "No CONFIG_COMMON references in configure/"
 
 # P1.3 OS preset files exist as separately tracked Makefile fragments.
-for preset in debian12 rocky8 macos macbrew githubmac; do
+for preset in debian12 rocky8; do
     assert_file "${TOP}/configure/os/${preset}.mk" "configure/os/${preset}.mk present"
 done
 
@@ -36,8 +36,8 @@ done
 make -C "${TOP}" -n build > "${WORKSPACE}/make-n-build.txt" 2>&1
 assert_status $? 0 "make -n build parses"
 
-# P1.5 All five OS conf targets parse and reference their preset.
-for target in debian12.conf rocky8.conf macos.conf macbrew.conf githubmac.conf; do
+# P1.5 Both OS conf targets parse and reference their preset.
+for target in debian12.conf rocky8.conf; do
     out=$(make -C "${TOP}" -n "${target}" 2>&1)
     rc=$?
     if [[ ${rc} -ne 0 ]]; then
@@ -65,13 +65,20 @@ case "${target_path}" in
         ;;
 esac
 
-# P1.7 No surviving doc links to the four removed obsolete documents.
-# CHANGELOG.md and tests/README.md legitimately mention the names while
-# documenting the removal; exclude them from the link check.
-for removed in README.ant.md README.centos7.md README.centos8.md README.javapkgs.md; do
-    refs=$(grep -rln "${removed}" "${TOP}" --include='*.md' \
-        --exclude=CHANGELOG.md --exclude-dir=tests 2>/dev/null || true)
-    assert_empty "${refs}" "No live references to removed ${removed}"
+# P1.7 No tracked document links to the five removed obsolete documents.
+# CHANGELOG.md, the milestone register and tests/README.md legitimately
+# mention the names while recording the removal; exclude them from the
+# link check. Untracked working files are outside the check. git grep exits
+# 1 when nothing matches; any higher status means the search did not run.
+for removed in README.ant.md README.centos7.md README.centos8.md README.javapkgs.md README.macos.md; do
+    refs_rc=0
+    refs=$(git -C "${TOP}" grep -l -F "${removed}" -- '*.md' \
+        ':!CHANGELOG.md' ':!docs/milestone-*.md' ':!tests/' 2>/dev/null) || refs_rc=$?
+    if [[ ${refs_rc} -gt 1 ]]; then
+        _record_fail "No live references to removed ${removed}" "git grep rc=${refs_rc}"
+    else
+        assert_empty "${refs}" "No live references to removed ${removed}"
+    fi
 done
 
 # P1.8 Changelog rename applied (CHANGELOG.md kept, CHANGLOG.md gone).

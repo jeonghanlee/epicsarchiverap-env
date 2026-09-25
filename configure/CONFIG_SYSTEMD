@@ -12,5 +12,3 @@ SYSTEMD_HEALTH_TIMEOUT_SECONDS?=5
 SYSTEMD_HEALTH_STOP_SECONDS?=1
 # Ordered stop of the four Tomcats, including the ETL consolidation on shutdown.
 SYSTEMD_TIMEOUT_STOP_SECONDS?=300
-LAUNCH_PATH:=/Library/LaunchDaemons
-LAUNCH_PLIST_FILENAME:=archappl.plist

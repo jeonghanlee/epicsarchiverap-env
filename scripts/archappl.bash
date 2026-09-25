@@ -139,11 +139,7 @@ function status_storage
     local all=$1; shift;
     printf "\n>>>> Storage Status at %s\n\n" "${SC_TIME}";
     # ARCHAPPL_STORAGE_TOP is defined in archappl.conf
-    if [[ $OSTYPE == 'darwin'* ]]; then
-        sudo du -c -h -a "${ARCHAPPL_STORAGE_TOP}"
-    else
-        sudo -E bash -c "du --total --human-readable --time --\"${all}\" \"${ARCHAPPL_STORAGE_TOP}\"";
-    fi
+    sudo -E bash -c "du --total --human-readable --time --\"${all}\" \"${ARCHAPPL_STORAGE_TOP}\"";
     printf "\n";
 }
 

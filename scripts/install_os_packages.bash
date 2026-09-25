@@ -4,16 +4,15 @@
 #  driven by the per-OS package lists under configure/os/*.pkgs.
 #
 #  Usage: sudo bash scripts/install_os_packages.bash [options]
-#         (macOS: run WITHOUT sudo; brew refuses root)
 #
 #  Options:
 #    -l, --list-only   print the resolved package list and exit (no root)
 #    -f, --force       do not prompt (CI / unattended runs)
-#        --os <id>     override OS detection (debian13, rocky8, macos)
+#        --os <id>     override OS detection (debian13, rocky8)
 #    -h, --help        this text
 
 set -euo pipefail
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/homebrew/bin"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 declare -g SC_SCRIPT SC_TOP OS_DIR
 SC_SCRIPT="$(realpath "${BASH_SOURCE[0]:-$0}")"
@@ -28,7 +27,7 @@ function die {
 }
 
 function usage {
-    sed -n '3,13p' "${SC_SCRIPT}" | sed 's/^#[ ]\{0,2\}//'
+    sed -n '3,12p' "${SC_SCRIPT}" | sed 's/^#[ ]\{0,2\}//'
     exit "${1:-0}"
 }
 
@@ -47,10 +46,6 @@ function available_lists {
 # /etc/os-release is parsed as plain text, never sourced.
 function detect_os {
     local id ver
-    if [[ "${OSTYPE:-}" == darwin* ]]; then
-        printf "%s" "macos"
-        return 0
-    fi
     [[ -r /etc/os-release ]] || return 1
     id="$(sed -n 's/^ID="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' /etc/os-release)"
     ver="$(sed -n 's/^VERSION_ID="\{0,1\}\([0-9]*\).*/\1/p' /etc/os-release)"
@@ -105,10 +100,6 @@ function install_pkgs {
         rocky*)
             [[ ${EUID} -eq 0 ]] || die "Run with sudo: package installation needs root."
             dnf install -y "$@"
-            ;;
-        macos)
-            [[ ${EUID} -ne 0 ]] || die "Run brew without sudo."
-            brew install "$@"
             ;;
         *)
             die "No installer mapped for ${osid}."
