@@ -80,12 +80,19 @@ stream:
 | Configuration | Where | Lines it formats |
 | --- | --- | --- |
 | Tomcat level | `$CATALINA_BASE/log4j/log4j2-tomcat.xml`, loaded through `bin/setenv.sh` with `log4j-appserver` and `log4j-jul` | Tomcat's own records, and every `java.util.logging` record in the JVM, including the CA client's inside the engine WAR |
-| Application level | `log4j2.xml` installed in `INSTALL_LOCATION` and named by `LOG4J_CONFIGURATION_FILE` in `archappl.conf` | The application's log4j2, SLF4J and commons-logging output |
+| WAR level | `log4j2.xml` inside each WAR, or the site file named by `ARCHAPPL_LOG4J_SITE_FILE` | The application's log4j2, SLF4J and commons-logging output |
 
-The Tomcat-level file writes the priority prefix and its root level is
-`INFO`. To change Tomcat-level verbosity, edit the level in the installed
-`$CATALINA_BASE/log4j/log4j2-tomcat.xml` of the instance and restart the
-unit; the next `make install` overwrites that edit with the shipped copy.
+Both files write the same priority prefix and read the root level from
+`ARCHAPPL_ROOT_LOGGER_LEVEL` (default `INFO`), which `archappl.conf` exports;
+set it in `../CONFIG_SITE.local`, then run `make conf.archapplproperties`,
+`make install` and `make sd_restart`. Both files
+carry `monitorInterval="30"`: a level edited in the site file, or in an
+instance's installed `$CATALINA_BASE/log4j/log4j2-tomcat.xml`, takes effect
+within about 30 seconds without a restart. A site file starts as a copy of
+the WAR's file, which each installed instance already holds unpacked, for
+example `/opt/epicsarchiverap-maven/mgmt/webapps/mgmt/WEB-INF/classes/log4j2.xml`.
+The WAR's own file cannot be edited in place, and the next `make install` overwrites an edit of
+`log4j2-tomcat.xml` with the shipped copy.
 
 ```bash
 journalctl -u epicsarchiverap-maven.service -t archappl-engine -f
@@ -99,12 +106,11 @@ lines, which is where the stop order and the cause of a failed unit are read.
 
 `systemd-cat` runs with `--level-prefix=true`: a line that starts with a
 syslog priority prefix such as `<3>` lands at that priority, and the prefix is
-stripped. The Tomcat-level configuration starts each line with the prefix of
-its level (`<3>` ERROR, `<4>` WARN, `<6>` INFO, `<7>` DEBUG and TRACE), so
-`journalctl -p err..err` selects Tomcat and `java.util.logging` errors. The
-application-level `log4j2.xml` writes no prefix, so application lines, like
-any line written straight to stdout such as the JVM's start banner, land at
-the default priority.
+stripped. Both configurations start each line with the prefix of its level
+(`<3>` ERROR, `<4>` WARN, `<6>` INFO, `<7>` DEBUG and TRACE), so
+`journalctl -p err..err` selects errors from Tomcat, `java.util.logging` and
+the application; a line written straight to stdout without a prefix, such as
+the JVM's start banner, lands at the default priority.
 A stack trace becomes one journal entry per line, in order, under the same
 identifier. Retention is a host setting of journald (`MaxRetentionSec`,
 `SystemMaxUse`), not of the appliance.

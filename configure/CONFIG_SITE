@@ -102,7 +102,12 @@ ARCHAPPL_CONF:=archappl.conf
 ## RULES_INSTALL
 ARCHAPPL_POLICIES:=policies.py
 ARCHAPPL_PROPERTIES:=archappl.properties
-ARCHAPPL_LOG4J_XML:=log4j2.xml
+## Root level of the WAR and Tomcat log4j2 configurations, exported to the
+## JVMs through archappl.conf; set it in ../CONFIG_SITE.local.
+ARCHAPPL_ROOT_LOGGER_LEVEL:=INFO
+## A site log4j2 configuration outside the WAR; empty keeps the WAR's own file.
+## Set it in ../CONFIG_SITE.local to an absolute path on the appliance host.
+ARCHAPPL_LOG4J_SITE_FILE:=
 ## $(AA_INSTALL_LOCATION)/*/conf
 #
 ARCHAPPL_CONTEXT_XML:=context.xml

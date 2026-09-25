@@ -356,6 +356,59 @@ else
     _record_fail "conf.log4j is no longer a target" "make -n conf.log4j succeeded"
 fi
 
+# P1.20 The WARs' own log4j2 configuration is in effect: no site log4j2.xml is
+# shipped or installed, and the rendered archappl.conf exports the root level
+# with INFO as the default and a commented site override hook. The real
+# conf.archappl rule renders from the isolated copy made for P1.19.
+assert_not_file "${TOP}/site-template/log4j2.xml" "No site log4j2.xml is shipped"
+install_rules=$(make -C "${unit_env}" --no-print-directory -n services.install 2>&1 || true)
+case "${install_rules}" in
+    *log4j2*) _record_fail "Install rules carry no log4j2 step" "found a log4j2 reference" ;;
+    *) _record_pass "Install rules carry no log4j2 step" ;;
+esac
+conf_out="${unit_env}/site-template/archappl.conf"
+rm -f "${conf_out}"
+conf_rc=0
+make -C "${unit_env}" -s conf.archappl > "${WORKSPACE}/conf-default.txt" 2>&1 || conf_rc=$?
+assert_status "${conf_rc}" 0 "conf.archappl renders with the default level"
+conf_text=$(cat "${conf_out}")
+case "${conf_text}" in
+    *$'\nARCHAPPL_ROOT_LOGGER_LEVEL=INFO\n'*) _record_pass "archappl.conf exports ARCHAPPL_ROOT_LOGGER_LEVEL=INFO by default" ;;
+    *) _record_fail "archappl.conf exports ARCHAPPL_ROOT_LOGGER_LEVEL=INFO by default" "missing" ;;
+esac
+case "${conf_text}" in
+    *$'\nLOG4J_CONFIGURATION_FILE='*) _record_fail "LOG4J_CONFIGURATION_FILE stays a commented hook" "an active assignment remains" ;;
+    *'#LOG4J_CONFIGURATION_FILE='*) _record_pass "LOG4J_CONFIGURATION_FILE stays a commented hook" ;;
+    *) _record_fail "LOG4J_CONFIGURATION_FILE stays a commented hook" "hook missing" ;;
+esac
+rm -f "${conf_out}"
+conf_rc=0
+make -C "${unit_env}" -s conf.archappl ARCHAPPL_ROOT_LOGGER_LEVEL=WARN > "${WORKSPACE}/conf-warn.txt" 2>&1 || conf_rc=$?
+assert_status "${conf_rc}" 0 "conf.archappl renders with a WARN override"
+case "$(cat "${conf_out}")" in
+    *$'\nARCHAPPL_ROOT_LOGGER_LEVEL=WARN\n'*) _record_pass "The level override reaches archappl.conf" ;;
+    *) _record_fail "The level override reaches archappl.conf" "WARN missing" ;;
+esac
+# The site override file one directory above the checkout must win over the
+# shipped default; the command-line check above cannot show include order.
+rm -f "${conf_out}"
+printf 'ARCHAPPL_ROOT_LOGGER_LEVEL:=ERROR\n' > "${unit_env}/../CONFIG_SITE.local"
+conf_rc=0
+make -C "${unit_env}" -s conf.archappl > "${WORKSPACE}/conf-local.txt" 2>&1 || conf_rc=$?
+rm -f "${unit_env}/../CONFIG_SITE.local"
+assert_status "${conf_rc}" 0 "conf.archappl renders with a level in ../CONFIG_SITE.local"
+case "$(cat "${conf_out}")" in
+    *$'\nARCHAPPL_ROOT_LOGGER_LEVEL=ERROR\n'*) _record_pass "A level in ../CONFIG_SITE.local reaches archappl.conf" ;;
+    *) _record_fail "A level in ../CONFIG_SITE.local reaches archappl.conf" "the shipped default won" ;;
+esac
+rm -f "${conf_out}"
+conf_rc=0
+make -C "${unit_env}" -s conf.archappl ARCHAPPL_LOG4J_SITE_FILE=/opt/site/log4j2-site.xml > "${WORKSPACE}/conf-site.txt" 2>&1 || conf_rc=$?
+assert_status "${conf_rc}" 0 "conf.archappl renders with a site log4j2 file"
+case "$(cat "${conf_out}")" in
+    *$'\nLOG4J_CONFIGURATION_FILE="/opt/site/log4j2-site.xml"\n'*) _record_pass "ARCHAPPL_LOG4J_SITE_FILE renders an active LOG4J_CONFIGURATION_FILE" ;;
+    *) _record_fail "ARCHAPPL_LOG4J_SITE_FILE renders an active LOG4J_CONFIGURATION_FILE" "line missing" ;;
+esac
 # P1.21 Tomcat's own logging and java.util.logging go through log4j2: each
 # instance gets bin/setenv.sh with the log4j class path and LogManager, the
 # four jars from the source build, and log4j2-tomcat.xml with the priority

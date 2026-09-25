@@ -104,6 +104,13 @@ the console summary; a skipped check is not verification.
   No JULI `logging.properties` is shipped, the access
   valve carries `maxDays="90"`, and the `log4j.properties` template and its
   `conf.log4j` target are gone. No JVM or systemd-cat is started.
+- No site `log4j2.xml` is shipped and the install rules carry no log4j2 step;
+  the real `conf.archappl` rule, run from the isolated copy, renders
+  `ARCHAPPL_ROOT_LOGGER_LEVEL=INFO` by default, `WARN` under a command-line
+  override and `ERROR` from a `../CONFIG_SITE.local` beside the copy (the
+  site file must win over the shipped default),
+  with `LOG4J_CONFIGURATION_FILE` a commented hook when `ARCHAPPL_LOG4J_SITE_FILE`
+  is empty and an active assignment when it names a file.
 - Tomcat's own logging goes through log4j2: `setenv.sh.in` sets the
   `$CATALINA_BASE/log4j` class path and the `log4j-jul` LogManager;
   `log4j2-tomcat.xml` carries the priority prefix, the root level from

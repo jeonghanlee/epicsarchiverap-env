@@ -80,8 +80,10 @@ needs a different heap. Both heap options follow this value; for example,
   https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
   is overridden here only when the source is hosted elsewhere. This file is not
   rewritten by the per-OS config targets. A pinned `SRC_TAG` must be at or after
-  `9bbd69bf`, the first source commit whose build writes `target/tomcat-log4j`;
-  `make install` stops when that directory is absent.
+  `67be91d7`: from `9bbd69bf` the build writes `target/tomcat-log4j`, which
+  `make install` requires and stops without, and from `67be91d7` every WAR
+  carries the `log4j2.xml` that formats application lines. An older source
+  installs without that file, and application lines then run unconfigured.
 - `../CONFIG_SITE.local` (one directory above the checkout top): `AA_USERID`,
   `AA_GROUPID`, `DB_NAME`, `DB_USER`, `DB_USER_PASS`, `DB_HOST_NAME` (`127.0.0.1`),
   `DB_HOST_PORT`, and any `ARCHAPPL_*` overrides. This file is included first and
@@ -170,6 +172,18 @@ Notes:
 - No `catalina.out` and no dated JULI file is written; the only file per
   instance is the access log `logs/localhost_access_log.<date>.txt`, which
   Tomcat rotates daily and prunes after 90 days.
+- Application lines come from the log4j2 configuration inside each WAR. Its
+  root level is `ARCHAPPL_ROOT_LOGGER_LEVEL` (default `INFO`), exported to the
+  JVMs through `archappl.conf`; set it in `../CONFIG_SITE.local`, then run
+  `make conf.archapplproperties` and `make install` again, then restart. A
+  site that needs another layout, or level changes without a restart, keeps a
+  copy of the WAR's `log4j2.xml` on the host, taken from an installed
+  instance such as
+  `/opt/epicsarchiverap-maven/mgmt/webapps/mgmt/WEB-INF/classes/log4j2.xml`
+  (the copy keeps the file's `monitorInterval="30"`), names it in `ARCHAPPL_LOG4J_SITE_FILE`, and
+  reinstalls once; `archappl.conf` then
+  carries `LOG4J_CONFIGURATION_FILE`, the copy replaces the WAR's file, and a
+  logger level edited in the copy takes effect within the interval.
 - Journal retention (`MaxRetentionSec`, `SystemMaxUse`) is a host setting.
 - `systemctl stop` stops the instances in order within
   `SYSTEMD_TIMEOUT_STOP_SECONDS` (default 300); a dead instance leaves the unit
