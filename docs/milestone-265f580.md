@@ -4744,8 +4744,97 @@ Last Compared: never
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
+| DB | M40 | Fail db.create when the database client fails | Carry-forward | Not started | Yes | D22 | `make db.create` exits non-zero and names the failed statement when the admin client cannot run it; [detail](#m40---fail-dbcreate-when-the-database-client-fails) |
 
 ### Backlog Details
+
+#### M40 - Fail db.create when the database client fails
+
+Origin: 265f580 / M40
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+At `dba40c1`, `create_db_and_user` in `scripts/mariadb_generic_function.bash`
+runs its `CREATE DATABASE` and `GRANT` statements through
+`admin_query_from_sql_file` and ignores that call's status; the function ends
+with `rm -f` of its temporary file, so `make db.create` exits 0 even when
+every statement failed. Observed on 2026-09-25 during M39 / T3 on a disposable
+Rocky Linux 8.10 VM with MariaDB `skip-name-resolve`: `db.create` printed
+`ERROR 1130 (HY000): Host '127.0.0.1' is not allowed to connect` twice, exited
+0, and the install sequence continued until `sql.fill` found no database.
+Found as an out-of-scope observation of M39.
+
+The same run showed that aa-env's own admin path cannot work on a server with
+`skip-name-resolve`: `db.addAdmin` creates the admin account as `@'localhost'`
+(`DB_ADMIN_HOST=localhost`) while `db.create` reaches the server over TCP
+`127.0.0.1`. The provisioned hosts do not use this path (they create the
+database and accounts themselves and run only `sql.fill`, confirmed by the
+ansible-provision operator on 2026-09-25), so it affects a host installed by
+aa-env alone.
+
+##### Scope
+
+- `create_db_and_user`: return non-zero, with a message on stderr naming the
+  failed step, when the admin client fails; `make db.create` then stops the
+  sequence.
+- `docs/README.install.md`: state that aa-env's own `db.secure`,
+  `db.addAdmin` and `db.create` path requires a server without
+  `skip-name-resolve`, and that a server with it takes the host-provided path.
+
+Out of scope: changing `DB_ADMIN_HOST` or the admin account model; the
+provisioned-host path.
+
+##### Completion Criteria
+
+- With an admin account that cannot connect, `make db.create` exits non-zero
+  with the client error and the failed step on stderr; with a working admin
+  account it exits 0 as today.
+- The install guide states the name-resolution requirement of the admin path.
+
+##### Dependencies And Decisions
+
+- D22 (checks that cannot confirm the database stop the build).
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Propagate the client status out of `create_db_and_user`.
+2. Add a Phase 1 check through the shipped function with a client that fails.
+3. Update the install guide.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with a check that runs `make db.create` against a database client that fails | This host | Non-zero exit and the failed step on stderr |
+| T2 | Runtime | `make db.create` on a disposable VM with MariaDB `skip-name-resolve`, then without it | Disposable VM | Non-zero exit with ERROR 1130 in the first case; exit 0 and the database created in the second |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | Disposable VM | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Fail db.create when the database client fails
+Labels: bug
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
 
 #### G5 - Baseline deployment reported by the ansible/cloud session
 
