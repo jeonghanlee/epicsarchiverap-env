@@ -8,9 +8,8 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: M33 (the journald logging model, D24) is Complete at `f75c84c`;
-M34 (the WAR log4j2 layout, G14 and G16 Complete at `a1155ef0` and `67be91d7`) is In progress;
-M35 (Tomcat and java.util.logging through log4j2, D25) is Complete at `a707cf5`; M34's T2 is next.
+Next session entry point: the journald logging model (D24, D25) is complete:
+M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`.
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
@@ -78,7 +77,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; issue #50 records it and stays open for M32; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
 | Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS, then issue #50 closes; [detail](#m32---observe-the-store-chain-with-the-test-values) |
 | Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | Complete | No | D12, D19, D24 | Implemented and verified (T1-T2); landed at `f75c84c` on origin/modernize 2026-09-24; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
-| Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | In progress | No | M33, M35, G14, G16, D24 | aa-env ships no `log4j2.xml` and exports `ARCHAPPL_ROOT_LOGGER_LEVEL`, so `journalctl -p err` selects application errors; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
+| Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Complete | No | M33, M35, G14, G16, D24 | Implemented and verified (T1-T2); landed at `1400ae7` on origin/modernize 2026-09-25; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
 | Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Complete | No | M33, G15, D25 | Implemented and verified (T1-T2); landed at `a707cf5` on origin/modernize 2026-09-25; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
@@ -3950,7 +3949,7 @@ Last Compared: never
 Origin: 265f580 / M34
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -4055,7 +4054,14 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation, T1 and T2 and the accepted plan's steps are finished; the
+  root level default sits in `configure/CONFIG_SITE` instead of
+  `configure/CONFIG_SRC`, for the include-order reason recorded in Scope.
+- Landed at `1400ae7b341b5eb19302c4436e07072a6223955b` on `origin/modernize`.
+  Observed 2026-09-25T02:51:56Z after `git fetch origin`: `origin/modernize`
+  resolved to `1400ae7` and the working tree was clean.
+- The deployed-host result was sent to aa-maven on 2026-09-25 for its gate.
+- Complete 2026-09-25. No linked issue.
 
 ##### GitHub Projection
 
