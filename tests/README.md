@@ -119,6 +119,15 @@ the console summary; a skipped check is not verification.
   removes a `conf/logging.properties` left by an earlier install, stops
   when `target/tomcat-log4j` is absent, and copies its jars into `log4j/`.
 
+- The shipped launcher, run from a copy whose `archappl.conf` points
+  `ARCHAPPL_MGMT_PORT` at a port with no listener, rejects an unknown
+  component or level with exit 2 before any request, sends a lower-case level
+  upper case and reports the refused request with exit 1, and stops with
+  exit 2 naming `curl` when `curl` is not in `PATH`, exits 1 naming the status
+  when a local HTTP server standing in for the transport answers 404, and
+  exits 2 when `archappl.conf` has no mgmt port; the real `conf.archappl`
+  render carries `ARCHAPPL_MGMT_PORT`.
+
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.
 - The package command runs from the configured source directory and invokes its Maven Wrapper with `clean package -DskipTests`.

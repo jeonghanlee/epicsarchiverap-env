@@ -99,6 +99,32 @@ journalctl -u epicsarchiverap-maven.service -t archappl-engine -f
 journalctl -t archappl-mgmt --since today
 ```
 
+An application logger's level can also change at runtime, per component,
+through the launcher, which calls the mgmt BPL (`getLogLevel`,
+`setLogLevel`) with `curl`; any local user may run it:
+
+```bash
+/opt/epicsarchiverap-maven/archappl.bash loglevel engine
+/opt/epicsarchiverap-maven/archappl.bash loglevel engine root debug
+/opt/epicsarchiverap-maven/archappl.bash loglevel engine root info
+```
+
+The component is `mgmt`, `engine`, `etl` or `retrieval`, the logger defaults
+to `root`, and the level is one of `OFF`, `FATAL`, `ERROR`, `WARN`, `INFO`,
+`DEBUG`, `TRACE`, `ALL` in any case; without a level the command prints the
+current one. The reply is the BPL's JSON (`component`, `logger`, `level`, and
+`previousLevel` for a set), and each change writes a WARN audit line; a
+change on engine was observed under `archappl-engine`, not `archappl-mgmt`:
+`SetLogLevel - Log level of logger [] changed from INFO to DEBUG`, where `[]`
+is the root logger. A change lasts until the next change, a restart or a reload of
+an edited site file. It reaches the WAR-level configuration only: Tomcat's
+own loggers and the `java.util.logging` loggers, such as the CA client's,
+follow `log4j2-tomcat.xml`. The command exits 2 for an invalid argument, a
+missing `curl`, or an installed `archappl.conf` without `ARCHAPPL_MGMT_PORT`
+(written before the command existed; run `make conf.archapplproperties` and
+`make install` again), and exits 1 when the request fails: with the service
+stopped, or when the BPL answers with a status other than 200.
+
 The launcher's own lines (`started pid`, `stopping pid`, `process <pid> is
 gone`) carry no component identifier; `journalctl -u
 epicsarchiverap-maven.service` without `-t` shows them between the instance

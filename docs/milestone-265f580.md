@@ -9,7 +9,9 @@ Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
 Next session entry point: the journald logging model (D24, D25) is complete:
-M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`.
+M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (a launcher
+command for the runtime log-level control of G17) is In progress;
+M37 (the Rocky 8 JDK package) is implemented and verified, awaiting its commit.
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
@@ -79,6 +81,8 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | Complete | No | D12, D19, D24 | Implemented and verified (T1-T2); landed at `f75c84c` on origin/modernize 2026-09-24; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
 | Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Complete | No | M33, M35, G14, G16, D24 | Implemented and verified (T1-T2); landed at `1400ae7` on origin/modernize 2026-09-25; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
 | Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Complete | No | M33, G15, D25 | Implemented and verified (T1-T2); landed at `a707cf5` on origin/modernize 2026-09-25; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
+| Runtime | M36 | Set log levels at runtime from the launcher | Milestone | In progress | No | M33, M34, G17 | `archappl.bash loglevel <component> [<logger> [<level>]]` reads or sets an application logger level through the mgmt BPL, and the guides separate it from the Tomcat-level file; [detail](#m36---set-log-levels-at-runtime-from-the-launcher) |
+| Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | In progress | No | M11 | `configure/os/rocky8.pkgs` installs `java-21-openjdk-devel`, which creates the `/usr/lib/jvm/java-21-openjdk` that `rocky8.mk` sets as `JAVA_HOME`; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -94,6 +98,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Gate | G14 | aa-maven ships the log4j2 layout with the journal priority prefix | External gate | Complete | No | | `a1155ef0` on the aa-maven origin/modernize, read 2026-09-24: Console PatternLayout with `<2>` to `<7>` per level and root `${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}`; [detail](#g14---aa-maven-ships-the-log4j2-layout-with-the-journal-priority-prefix) |
 | Gate | G15 | aa-maven emits the Tomcat log4j jar set from its build | External gate | Complete | No | | `9bbd69bf` on the aa-maven origin/modernize, built here on 2026-09-24 through `make build.mvn`: `target/tomcat-log4j` holds the four jars at 2.26.1, the three shared with the engine WAR byte-identical; [detail](#g15---aa-maven-emits-the-tomcat-log4j-jar-set-from-its-build) |
 | Gate | G16 | aa-maven ships the log4j2 layout in every site build with a reload interval | External gate | Complete | No | | `67be91d7` on the aa-maven origin/modernize, built here on 2026-09-25 through `make build.mvn` for site `als`: every WAR carries `WEB-INF/classes/log4j2.xml` with `monitorInterval="30"`; [detail](#g16---aa-maven-ships-the-log4j2-layout-in-every-site-build-with-a-reload-interval) |
+| Gate | G17 | aa-maven ships per-component runtime log-level control in the BPL | External gate | Complete | No | | `3070c518` on the aa-maven origin/modernize adds `/getLogLevel` and `/setLogLevel` to the mgmt BPL, read 2026-09-25; [detail](#g17---aa-maven-ships-per-component-runtime-log-level-control-in-the-bpl) |
 ### Decisions
 
 | ID | Decision | Decision Date |
@@ -2854,6 +2859,37 @@ reloads at runtime. The request went to aa-maven on 2026-09-24. Affects M34.
 
 - aa-maven reported `67be91d7` and the new path `src/resources/main/log4j2.xml` on 2026-09-25; verified as above the same day.
 
+#### G17 - aa-maven ships per-component runtime log-level control in the BPL
+
+Origin: 265f580 / G17
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+aa-maven adds `mgmt/bpl/getLogLevel?component=<mgmt|engine|etl|retrieval>&logger=<name or root>`
+and `mgmt/bpl/setLogLevel?...&level=<OFF|FATAL|ERROR|WARN|INFO|DEBUG|TRACE|ALL>`;
+mgmt forwards the other components' requests to their own BPL, each change
+writes a WARN audit line, an unknown level or component returns HTTP 400,
+and a change lasts until the next change, a restart or a reload of an edited
+site copy. Loggers reached through `java.util.logging` and Tomcat's own
+loggers do not follow it; they follow `log4j2-tomcat.xml`. Affects M36.
+
+##### Completion Criteria
+
+- A cross-session response names the aa-maven commit, and aa-env reads the
+  actions in that commit's `BPLServlet`.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-09-25 | Pass | `git show 3070c518:src/main/org/epics/archiverappliance/mgmt/BPLServlet.java` in a fetched aa-maven clone, commit present on origin/modernize: `addAction("/getLogLevel", GetComponentLogLevel.class)` and `addAction("/setLogLevel", SetComponentLogLevel.class)`; runtime behavior is observed in M36 / T2 |
+
+##### Closure Evidence
+
+- aa-maven reported `3070c518` on 2026-09-25; verified as above the same day.
+
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
 Origin: 265f580 / M10
@@ -4211,6 +4247,192 @@ Observed Labels: none
 Observed Milestone: none
 Last Compared: never
 
+#### M36 - Set log levels at runtime from the launcher
+
+Origin: 265f580 / M36
+Identity History: none
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+G17 gives each component a runtime log-level control through the mgmt BPL.
+An operator can call it with `curl`, but the launcher already carries the
+operator commands (`status`, `health`) and knows the mgmt port. This row adds
+a `loglevel` command that reads or sets an application logger's level on one
+component, so a level change for diagnosis needs neither a restart nor an
+edit of a file that `make install` overwrites.
+
+##### Scope
+
+- `scripts/archappl.bash`: `loglevel <component> [<logger> [<level>]]`. With
+  a level it calls `setLogLevel`, without one `getLogLevel`, on
+  `http://localhost:<mgmt port>/mgmt/bpl/` with the port taken from the
+  installed configuration; the logger defaults to root. The component must be
+  one of mgmt, engine, etl, retrieval and the level one of OFF, FATAL, ERROR,
+  WARN, INFO, DEBUG, TRACE, ALL, in any letter case and sent upper case,
+  before any request is sent; the command needs no service account, since
+  the BPL call and the installed `archappl.conf` are open to any local user; the request goes
+  through `curl`, and a host without `curl` gets a message naming it and a
+  non-zero exit; the JSON reply is printed as received; an HTTP error or a
+  refused connection exits non-zero with the status on stderr. `usage` lists
+  the command.
+- `site-template/archappl.conf.in` and the `conf.archappl` rule: add
+  `ARCHAPPL_MGMT_PORT`, which today exists only in `configure/CONFIG_SRC`, so
+  the launcher reads the mgmt port from the installed configuration.
+- `docs/README.install.md` host prerequisites: `curl` is required for the
+  `loglevel` command (the build accepts `curl` or `wget`); it is already in
+  `configure/os/rocky8.pkgs` and `debian13.pkgs`, and macOS ships it.
+- `docs/technicaldocs/README.systemd.md` Logs section: the command, that a
+  change lasts until the next change, a restart or a reload of a site copy,
+  that each change leaves a WARN audit line under the changed component's
+  own identifier (T2 found it under `archappl-engine`, not `archappl-mgmt`), that any local user may run the command, and that Tomcat's own and
+  `java.util.logging` loggers (the CA client) follow `log4j2-tomcat.xml`
+  instead.
+- `tests/phase1-logic.bash`: the launcher still parses and passes shellcheck;
+  invalid component and level values stop before any request, run against
+  the shipped launcher.
+
+Out of scope: a Tomcat-level or `java.util.logging` level change at runtime;
+persisting a runtime change across restarts.
+
+##### Completion Criteria
+
+- On a test host, `archappl.bash loglevel engine` prints engine's root level,
+  `archappl.bash loglevel engine root DEBUG` sets it and application DEBUG
+  lines appear under `archappl-engine` at `PRIORITY` 7, and setting it back
+  to INFO stops them, with no restart; the WARN audit line of each change is
+  looked for under both `archappl-mgmt` and `archappl-engine`, and the
+  identifier it appears under is recorded. A lower-case level works, and a
+  user other than the service account runs the command successfully.
+- An unknown component or level exits non-zero without a request; with the
+  service stopped (mgmt cannot stop alone under M33, where a dead JVM ends the
+  unit), the command exits non-zero with a message on stderr.
+
+##### Dependencies And Decisions
+
+- M33 (the launcher), M34 (the WAR configuration the control acts on), G17
+  (the BPL actions).
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-09-25, owner acceptance after the third- and second-person passes
+Implementation Authorization: 2026-09-25, owner authorization with the acceptance
+Superseded Plan Artifacts: none
+
+1. Add `ARCHAPPL_MGMT_PORT` to `archappl.conf.in` and its render rule.
+2. Add the `loglevel` command with argument checks, the `curl` check and the
+   two BPL calls.
+3. Extend the Phase 1 guards; update `usage`, the systemd guide and the
+   install guide's prerequisites.
+4. On a disposable VM with WARs built at or after `3070c518`, run T2.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `bash -n`, `shellcheck -x`, `tests/run-all-tests.bash --phase=2` with the new guards; the shipped launcher run with invalid component and level values; the real `conf.archappl` render | This host | Parses and lints; invalid values exit non-zero with no request sent; `archappl.conf` carries `ARCHAPPL_MGMT_PORT` |
+| T2 | Runtime | Full install with WARs built at or after `3070c518`; `loglevel engine`, `loglevel engine root debug` as a user other than the service account, then `INFO`; `journalctl -t archappl-engine -t archappl-mgmt -o verbose`; `loglevel` with the service stopped | Disposable VM | Get prints the level; DEBUG lines at 7 after the set and none after the reset, no restart; the audit line's identifier is recorded; with the service stopped the command exits non-zero with a message on stderr |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-09-25 | Local working tree based on `add242c` | Pass | `bash -n` and `shellcheck -x` report nothing for the launcher; `tests/run-all-tests.bash --phase=2` exits 0 with 155 checks after the review added two branches (a local HTTP server standing in for the transport answers 404: exit 1 naming `getLogLevel returned HTTP 404`; an `archappl.conf` without the port: exit 2 naming `ARCHAPPL_MGMT_PORT is missing`), P1.22 among them: the shipped launcher, from a copy whose `archappl.conf` sets `ARCHAPPL_MGMT_PORT=1` (no listener), exits 2 for component `nosuch` and for level `LOUD`, exits 1 for `loglevel engine root debug` with a message naming `setLogLevel?component=engine&logger=root&level=DEBUG ... failed`, and exits 2 naming `curl` with a `PATH` holding only `realpath` and `date`; the real `conf.archappl` render carries `ARCHAPPL_MGMT_PORT=17665` |
+| T2 | 2026-09-25T03:23:32Z (observations 03:21Z to 03:30Z) | Disposable Rocky Linux 8.10 VM from cloud-provision (systemd 239, Tomcat 9.0.121), WARs and `target/tomcat-log4j` built here from aa-maven `5e6c1266` (after `3070c518`), the same aa-env tree; a `softIoc` on the host with three archived PVs; the command run as a login user, not the service account | Pass | `archappl.conf` carries `ARCHAPPL_MGMT_PORT=17665`. `loglevel engine` printed `{"component":"engine","level":"INFO","logger":"root"}`; `loglevel engine root debug` printed `previousLevel` INFO and level DEBUG, after which engine wrote 217 application DEBUG lines at `PRIORITY` 7 in one minute; the WARN audit line `SetLogLevel - Log level of logger [] changed from INFO to DEBUG` appeared under `archappl-engine`, none under `archappl-mgmt`; `loglevel engine root INFO` brought DEBUG lines to 0 in the minute from 10 s after, with the unit's MainPID unchanged. `nosuch` and `LOUD` exited 2 with a message; with the service stopped the command exited 1 with `Failed to connect to localhost port 17665: Connection refused` on stderr. After trimming the reply, a second run on etl (get, `warn`, `info`) printed one JSON line each, an invalid logger name exited 2, and the stopped-service message fitted on one stderr line |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Set log levels at runtime from the launcher
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M37 - Install the JDK package that provides JAVA_HOME on Rocky Linux 8
+
+Origin: 265f580 / M37
+Identity History: none
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+`configure/os/rocky8.mk` sets `JAVA_HOME:=/usr/lib/jvm/java-21-openjdk`, but
+`configure/os/rocky8.pkgs` installed only `java-21-openjdk`, which does not
+create that path; the link comes from `java-21-openjdk-devel`. A Rocky 8 host
+prepared with `scripts/install_os_packages.bash` therefore failed its first
+Tomcat start with "The JAVA_HOME environment variable is not defined
+correctly" (observed 2026-09-24 on the disposable VM of M33 / T2). Hosts
+provisioned by ansible-provision install the JDK themselves and were not
+affected. Found during M33 and recorded here as its own work.
+
+##### Scope
+
+- `configure/os/rocky8.pkgs`: add `java-21-openjdk-devel` after
+  `java-21-openjdk`, with a comment naming the path it provides.
+
+Out of scope: the other package lists; the install guide's host prerequisite,
+which already asks for a JDK 21 at the distribution path.
+
+##### Completion Criteria
+
+- The resolved Rocky 8 package list names `java-21-openjdk-devel`, and on a
+  clean Rocky 8 system that package creates `/usr/lib/jvm/java-21-openjdk`
+  with `bin/javac`.
+
+##### Dependencies And Decisions
+
+- M11 (the package lists).
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-09-25, owner instruction to add the package after its name was checked
+Implementation Authorization: 2026-09-25, the same instruction
+Superseded Plan Artifacts: none
+
+1. Add the package line and its comment.
+2. Check the resolved list and install both packages on a clean Rocky 8
+   container.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `scripts/install_os_packages.bash --os rocky8 --list-only`; `tests/run-all-tests.bash --phase=1` | This host | The list names `java-21-openjdk-devel`; Phase 1 passes |
+| T2 | Runtime | `dnf install java-21-openjdk`, then `java-21-openjdk-devel`, in a clean `rockylinux:8` container | Container | The path is absent after the first and present, with `bin/javac`, after the second |
+| T3 | Runtime | Prepare a disposable Rocky 8 VM with the package script only, then install and start the appliance | Disposable VM | The path exists and the service starts without a hand-installed JDK |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-09-25 | Local working tree based on `add242c` | Pass | The resolved list ends `... which java-21-openjdk java-21-openjdk-devel mariadb-server chrony`; `tests/run-all-tests.bash --phase=1` exits 0 |
+| T2 | 2026-09-25 | Clean `rockylinux:8` container | Pass | After `java-21-openjdk`: `/usr/lib/jvm/java-21-openjdk` absent; after `java-21-openjdk-devel` (`21.0.12.1.1-1.1.el8_10`): a link to `/etc/alternatives/java_sdk_21_openjdk`, with `bin/javac` present |
+| T3 | 2026-09-25T03:19:32Z | Disposable Rocky Linux 8.10 VM from cloud-provision (M36 / T2), host prepared only by `scripts/install_os_packages.bash --os rocky8` with this list, no JDK installed by hand | Pass | `java-21-openjdk-devel-21.0.12.1.1-1.1.el8_10` installed from the list; `/usr/lib/jvm/java-21-openjdk` links to `/etc/alternatives/java_sdk_21_openjdk`; the appliance service started active on the first try |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Install the JDK package that provides JAVA_HOME on Rocky Linux 8
+Labels: bug
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
 ## Backlog
 
 ### Work
@@ -4219,6 +4441,7 @@ Last Compared: never
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
+| Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Not started | No | M36 | `archappl.bash status` builds its mgmt URLs from `ARCHAPPL_MGMT_PORT` instead of a fixed `17665`; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
 
 ### Backlog Details
 
@@ -4357,3 +4580,72 @@ Superseded Plan Artifacts: none
   boundary that produces it, and landed at `e513267`. Both halves of the
   completion criterion are met and both carry landing evidence, so this row
   closes.
+
+#### M38 - Print the configured mgmt port in the launcher's status
+
+Origin: 265f580 / M38
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+`archappl.bash status` prints the mgmt UI address three times with a fixed
+`17665` (`scripts/archappl.bash`, `status_archappl`), while the port is a Make
+variable (`ARCHAPPL_MGMT_PORT`) a site can change. M36 puts that variable into
+the installed `archappl.conf`, which the launcher already sources, so
+`status` can print the configured port. Found in the M36 review on
+2026-09-25 and recorded out of its scope.
+
+##### Scope
+
+- `scripts/archappl.bash` `status_archappl`: use `ARCHAPPL_MGMT_PORT` in the
+  three mgmt URLs.
+
+Out of scope: other fixed values in `status`.
+
+##### Completion Criteria
+
+- With `ARCHAPPL_MGMT_PORT` set to a value other than 17665 in the installed
+  `archappl.conf`, `status` prints that port in all three URLs.
+
+##### Dependencies And Decisions
+
+- M36 (the variable in `archappl.conf`).
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Replace the fixed port with the variable.
+2. Add a Phase 1 check that runs the shipped launcher's `status` against a
+   copy with a changed port.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new check | This host | The printed URLs carry the configured port |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Print the configured mgmt port in the launcher's status
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never

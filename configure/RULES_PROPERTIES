@@ -122,6 +122,7 @@ conf.archappl: $(ARCHAPPL_CONF).in
 			 -e "s|@EPICS_CA_CONN_TMO@|$(EPICS_CA_CONN_TMO)|g" \
 			 -e "s:@EPICS_CA_REPEATER_PORT@:$(EPICS_CA_REPEATER_PORT):g" \
 			 -e "s:@EPICS_CA_SERVER_PORT@:$(EPICS_CA_SERVER_PORT):g" \
+			 -e "s:@ARCHAPPL_MGMT_PORT@:$(ARCHAPPL_MGMT_PORT):g" \
 			 -e "s:@TOMCAT_HOME@:$(TOMCAT_HOME):g" -e "s|@CATALINA_OPTS@|$(CATALINA_OPTS)|g" \
 			< $< > $(basename $<)
 

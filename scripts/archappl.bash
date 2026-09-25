@@ -523,6 +523,67 @@ function service_archappl
     return "${rc}"
 }
 
+# Reads or sets one application logger's level on one component through the
+# mgmt BPL (getLogLevel, setLogLevel); mgmt forwards the other components'
+# requests. Arguments are checked before any request; exit 2 marks a usage or
+# host problem, exit 1 a failed or refused request.
+function loglevel_archappl
+{
+    local component="$1";shift;
+    local logger="$1";shift;
+    local level="$1";shift;
+    local action url reply status rc=0
+
+    case "${component}" in
+        mgmt|engine|etl|retrieval) ;;
+        *) printf 'loglevel: component must be one of: %s\n' "${startup_services[*]}" >&2; return 2 ;;
+    esac
+    if [[ -z ${logger} ]]; then
+        logger="root"
+    fi
+    if [[ ! ${logger} =~ ^[A-Za-z0-9_.-]+$ ]]; then
+        printf 'loglevel: invalid logger name: %s\n' "${logger}" >&2
+        return 2
+    fi
+    action="getLogLevel"
+    if [[ -n ${level} ]]; then
+        level="${level^^}"
+        case "${level}" in
+            OFF|FATAL|ERROR|WARN|INFO|DEBUG|TRACE|ALL) ;;
+            *) printf 'loglevel: level must be one of: OFF FATAL ERROR WARN INFO DEBUG TRACE ALL\n' >&2; return 2 ;;
+        esac
+        action="setLogLevel"
+    fi
+    if ! command -v curl > /dev/null 2>&1; then
+        printf '%s\n' 'loglevel: curl is required and was not found in PATH' >&2
+        return 2
+    fi
+    if [[ ! ${ARCHAPPL_MGMT_PORT:-} =~ ^[0-9]+$ ]]; then
+        printf 'loglevel: ARCHAPPL_MGMT_PORT is missing from %s/archappl.conf\n' "${SC_TOP}" >&2
+        return 2
+    fi
+    url="http://localhost:${ARCHAPPL_MGMT_PORT}/mgmt/bpl/${action}?component=${component}&logger=${logger}"
+    if [[ -n ${level} ]]; then
+        url+="&level=${level}"
+    fi
+    reply=$(curl -sS -w '\n%{http_code}' "${url}" 2>&1) || rc=$?
+    status="${reply##*$'\n'}"
+    reply="${reply%$'\n'*}"
+    reply="${reply%$'\n'}"
+    if (( rc )); then
+        printf 'loglevel: request to %s failed: %s\n' "${url}" "${reply}" >&2
+        return 1
+    fi
+    if [[ ${status} != 200 ]]; then
+        printf 'loglevel: %s returned HTTP %s\n' "${action}" "${status}" >&2
+        if [[ -n ${reply} ]]; then
+            printf '%s\n' "${reply}" >&2
+        fi
+        return 1
+    fi
+    printf '%s\n' "${reply}"
+}
+
 function usage
 {
     {
@@ -538,6 +599,8 @@ function usage
         echo "               storage   : show the storage status";
         echo "               status    : show summary for status";      
         echo "               health    : verify all four JVM processes (Linux)";
+        echo "               loglevel <component> [<logger> [<level>]]";
+        echo "                         : read or set an application logger level at runtime";
         echo "               h         : this screen";
         echo "";
         echo " bash $0 startup "
@@ -574,6 +637,10 @@ case "$1" in
     restart)
 	    shutdown_archappl
 	    startup_archappl
+	    ;;
+    loglevel)
+	    loglevel_archappl "${2:-}" "${3:-}" "${4:-}"
+	    exit $?
 	    ;;
     status)
 	    status_archappl 

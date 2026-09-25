@@ -442,6 +442,76 @@ for needle in "setenv.sh.in /opt/epicsarchiverap-maven/engine/bin/setenv.sh" \
     esac
 done
 
+# P1.22 The launcher's loglevel command checks its arguments before any
+# request, needs curl, and reports a refused request. The shipped launcher
+# runs from a copy with an archappl.conf whose mgmt port has no listener.
+ll_env="${WORKSPACE}/loglevel-env"
+mkdir -p "${ll_env}/nocurl"
+cp "${TOP}/scripts/archappl.bash" "${ll_env}/"
+printf 'ARCHAPPL_MGMT_PORT=1\n' > "${ll_env}/archappl.conf"
+ll_rc=0
+bash "${ll_env}/archappl.bash" loglevel nosuch > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+assert_status "${ll_rc}" 2 "loglevel rejects an unknown component"
+ll_rc=0
+bash "${ll_env}/archappl.bash" loglevel engine root LOUD > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+assert_status "${ll_rc}" 2 "loglevel rejects an unknown level"
+ll_rc=0
+bash "${ll_env}/archappl.bash" loglevel engine root debug > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+assert_status "${ll_rc}" 1 "loglevel accepts a lower-case level and reports a refused request"
+case "$(cat "${ll_env}/out.txt")" in
+    *"setLogLevel?component=engine&logger=root&level=DEBUG"*" failed:"*) _record_pass "loglevel sends the level upper case and names the failed request" ;;
+    *) _record_fail "loglevel sends the level upper case and names the failed request" "got: $(cat "${ll_env}/out.txt")" ;;
+esac
+for tool in realpath date; do ln -sf "$(command -v "${tool}")" "${ll_env}/nocurl/${tool}"; done
+ll_rc=0
+PATH="${ll_env}/nocurl" "$(command -v bash)" "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+assert_status "${ll_rc}" 2 "loglevel stops when curl is absent"
+case "$(cat "${ll_env}/out.txt")" in
+    *"curl is required"*) _record_pass "loglevel names curl when it is absent" ;;
+    *) _record_fail "loglevel names curl when it is absent" "got: $(cat "${ll_env}/out.txt")" ;;
+esac
+# A reply other than 200 is a failed request: a local HTTP server that
+# answers 404 stands in for the transport only, and the shipped launcher runs
+# unchanged against it.
+ll_port=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')
+python3 -c 'import http.server, sys
+class H(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_error(404)
+    def log_message(self, *args):
+        pass
+http.server.HTTPServer(("127.0.0.1", int(sys.argv[1])), H).serve_forever()' "${ll_port}" &
+ll_server=$!
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if python3 -c 'import socket, sys; socket.create_connection(("127.0.0.1", int(sys.argv[1])), 1)' "${ll_port}" 2> /dev/null; then break; fi
+    sleep 0.2
+done
+printf 'ARCHAPPL_MGMT_PORT=%s\n' "${ll_port}" > "${ll_env}/archappl.conf"
+ll_rc=0
+bash "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+kill "${ll_server}" 2> /dev/null || true
+wait "${ll_server}" 2> /dev/null || true
+assert_status "${ll_rc}" 1 "loglevel treats an HTTP 404 reply as a failed request"
+case "$(cat "${ll_env}/out.txt")" in
+    *"getLogLevel returned HTTP 404"*) _record_pass "loglevel names the HTTP status of a failed reply" ;;
+    *) _record_fail "loglevel names the HTTP status of a failed reply" "got: $(cat "${ll_env}/out.txt")" ;;
+esac
+# An archappl.conf installed before the port was added stops the command.
+printf '# no mgmt port\n' > "${ll_env}/archappl.conf"
+ll_rc=0
+bash "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+assert_status "${ll_rc}" 2 "loglevel stops when archappl.conf has no mgmt port"
+case "$(cat "${ll_env}/out.txt")" in
+    *"ARCHAPPL_MGMT_PORT is missing"*) _record_pass "loglevel names the missing mgmt port" ;;
+    *) _record_fail "loglevel names the missing mgmt port" "got: $(cat "${ll_env}/out.txt")" ;;
+esac
+rm -f "${conf_out}"
+make -C "${unit_env}" -s conf.archappl > /dev/null 2>&1 || true
+case "$(cat "${conf_out}")" in
+    *$'\nARCHAPPL_MGMT_PORT=17665\n'*) _record_pass "archappl.conf carries ARCHAPPL_MGMT_PORT" ;;
+    *) _record_fail "archappl.conf carries ARCHAPPL_MGMT_PORT" "missing" ;;
+esac
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

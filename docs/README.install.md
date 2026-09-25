@@ -29,6 +29,7 @@ the check that proves it ran.
   created (account host-spec `@'127.0.0.1'`; password equal to `DB_USER_PASS`,
   set in Configuration below).
 - Build tools: `git`, `make`, `unzip`, `sed`, `tree`, and `curl` or `wget`.
+  The launcher's `loglevel` command needs `curl` on the appliance host.
   `scripts/install_os_packages.bash` is skipped when the host supplies these.
 - Linux process monitoring requires Bash 4.4 or newer, coreutils and readable
   `/proc` process state, executable links and arguments for the service account.
