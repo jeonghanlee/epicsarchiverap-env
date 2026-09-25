@@ -12,5 +12,7 @@ tree
 sed
 which
 java-21-openjdk
+# The JDK package creates /usr/lib/jvm/java-21-openjdk, the JAVA_HOME of rocky8.mk.
+java-21-openjdk-devel
 mariadb-server
 chrony
