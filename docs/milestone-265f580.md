@@ -18,10 +18,11 @@ implementation at `9ee6ac0`; local implementation review passed. The heap defaul
 deployment verification without an override under M22 / T2.
 M26 is Ready: it will make `make conf.storage` warn when the archive store
 shares the root filesystem or lies under a user home, and the health timer
-alarm at a usage threshold (D26). M39, In progress,
-removes macOS support (D27) under its plan accepted and authorized on
-2026-09-25. M26's plan is a draft awaiting owner acceptance and
-implementation authorization before any code changes. M26's
+alarm at a usage threshold (D26). M39 (macOS removed, D27) is
+Complete at `3b3bdf9`; the silent `db.create` failure it found is Backlog
+M40. M9 (SQLite) is next by owner scheduling. M26's plan is a draft
+awaiting owner acceptance and implementation authorization before any code
+changes. M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
 editing the shipped template. M32, the run that observes the chain with the
@@ -88,7 +89,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M36 | Set log levels at runtime from the launcher | Milestone | Complete | No | M33, M34, G17 | Implemented and verified (T1-T2); landed at `6302b12` on origin/modernize 2026-09-25; [detail](#m36---set-log-levels-at-runtime-from-the-launcher) |
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
 | Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Complete | No | M36 | Implemented and verified (T1); landed at `2fc1a75` on origin/modernize 2026-09-25; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
-| Platform | M39 | Remove macOS support | Milestone | In progress | No | D24, D26, D27 | No macOS preset, launchd file or target, `darwin` branch or macOS guide remains; Phase 1 and Phase 2 pass and a Rocky 8 install succeeds on a disposable VM; [detail](#m39---remove-macos-support) |
+| Platform | M39 | Remove macOS support | Milestone | Complete | No | D24, D26, D27 | Implemented and verified (T1-T3); landed at `3b3bdf9` on origin/modernize 2026-09-25; [detail](#m39---remove-macos-support) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -4590,7 +4591,7 @@ Last Compared: never
 
 Origin: 265f580 / M39
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -4724,7 +4725,10 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- 2026-09-25T19:19:00Z: `git fetch` then `git rev-parse HEAD @{upstream}` both
+  `ef87573`, whose parent `3b3bdf9` carries the implementation; the 17 changed
+  paths between `dba40c1` and `origin/modernize` match the committed paths.
+  Result: landed.
 
 ##### GitHub Projection
 
