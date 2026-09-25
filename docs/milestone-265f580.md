@@ -4590,7 +4590,7 @@ Last Compared: never
 #### M39 - Remove macOS support
 
 Origin: 265f580 / M39
-GitHub Issue: none
+GitHub Issue: #52
 Status: Complete
 
 ##### Summary
@@ -4729,16 +4729,18 @@ Superseded Plan Artifacts: none
   `ef87573`, whose parent `3b3bdf9` carries the implementation; the 17 changed
   paths between `dba40c1` and `origin/modernize` match the committed paths.
   Result: landed.
+- 2026-09-25T19:31:08Z: issue #52 created from this detail and closed as
+  completed with the comment `Implemented in 3b3bdf9.`, read back CLOSED.
 
 ##### GitHub Projection
 
 Title: Remove macOS support
 Labels: enhancement
 GitHub Milestone: none
-Observed State: none
-Observed Labels: none
+Observed State: CLOSED (completed, 2026-09-25T19:31:08Z)
+Observed Labels: enhancement
 Observed Milestone: none
-Last Compared: never
+Last Compared: 2026-09-25T19:31Z, `gh issue view 52`
 
 ## Backlog
 
@@ -4755,7 +4757,7 @@ Last Compared: never
 #### M40 - Fail db.create when the database client fails
 
 Origin: 265f580 / M40
-GitHub Issue: none
+GitHub Issue: #51
 Status: Not started
 
 ##### Summary
@@ -4835,10 +4837,10 @@ Superseded Plan Artifacts: none
 Title: Fail db.create when the database client fails
 Labels: bug
 GitHub Milestone: none
-Observed State: none
-Observed Labels: none
+Observed State: OPEN
+Observed Labels: bug
 Observed Milestone: none
-Last Compared: never
+Last Compared: 2026-09-25T19:31Z, `gh issue view 51`
 
 #### G5 - Baseline deployment reported by the ansible/cloud session
 
