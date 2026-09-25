@@ -79,7 +79,9 @@ needs a different heap. Both heap options follow this value; for example,
 - `configure/RELEASE.local`: `SRC_TAG` — the source pin for
   https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
   is overridden here only when the source is hosted elsewhere. This file is not
-  rewritten by the per-OS config targets.
+  rewritten by the per-OS config targets. A pinned `SRC_TAG` must be at or after
+  `9bbd69bf`, the first source commit whose build writes `target/tomcat-log4j`;
+  `make install` stops when that directory is absent.
 - `../CONFIG_SITE.local` (one directory above the checkout top): `AA_USERID`,
   `AA_GROUPID`, `DB_NAME`, `DB_USER`, `DB_USER_PASS`, `DB_HOST_NAME` (`127.0.0.1`),
   `DB_HOST_PORT`, and any `ARCHAPPL_*` overrides. This file is included first and
@@ -127,7 +129,7 @@ already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 | 1 | `make init` | U | `SRC_TAG`, `SRC_URL` | source clone `epicsarchiverap-maven-src` | source `HEAD` at `SRC_TAG` |
 | 2 | `make db.conf` | U | `DB_*` | `site-template/mariadb.conf` | file exists (`make db.conf.show`) |
 | 3 | `make conf.archapplproperties` | U | `ARCHAPPL_*` (incl. `ARCHAPPL_*_PORT`, default 17665-17668) | `site-template/*` and source `classpathfiles` | files exist (`make conf.archapplproperties.show`) |
-| 4 | `make build.mvn` | U | source clone, `JAVA_HOME` | four WARs in `epicsarchiverap-maven-src/target` | four `*-{mgmt,engine,etl,retrieval}.war` |
+| 4 | `make build.mvn` | U | source clone, `JAVA_HOME` | four WARs and the Tomcat log4j jar set in `epicsarchiverap-maven-src/target` | four `*-{mgmt,engine,etl,retrieval}.war`; `target/tomcat-log4j` holds `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` |
 | 5 | `make sql.fill` | U | `DB_USER`/`DB_USER_PASS`, source SQL | schema loaded over TCP | `make sql.show` lists the tables |
 | 6 | `make conf.storage` | R | `ARCHAPPL_STORAGE_TOP` | `/arch/{sts,mts,lts}/ArchiverStore` | directories exist, owned by the service user |
 | 7 | `make install` | R | WARs, `AA_USERID`/`AA_GROUPID` | four instances, appliance service, health service and timer | units installed; appliance and timer enabled, not started |

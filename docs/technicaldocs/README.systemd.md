@@ -73,9 +73,19 @@ interactive `shutdown` read it.
 ## Logs
 
 Tomcat writes nothing under `logs/` except the access log. Each instance's
-stdout and stderr, which carry the Tomcat JULI records and the application's
-log4j2 output, pass through `systemd-cat` into the journal under the
-identifier `archappl-<instance>`:
+stdout and stderr pass through `systemd-cat` into the journal under the
+identifier `archappl-<instance>`. Two log4j2 configurations write to that
+stream:
+
+| Configuration | Where | Lines it formats |
+| --- | --- | --- |
+| Tomcat level | `$CATALINA_BASE/log4j/log4j2-tomcat.xml`, loaded through `bin/setenv.sh` with `log4j-appserver` and `log4j-jul` | Tomcat's own records, and every `java.util.logging` record in the JVM, including the CA client's inside the engine WAR |
+| Application level | `log4j2.xml` installed in `INSTALL_LOCATION` and named by `LOG4J_CONFIGURATION_FILE` in `archappl.conf` | The application's log4j2, SLF4J and commons-logging output |
+
+The Tomcat-level file writes the priority prefix and its root level is
+`INFO`. To change Tomcat-level verbosity, edit the level in the installed
+`$CATALINA_BASE/log4j/log4j2-tomcat.xml` of the instance and restart the
+unit; the next `make install` overwrites that edit with the shipped copy.
 
 ```bash
 journalctl -u epicsarchiverap-maven.service -t archappl-engine -f
@@ -89,8 +99,12 @@ lines, which is where the stop order and the cause of a failed unit are read.
 
 `systemd-cat` runs with `--level-prefix=true`: a line that starts with a
 syslog priority prefix such as `<3>` lands at that priority, and the prefix is
-stripped. Tomcat's JULI records carry no prefix and land at the default
-priority; the application's log4j2 layout decides what prefix its lines carry.
+stripped. The Tomcat-level configuration starts each line with the prefix of
+its level (`<3>` ERROR, `<4>` WARN, `<6>` INFO, `<7>` DEBUG and TRACE), so
+`journalctl -p err..err` selects Tomcat and `java.util.logging` errors. The
+application-level `log4j2.xml` writes no prefix, so application lines, like
+any line written straight to stdout such as the JVM's start banner, land at
+the default priority.
 A stack trace becomes one journal entry per line, in order, under the same
 identifier. Retention is a host setting of journald (`MaxRetentionSec`,
 `SystemMaxUse`), not of the appliance.

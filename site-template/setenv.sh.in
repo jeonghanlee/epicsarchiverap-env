@@ -1,0 +1,7 @@
+# Sourced by catalina.sh for this instance. Tomcat's own logging and
+# java.util.logging go through log4j2: the jars and log4j2-tomcat.xml in
+# $CATALINA_BASE/log4j are on the JVM class path, log4j-appserver replaces
+# Tomcat's internal Log implementation, and log4j-jul becomes the JVM-wide
+# java.util.logging LogManager.
+CLASSPATH="${CATALINA_BASE}/log4j/*:${CATALINA_BASE}/log4j/"
+LOGGING_MANAGER="-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager"

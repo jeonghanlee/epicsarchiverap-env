@@ -342,12 +342,7 @@ case "${install_rules}" in
     *"run.sh.in > "*"/mgmt/bin/run.sh"*) _record_pass "Instance install renders bin/run.sh" ;;
     *) _record_fail "Instance install renders bin/run.sh" "got: ${install_rules}" ;;
 esac
-juli_text=$(cat "${TOP}/site-template/skel/conf/logging.properties")
-case "${juli_text}" in
-    *FileHandler*) _record_fail "JULI keeps only the ConsoleHandler" "a file handler remains" ;;
-    *"java.util.logging.ConsoleHandler.formatter = org.apache.juli.OneLineFormatter"*) _record_pass "JULI keeps only the ConsoleHandler" ;;
-    *) _record_fail "JULI keeps only the ConsoleHandler" "OneLineFormatter not configured" ;;
-esac
+assert_not_file "${TOP}/site-template/skel/conf/logging.properties" "No JULI logging.properties is shipped"
 case "$(cat "${TOP}/site-template/skel/conf/server.xml")" in
     *'prefix="localhost_access_log" suffix=".txt" maxDays="90"'*) _record_pass "Access log valve carries maxDays=90" ;;
     *) _record_fail "Access log valve carries maxDays=90" "attribute missing" ;;
@@ -360,6 +355,39 @@ if [[ "${log4j_rc}" -ne 0 ]]; then
 else
     _record_fail "conf.log4j is no longer a target" "make -n conf.log4j succeeded"
 fi
+
+# P1.21 Tomcat's own logging and java.util.logging go through log4j2: each
+# instance gets bin/setenv.sh with the log4j class path and LogManager, the
+# four jars from the source build, and log4j2-tomcat.xml with the priority
+# prefix. The real install rule is expanded with make -n from the isolated
+# copy made for P1.19.
+setenv_text=$(cat "${TOP}/site-template/setenv.sh.in")
+# shellcheck disable=SC2016
+for needle in 'CLASSPATH="${CATALINA_BASE}/log4j/*:${CATALINA_BASE}/log4j/"' \
+              'LOGGING_MANAGER="-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager"'; do
+    case "${setenv_text}" in
+        *"${needle}"*) _record_pass "setenv.sh sets ${needle%%=*}" ;;
+        *) _record_fail "setenv.sh sets ${needle%%=*}" "missing: ${needle}" ;;
+    esac
+done
+tomcat_log4j=$(cat "${TOP}/site-template/skel/log4j/log4j2-tomcat.xml")
+# shellcheck disable=SC2016
+for needle in 'ERROR=&lt;3&gt;' 'INFO=&lt;6&gt;' 'level="${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}"' 'monitorInterval='; do
+    case "${tomcat_log4j}" in
+        *"${needle}"*) _record_pass "log4j2-tomcat.xml carries ${needle}" ;;
+        *) _record_fail "log4j2-tomcat.xml carries ${needle}" "missing" ;;
+    esac
+done
+install_rules=$(make -C "${unit_env}" --no-print-directory -n install.engine 2>&1 || true)
+for needle in "setenv.sh.in /opt/epicsarchiverap-maven/engine/bin/setenv.sh" \
+              "rm -f /opt/epicsarchiverap-maven/engine/conf/logging.properties" \
+              "test -d ${unit_env}/epicsarchiverap-maven-src/target/tomcat-log4j" \
+              "target/tomcat-log4j/*.jar /opt/epicsarchiverap-maven/engine/log4j/"; do
+    case "${install_rules}" in
+        *"${needle}"*) _record_pass "Instance install carries: ${needle}" ;;
+        *) _record_fail "Instance install carries: ${needle}" "got: ${install_rules}" ;;
+    esac
+done
 
 phase_pass "Phase 1: Logic"
 

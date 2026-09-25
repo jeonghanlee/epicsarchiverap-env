@@ -31,6 +31,17 @@ make tomcat.install
 make tomcat.exist
 ```
 
+### Instance logging
+
+The shared `CATALINA_HOME` stays unmodified. Each appliance instance brings
+its own logging: `bin/setenv.sh` puts `$CATALINA_BASE/log4j` on the class path
+and sets `LOGGING_MANAGER` to the `log4j-jul` LogManager, and that directory
+holds `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` from the
+source build (`target/tomcat-log4j`) with `log4j2-tomcat.xml`. Tomcat's own
+records and all `java.util.logging` records therefore go through log4j2; no
+JULI `logging.properties` is installed. The systemd guide
+(`README.systemd.md`) describes how those lines reach the journal.
+
 ### Tomcat service
 Note that the Tomcat service itself isn't necessary for the Archiver Appliance.
 However, one would like to use the native tomcat 9 service, please check `configure/RULES_TOMCAT` file.

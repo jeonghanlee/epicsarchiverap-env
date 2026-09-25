@@ -75,16 +75,22 @@ install.$(patsubst $(3)/%,%,$(4)):
 	@$(SUDO) install -d $(4)/temp
 	@echo "    1) Copy all template from $(TOMCAT_HOME)/skel/* to $(4)/"
 	@$(SUDO) cp -r $(AA_SITE_TEMPLATE_PATH)/skel/* $(4)/
+	@$(SUDO) rm -f $(4)/conf/logging.properties
 	@echo "    2) Extracting $(patsubst $(3)/%,%,$(4)).war into $(4)/webapps/$(patsubst $(3)/%,%,$(4))"
 	@$(SUDO) unzip -q -o $(ARCHAPPL_WARS_TARGET_PATH)/*$(patsubst $(3)/%,%,$(4)).war -d $(4)/webapps/$(patsubst $(3)/%,%,$(4))
 	@echo "    3) Install $(ARCHAPPL_CONTEXT_XML) into $(4)/conf/"
 	@$(SUDO) install -m 644 $(AA_SITE_TEMPLATE_PATH)/$(ARCHAPPL_CONTEXT_XML) $(4)/conf/
-	@echo "    4) Install $(ARCHAPPL_TOMCAT_STARTUP), $(ARCHAPPL_TOMCAT_SHUTDOWN) and $(ARCHAPPL_TOMCAT_RUN) in $(4)/bin"
+	@echo "    4) Install $(ARCHAPPL_TOMCAT_STARTUP), $(ARCHAPPL_TOMCAT_SHUTDOWN), $(ARCHAPPL_TOMCAT_RUN) and $(ARCHAPPL_TOMCAT_SETENV) in $(4)/bin"
 	@$(SUDO) bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(AA_SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_STARTUP).in > $(4)/bin/$(ARCHAPPL_TOMCAT_STARTUP)"
 	@$(SUDO) bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(AA_SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_SHUTDOWN).in > $(4)/bin/$(ARCHAPPL_TOMCAT_SHUTDOWN)"
 	@$(SUDO) bash -c "sed -e 's|@INSTALL_LOCATION@|$(4)|g' -e 's|@SERVICE_NAME@|$(patsubst $(3)/%,%,$(4))|g' -e 's|@ARCHAPPL_TOP@|$(ARCHAPPL_TOP)|g' < $(AA_SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_RUN).in > $(4)/bin/$(ARCHAPPL_TOMCAT_RUN)"
+	@$(SUDO) install -m 644 $(AA_SITE_TEMPLATE_PATH)/$(ARCHAPPL_TOMCAT_SETENV).in $(4)/bin/$(ARCHAPPL_TOMCAT_SETENV)
 	@$(SUDO) chmod +x $(4)/bin/*
-	@echo "    5) Change $(4) permission with $(1):$(2)"
+	@echo "    5) Install the Tomcat log4j jars from $(ARCHAPPL_TOMCAT_LOG4J_PATH) into $(4)/log4j"
+	@test -d $(ARCHAPPL_TOMCAT_LOG4J_PATH) || { echo "Missing $(ARCHAPPL_TOMCAT_LOG4J_PATH); build the source at or after the commit that ships the Tomcat log4j jars" >&2; exit 1; }
+	@$(SUDO) install -d $(4)/log4j
+	@$(SUDO) install -m 644 $(ARCHAPPL_TOMCAT_LOG4J_PATH)/*.jar $(4)/log4j/
+	@echo "    6) Change $(4) permission with $(1):$(2)"
 	@$(SUDO) chown -R $(1):$(2) $(4)
 	@$(SUDO) echo ""
 

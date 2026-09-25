@@ -101,9 +101,16 @@ the console summary; a skipped check is not verification.
   carries the per-instance `systemd-cat` identifier, the `wait -n` loop and the
   `bin/run.sh` wrapper, and no longer names `archappl_service.log`. The run
   wrapper template execs `catalina.sh run`; the instance install renders it.
-  JULI keeps only the `ConsoleHandler` with `OneLineFormatter`, the access
+  No JULI `logging.properties` is shipped, the access
   valve carries `maxDays="90"`, and the `log4j.properties` template and its
   `conf.log4j` target are gone. No JVM or systemd-cat is started.
+- Tomcat's own logging goes through log4j2: `setenv.sh.in` sets the
+  `$CATALINA_BASE/log4j` class path and the `log4j-jul` LogManager;
+  `log4j2-tomcat.xml` carries the priority prefix, the root level from
+  `ARCHAPPL_ROOT_LOGGER_LEVEL` and `monitorInterval`; the instance install,
+  expanded with `make -n` from the isolated copy, renders `bin/setenv.sh`,
+  removes a `conf/logging.properties` left by an earlier install, stops
+  when `target/tomcat-log4j` is absent, and copies its jars into `log4j/`.
 
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.

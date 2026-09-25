@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tomcat-level log4j2 configuration, read by log4j-appserver and log4j-jul
+  from $CATALINA_BASE/log4j. It formats Tomcat's own records and every
+  java.util.logging record in the JVM, including those raised inside a WAR.
+  Each line starts with a syslog priority prefix, which systemd-cat
+  (level-prefix) turns into the journal priority and strips; the pattern
+  matches the WAR's own log4j2.xml. The root level follows
+  ARCHAPPL_ROOT_LOGGER_LEVEL, as the WAR's configuration does.
+-->
+<Configuration monitorInterval="30">
+    <Appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="%level{FATAL=&lt;2&gt;, ERROR=&lt;3&gt;, WARN=&lt;4&gt;, INFO=&lt;6&gt;, DEBUG=&lt;7&gt;, TRACE=&lt;7&gt;}%-5level [%t] %c - %m%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}">
+            <AppenderRef ref="STDOUT"/>
+        </Root>
+    </Loggers>
+</Configuration>

@@ -109,6 +109,10 @@ ARCHAPPL_CONTEXT_XML:=context.xml
 ARCHAPPL_TOMCAT_STARTUP:=startup.sh
 ARCHAPPL_TOMCAT_SHUTDOWN:=shutdown.sh
 ARCHAPPL_TOMCAT_RUN:=run.sh
+ARCHAPPL_TOMCAT_SETENV:=setenv.sh
+## log4j-api, log4j-core, log4j-appserver and log4j-jul, written by the source
+## build next to the WARs; each instance loads them from $(CATALINA_BASE)/log4j.
+ARCHAPPL_TOMCAT_LOG4J_PATH=$(ARCHAPPL_WARS_TARGET_PATH)/tomcat-log4j
 ARCHAPPL_MAIN_SCRIPT:=archappl.bash
 
 
