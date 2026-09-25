@@ -16,8 +16,11 @@ M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
-M26 remains Ready for a test-host archive filesystem separate from the root
-volume, with the requirement documented in `docs/README.install.md`. Its
+M26 is Ready: it will make `make conf.storage` warn when the archive store
+shares the root filesystem or lies under a user home, and the health timer
+alarm at a usage threshold (D26). M39, also Ready, removes macOS support
+(D27). Both plans are drafts awaiting owner acceptance and implementation
+authorization before any code changes. M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
 editing the shipped template. M32, the run that observes the chain with the
@@ -28,8 +31,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Three rows are
+Ready: M9, M26 and M39. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -67,7 +70,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; VM checks remain for the 45-second failure-reporting target, no monitor-initiated stop/restart and preserved dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
-| Storage | M26 | Test-environment archive store | Milestone | Not started | Yes | D18, D21, D23 | The archive store sits off the root filesystem with a threshold that reports first, and the host prerequisites say so; [detail](#m26---test-environment-archive-store) |
+| Storage | M26 | Test-environment archive store | Milestone | Not started | Yes | D18, D21, D23, D26 | `make conf.storage` warns when the store shares the root filesystem or lies under a user home, and the health timer reports FAIL when the store's filesystem crosses a usage threshold; the host prerequisites name the storage volume; [detail](#m26---test-environment-archive-store) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
@@ -84,6 +87,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M36 | Set log levels at runtime from the launcher | Milestone | Complete | No | M33, M34, G17 | Implemented and verified (T1-T2); landed at `6302b12` on origin/modernize 2026-09-25; [detail](#m36---set-log-levels-at-runtime-from-the-launcher) |
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
 | Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Complete | No | M36 | Implemented and verified (T1); landed at `2fc1a75` on origin/modernize 2026-09-25; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
+| Platform | M39 | Remove macOS support | Milestone | Not started | Yes | D24, D26, D27 | No macOS preset, launchd file or target, `darwin` branch or macOS guide remains; Phase 1 and Phase 2 pass and a Rocky 8 install succeeds on a disposable VM; [detail](#m39---remove-macos-support) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -129,6 +133,8 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | D23 | The ETL-timing half of M26 moves to its own work item, M31, so it can proceed without the archive-store filesystem work; M26 keeps the filesystem half. The store granularity and hold become Make variables substituted into the existing `site-template/policies.py.in` instead of a second, test-only policy file, so the shipped defaults and a test host's values come from one template and differ only in `../CONFIG_SITE.local`, which `make <os>.conf` does not rewrite. aa-env rejects a granularity name outside aa-maven's `PartitionGranularity` and a hold that is not a positive integer; the cross-tier ordering check (STS no coarser than MTS, MTS no coarser than LTS) is requested from the ansible-provision operator, which writes the test values. | 2026-09-23 |
 | D24 | Logging model for the four-Tomcat appliance, agreed with aa-maven on 2026-09-23 after a request from ansible-provision. journald collects and rotates: each JVM's logging writes only stdout and stderr, the access log is the one file stream that remains, and `catalina.out`, logrotate and the JULI dated file handlers go away. The single service stays (D12, D19): the launcher is the main process (`Type=exec`, `KillMode=mixed` so only the launcher gets SIGTERM and stops engine, retrieval, etl, mgmt in order, `Restart=no`, `TimeoutStopSec` from a measured ETL stop with `consolidateOnShutdown=true`), starts the four Tomcats in the foreground in the D12 order, waits on the Tomcat processes and exits non-zero after an ordered stop when one dies. Component identity is per stream: each child runs through `systemd-cat --identifier=archappl-<component> --level-prefix=true`, so `journalctl -t archappl-<component>` filters one component and the `<N>` prefix maps to journal priority; a multi-line stack trace becomes several entries and is documented as such. One `log4j2.xml`, aa-maven's in the WAR, with a Console PatternLayout without timestamp and with the `<N>` prefix, root level `${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}`; aa-env stops shipping its own and keeps `LOG4J_CONFIGURATION_FILE` as a site override, unset by default; `systemd-cat` parses the prefix by default, so the layout and the launcher land in either order, and application lines carry the default priority until the layout arrives. Shipped root level INFO. The access log stays as a file stream with `maxDays="90"`. Retention 8 weeks, matching the EPICS IOC runner's procServ logrotate policy (weekly, rotate 8), as journald `MaxRetentionSec` with `SystemMaxUse` winning; the ansible-provision operator sets the journald values from the soak's per-stream counts. Ownership: aa-maven owns the layout, levels, docs and the RollingFile fallback; aa-env owns the unit, launcher, JULI configuration, the access valve, dropping its `log4j2.xml`, and the install guide; ansible-provision owns the host journald settings. | 2026-09-23 |
 | D25 | Tomcat's internal logging and `java.util.logging` go through log4j2 instead of JULI. `org.apache.juli.SystemdFormatter`, named by `site-template/skel/conf/logging.properties` since `c83256e`, does not exist in any Tomcat release (the JULI formatters are `JdkLoggerFormatter`, `JsonFormatter`, `OneLineFormatter`, `VerbatimFormatter`), so `java.util.logging` falls back to `SimpleFormatter` and JULI cannot emit a priority prefix; the CA client's beacon messages also arrive through `java.util.logging`. Each instance therefore gets `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` at the WAR's log4j version in `$CATALINA_BASE/log4j`, put on the Tomcat classpath by `bin/setenv.sh`, which also sets `LOGGING_MANAGER` to `org.apache.logging.log4j.jul.LogManager`; `log4j-appserver` replaces `org.apache.juli.logging.Log` through its service file and reads `log4j2-tomcat.xml`, which aa-env ships with a Console layout carrying the same `<N>` prefix as the WAR layout and root level INFO. The WAR keeps its own `log4j2.xml` (D24). aa-maven's build emits the jar set next to the WARs so both come from one build and one version. Amends D24 in two places: the JULI configuration gives way to `log4j2-tomcat.xml`, and the appliance runs two log4j2 configurations, the WAR's for application lines and the Tomcat-level one for Tomcat and `java.util.logging` lines; the rest of D24 stands. | 2026-09-24 |
+| D26 | aa-env does not stop an install whose archive store shares the root filesystem or lies under a user home directory, and does not provision storage. A production host must place the store correctly, and the right size differs per site, so a directory on the root filesystem can be valid; a store under a user home is never the intended placement (the service account may not reach it, and the home may be network-mounted or removed with its account), but it too is reported rather than refused. aa-env warns during the environment step and alarms through the existing health timer when the store's filesystem crosses a configurable usage threshold. The volume and its mount stay with the host. | 2026-09-25 |
+| D27 | aa-env drops macOS support; the supported hosts are Debian and Rocky Linux. The runtime model is a systemd unit whose output journald collects (D24), which macOS does not have, and the macOS environment target places the archive store under the invoking user's home (`ARCHAPPL_STORAGE_TOP:=${HOME}/arch`), the placement D26 warns about. The macOS presets, the launchd service file and its targets, the `darwin` branches of the scripts and the macOS guide are removed rather than kept unmaintained. | 2026-09-25 |
 
 ### Assignment History
 
@@ -2306,28 +2312,68 @@ second hop could not be observed in a test run, moved to M31 on 2026-09-23
 
 ##### Scope
 
-- A dedicated filesystem for the archive store on test hosts, or at minimum a
-  store that is not on the root filesystem, with a threshold that reports before
-  the root filesystem is endangered.
+- `make conf.storage`: after creating the store directories, compare the
+  mount point of `ARCHAPPL_STORAGE_TOP` with that of `/` through `df -P`,
+  and print a warning when they are the same; also print a warning when
+  `ARCHAPPL_STORAGE_TOP`, resolved with `cd -P` and `pwd -P` after the
+  directories exist, equals or lies under `/home`, `/root` or the equally
+  resolved home directory of the user running `make`, matched on whole path
+  components so a store under a symbolic link into a home is caught; the
+  target still succeeds in every case (D26). Both checks run through
+  `$(SUDOBASH)`, the privilege that created the directories, since an
+  unprivileged caller cannot resolve or `df` a store under `/root`; the
+  invoking user's home is taken from Make's `$(HOME)` before that call, so
+  it does not depend on whether `sudo` keeps `HOME`.
+- The launcher's `health` check, run by the existing health timer (M23): after
+  the four instance lines, one line
+  `storage path=<top> mount=<mount point> use=<n>% threshold=<t>%` followed by
+  `PRESENT`, `FAIL storage-threshold` at or above
+  `ARCHAPPL_STORAGE_ALARM_PERCENT` (a Make variable, default 85, rendered into
+  `archappl.conf`), or `ERROR storage-unreadable` when `df` cannot read it.
+  A storage FAIL keeps exit 1 and an ERROR exit 2, with ERROR taking
+  precedence as today; the verdict line names each cause:
+  `health FAIL one-or-more-invalid-instances`, `health FAIL storage-threshold`,
+  or both joined by `;` when both hold. When `archappl.conf` cannot be read
+  or loaded, the instance lines already report `ERROR <cause>`; the storage
+  line is then `storage path=- ERROR <the same cause>`, since the store path
+  is unknown. When the configuration loads but the runtime paths are invalid,
+  the store path is known and the storage line is produced as usual; on a
+  non-Linux host no storage line is produced. While the appliance is inactive
+  or stopping the scheduled check skips as today and the storage line is not
+  produced: a stopped appliance does not fill its store.
 - `docs/README.install.md`: name the storage volume among the host
-  prerequisites, which today it does not.
+  prerequisites (a filesystem other than root and outside any user home,
+  sized by the site) and the warnings and alarm;
+  `docs/technicaldocs/README.systemd.md`: the storage line of `health`, the
+  verdict wording by cause, and the exit table, whose exit 1 then covers a
+  store at or above the threshold as well as invalid instances.
 
-Out of scope: production storage sizing and per-tier media selection; retention
-policy for real data; the reduction operators (`reducedata`, `pp`); and any
-change to the shipped default for real deployments. D21 scopes this row to the
-test environment.
+Out of scope: creating or mounting a volume (the host's, D26); production
+storage sizing and per-tier media selection; retention policy for real data;
+the reduction operators (`reducedata`, `pp`). D21 scopes this row to the test
+environment; the warning and the alarm apply to every install.
 
 ##### Completion Criteria
 
-- On a test host the archive store is not on the root filesystem, and a
-  threshold reports before the root filesystem is affected.
-- The host prerequisites state what the test environment requires.
+- `make conf.storage` prints the root-filesystem warning when the store is on
+  the root filesystem and not when it is on another one, prints the user-home
+  warning when the store lies under a user home and not otherwise, and
+  succeeds in every case.
+- `archappl.bash health` prints the storage line; at or above the threshold
+  it reports `FAIL storage-threshold` with the usage, exits 1 and the verdict
+  line names the storage cause, and the health timer's journal shows it; below
+  the threshold the verdict is unchanged; an instance failure and a storage
+  failure together are both named.
+- The host prerequisites name the storage volume, the two warnings and the
+  alarm.
 
 ##### Dependencies And Decisions
 
 - D18 (the findings come from the provisioned deployment runs).
 - D21 (scoped to the test environment first).
 - D23 (the ETL-timing half moved to M31, and its runtime test to M32).
+- D26 (warn and alarm only, including a store under a user home; the host
+  places and sizes the store).
 - The fill rate is unknown until the pending load test reports disk growth with
   a PV sampling. That figure sets the threshold value; it does not change the
   shape of this work, so this row does not wait on it.
@@ -2344,6 +2390,8 @@ test environment.
   of what this row is protecting against while the fill rate is unknown, and it
   cannot coexist with the `reducedata` the Fast, VeryFast, Medium and Slow
   policies already set on LTS. M27 carries that question.
+- The alarm's default threshold (85) is a starting value; the soak's disk
+  growth figure may set a different one.
 
 ##### Implementation Plan
 
@@ -2352,17 +2400,28 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
+1. Add the root-filesystem comparison and the user-home check, each with its
+   warning, to `conf.storage`.
+2. Add `ARCHAPPL_STORAGE_ALARM_PERCENT` to the Make configuration and
+   `archappl.conf`, and the storage line and the verdict by cause to
+   `health`.
+3. Extend the Phase 1 checks; update the install and systemd guides.
+4. On a disposable VM, run T2: one install with the store on root, then the
+   home and `/dev/shm` warnings through `conf.storage` alone.
+
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Runtime | Grow the store toward the threshold | provisioned host | The threshold reports before the root filesystem is affected |
+| T1 | Logic | `tests/run-all-tests.bash --phase=2` with checks that run `conf.storage` from an isolated copy, with `SUDO=`, `SUDOBASH="bash -c"`, and `AA_USERID` and `AA_GROUPID` set to the running user on the `make` command line (the install location is not writable here, so the shipped values would call `sudo` and `chown` to `tomcat`, and `SUDO=` alone leaves `SUDOBASH` as ` -E bash -c`), against a directory on the root filesystem, under `/dev/shm` (skipped, and recorded as skipped, when `/dev/shm` shares the root mount), and under a directory made with `mktemp -d` in the running user's home and removed when the check ends; and the shipped launcher's `health` against a copy whose `archappl.conf` names an existing JDK as `JAVA_HOME`, a directory in the test workspace as `CATALINA_HOME`, another directory in the test workspace as `ARCHAPPL_STORAGE_TOP`, and a threshold below and then above the measured usage, which is the `df -P` usage of the filesystem holding that store directory | This host | The root-filesystem warning appears exactly when the store's mount is `/` (so also for the home case when the home is on root), the user-home warning only for the home case, and the target succeeds in every case; no appliance runs here, so the instance lines FAIL and the exit is 1 in both `health` runs, and the check judges by the storage line and the verdict: at or above the threshold the storage line ends `FAIL storage-threshold` and the verdict names both causes, below it the storage line ends `PRESENT` and the verdict names only the instance cause |
+| T2 | Runtime | On a disposable VM: one full install with the default store (`/arch`, on the root filesystem), which shows the root-filesystem warning; then `make conf.storage ARCHAPPL_STORAGE_TOP=<path>` for a directory under a login user's home and for one under `/dev/shm` (a tmpfs, a filesystem other than root; skipped, and recorded as skipped, if it shares the root mount), which check the warnings only (the installed store stays `/arch`, and the service account may not reach the home); then, with the appliance running, lower `ARCHAPPL_STORAGE_ALARM_PERCENT` in the installed `archappl.conf` below the root filesystem's current usage and read `journalctl -u epicsarchiverap-maven-health.service`, then raise it again; each check reads that file anew and the timer fires every `SYSTEMD_HEALTH_INTERVAL_SECONDS` (default 30) after the previous check ends | Disposable VM | The root-filesystem warning for the install and the home run (the home is on root there), the user-home warning for the home run only, neither for the `/dev/shm` run; after the threshold is lowered the next check's storage line ends `FAIL storage-threshold` and its verdict names the storage cause, and the timer keeps running; after it is raised the next check's storage line ends `PRESENT` |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | provisioned host | Pending | none |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | Disposable VM | Pending | none |
 
 ##### Closure Evidence
 
@@ -4519,6 +4578,110 @@ Superseded Plan Artifacts: none
 ##### GitHub Projection
 
 Title: Print the configured mgmt port in the launcher's status
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M39 - Remove macOS support
+
+Origin: 265f580 / M39
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+The macOS environment target writes `ARCHAPPL_STORAGE_TOP:=${HOME}/arch`, so a
+macOS install places the archive store under the invoking user's home, the
+placement D26 warns about. The runtime model is a systemd unit whose output
+journald collects (D24), which macOS lacks, and the launchd path next to it has
+not followed that model. D27 removes macOS support instead of keeping it
+unmaintained.
+
+##### Scope
+
+- Environment presets: remove `configure/os/macos.mk`, `macos.pkgs`,
+  `macbrew.mk` and `githubmac.mk`, and the `macos.conf`, `macbrew.conf` and
+  `githubmac.conf` targets in `configure/RULES_TOMCAT`.
+- launchd: remove `site-template/archappl.plist.in`, `LAUNCH_PATH` and
+  `LAUNCH_PLIST_FILENAME` in `configure/CONFIG_SYSTEMD`, the `conf.launch`,
+  `conf.launch.show`, `install.launch`, `install.launch.show` and
+  `launchctl_*` targets in
+  `configure/RULES_SYSTEMD`, and the plist lines in `.gitignore`.
+- Scripts: remove the `darwin` branches, keeping the Linux branch as the only
+  path, in `scripts/archappl.bash` (`status_storage`),
+  `scripts/mariadb_generic_function.bash` (the MacPorts client paths) and
+  `scripts/install_os_packages.bash` (`detect_os`, the `brew` installer case,
+  the macOS usage line with the `usage` range narrowed from `3,13p` to
+  `3,12p` so `--help` still ends at the header, the `macos` id in the `--os`
+  line, and `/opt/homebrew/bin` in the exported `PATH`).
+- Documents: remove `docs/technicaldocs/README.macos.md` and
+  `docs/technicaldocs/images/macos.png`.
+- Tests: drop the three macOS presets and targets from the P1.3 and P1.5
+  lists in `tests/phase1-logic.bash` and from `tests/README.md`, and change
+  the counts those texts state ("All five OS conf targets", "The five OS
+  preset fragments") to the two that remain, `debian12` and `rocky8`.
+
+Out of scope: `CHANGELOG.md` entries and this register's history, which
+record past states; the non-Linux guard in `health_archappl`, which still
+rejects a non-Linux host.
+
+##### Completion Criteria
+
+- `git grep -n -i -E 'macos|macbrew|githubmac|darwin|launchctl|homebrew|/opt/local|\.plist|<plist|PLIST_'`
+  outside `CHANGELOG.md` and this register prints nothing (a bare `plist`
+  would also match `dbBackupList`).
+- `make macos.conf` fails with no rule to make the target; `make rocky8.conf`
+  and `make debian12.conf` write the same `CONFIG_SITE.local` as before.
+- Phase 1 and Phase 2 pass, and on a disposable Rocky 8 VM the database
+  targets and the ordered install sequence succeed, with `status` printing
+  the storage usage and `sql.show` listing the tables.
+
+##### Dependencies And Decisions
+
+- D27 (macOS support removed; Debian and Rocky Linux are the supported hosts).
+- D24 (the systemd and journald runtime model macOS lacks).
+- D26 (the macOS target placed the store under a user home).
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Remove the presets, the macOS environment targets and the launchd file and
+   targets.
+2. Remove the `darwin` branches from the three scripts.
+3. Remove the macOS guide and its image; update the Phase 1 lists and
+   `tests/README.md`.
+4. Run T1 and T2 on this host and T3 on a disposable VM.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=2` | This host | Phase 1 and Phase 2 pass with the macOS presets and targets gone from the lists |
+| T2 | Logic | The `git grep` of the completion criteria; then, in an isolated copy of the tree (the `.conf` targets delete and rewrite `configure/CONFIG_SITE.local`, so they never run in this host's checkout), `make macos.conf`, and `make rocky8.conf` and `make debian12.conf` with each generated `CONFIG_SITE.local` compared against the one the same target wrote in a `git worktree` of `HEAD`, made while the implementation is still uncommitted | This host | The grep prints nothing, `make macos.conf` has no rule, and both generated files are unchanged |
+| T3 | Runtime | On a disposable Rocky 8 VM, first the host prerequisites of `docs/README.install.md`: the packages through `scripts/install_os_packages.bash`, Tomcat 9.0.121 at `/opt/tomcat9`, and MariaDB configured for the IPv4 loopback with `skip-name-resolve` and started; the VM has no host-provided database, so then `make db.conf`, then `db.secure`, `db.addAdmin` and `db.create`, which run the root and admin client commands the removed `darwin` branch sat beside; then the ordered sequence of `docs/README.install.md`, steps 1 to 8; then `archappl.bash status` and `make sql.show` | Disposable VM | Every database target and every sequence step succeeds, `status` prints the storage usage through the Linux `du` branch, and `sql.show` lists the tables |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+| T3 | Not run | Disposable VM | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Remove macOS support
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
