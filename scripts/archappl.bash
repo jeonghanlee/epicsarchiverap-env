@@ -103,15 +103,18 @@ function status_archappl
     fi
 
     local ip_addr="";
+    # An archappl.conf installed before it carried the mgmt port falls back
+    # to the shipped default.
+    local mgmt_port="${ARCHAPPL_MGMT_PORT:-17665}";
     ip_addr=$(get_ip);
 
     printf ">>> Current Time %s\n" "${SC_TIME}"
     printf ">>> Archiver Appliance Status"
-    printf "    http://%s:17665/mgmt/ui/index.html\n" "${HOSTNAME}";
+    printf "    http://%s:%s/mgmt/ui/index.html\n" "${HOSTNAME}" "${mgmt_port}";
     printf "                        OR\n";
-    printf "    http://%s:17665/mgmt/ui/index.html\n" "${ip_addr}";
+    printf "    http://%s:%s/mgmt/ui/index.html\n" "${ip_addr}" "${mgmt_port}";
     printf "                         OR\n";
-    printf "    http://%s:17665/mgmt/ui/index.html\n" "localhost";
+    printf "    http://%s:%s/mgmt/ui/index.html\n" "localhost" "${mgmt_port}";
     
     printf "\n";
     printf ">>> Consult Service Logs (journald, one identifier per instance)\n";

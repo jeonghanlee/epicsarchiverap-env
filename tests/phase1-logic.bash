@@ -445,18 +445,20 @@ done
 # P1.22 The launcher's loglevel command checks its arguments before any
 # request, needs curl, and reports a refused request. The shipped launcher
 # runs from a copy with an archappl.conf whose mgmt port has no listener.
+# Every run drops an ARCHAPPL_MGMT_PORT exported by the caller, so the
+# copy's archappl.conf alone decides the port.
 ll_env="${WORKSPACE}/loglevel-env"
 mkdir -p "${ll_env}/nocurl"
 cp "${TOP}/scripts/archappl.bash" "${ll_env}/"
 printf 'ARCHAPPL_MGMT_PORT=1\n' > "${ll_env}/archappl.conf"
 ll_rc=0
-bash "${ll_env}/archappl.bash" loglevel nosuch > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" loglevel nosuch > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
 assert_status "${ll_rc}" 2 "loglevel rejects an unknown component"
 ll_rc=0
-bash "${ll_env}/archappl.bash" loglevel engine root LOUD > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" loglevel engine root LOUD > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
 assert_status "${ll_rc}" 2 "loglevel rejects an unknown level"
 ll_rc=0
-bash "${ll_env}/archappl.bash" loglevel engine root debug > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" loglevel engine root debug > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
 assert_status "${ll_rc}" 1 "loglevel accepts a lower-case level and reports a refused request"
 case "$(cat "${ll_env}/out.txt")" in
     *"setLogLevel?component=engine&logger=root&level=DEBUG"*" failed:"*) _record_pass "loglevel sends the level upper case and names the failed request" ;;
@@ -464,7 +466,7 @@ case "$(cat "${ll_env}/out.txt")" in
 esac
 for tool in realpath date; do ln -sf "$(command -v "${tool}")" "${ll_env}/nocurl/${tool}"; done
 ll_rc=0
-PATH="${ll_env}/nocurl" "$(command -v bash)" "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+env -u ARCHAPPL_MGMT_PORT PATH="${ll_env}/nocurl" "$(command -v bash)" "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
 assert_status "${ll_rc}" 2 "loglevel stops when curl is absent"
 case "$(cat "${ll_env}/out.txt")" in
     *"curl is required"*) _record_pass "loglevel names curl when it is absent" ;;
@@ -488,7 +490,7 @@ for _ in 1 2 3 4 5 6 7 8 9 10; do
 done
 printf 'ARCHAPPL_MGMT_PORT=%s\n' "${ll_port}" > "${ll_env}/archappl.conf"
 ll_rc=0
-bash "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
 kill "${ll_server}" 2> /dev/null || true
 wait "${ll_server}" 2> /dev/null || true
 assert_status "${ll_rc}" 1 "loglevel treats an HTTP 404 reply as a failed request"
@@ -499,7 +501,7 @@ esac
 # An archappl.conf installed before the port was added stops the command.
 printf '# no mgmt port\n' > "${ll_env}/archappl.conf"
 ll_rc=0
-bash "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
+env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" loglevel engine > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
 assert_status "${ll_rc}" 2 "loglevel stops when archappl.conf has no mgmt port"
 case "$(cat "${ll_env}/out.txt")" in
     *"ARCHAPPL_MGMT_PORT is missing"*) _record_pass "loglevel names the missing mgmt port" ;;
@@ -511,6 +513,18 @@ case "$(cat "${conf_out}")" in
     *$'\nARCHAPPL_MGMT_PORT=17665\n'*) _record_pass "archappl.conf carries ARCHAPPL_MGMT_PORT" ;;
     *) _record_fail "archappl.conf carries ARCHAPPL_MGMT_PORT" "missing" ;;
 esac
+
+# P1.23 status prints the mgmt URLs with the configured port, and the shipped
+# default when an older archappl.conf lacks it. Only the three URL lines are
+# judged; the PID lines and the exit status depend on running instances.
+printf 'ARCHAPPL_MGMT_PORT=18765\n' > "${ll_env}/archappl.conf"
+env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" status > "${ll_env}/status.txt" 2>&1 || true
+st_urls=$(grep -c ':18765/mgmt/ui/index.html$' "${ll_env}/status.txt" || true)
+assert_eq "${st_urls}" "3" "status prints the configured mgmt port in all three URLs"
+printf '# no mgmt port\n' > "${ll_env}/archappl.conf"
+env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" status > "${ll_env}/status.txt" 2>&1 || true
+st_urls=$(grep -c ':17665/mgmt/ui/index.html$' "${ll_env}/status.txt" || true)
+assert_eq "${st_urls}" "3" "status falls back to 17665 without ARCHAPPL_MGMT_PORT"
 
 phase_pass "Phase 1: Logic"
 

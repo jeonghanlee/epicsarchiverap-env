@@ -11,7 +11,7 @@ Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff
 Next session entry point: the journald logging model (D24, D25) is complete:
 M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (the launcher's
 `loglevel` command) is Complete at `6302b12` and M37 (the Rocky 8 JDK package)
-at `5fc8d6e`; M38 (the configured mgmt port in `status`) is Ready.
+at `5fc8d6e`; M38 (the configured mgmt port in `status`) is In progress.
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
@@ -28,8 +28,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Three rows are
-Ready: M9, M26 and M38. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. Two rows are
+Ready: M9 and M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -83,7 +83,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Complete | No | M33, G15, D25 | Implemented and verified (T1-T2); landed at `a707cf5` on origin/modernize 2026-09-25; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
 | Runtime | M36 | Set log levels at runtime from the launcher | Milestone | Complete | No | M33, M34, G17 | Implemented and verified (T1-T2); landed at `6302b12` on origin/modernize 2026-09-25; [detail](#m36---set-log-levels-at-runtime-from-the-launcher) |
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
-| Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Not started | Yes | M36 | `archappl.bash status` builds its mgmt URLs from `ARCHAPPL_MGMT_PORT` instead of a fixed `17665`; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
+| Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | In progress | No | M36 | `archappl.bash status` builds its mgmt URLs from `ARCHAPPL_MGMT_PORT` instead of a fixed `17665`; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -4449,7 +4449,7 @@ Last Compared: never
 Origin: 265f580 / M38
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -4463,14 +4463,19 @@ the installed `archappl.conf`, which the launcher already sources, so
 ##### Scope
 
 - `scripts/archappl.bash` `status_archappl`: use `ARCHAPPL_MGMT_PORT` in the
-  three mgmt URLs.
+  three mgmt URLs, falling back to 17665 when an `archappl.conf` installed
+  before the variable existed does not carry it, so `status` stays a
+  diagnostic listing that never stops.
 
-Out of scope: other fixed values in `status`.
+Out of scope: other fixed values in `status`; the install guide's mentions of
+17665 (the service list and the HTTP readiness example), which describe the
+default and stay as written.
 
 ##### Completion Criteria
 
 - With `ARCHAPPL_MGMT_PORT` set to a value other than 17665 in the installed
-  `archappl.conf`, `status` prints that port in all three URLs.
+  `archappl.conf`, `status` prints that port in all three URLs; without the
+  variable it prints 17665.
 
 ##### Dependencies And Decisions
 
@@ -4478,26 +4483,28 @@ Out of scope: other fixed values in `status`.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-25, owner acceptance after the third- and second-person passes
+Implementation Authorization: 2026-09-25, owner authorization with the acceptance
 Superseded Plan Artifacts: none
 
 1. Replace the fixed port with the variable.
 2. Add a Phase 1 check that runs the shipped launcher's `status` against a
-   copy with a changed port.
+   copy whose `archappl.conf` sets a changed port, and once without it. The
+   check reads only the three URL lines; the PID lines and the exit status,
+   which depend on running instances, are not judged.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new check | This host | The printed URLs carry the configured port |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with the new check | This host | The three URL lines carry the configured port, and 17665 without the variable |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
+| T1 | 2026-09-25 | Local working tree based on `3bbe6d7` | Pass | `shellcheck -x` reports nothing for the launcher; `tests/run-all-tests.bash --phase=2` exits 0 with 157 checks, P1.23 among them: the shipped launcher's `status`, from a copy whose `archappl.conf` sets `ARCHAPPL_MGMT_PORT=18765`, prints three URL lines ending `:18765/mgmt/ui/index.html`, and with no port in the file three ending `:17665/...`; the pre-change launcher from `HEAD` prints none with port 18765, so the check fails against the old behavior. After the review every launcher copy in P1.22 and P1.23 runs under `env -u ARCHAPPL_MGMT_PORT`; the suite, run with `ARCHAPPL_MGMT_PORT=19999` exported, still exits 0 with 157 checks |
 
 ##### Closure Evidence
 

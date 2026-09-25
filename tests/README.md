@@ -127,6 +127,10 @@ the console summary; a skipped check is not verification.
   when a local HTTP server standing in for the transport answers 404, and
   exits 2 when `archappl.conf` has no mgmt port; the real `conf.archappl`
   render carries `ARCHAPPL_MGMT_PORT`.
+- The same launcher copy's `status` prints the three mgmt URLs with the
+  port from its `archappl.conf`, and with 17665 when the file lacks it; only
+  the URL lines are judged. Both launcher checks drop an `ARCHAPPL_MGMT_PORT`
+  exported by the caller, so the copy's `archappl.conf` alone decides.
 
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.
