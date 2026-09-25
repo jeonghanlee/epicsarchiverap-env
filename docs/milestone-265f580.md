@@ -11,7 +11,7 @@ Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff
 Next session entry point: the journald logging model (D24, D25) is complete:
 M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (the launcher's
 `loglevel` command) is Complete at `6302b12` and M37 (the Rocky 8 JDK package)
-at `5fc8d6e`; M38 (the configured mgmt port in `status`) is In progress.
+at `5fc8d6e`; M38 (the configured mgmt port in `status`) is Complete at `2fc1a75`.
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
@@ -83,7 +83,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Complete | No | M33, G15, D25 | Implemented and verified (T1-T2); landed at `a707cf5` on origin/modernize 2026-09-25; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
 | Runtime | M36 | Set log levels at runtime from the launcher | Milestone | Complete | No | M33, M34, G17 | Implemented and verified (T1-T2); landed at `6302b12` on origin/modernize 2026-09-25; [detail](#m36---set-log-levels-at-runtime-from-the-launcher) |
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
-| Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | In progress | No | M36 | `archappl.bash status` builds its mgmt URLs from `ARCHAPPL_MGMT_PORT` instead of a fixed `17665`; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
+| Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Complete | No | M36 | Implemented and verified (T1); landed at `2fc1a75` on origin/modernize 2026-09-25; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -4449,7 +4449,7 @@ Last Compared: never
 Origin: 265f580 / M38
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -4508,7 +4508,13 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation and T1 are finished; the review also made the launcher
+  checks of this row and M36 ignore an `ARCHAPPL_MGMT_PORT` exported by the
+  caller.
+- Landed at `2fc1a752b361fdbb8449f0c5dc075078701c95fa` on `origin/modernize`.
+  Observed 2026-09-25T04:57:00Z after `git fetch origin`: `origin/modernize`
+  resolved to `2fc1a75` and the working tree was clean.
+- Complete 2026-09-25. No linked issue.
 
 ##### GitHub Projection
 
