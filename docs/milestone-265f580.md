@@ -27,8 +27,8 @@ changes. M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
 editing the shipped template. M32, the run that observes the chain with the
-test values, is Blocked on G13, the ansible-provision soak requested on
-2026-09-24. M24 is Complete at `4b4cb41`; issue #45 was
+test values, is Complete: G13 reported the soak on 2026-09-26 and #50 is
+closed. M24 is Complete at `4b4cb41`; issue #45 was
 updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
@@ -83,7 +83,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
 | Storage | M31 | Selectable store granularity and hold for test hosts | Milestone | Complete | No | D21, D23 | Implemented and verified (T1); landed at `9eed006` on origin/modernize; issue #50 records it and stays open for M32; [detail](#m31---selectable-store-granularity-and-hold-for-test-hosts) |
-| Storage | M32 | Observe the store chain with the test values | Milestone | Blocked | No | M31, G13, D23 | A run of a few hours with the M31 test values shows samples in STS, then MTS, then LTS, then issue #50 closes; [detail](#m32---observe-the-store-chain-with-the-test-values) |
+| Storage | M32 | Observe the store chain with the test values | Milestone | Complete | No | M31, G13, D23 | Soak reported by G13 2026-09-26 (T1 Pass); issue #50 closed 2026-09-26; [detail](#m32---observe-the-store-chain-with-the-test-values) |
 | Runtime | M33 | Run the four Tomcats in the foreground under one journald-collected service | Milestone | Complete | No | D12, D19, D24 | Implemented and verified (T1-T2); landed at `f75c84c` on origin/modernize 2026-09-24; [detail](#m33---run-the-four-tomcats-in-the-foreground-under-one-journald-collected-service) |
 | Runtime | M34 | Take the log4j2 configuration from the WAR with journal priorities | Milestone | Complete | No | M33, M35, G14, G16, D24 | Implemented and verified (T1-T2); landed at `1400ae7` on origin/modernize 2026-09-25; [detail](#m34---take-the-log4j2-configuration-from-the-war-with-journal-priorities) |
 | Runtime | M35 | Route Tomcat and java.util.logging output through log4j2 | Milestone | Complete | No | M33, G15, D25 | Implemented and verified (T1-T2); landed at `a707cf5` on origin/modernize 2026-09-25; [detail](#m35---route-tomcat-and-javautillogging-output-through-log4j2) |
@@ -102,7 +102,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Gate | G10 | aa-maven Phase 1 complete (servlet-api 9.0.122, CI on Maven) | External gate | Complete | No | | Phase 1 closed on the D17 basis: servlet-api 9.0.122 and Maven CI verified at `3c96141d` 2026-09-20; Ant removal deferred; [detail](#g10---aa-maven-phase-1-complete-servlet-api-90122-ci-on-maven) |
 | Gate | G11 | aa-maven retires the Sphinx docs pipeline (mdBook on Pages) | External gate | Complete | No | | Sphinx/RTD removed on aa-maven modernize `263805a1`; mdBook live on GitHub Pages; [detail](#g11---aa-maven-retires-the-sphinx-docs-pipeline-mdbook-on-pages) |
 | Gate | G12 | JNA on the WAR classpath for MariaDB Unix-socket support | External gate | Complete | No | | `jna` and `jna-platform` 5.13.0 present in all four WARs built from `3c96141d`, verified 2026-09-21; transitive, so an explicit declaration was requested of aa-maven as hardening; [detail](#g12---jna-on-the-war-classpath-for-mariadb-unix-socket-support) |
-| Gate | G13 | ansible-provision runs a soak with the M31 test values | External gate | Open | No | | The ansible-provision operator reports a run of a few hours with the M31 test values, showing samples in STS, then MTS, then LTS; [detail](#g13---ansible-provision-runs-a-soak-with-the-m31-test-values) |
+| Gate | G13 | ansible-provision runs a soak with the M31 test values | External gate | Complete | No | | The ansible-provision operator reports a run of a few hours with the M31 test values, showing samples in STS, then MTS, then LTS; reported 2026-09-26; [detail](#g13---ansible-provision-runs-a-soak-with-the-m31-test-values) |
 | Gate | G14 | aa-maven ships the log4j2 layout with the journal priority prefix | External gate | Complete | No | | `a1155ef0` on the aa-maven origin/modernize, read 2026-09-24: Console PatternLayout with `<2>` to `<7>` per level and root `${env:ARCHAPPL_ROOT_LOGGER_LEVEL:-INFO}`; [detail](#g14---aa-maven-ships-the-log4j2-layout-with-the-journal-priority-prefix) |
 | Gate | G15 | aa-maven emits the Tomcat log4j jar set from its build | External gate | Complete | No | | `9bbd69bf` on the aa-maven origin/modernize, built here on 2026-09-24 through `make build.mvn`: `target/tomcat-log4j` holds the four jars at 2.26.1, the three shared with the engine WAR byte-identical; [detail](#g15---aa-maven-emits-the-tomcat-log4j-jar-set-from-its-build) |
 | Gate | G16 | aa-maven ships the log4j2 layout in every site build with a reload interval | External gate | Complete | No | | `67be91d7` on the aa-maven origin/modernize, built here on 2026-09-25 through `make build.mvn` for site `als`: every WAR carries `WEB-INF/classes/log4j2.xml` with `monitorInterval="30"`; [detail](#g16---aa-maven-ships-the-log4j2-layout-in-every-site-build-with-a-reload-interval) |
@@ -1203,7 +1203,9 @@ SQLite), replaced 2026-09-25 by D28's order
 
 ##### Closure Evidence
 
-- none
+- 2026-09-26T21:09:16Z: steps 1 and 2 landed at `bbe0968`; `git fetch` then
+  `git rev-parse HEAD @{upstream}` both `bbe0968` on origin/modernize. Step 3
+  (T4) remains, so the row stays In progress and #43 stays open.
 
 ##### GitHub Projection
 
@@ -2881,7 +2883,7 @@ aa-maven register row: none carries the closure; the declaration is theirs
 
 Origin: 265f580 / G13
 GitHub Issue: none
-Status: Open
+Status: Complete
 
 ##### Summary
 
@@ -2903,11 +2905,13 @@ writes. Affects M32.
 
 | Observed At | Result | Evidence |
 | --- | --- | --- |
-| Not run | Pending | none |
+| 2026-09-26 | Complete | Cross-session report from the ansible-provision operator: aa-env `9eed006`, aa-maven `3c96141d`, the M31 test values in `../CONFIG_SITE.local` on a fresh Rocky Linux 8.10 VM; 100 PVs registered 2026-09-24T09:09:52Z reached STS by 09:15Z, MTS by 09:30Z and LTS by 12:15Z, and the second LTS day partition by 2026-09-25T03:15Z; recorded in M32 / T1 |
 
 ##### Closure Evidence
 
-- none
+- 2026-09-26: the report above satisfies the completion criterion; the
+  cross-tier ordering of the values it wrote holds (STS 5 minutes under MTS
+  one hour under LTS one day).
 
 #### G14 - aa-maven ships the log4j2 layout with the journal priority prefix
 
@@ -3866,7 +3870,7 @@ Origin: 265f580 / M32
 Identity History: Split from M31 on 2026-09-23 so M31 does not wait on the
 external soak.
 GitHub Issue: #50
-Status: Blocked
+Status: Complete
 
 ##### Summary
 
@@ -3891,13 +3895,19 @@ Out of scope: the variables and their checks (M31); production values.
 
 - M31 (the variables must land first) and G13 (the soak is run by the
   ansible-provision operator); D23. Blocked from creation on G13; resume as
-  Not started.
+  Not started. G13 Complete 2026-09-26; the row resumed and its criterion is
+  met; #50 closed 2026-09-26.
+- The same run measured the STS-to-MTS ETL job time rising about 9 s per hour
+  regardless of PV count, to 277 s against the 300 s period of the 5-minute
+  STS partition; STS file counts stayed level. The ETL job time is aa-maven's
+  code and is handed to aa-maven (2026-09-26, owner direction); aa-env keeps
+  the test values until the cause is known.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-26, the one-step plan in this detail
+Implementation Authorization: 2026-09-26, owner direction to close the row
 Superseded Plan Artifacts: none
 
 1. When G13 reports, re-derive what can be checked from aa-env (the commit and
@@ -3914,22 +3924,25 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | Provisioned test host | Pending | none |
+| T1 | 2026-09-26 (report); re-derived 2026-09-26 | Provisioned test host (ansible-provision, fresh Rocky Linux 8.10 VM, aa-env `9eed006`, aa-maven `3c96141d`, MariaDB over loopback TCP) | Pass | Reported: 100 PVs registered 2026-09-24T09:09:52Z were in STS by 09:15Z, MTS by 09:30Z and LTS by 12:15Z (about 3 h 05 min), with the second LTS day partition by 2026-09-25T03:15Z; after an appliance restart all 100 were archived again with a 55 s gap; a later load of 903 PVs reached STS, MTS and LTS. Re-derived here: `conf.policies` from `9eed006` with those values in `../CONFIG_SITE.local` renders STS `PARTITION_5MIN` hold 2, MTS `PARTITION_HOUR` hold 2, LTS `PARTITION_DAY` |
 
 ##### Closure Evidence
 
-- none
+- 2026-09-26: T1 Pass on the G13 report, re-derived from `9eed006`.
+- 2026-09-26T21:39:30Z: #50 body synced (the soak criterion checked, the ETL
+  job time listed out of scope) and closed as completed; read back CLOSED
+  with `gh issue view 50`.
 
 ##### GitHub Projection
 
 Title: Selectable store granularity and hold
 Labels: enhancement
 GitHub Milestone: none
-Observed State: open
+Observed State: CLOSED (completed, 2026-09-26T21:39:30Z)
 Observed Labels: enhancement
 Observed Milestone: none
-Observed Updated At: 2026-09-24T01:40:37Z
-Last Compared: 2026-09-24T01:40:37Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/50` read after creation; #50 is shared with M31 and closes on this row's soak criterion
+Observed Updated At: 2026-09-26T21:39:30Z
+Last Compared: 2026-09-26T21:39Z, `gh issue view 50` after the close; #50 is shared with M31 and closed on this row's soak criterion
 
 #### M33 - Run the four Tomcats in the foreground under one journald-collected service
 
