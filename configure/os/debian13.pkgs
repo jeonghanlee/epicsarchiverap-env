@@ -16,5 +16,6 @@ mariadb-server
 mariadb-client
 libmariadb-dev
 libmariadb-dev-compat
+sqlite3
 openjdk-21-jdk-headless
 chrony

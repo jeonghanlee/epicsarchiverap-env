@@ -120,3 +120,8 @@ VARS_EXCLUDES+=SHELL
 VARS_EXCLUDES+=gitclone%
 VARS_EXCLUDES+=distclean
 VARS_EXCLUDES+=checkfile
+
+# Stops the recipe unless DB_BACKEND names exactly one supported backend.
+define check_db_backend
+	$(if $(and $(filter 1,$(words $(DB_BACKEND))),$(filter $(DB_BACKENDS),$(DB_BACKEND))),,$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)')))
+endef

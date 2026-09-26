@@ -85,8 +85,10 @@ conf.policies: $(ARCHAPPL_POLICIES).in  | mkdir.sitesidpath
 conf.policies.show: $(ARCHAPPL_POLICIES).in
 	@cat -b $(basename $<)
 
-conf.context: $(ARCHAPPL_CONTEXT_XML).in
-	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+# Renders $(ARCHAPPL_CONTEXT_XML) from the template of the selected backend.
+conf.context: $(ARCHAPPL_CONTEXT_XML).in $(ARCHAPPL_CONTEXT_SQLITE_XML).in
+	$(call check_db_backend)
+	$(QUIET) echo ">>> Generate $(basename $<) from $(if $(filter sqlite,$(DB_BACKEND)),$(word 2,$^),$<)"
 	$(QUIET)sed -e "s:@JDBC_DATASOURCE_CLASSNAME@:$(JDBC_DATASOURCE_CLASSNAME):g" \
 		    -e "s:@JDBC_RES_TYPE@:$(JDBC_RES_TYPE):g" \
 			-e "s:@JDBC_DB_USER@:$(JDBC_DB_USER):g" \
@@ -95,7 +97,8 @@ conf.context: $(ARCHAPPL_CONTEXT_XML).in
 			-e "s:@JDBC_DB_HOSTNAME@:$(JDBC_DB_HOSTNAME):g" \
 			-e "s:@JDBC_DB_PORTNUM@:$(JDBC_DB_PORTNUM):g" \
 			-e "s:@JDBC_DB_NAME@:$(JDBC_DB_NAME):g" \
-			< $< > $(basename $<)
+			-e "s:@ARCHAPPL_SQLITE_FILE@:$(ARCHAPPL_SQLITE_FILE):g" \
+			< $(if $(filter sqlite,$(DB_BACKEND)),$(word 2,$^),$<) > $(basename $<)
 
 conf.context.show: $(ARCHAPPL_CONTEXT_XML).in
 	@cat -b $(basename $<)

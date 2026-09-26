@@ -35,6 +35,7 @@ conf.override.show: $(SYSTEMD_OVERRIDE_FILENAME).in
 	@cat -b $(basename $<)
 
 conf.systemd0: $(SYSTEMD_FILENAME).in
+	$(call check_db_backend)
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)echo ">>> $(SYSTEMD_SERVICES)"
 	$(QUIET)sed -e "s|@DOCURL@|$(DOCURL)|g" \
@@ -43,6 +44,7 @@ conf.systemd0: $(SYSTEMD_FILENAME).in
 				-e "s|@INSTALL_LOCATION@|$(AA_INSTALL_LOCATION)|g" \
 				-e "s|@ARCHAPPL_MAIN_SCRIPT@|$(ARCHAPPL_MAIN_SCRIPT)|g" \
 				-e "s|@ARCHAPPL_SITEID@|$(ARCHAPPL_SITEID)|g" \
+				-e 's|@DB_SYSTEMD_UNIT@|$(DB_SYSTEMD_UNIT)|g' \
 				-e 's|@SYSTEMD_SERVICES@|$(SYSTEMD_SERVICES)|g' \
 				-e 's|@TIMEOUT_STOP_SECONDS@|$(SYSTEMD_TIMEOUT_STOP_SECONDS)|g' \
                 < $< > $(basename $<)

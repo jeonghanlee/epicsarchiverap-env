@@ -533,6 +533,103 @@ env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" status > "${ll_env}/sta
 st_urls=$(grep -c ':17665/mgmt/ui/index.html$' "${ll_env}/status.txt" || true)
 assert_eq "${st_urls}" "3" "status falls back to 17665 without ARCHAPPL_MGMT_PORT"
 
+# P1.24 DB_BACKEND selects the configuration database. The default renders the
+# MariaDB resource and unit as before; sqlite set in ../CONFIG_SITE.local
+# renders the SQLite resource and a unit without mariadb.service; any other
+# value stops both renderings. The shipped SQLite schema rules run with the
+# real sqlite3 against a file in the workspace, as the running user.
+be_env="${WORKSPACE}/backend-env"
+mkdir -p "${be_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/site-template" "${be_env}/"
+rm -f "${be_env}/configure/"*.local "${be_env}/site-template/context.xml" "${be_env}/site-template/systemd/"*.service
+be_ctx="${be_env}/site-template/context.xml"
+be_unit="${be_env}/site-template/systemd/epicsarchiverap-maven.service"
+be_rc=0
+make -C "${be_env}" -s conf.context conf.systemd0 > "${WORKSPACE}/backend-mariadb.txt" 2>&1 || be_rc=$?
+assert_status "${be_rc}" 0 "The default backend renders context.xml and the unit"
+for expected in 'driverClassName="org.mariadb.jdbc.Driver"' 'url="jdbc:mariadb://127.0.0.1:3306/archappl"' 'maxActive="10"'; do
+    case "$(cat "${be_ctx}")" in
+        *"${expected}"*) _record_pass "MariaDB resource carries ${expected}" ;;
+        *) _record_fail "MariaDB resource carries ${expected}" "missing in ${be_ctx}" ;;
+    esac
+done
+case "$(grep -E '^(After|Requires)=' "${be_unit}")" in
+    *'After=network.target mariadb.service'*'Requires=mariadb.service'*) _record_pass "MariaDB unit requires mariadb.service" ;;
+    *) _record_fail "MariaDB unit requires mariadb.service" "$(grep -E '^(After|Requires)=' "${be_unit}")" ;;
+esac
+rm -f "${be_ctx}" "${be_unit}"
+printf 'DB_BACKEND:=sqlite\n' > "${be_env}/../CONFIG_SITE.local"
+be_rc=0
+make -C "${be_env}" -s conf.context conf.systemd0 > "${WORKSPACE}/backend-sqlite.txt" 2>&1 || be_rc=$?
+rm -f "${be_env}/../CONFIG_SITE.local"
+assert_status "${be_rc}" 0 "sqlite in ../CONFIG_SITE.local renders context.xml and the unit"
+for expected in 'driverClassName="org.sqlite.JDBC"' 'url="jdbc:sqlite:/arch/config/archappl.sqlite?journal_mode=WAL"' 'maxActive="1"'; do
+    case "$(cat "${be_ctx}")" in
+        *"${expected}"*) _record_pass "SQLite resource carries ${expected}" ;;
+        *) _record_fail "SQLite resource carries ${expected}" "missing in ${be_ctx}" ;;
+    esac
+done
+case "$(cat "${be_ctx}")" in
+    *username=*|*password=*) _record_fail "SQLite resource carries no user or password" "found in ${be_ctx}" ;;
+    *) _record_pass "SQLite resource carries no user or password" ;;
+esac
+case "$(cat "${be_unit}")" in
+    *mariadb.service*) _record_fail "SQLite unit does not name mariadb.service" "found in ${be_unit}" ;;
+    *) _record_pass "SQLite unit does not name mariadb.service" ;;
+esac
+for target in conf.context conf.systemd0; do
+    be_rc=0
+    be_out=$(make -C "${be_env}" -s "${target}" DB_BACKEND=postgres 2>&1) || be_rc=$?
+    if [[ "${be_rc}" -ne 0 && "${be_out}" == *"DB_BACKEND must be one of: mariadb sqlite"* ]]; then
+        _record_pass "${target} rejects DB_BACKEND=postgres (rc=${be_rc})"
+    else
+        _record_fail "${target} rejects DB_BACKEND=postgres" "rc=${be_rc} output=${be_out}"
+    fi
+done
+be_run=$(make -C "${be_env}" --no-print-directory print-SQLITE_RUN_AS AA_USERID=svcacct 2>/dev/null | tail -1)
+assert_eq "${be_run}" "sudo -u svcacct" "SQLITE_RUN_AS uses sudo for a user-run build"
+mkdir -p "${WORKSPACE}/root-id"
+printf '#!/bin/sh\necho 0\n' > "${WORKSPACE}/root-id/id"
+chmod +x "${WORKSPACE}/root-id/id"
+be_run=$(PATH="${WORKSPACE}/root-id:${PATH}" make -C "${be_env}" --no-print-directory print-SQLITE_RUN_AS AA_USERID=svcacct 2>/dev/null | tail -1)
+assert_eq "${be_run}" "runuser -u svcacct --" "SQLITE_RUN_AS uses runuser for a root-run build"
+be_schema="${TOP}/$(make -C "${TOP}" --no-print-directory print-SQL_AA_ORIG_SQLITE 2>/dev/null | tail -1)"
+if ! command -v sqlite3 > /dev/null 2>&1 || [[ ! -f "${be_schema}" ]]; then
+    printf '  [SKIP] SQLite schema rules: needs sqlite3 and %s\n' "${be_schema}"
+else
+    be_db="${WORKSPACE}/backend-db/archappl.sqlite"
+    be_mysql_copy="${be_env}/site-template/sql/archappl_mysql_updated.sql"
+    be_mysql_sum=$(cksum "${be_mysql_copy}" 2>/dev/null || true)
+    be_opts=(DB_BACKEND=sqlite SUDO= SQLITE_RUN_AS= "AA_USERID=$(id -un)" "AA_GROUPID=$(id -gn)"
+             "ARCHAPPL_SQLITE_FILE=${be_db}" "SQL_AA_ORIG_SQLITE=${be_schema}")
+    for run in first second; do
+        be_rc=0
+        make -C "${be_env}" -s sql.fill "${be_opts[@]}" > "${WORKSPACE}/backend-fill.txt" 2>&1 || be_rc=$?
+        assert_status "${be_rc}" 0 "SQLite sql.fill succeeds on the ${run} run"
+    done
+    be_copy="${be_env}/site-template/sql/archappl_sqlite_updated.sql"
+    assert_eq "$(grep -c '^CREATE [A-Z]* IF NOT EXISTS ' "${be_copy}")" "$(grep -c '^CREATE ' "${be_copy}")" \
+        "Every CREATE in the SQLite copy is guarded by IF NOT EXISTS"
+    assert_eq "$(cksum "${be_mysql_copy}" 2>/dev/null || true)" "${be_mysql_sum}" "The SQLite schema load leaves the MariaDB copy unchanged"
+    sqlite3 "${be_db}" 'DROP TABLE PVAliases;'
+    be_rc=0
+    make -C "${be_env}" -s sql.fill "${be_opts[@]}" > "${WORKSPACE}/backend-fill.txt" 2>&1 || be_rc=$?
+    assert_status "${be_rc}" 0 "SQLite sql.fill restores a dropped table"
+    sqlite3 "${be_db}" 'PRAGMA journal_mode=WAL;' > /dev/null
+    be_rc=0
+    make -C "${be_env}" -s sql.fill "${be_opts[@]}" > "${WORKSPACE}/backend-fill.txt" 2>&1 || be_rc=$?
+    assert_status "${be_rc}" 0 "SQLite sql.fill succeeds on a WAL-mode file"
+    be_rc=0
+    be_out=$(make -C "${be_env}" -s sql.show "${be_opts[@]}" 2>&1) || be_rc=$?
+    assert_status "${be_rc}" 0 "SQLite sql.show lists the tables of a WAL-mode file"
+    for table in PVTypeInfo PVAliases ArchivePVRequests ExternalDataServers; do
+        case "${be_out}" in
+            *"${table}"*) _record_pass "SQLite sql.show lists ${table}" ;;
+            *) _record_fail "SQLite sql.show lists ${table}" "output=${be_out}" ;;
+        esac
+    done
+fi
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

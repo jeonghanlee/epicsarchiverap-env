@@ -24,10 +24,15 @@ the check that proves it ran.
 - Tomcat 9.0.121 as a shared `CATALINA_HOME` at `/opt/tomcat9`, readable and
   executable by the service user (dirs `r-x`, `bin/*.sh` executable, `lib/*.jar`
   readable). No Tomcat service runs; aa-env uses the binaries only.
-- MariaDB reachable over the IPv4 loopback (`127.0.0.1:3306`, `skip-name-resolve`
-  on), with the configuration database and the application account already
-  created (account host-spec `@'127.0.0.1'`; password equal to `DB_USER_PASS`,
-  set in Configuration below).
+- For the MariaDB backend (`DB_BACKEND=mariadb`, the default): MariaDB reachable
+  over the IPv4 loopback (`127.0.0.1:3306`, `skip-name-resolve` on), with the
+  configuration database and the application account already created (account
+  host-spec `@'127.0.0.1'`; password equal to `DB_USER_PASS`, set in
+  Configuration below).
+- For the SQLite backend (`DB_BACKEND=sqlite`): the `sqlite3` command-line tool
+  (package `sqlite` on Rocky Linux 8, `sqlite3` on Debian 13) and no MariaDB.
+  A host that also carries `mariadb-server` from the per-OS package list need
+  not enable it.
 - Build tools: `git`, `make`, `unzip`, `sed`, `tree`, and `curl` or `wget`.
   The launcher's `loglevel` command needs `curl` on the appliance host.
   `scripts/install_os_packages.bash` is skipped when the host supplies these.
@@ -89,6 +94,15 @@ needs a different heap. Both heap options follow this value; for example,
   `AA_GROUPID`, `DB_NAME`, `DB_USER`, `DB_USER_PASS`, `DB_HOST_NAME` (`127.0.0.1`),
   `DB_HOST_PORT`, and any `ARCHAPPL_*` overrides. This file is included first and
   survives the per-OS config target that rewrites `configure/CONFIG_SITE.local`.
+- Configuration database: `DB_BACKEND` is `mariadb` (default) or `sqlite`, set
+  in `../CONFIG_SITE.local`; any other value stops step 3
+  (`make conf.archapplproperties`), so the sequence goes no further, and
+  `make install` also stops before it writes the unit. With `sqlite`, the
+  database is the file `ARCHAPPL_SQLITE_FILE`, by default
+  `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`
+  (`/arch/config/archappl.sqlite`), owned by the service account. It sits under
+  the store, so `make conf.storage.rm`, which removes `ARCHAPPL_STORAGE_TOP`,
+  removes the configuration database too.
 - Toolchain (`JAVA_HOME`, `TOMCAT_HOME`): set through the OS preset
   (`make <os>.conf` writes `configure/CONFIG_SITE.local` to include
   `configure/os/<os>.mk`), or set them in `../CONFIG_SITE.local`. Do not place
@@ -133,7 +147,7 @@ already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 | 2 | `make db.conf` | U | `DB_*` | `site-template/mariadb.conf` | file exists (`make db.conf.show`) |
 | 3 | `make conf.archapplproperties` | U | `ARCHAPPL_*` (incl. `ARCHAPPL_*_PORT`, default 17665-17668) | `site-template/*` and source `classpathfiles` | files exist (`make conf.archapplproperties.show`) |
 | 4 | `make build.mvn` | U | source clone, `JAVA_HOME` | four WARs and the Tomcat log4j jar set in `epicsarchiverap-maven-src/target` | four `*-{mgmt,engine,etl,retrieval}.war`; `target/tomcat-log4j` holds `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` |
-| 5 | `make sql.fill` | U | `DB_USER`/`DB_USER_PASS`, source SQL | schema loaded over TCP | `make sql.show` lists the tables |
+| 5 | `make sql.fill` | U (R for SQLite) | `DB_BACKEND`; `DB_USER`/`DB_USER_PASS` or `ARCHAPPL_SQLITE_FILE`; source SQL | schema loaded over TCP, or into the SQLite file | `make sql.show` lists the tables |
 | 6 | `make conf.storage` | R | `ARCHAPPL_STORAGE_TOP` | `/arch/{sts,mts,lts}/ArchiverStore` | directories exist, owned by the service user |
 | 7 | `make install` | R | WARs, `AA_USERID`/`AA_GROUPID` | four instances, appliance service, health service and timer | units installed; appliance and timer enabled, not started |
 | 8 | `make sd_start` | R | installed units and complete instance configuration | appliance and health timer started | timer active; process checks after startup allowance; separate mgmt probe returns HTTP 200 |
@@ -147,10 +161,21 @@ Notes:
 - The enabled timer is also wanted by the appliance service, so a direct
   `systemctl start epicsarchiverap-maven.service` starts monitoring. Enabling a
   timer does not retroactively activate it for an already-running appliance.
-- The unit declares `Requires=mariadb.service`, so that unit must resolve on the
-  host.
-- The database and account are created by the host; the sequence therefore skips
-  `db.secure`, `db.addAdmin`, and `db.create` and runs only `sql.fill`.
+- With the MariaDB backend the unit declares `Requires=mariadb.service`, so that
+  unit must resolve on the host; with SQLite the unit names no database service.
+- MariaDB: the database and account are created by the host; the sequence
+  therefore skips `db.secure`, `db.addAdmin`, and `db.create` and runs only
+  `sql.fill`.
+- SQLite: step 5 needs root (R). `sql.fill` first creates the service account
+  when it does not exist yet, as `make install` does later, then creates the
+  directory of `ARCHAPPL_SQLITE_FILE` for that account and loads the schema
+  with `sqlite3` run as the account (`runuser` for a root-run build, `sudo -u`
+  otherwise), so the database and its WAL files stay writable by the
+  appliance. Loading again is harmless and restores a missing table. Check the
+  tables with `make sql.show`, which runs `sqlite3` the same way; another user
+  cannot read the file once the appliance has opened it. Step 2
+  (`make db.conf`) writes the MariaDB client settings only; SQLite does not
+  use them, and running it is harmless.
 
 ## Ownership boundary
 
@@ -160,7 +185,8 @@ Notes:
   files are owned by `AA_USERID:AA_GROUPID`; unit files are installed mode 0644
   through the privileged systemd install targets.
 - The host owns: `/opt/tomcat9` (`CATALINA_HOME`, read-only to aa-env), the
-  MariaDB service and the application account, the base packages, and the service
+  MariaDB service and the application account for the MariaDB backend, the
+  base packages, and the service
   group and user when pre-created.
 
 ## Logs

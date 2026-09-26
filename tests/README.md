@@ -131,6 +131,20 @@ the console summary; a skipped check is not verification.
   port from its `archappl.conf`, and with 17665 when the file lacks it; only
   the URL lines are judged. Both launcher checks drop an `ARCHAPPL_MGMT_PORT`
   exported by the caller, so the copy's `archappl.conf` alone decides.
+- `DB_BACKEND` selects the configuration database: from an isolated copy, the
+  real `conf.context` and `conf.systemd0` render the MariaDB resource and a unit
+  requiring `mariadb.service` by default; `DB_BACKEND:=sqlite` in
+  `../CONFIG_SITE.local` renders `org.sqlite.JDBC` with
+  `journal_mode=WAL`, a one-connection pool, no user or password, and a unit
+  without `mariadb.service`; `DB_BACKEND=postgres` stops both. `SQLITE_RUN_AS`
+  expands to `sudo -u <account>` for a user-run build and to
+  `runuser -u <account> --` when `id -u` reports 0 (an `id` in `PATH` that
+  prints 0). With the real `sqlite3` and the source tree's
+  `archappl_sqlite.sql`, run as the current user (`SUDO=`, `SQLITE_RUN_AS=`),
+  `sql.fill` creates the file, succeeds again, restores a dropped table and
+  succeeds on a WAL-mode file, every `CREATE` in the modified copy carries
+  `IF NOT EXISTS`, the MariaDB copy is untouched, and `sql.show` lists the four
+  tables; without `sqlite3` or the source tree this part prints `[SKIP]`.
 
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.

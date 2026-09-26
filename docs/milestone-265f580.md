@@ -20,7 +20,8 @@ M26 is Ready: it will make `make conf.storage` warn when the archive store
 shares the root filesystem or lies under a user home, and the health timer
 alarm at a usage threshold (D26). M39 (macOS removed, D27) is
 Complete at `3b3bdf9`; the silent `db.create` failure it found is Backlog
-M40. M9 (SQLite) is next by owner scheduling. M26's plan is a draft
+M40. M9 (selectable backend, SQLite before UDS per
+D28) is In progress under its plan accepted and authorized on 2026-09-26. M26's plan is a draft
 awaiting owner acceptance and implementation authorization before any code
 changes. M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
@@ -33,8 +34,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. Two rows are
-Ready: M9 and M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. One row is
+Ready: M26. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -59,7 +60,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Complete | No | G3 | Verified 2026-09-12: full build with no aa-env pom, clean source tree (`0e9cee6`); [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
 | Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; Tomcat 9 is fixed for Phase 2; [detail](#m7---tomcat-11-migration-aa-env-side) |
 | Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; [detail](#m12---tomcat-91x-fallback) |
-| DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | Not started | Yes | G9, M11, D15 | One PV archives and retrieves under each backend selected in `context.xml`; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
+| DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | In progress | No | G9, M11, D15, D28 | One PV archives and retrieves under each backend selected in `context.xml`, in the D28 order; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
 | Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
@@ -137,6 +138,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | D25 | Tomcat's internal logging and `java.util.logging` go through log4j2 instead of JULI. `org.apache.juli.SystemdFormatter`, named by `site-template/skel/conf/logging.properties` since `c83256e`, does not exist in any Tomcat release (the JULI formatters are `JdkLoggerFormatter`, `JsonFormatter`, `OneLineFormatter`, `VerbatimFormatter`), so `java.util.logging` falls back to `SimpleFormatter` and JULI cannot emit a priority prefix; the CA client's beacon messages also arrive through `java.util.logging`. Each instance therefore gets `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` at the WAR's log4j version in `$CATALINA_BASE/log4j`, put on the Tomcat classpath by `bin/setenv.sh`, which also sets `LOGGING_MANAGER` to `org.apache.logging.log4j.jul.LogManager`; `log4j-appserver` replaces `org.apache.juli.logging.Log` through its service file and reads `log4j2-tomcat.xml`, which aa-env ships with a Console layout carrying the same `<N>` prefix as the WAR layout and root level INFO. The WAR keeps its own `log4j2.xml` (D24). aa-maven's build emits the jar set next to the WARs so both come from one build and one version. Amends D24 in two places: the JULI configuration gives way to `log4j2-tomcat.xml`, and the appliance runs two log4j2 configurations, the WAR's for application lines and the Tomcat-level one for Tomcat and `java.util.logging` lines; the rest of D24 stands. | 2026-09-24 |
 | D26 | aa-env does not stop an install whose archive store shares the root filesystem or lies under a user home directory, and does not provision storage. A production host must place the store correctly, and the right size differs per site, so a directory on the root filesystem can be valid; a store under a user home is never the intended placement (the service account may not reach it, and the home may be network-mounted or removed with its account), but it too is reported rather than refused. aa-env warns during the environment step and alarms through the existing health timer when the store's filesystem crosses a configurable usage threshold. The volume and its mount stay with the host. | 2026-09-25 |
 | D27 | aa-env drops macOS support; the supported hosts are Debian and Rocky Linux. The runtime model is a systemd unit whose output journald collects (D24), which macOS does not have, and the macOS environment target places the archive store under the invoking user's home (`ARCHAPPL_STORAGE_TOP:=${HOME}/arch`), the placement D26 warns about. The macOS presets, the launchd service file and its targets, the `darwin` branches of the scripts and the macOS guide are removed rather than kept unmaintained. | 2026-09-25 |
+| D28 | The DB-backend rollout order becomes MariaDB over TCP, then SQLite3, then MariaDB over Unix domain socket: SQLite moves ahead of UDS because aa-maven's SQLite check (its M13, jeonghanlee/epicsarchiverap-maven#5) needs an SQLite deploy path, while UDS has no waiting consumer. The SQLite database file is `ARCHAPPL_SQLITE_FILE`, default `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`, so the configuration database sits on the archive volume, is backed up with it and is writable by the service account. Its schema comes from `archappl_sqlite.sql` in the source tree aa-env builds, loaded with the `sqlite3` command-line tool, as the MariaDB schema comes from the same tree. Amends D16's order only. | 2026-09-25 |
 
 ### Assignment History
 
@@ -1010,13 +1012,13 @@ Last Compared: never
 Origin: 265f580 / M9
 Identity History: Backlog "SQLite as the configuration database" to Milestone, retitled 2026-09-12 (D11), reframed to the selectable model 2026-09-18 (D15)
 GitHub Issue: #43
-Status: Not started
+Status: In progress
 
 ##### Summary
 
-Under D15 MariaDB and SQLite are selectable backends; D16 sets the rollout
-order: MariaDB over TCP first, then MariaDB over Unix domain socket, then
-SQLite3 as the end state. The aa-maven source ships both `mariadb-java-client`
+Under D15 MariaDB and SQLite are selectable backends; D28 sets the rollout
+order: MariaDB over TCP first, then SQLite3, then MariaDB over Unix domain
+socket. The aa-maven source ships both `mariadb-java-client`
 and `sqlite-jdbc` and auto-detects the dialect from the DataSource metadata
 (gate G9), so no source change is needed to run MariaDB or SQLite. The
 ansible/cloud provisioning starts on TCP MariaDB (agreed 2026-09-19). aa-env
@@ -1025,39 +1027,114 @@ initialization.
 
 ##### Scope
 
-- `site-template/context.xml.in`: a `DB_BACKEND` selector (`mariadb` | `sqlite`)
-  that renders the driver class, URL, and pool settings for the chosen backend.
-  MariaDB over TCP uses `jdbc:mariadb://<DB_HOST_NAME>:<DB_HOST_PORT>/<DB_NAME>`
-  (host `127.0.0.1`, port `3306`; IPv4 loopback, standardized 2026-09-19 to
-  avoid `::1` ambiguity).
-- `configure/CONFIG_SQL`, `configure/RULES_SQL`: the initialization for the
-  selected backend (the MariaDB targets as today; SQLite from
-  `archappl_sqlite.sql`). Where the operator creates the database and account
-  (the ansible/cloud path), aa-env skips db.secure/db.addAdmin/db.create and
-  runs only `make sql.fill`.
-- `site-template/systemd/epicsarchiverap-maven.service.in`: the `mariadb.service`
-  dependency applies only when the MariaDB backend is selected.
-- MariaDB over UDS (step 2): the driver's `localSocket` needs JNA on the
+- `DB_BACKEND` (Make variable, `mariadb` by default, or `sqlite`) and
+  `ARCHAPPL_SQLITE_FILE` (default
+  `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`, D28), both defined in
+  `configure/CONFIG_SITE` before its `-include` of the local files, so a value
+  a site sets in `../CONFIG_SITE.local` (one directory above the checkout,
+  which `make <os>.conf` does not rewrite) wins; a default placed in a file
+  read after that include, such as `configure/CONFIG_SQL`, would override it.
+  The targets that render `context.xml` and the appliance unit (`conf.context`,
+  `conf.systemd0`) stop with a message for any other `DB_BACKEND` value.
+- `site-template/context.xml.in` and `conf.context`: the `jdbc/archappl`
+  resource rendered for the selected backend. MariaDB keeps today's resource,
+  `jdbc:mariadb://<DB_HOST_NAME>:<DB_HOST_PORT>/<DB_NAME>` (host `127.0.0.1`,
+  port `3306`; IPv4 loopback, standardized 2026-09-19 to avoid `::1`
+  ambiguity). SQLite uses `org.sqlite.JDBC`,
+  `jdbc:sqlite:<ARCHAPPL_SQLITE_FILE>?journal_mode=WAL`, no user or password,
+  and a pool of one connection (`maxActive`, `maxIdle` 1, `minIdle` and
+  `initialSize` 0), because SQLite locks the file on every write.
+- `configure/CONFIG_SQL`, `configure/RULES_SQL`, `.gitignore`: the SQLite
+  schema follows the MariaDB logic. `make sql.update` writes aa-env's modified
+  copy of the source schema into `site-template/sql/`: for MariaDB
+  `archappl_mysql_updated.sql` as today (`CREATE TABLE IF NOT EXISTS`,
+  `DEFAULT CHARSET=utf8mb4`), for SQLite `archappl_sqlite_updated.sql` from
+  `archappl_sqlite.sql` (`CREATE TABLE IF NOT EXISTS`,
+  `CREATE TRIGGER IF NOT EXISTS`), each named by a `CONFIG_SQL` variable beside
+  `SQL_AA_UPDATE_SQL` and listed in `.gitignore` as the MariaDB copy is.
+  `make sql.fill` (`sql.update` then `sql.table.fill`) loads the modified copy
+  for the selected backend; for SQLite, `sql.table.fill` first ensures the
+  service account exists (`src_preinst`, which `make install` also runs and
+  which leaves an existing account unchanged), since step 5 precedes
+  `make install` (added 2026-09-26 during implementation, after the plan's
+  `sqlite3` run as the service account turned out to need that account before
+  step 7 creates it), then creates the file's
+  directory owned by `AA_USERID:AA_GROUPID` (`install -d -o -g`) and loads the
+  copy with `sqlite3` run as the service account, so the file and any `-wal`
+  or `-shm` file beside it are the service account's. One `CONFIG_SQL`
+  variable, `SQLITE_RUN_AS`, carries that command: `runuser -u $(AA_USERID) --` when the build
+  runs as root (`$(shell id -u)` is `0`; an empty `SUDO` only means the
+  install location is writable), since `SUDO` is then empty and `sudo` may be absent (neither
+  `rockylinux:8` nor `debian:13` ships it; both ship `runuser`, checked
+  2026-09-26), and `sudo -u $(AA_USERID)` otherwise; `$(SUDO) -u` would expand
+  to a bare `-u` for a root-run build. Every SQLite `sqlite3` call, including
+  `sql.show`, uses that variable, and the schema reaches `sqlite3` on standard
+  input redirected by the calling shell, because the service account may not
+  read a checkout under a private home (observed 2026-09-26: the redirect
+  succeeds where `.read <path>` fails with `cannot open`): once mgmt has opened the file with
+  `journal_mode=WAL`, another user cannot even list its tables (observed
+  2026-09-26 in `rockylinux:8`: `attempt to write a readonly database`), and a
+  root-run call could leave WAL files the service account cannot write.
+  A second run is then harmless and restores a missing table, as on MariaDB
+  (checked 2026-09-25 with sqlite 3.26.0: first load, second load and a load
+  after dropping one table all exit 0 and leave the four tables). This branch
+  needs `$(SUDO)`, so the install sequence marks step 5 R for SQLite
+  and keeps its place before `conf.storage`. `make sql.show` lists the tables
+  of the selected backend, `sqlite3 <file> .tables` for SQLite, since the
+  install guide's step 5 check uses it. The MariaDB targets stay as today;
+  where the operator creates the database and account (the ansible/cloud
+  path), aa-env skips db.secure/db.addAdmin/db.create and runs only
+  `make sql.fill`.
+- `site-template/systemd/epicsarchiverap-maven.service.in`: `After=` and
+  `Requires=mariadb.service` only when the MariaDB backend is selected.
+- Package lists: `sqlite` in `configure/os/rocky8.pkgs` and `sqlite3` in
+  `configure/os/debian13.pkgs`, each providing `/usr/bin/sqlite3` (checked
+  2026-09-25 in `rockylinux:8`, sqlite 3.26.0, and `debian:13`, sqlite 3.46.1;
+  the schema loads with 3.26.0). The lists stay one per OS: a SQLite host
+  installed by aa-env alone may carry `mariadb-server` without enabling it,
+  which the install guide states. Provisioned SQLite hosts come from the
+  `archiver-dev-sqlite` species, whose `P_sqlite` operator installs only the
+  SQLite tool and no MariaDB server (agreed by the cloud-provision and
+  ansible-provision operators, reported 2026-09-26).
+- MariaDB over UDS (third, D28): the driver's `localSocket` needs JNA on the
   classpath, and the WARs built from aa-maven `3c96141d` carry `jna` and
   `jna-platform` 5.13.0 (G12 Complete 2026-09-21), so this step is not gated.
-- Package list: MariaDB packages for the MariaDB backend, `sqlite3` for SQLite.
-- Documentation.
+- Documentation: `docs/README.install.md` (the backend choice and where to
+  set it, the SQLite sequence with step 5 as R, the file location, and that
+  `make conf.storage.rm`, which removes `ARCHAPPL_STORAGE_TOP`, also removes
+  the SQLite database under it) and `docs/technicaldocs/README.systemd.md`
+  (the MariaDB dependency only for that backend).
 
 Out of scope: the driver dependencies and dialect detection in the source
-(aa-maven, gate G9); replacing the existing launcher or service design.
+(aa-maven, gate G9); replacing the existing launcher or service design;
+moving data between backends; the tarball's `install_scripts/`, which aa-env
+does not use.
 
 ##### Completion Criteria
 
-- One PV archives and retrieves under each backend in the D16 order —
-  MariaDB/TCP, then MariaDB/UDS, then SQLite3 — with the selector the only
+- One PV archives and retrieves under each backend in the D28 order —
+  MariaDB/TCP, then SQLite3, then MariaDB/UDS — with the selector the only
   change between them.
+- Under SQLite no MariaDB server runs, the appliance unit does not require
+  `mariadb.service`, and a PV added before a restart is still archived after
+  it.
 
 ##### Dependencies And Decisions
 
 - G9 Complete 2026-09-18 (both drivers ship, dialect auto-detected)
 - M11 (ordering): the package change lands in the per-OS lists, not in
   `required_pkgs.sh`
-- D15 (selectable backend), D16 (rollout order TCP -> UDS -> SQLite3)
+- D15 (selectable backend), D16 (rollout order), D28 (SQLite before UDS,
+  the SQLite file location and schema source)
+- Provisioning shape for SQLite hosts (reported 2026-09-26, agreed between
+  the cloud-provision and ansible-provision operators): a species per backend,
+  `archiver-dev` with `P_mariadb` and `archiver-dev-sqlite` with `P_sqlite`;
+  ansible's `archiver_build` writes `DB_BACKEND` and checks the tables in the
+  SQLite file; the contract names `make sql.show` for that check, since it
+  runs `sqlite3` through `SQLITE_RUN_AS` as the service account, where a
+  root-run `sqlite3` could leave WAL files the service account cannot write. Their work starts after this plan is accepted and its variable
+  and file contract is sent; it is ordering on their side, not a dependency of
+  this row.
 - MariaDB/TCP account and connection model: aa-env is authoritative on the user
   name, `DB_USER_PASS`, database name, and that it connects over TCP loopback to
   `:3306`; the account grant host-spec is server-side. The provisioning contract
@@ -1091,33 +1168,38 @@ Out of scope: the driver dependencies and dialect detection in the source
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-26, the three-step plan in this detail
+Implementation Authorization: 2026-09-26, owner authorized the accepted plan
+Superseded Plan Artifacts: the three-step plan of 2026-09-18 (TCP, UDS,
+SQLite), replaced 2026-09-25 by D28's order
 
-1. MariaDB/TCP: add the `DB_BACKEND` selector, render `context.xml` for
-   MariaDB/TCP, run `make sql.fill`, start the units, and verify one PV.
-2. MariaDB/UDS: render the `localSocket` URL form and verify over the socket;
-   the JNA jars the driver needs are already in the WARs.
-3. SQLite3: render the SQLite DataSource and initialization and verify with no
-   DB service present.
+1. Selector and MariaDB/TCP: add `DB_BACKEND` and its validation, render the
+   resource from it with MariaDB as today, and keep `sql.fill` and the unit's
+   MariaDB dependency for `mariadb`. Closed by T1 and T2.
+2. SQLite3: add `ARCHAPPL_SQLITE_FILE`, the SQLite resource, the SQLite
+   branch of `sql.fill`, the unit without the MariaDB dependency, the
+   packages, and the documents. Closed by T1 and T3.
+3. MariaDB/UDS: render the `localSocket` URL form and verify over the socket.
+   Closed by T4.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Function | Select MariaDB/TCP; run `make sql.fill`; start the units; archive one PV; retrieve | This host or a provisioned host (Rocky 8 / Debian 13) | Non-empty samples |
-| T2 | Function | Select MariaDB/UDS; start the units; archive one PV; retrieve | provisioned host (Rocky 8 / Debian 13) | Non-empty samples over the socket |
-| T3 | Function | Select SQLite3; start the units; archive one PV; retrieve | This host | Non-empty samples; no MariaDB required |
+| T1 | Logic | `tests/run-all-tests.bash --phase=2` with checks that render `context.xml` and the unit for `mariadb`, for `sqlite`, and for an invalid value, and that `DB_BACKEND=sqlite` set in the copy's `../CONFIG_SITE.local` reaches the rendering, and that `sql.update` writes `archappl_sqlite_updated.sql` with every `CREATE` guarded by `IF NOT EXISTS` and leaves the MariaDB copy unchanged, and that run the shipped `sql.fill` and `sql.show` SQLite branches with the real `sqlite3` against a file in the test workspace, from an isolated copy with `SUDO=`, `SQLITE_RUN_AS=` and `AA_USERID` and `AA_GROUPID` set to the running user on the `make` command line (the host has no service account and `sudo` would prompt), the two `SQLITE_RUN_AS` forms being checked by expansion instead: absent, present with the four tables, present with one table dropped, and in WAL mode as mgmt leaves it, and that expand `SQLITE_RUN_AS` for a root-run and a user-run build | This host | The MariaDB rendering is unchanged; the SQLite resource carries the driver, the URL with `journal_mode=WAL` and a one-connection pool; the unit names `mariadb.service` only for `mariadb`; an invalid value stops; the `../CONFIG_SITE.local` value wins over the default; `sql.fill` creates the file, succeeds on a second run, and restores a dropped table; `sql.show` lists the four tables, also for the WAL-mode file; the file and its WAL files belong to the service account; `SQLITE_RUN_AS` expands to `runuser -u <account> --` for a root-run build and to `sudo -u <account>` otherwise |
+| T2 | Runtime | Disposable Rocky 8 VM with MariaDB at its distribution defaults (no `skip-name-resolve`, #51), `DB_BACKEND` unset; `make db.conf`, `db.secure`, `db.addAdmin` and `db.create`, since the VM has no host-provided database; the ordered install sequence; archive one PV from a `softIoc` on this host reached over Channel Access, as in earlier VM runs; retrieve it | Disposable VM | Non-empty samples, as before the selector |
+| T3 | Runtime | Disposable Rocky 8 VM prepared as a `P_sqlite` host: the packages of `install_os_packages.bash --os rocky8 --list-only` without `mariadb-server`, plus `sqlite`; `DB_BACKEND=sqlite` in `../CONFIG_SITE.local`; the ordered install sequence; archive one PV from the `softIoc` on this host; retrieve it; restart the unit and check the PV is still archived | Disposable VM | Non-empty samples; the unit active without MariaDB; the file under the store owned by the service account; the PV still archived after the restart |
+| T4 | Runtime | Select MariaDB/UDS; start the units; archive one PV; retrieve | Provisioned host (Rocky 8 / Debian 13) | Non-empty samples over the socket |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | provisioned host (Rocky 8 / Debian 13) | Pending | none |
-| T3 | Not run | This host | Pending | none |
+| T1 | 2026-09-26T21:05:29Z | This host (Debian 13, sqlite 3.46.1), working tree on `82bbc95` with the M9 changes | Pass | `tests/run-all-tests.bash --phase=2` exits 0: Phase 1 passed=162 failed=0, Phase 2 passed=13 failed=0. P1.24 (25 checks): the default renders the MariaDB resource and a unit requiring `mariadb.service`; `DB_BACKEND:=sqlite` in `../CONFIG_SITE.local` renders `org.sqlite.JDBC`, `jdbc:sqlite:/arch/config/archappl.sqlite?journal_mode=WAL`, `maxActive="1"`, no user or password, and a unit without `mariadb.service`; `postgres` stops `conf.context` and `conf.systemd0`; `SQLITE_RUN_AS` expands to `sudo -u svcacct` and, with `id -u` reporting 0, to `runuser -u svcacct --`; `sql.fill` succeeds twice, restores a dropped table and succeeds on a WAL-mode file, the modified copy guards all 8 `CREATE` statements, the MariaDB copy is untouched, and `sql.show` lists the four tables. The MariaDB `context.xml` and unit renders are byte-identical to those of `82bbc95`. Moving the `DB_BACKEND` default after the local includes, in a copy, makes P1.24 fail; a copy without the source tree prints `[SKIP]` for the schema rules and passes the rest |
+| T2 | 2026-09-26T20:40:27Z (run 20:32Z to 20:40Z) | Disposable Rocky Linux 8.10 VM from cloud-provision, MariaDB at distribution defaults, `DB_BACKEND` unset, source `modernize` built there, a `softIoc` on this host over Channel Access | Pass | `db.secure` to `db.create` and steps 1 to 8 succeeded (`build.mvn` BUILD SUCCESS); the unit active with `After=`/`Requires=mariadb.service`; `context.xml` carries `org.mariadb.jdbc.Driver` and `jdbc:mariadb://127.0.0.1:3306/archappl`; three PVs `Being archived` with 18 to 19 samples each in the last 3 minutes |
+| T3 | 2026-09-26T20:44:01Z (run 20:34Z to 20:44Z) | Disposable Rocky Linux 8.10 VM prepared as a `P_sqlite` host (the Rocky 8 list without `mariadb-server`: not installed, no `mariadb*` unit file), `DB_BACKEND:=sqlite` in `../CONFIG_SITE.local`, the same `softIoc` | Pass | `sudo make sql.fill` (root, `runuser`) created `/arch/config/archappl.sqlite` owned by `tomcat`; `make sql.show` as the login user (`sudo -u`) listed the four tables before and after the appliance switched the file to WAL; the unit active with no database service in `After=`/`Requires=`; `context.xml` carries `org.sqlite.JDBC`, the WAL URL and `maxActive="1"`; three PVs `Being archived` with 19 samples each; the `-wal` and `-shm` files belong to `tomcat`; after `systemctl restart` the three PVs were still `Being archived` with 114 to 115 samples each in the next 2 minutes |
+| T4 | Not run | Provisioned host (Rocky 8 / Debian 13) | Pending | none |
 
 ##### Closure Evidence
 

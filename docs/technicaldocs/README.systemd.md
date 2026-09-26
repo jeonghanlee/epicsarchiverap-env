@@ -13,7 +13,9 @@ itself with `catalina.sh run`, so the launcher holds the JVM's PID.
 The unit is generated from
 `site-template/systemd/epicsarchiverap-maven.service.in`. With the default
 configuration, `AA_INSTALL_LOCATION` is `/opt/epicsarchiverap-maven` and
-`SYSTEMD_FILENAME` is `epicsarchiverap-maven.service`. `SYSTEMD_SERVICES` adds
+`SYSTEMD_FILENAME` is `epicsarchiverap-maven.service`. `@DB_SYSTEMD_UNIT@` is
+`mariadb.service` for the MariaDB backend (`DB_BACKEND=mariadb`, the default)
+and empty for SQLite, which needs no database service. `SYSTEMD_SERVICES` adds
 site-specific prerequisites to both `After` and `Requires`;
 `SYSTEMD_TIMEOUT_STOP_SECONDS` (default 300) bounds the ordered stop, which
 includes the ETL's consolidation on shutdown. Both can be set in
@@ -27,8 +29,8 @@ The following is the source template; its placeholders are substituted during
 [Unit]
 Description=EPICS Archiver Appliance for @ARCHAPPL_SITEID@
 Documentation=@DOCURL@
-After=network.target mariadb.service @SYSTEMD_SERVICES@
-Requires=mariadb.service @SYSTEMD_SERVICES@
+After=network.target @DB_SYSTEMD_UNIT@ @SYSTEMD_SERVICES@
+Requires=@DB_SYSTEMD_UNIT@ @SYSTEMD_SERVICES@
 SourcePath=@INSTALL_LOCATION@/@ARCHAPPL_MAIN_SCRIPT@
 
 [Service]

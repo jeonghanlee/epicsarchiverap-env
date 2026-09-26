@@ -24,6 +24,10 @@ DB_NAME=archappl
 DB_USER=archappl
 DB_USER_PASS=archappl
 DB_BACKUP_PATH=db
+## Configuration database backend: mariadb or sqlite. Set it in
+## ../CONFIG_SITE.local; a default defined after the local includes below
+## would override the site's value.
+DB_BACKEND:=mariadb
 
 ARCHAPPL_HOST_IPADDR=localhost
 
@@ -74,6 +78,8 @@ ARCHAPPL_STORAGE_TOP=/arch
 ARCHAPPL_SHORT_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore
 ARCHAPPL_MEDIUM_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore
 ARCHAPPL_LONG_TERM_FOLDER:=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore
+## SQLite database file of the sqlite backend, on the archive volume.
+ARCHAPPL_SQLITE_FILE=$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite
 ## Store partition granularity and ETL hold per tier, rendered into
 ## $(ARCHAPPL_POLICIES). A granularity must be one of the PartitionGranularity
 ## names in the source (PARTITION_5MIN, PARTITION_15MIN, PARTITION_30MIN,
@@ -111,6 +117,8 @@ ARCHAPPL_LOG4J_SITE_FILE:=
 ## $(AA_INSTALL_LOCATION)/*/conf
 #
 ARCHAPPL_CONTEXT_XML:=context.xml
+## Source of $(ARCHAPPL_CONTEXT_XML) for the sqlite backend.
+ARCHAPPL_CONTEXT_SQLITE_XML:=context-sqlite.xml
 ARCHAPPL_TOMCAT_STARTUP:=startup.sh
 ARCHAPPL_TOMCAT_SHUTDOWN:=shutdown.sh
 ARCHAPPL_TOMCAT_RUN:=run.sh

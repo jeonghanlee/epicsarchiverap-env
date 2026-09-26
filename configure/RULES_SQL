@@ -52,6 +52,30 @@ sql.show: sql.table.show
 
 sql.drop: sql.table.drop
 
+# The schema load writes aa-env's modified copy of the source schema, with
+# every CREATE guarded by IF NOT EXISTS, and loads it into the selected backend,
+# so a second run is harmless and restores a missing table. SQLite first makes
+# sure the service account exists (src_preinst), then runs sqlite3 as that
+# account through SQLITE_RUN_AS and feeds the schema on standard
+# input, since that account may not read a checkout under a private home.
+ifeq "$(DB_BACKEND)" "sqlite"
+sql.update:
+	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
+	            -e "s/CREATE TRIGGER /CREATE TRIGGER IF NOT EXISTS /g" \
+	            < $(SQL_AA_ORIG_SQLITE) > $(SQL_AA_UPDATE_SQLITE)
+
+sql.update.show:
+	$(QUIET)echo ">>> $(SQL_AA_UPDATE_SQLITE)"
+	$(QUIET)cat -b $(SQL_AA_UPDATE_SQLITE)
+
+sql.table.fill: src_preinst
+	$(QUIET)$(SUDO) $(INSTALL) -d -o $(AA_USERID) -g $(AA_GROUPID) $(dir $(ARCHAPPL_SQLITE_FILE))
+	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) < $(SQL_AA_UPDATE_SQLITE)
+
+sql.table.show:
+	$(QUIET)echo "\n>>> $(ARCHAPPL_SQLITE_FILE) Tables"
+	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) .tables
+else
 sql.update:
 	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
 	            -e "s/) ENGINE=InnoDB;/) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/g" \
@@ -67,6 +91,7 @@ sql.table.fill: mariadb_setup.bash
 sql.table.show: mariadb_setup.bash
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables"
 	$(QUIET)bash $< tableShow
+endif
 
 sql.table.drop: mariadb_setup.bash
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables Drop"

@@ -11,6 +11,23 @@ SQL_AA_ORIG_SQL:=$(SQL_TOP_PATH)/archappl_mysql.sql
 # This file doesn't have any archappl (DB_NAME) within
 # ALS-U Updated SQL with DEFAULT CHARSET=utf8mb4
 SQL_AA_UPDATE_SQL:=$(SQL_SITE_PATH)/archappl_mysql_updated.sql
+## SQLite schema and aa-env's copy with every CREATE guarded by IF NOT EXISTS
+SQL_AA_ORIG_SQLITE:=$(SQL_TOP_PATH)/archappl_sqlite.sql
+SQL_AA_UPDATE_SQLITE:=$(SQL_SITE_PATH)/archappl_sqlite_updated.sql
+#
+## Backends DB_BACKEND accepts; the MariaDB unit dependency applies to mariadb only.
+DB_BACKENDS:=mariadb sqlite
+DB_SYSTEMD_UNIT=$(if $(filter mariadb,$(DB_BACKEND)),mariadb.service,)
+#
+## sqlite3 runs as the service account so the database and its WAL files stay
+## writable by the appliance: runuser for a root-run build, where sudo may be
+## absent, and sudo otherwise.
+SQLITE_CMD:=sqlite3
+ifeq "$(shell id -u)" "0"
+SQLITE_RUN_AS:=runuser -u $(AA_USERID) --
+else
+SQLITE_RUN_AS:=sudo -u $(AA_USERID)
+endif
 #
 ## https://mariadb.com/kb/en/about-mariadb-connector-j/
 # For MySQL : com.mysql.jdbc.Driver
