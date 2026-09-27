@@ -16,14 +16,13 @@ M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
-M26 is In progress: it will make `make conf.storage` warn when the archive store
-shares the root filesystem or lies under a user home, and the health timer
-alarm at a usage threshold (D26). M39 (macOS removed, D27) is
-Complete at `3b3bdf9`; the silent `db.create` failure it found is Backlog
-M40. M9 (selectable backend, SQLite before UDS per D28) is In progress: its
-steps 1 and 2 (the selector and SQLite) landed at `bbe0968`, and the UDS
-step (T4, on a provisioned host) remains. M26's plan was accepted and its
-implementation authorized on 2026-09-26.
+M26 is Complete at `ea554ff`: `make conf.storage` warns when the archive
+store shares the root filesystem or lies under a user home, and the health
+timer alarms at `ARCHAPPL_STORAGE_ALARM_PERCENT` (D26). M39 (macOS removed,
+D27) is Complete at `3b3bdf9`; the silent `db.create` failure it found is
+Backlog M40. M9 (selectable backend, SQLite before UDS per D28) is In
+progress: its steps 1 and 2 (the selector and SQLite) landed at `bbe0968`,
+and the UDS step (T4, on a provisioned host) remains.
 M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
@@ -74,7 +73,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; VM checks remain for the 45-second failure-reporting target, no monitor-initiated stop/restart and preserved dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
-| Storage | M26 | Test-environment archive store | Milestone | In progress | No | D18, D21, D23, D26 | `make conf.storage` warns when the store shares the root filesystem or lies under a user home, and the health timer reports FAIL when the store's filesystem crosses a usage threshold; the host prerequisites name the storage volume; [detail](#m26---test-environment-archive-store) |
+| Storage | M26 | Test-environment archive store | Milestone | Complete | No | D18, D21, D23, D26 | Implemented and verified (T1-T2); landed at `ea554ff` on origin/modernize 2026-09-27; [detail](#m26---test-environment-archive-store) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
@@ -2391,7 +2390,7 @@ Origin: 265f580 / M26
 Identity History: Retitled 2026-09-23 from "Test-environment archive store and
 ETL timing" when the ETL-timing half moved to M31 (D23).
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -2538,7 +2537,9 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- 2026-09-27T08:37:57Z: `git fetch` then `git rev-parse HEAD @{upstream}` both
+  `ea554ff` on origin/modernize; the 12 committed paths are the implementation,
+  its checks, the guides and this register. Result: landed.
 
 ##### GitHub Projection
 
