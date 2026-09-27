@@ -314,8 +314,40 @@ function health_instance {
     return "$rc"
 }
 
+# Prints the storage line of health for the loaded configuration: the store's
+# mount, its usage and the alarm threshold, then PRESENT, FAIL storage-threshold
+# at or above the threshold, or ERROR when df cannot read the store or the
+# threshold is not a percent. Returns 0, 1 or 2 like an instance check.
+function health_storage {
+    local top="${ARCHAPPL_STORAGE_TOP:-}" threshold="${ARCHAPPL_STORAGE_ALARM_PERCENT:-85}"
+    local line="" use="" mount=""
+    if [[ ! $threshold =~ ^[0-9]{1,3}$ ]] || (( 10#$threshold < 1 || 10#$threshold > 100 )); then
+        printf 'storage path=%s mount=- use=- threshold=%s ERROR storage-invalid-threshold\n' "${top:--}" "$threshold"
+        return 2
+    fi
+    threshold=$((10#$threshold))
+    if [[ -n $top ]]; then
+        line=$(df -P -- "$top" 2>/dev/null | sed -n '2p')
+    fi
+    if [[ -n $line ]]; then
+        read -r _ _ _ _ use mount <<< "$line"
+        use="${use%\%}"
+    fi
+    if [[ ! $use =~ ^[0-9]{1,3}$ || -z $mount ]]; then
+        printf 'storage path=%s mount=- use=- threshold=%s%% ERROR storage-unreadable\n' "${top:--}" "$threshold"
+        return 2
+    fi
+    if (( 10#$use >= threshold )); then
+        printf 'storage path=%s mount=%s use=%s%% threshold=%s%% FAIL storage-threshold\n' "$top" "$mount" "$use" "$threshold"
+        return 1
+    fi
+    printf 'storage path=%s mount=%s use=%s%% threshold=%s%% PRESENT\n' "$top" "$mount" "$use" "$threshold"
+    return 0
+}
+
 function health_archappl {
     local JAVA_HOME="" CATALINA_HOME="" java="" home="" error="" service rc result=0
+    local loaded=0 storage_rc=-1 verdict
     # shellcheck disable=SC1091,SC1090
     if [[ $OSTYPE != linux* ]]; then
         error='linux-process-inspection-required'
@@ -329,6 +361,8 @@ function health_archappl {
         ! home=$(realpath -e -- "$CATALINA_HOME" 2>/dev/null) || [[ ! -x $java || ! -d $home ]]; then
         error='invalid-runtime-paths'
     fi
+    # The configuration was read when no error occurred before the runtime paths.
+    if [[ -z $error || $error == invalid-runtime-paths ]]; then loaded=1; fi
     for service in "${startup_services[@]}"; do
         rc=0
         if [[ -n $error ]]; then
@@ -339,12 +373,29 @@ function health_archappl {
         fi
         if (( rc > result )); then result=$rc; fi
     done
-    case "$result" in
-        0) printf '%s\n' 'health PRESENT all-four-processes-verified; application-readiness-not-checked' ;;
-        1) printf '%s\n' 'health FAIL one-or-more-invalid-instances' ;;
-        2) printf '%s\n' 'health ERROR inspection-incomplete' ;;
-    esac
-    return "$result"
+    # The store is known once the configuration loads; without it the store
+    # path is unknown, and a non-Linux host has no storage line at all.
+    if (( loaded )); then
+        storage_rc=0
+        health_storage || storage_rc=$?
+    elif [[ $error == unreadable-or-invalid-configuration || $error == configuration-load-failed ]]; then
+        printf 'storage path=- ERROR %s\n' "$error"
+        storage_rc=2
+    fi
+    if (( storage_rc == 2 || result == 2 )); then
+        printf '%s\n' 'health ERROR inspection-incomplete'
+        return 2
+    fi
+    if (( result == 1 || storage_rc == 1 )); then
+        verdict='health FAIL'
+        if (( result == 1 )); then verdict+=' one-or-more-invalid-instances'; fi
+        if (( result == 1 && storage_rc == 1 )); then verdict+=';'; fi
+        if (( storage_rc == 1 )); then verdict+=' storage-threshold'; fi
+        printf '%s\n' "$verdict"
+        return 1
+    fi
+    printf '%s\n' 'health PRESENT all-four-processes-verified; application-readiness-not-checked'
+    return 0
 }
 
 # These properties identify a start/stop transition even when ActiveState repeats.
@@ -597,7 +648,7 @@ function usage
         echo "               restartup : shutdown and startup";
         echo "               storage   : show the storage status";
         echo "               status    : show summary for status";      
-        echo "               health    : verify all four JVM processes (Linux)";
+        echo "               health    : verify all four JVM processes and the store usage (Linux)";
         echo "               loglevel <component> [<logger> [<level>]]";
         echo "                         : read or set an application logger level at runtime";
         echo "               h         : this screen";

@@ -173,7 +173,16 @@ sudo -u tomcat /opt/epicsarchiverap-maven/archappl.bash health
 
 The Linux-only `health` command checks every instance in startup order. Each
 line names the instance, the observed PID when available, and `PRESENT`, `FAIL`
-or `ERROR` with a reason. An aggregate line follows. It reads the installed
+or `ERROR` with a reason. A storage line follows,
+`storage path=<store> mount=<mount point> use=<n>% threshold=<t>%`, ending in
+`PRESENT`, `FAIL storage-threshold` when the store's filesystem usage is at or
+above `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85), or `ERROR` when `df`
+cannot read the store (`storage-unreadable`) or the threshold is not a percent
+from 1 to 100 (`storage-invalid-threshold`); when `archappl.conf` does not
+load, the line is `storage path=- ERROR <cause>`. An aggregate line follows
+and names each failing cause: `health FAIL one-or-more-invalid-instances`,
+`health FAIL storage-threshold`, or, when both hold,
+`health FAIL one-or-more-invalid-instances; storage-threshold`. It reads the installed
 configuration, validates each PID file, checks the actual Java executable,
 Tomcat bootstrap arguments, `catalina.base`, `catalina.home`, process state and
 start time, then repeats observations to reject inconsistent identities. It
@@ -182,13 +191,17 @@ their existing behavior; `status` is a diagnostic listing, not this check.
 
 | Exit | Meaning |
 | --- | --- |
-| 0 | Four expected JVM processes verified at the observation; no application-readiness claim |
-| 1 | One or more missing, dead or invalid instances |
-| 2 | Inspection incomplete, including unreadable/invalid configuration or inaccessible process identity |
+| 0 | Four expected JVM processes verified and the store's filesystem below the alarm threshold at the observation; no application-readiness claim |
+| 1 | One or more missing, dead or invalid instances, or the store's filesystem at or above the alarm threshold |
+| 2 | Inspection incomplete, including unreadable/invalid configuration, inaccessible process identity, or an unreadable store or invalid threshold |
 
-Exit 2 takes precedence when instance failures and inspection errors coexist.
-Configuration contents and full process command lines are not printed. Run as
-the service account so Linux process-access restrictions do not obscure its JVMs.
+Exit 2 takes precedence when failures and inspection errors coexist. A
+scheduled check that skips because the appliance is inactive or stopping prints
+no storage line: a stopped appliance does not fill its store.
+Apart from the store path and the alarm threshold on the storage line,
+configuration contents are not printed, nor are full process command lines.
+Run as the service account so Linux process-access restrictions do not obscure
+its JVMs.
 
 ### Scheduled checks and timing
 

@@ -40,6 +40,16 @@ the check that proves it ran.
   `/proc` process state, executable links and arguments for the service account.
 - Outbound network for the build: the `git` clone of the source, and the Maven
   Wrapper (3.9.16) plus dependency downloads into a cold `~/.m2`.
+- A filesystem for the archive store (`ARCHAPPL_STORAGE_TOP`, `/arch` by
+  default) other than the root filesystem and outside any user home, sized by
+  the site. `make conf.storage` warns, and still succeeds, when the store shares
+  the root filesystem or lies under `/home`, `/root` or the home of the user
+  running it; the health timer reports `FAIL storage-threshold` once the
+  store's filesystem reaches `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85, set
+  in `../CONFIG_SITE.local`). To change it on an installed host, edit
+  `../CONFIG_SITE.local`, then run `make conf.archapplproperties` and
+  `make install`; each check reads the installed `archappl.conf` anew, so the
+  next scheduled check uses the new value without an appliance restart.
 - The service group and user (`AA_GROUPID`, `AA_USERID`) may be pre-created; the
   install leaves an existing group/user unchanged.
 

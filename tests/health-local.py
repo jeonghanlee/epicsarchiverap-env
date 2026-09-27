@@ -42,7 +42,12 @@ class HealthTests(WorkspaceTest):
         if not java:
             self.skipTest("A real installed Java executable is required for PID-path tests")
         java_home = Path(java).resolve().parent.parent
-        self.config.write_text(f'JAVA_HOME="{java_home}"\nCATALINA_HOME="{self.root}"\n')
+        # An installed archappl.conf always names the store; a 100 percent threshold
+        # keeps these instance checks independent of the host's disk usage.
+        self.config.write_text(
+            f'JAVA_HOME="{java_home}"\nCATALINA_HOME="{self.root}"\n'
+            f'ARCHAPPL_STORAGE_TOP="{self.root}"\nARCHAPPL_STORAGE_ALARM_PERCENT=100\n'
+        )
 
     def pid(self, name, value):
         path = self.root / name / "temp" / (name + ".pid")

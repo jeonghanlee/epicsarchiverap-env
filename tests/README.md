@@ -82,7 +82,9 @@ the console summary; a skipped check is not verification.
   real zombie, multi-instance output, inspection-error precedence and preserved
   PID files/processes. Symlink-target traversal denial remains an inspection
   error. An unrelated Java main class with misleading Tomcat arguments must
-  be rejected. It never constructs a healthy Tomcat substitute.
+  be rejected. It never constructs a healthy Tomcat substitute. Its
+  `archappl.conf` names the store and a 100 percent threshold, as an installed
+  file names the store, so these instance cases do not depend on disk usage.
 - PID cases require an installed Java executable so the configuration identity
   is real; they skip explicitly when none exists. Permission-denial cases skip
   under root. The unrelated-JVM negative compiles `fixtures/UnrelatedJava.java`
@@ -145,6 +147,22 @@ the console summary; a skipped check is not verification.
   succeeds on a WAL-mode file, every `CREATE` in the modified copy carries
   `IF NOT EXISTS`, the MariaDB copy is untouched, and `sql.show` lists the four
   tables; without `sqlite3` or the source tree this part prints `[SKIP]`.
+- From an isolated copy run as the current user (`SUDO=`, `SUDOBASH="bash -c"`),
+  the real `conf.storage` succeeds for a store under `/var/tmp`, under
+  `/dev/shm` and under the user's home, prints the root-filesystem warning
+  exactly when `df -P` puts the store on the root mount and the user-home
+  warning only for the home store; each directory comes from `mktemp -d` and is
+  removed, and a case whose directory cannot be made, or `/dev/shm` on the root
+  mount, prints `[SKIP]`. The real `conf.archappl` render carries
+  `ARCHAPPL_STORAGE_ALARM_PERCENT=85`, and `70` when `../CONFIG_SITE.local`
+  sets it. The shipped launcher's `health`, with a real JDK, no running
+  instance and the checkout as the store, prints
+  `storage ... FAIL storage-threshold` and the verdict
+  `health FAIL one-or-more-invalid-instances; storage-threshold` at a threshold
+  equal to the measured usage, and `PRESENT` with only the instance cause one
+  percent above it; `storage path=- ERROR configuration-load-failed` with exit 2
+  when `archappl.conf` does not load; and the storage line with exit 2 when only
+  the runtime paths are invalid.
 
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.

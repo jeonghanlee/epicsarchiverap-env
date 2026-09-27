@@ -630,6 +630,110 @@ else
     done
 fi
 
+# P1.25 conf.storage warns when the store shares the root filesystem or lies
+# under a user home and succeeds either way; archappl.conf carries the alarm
+# threshold, with a value in ../CONFIG_SITE.local winning; health prints the
+# storage line and names the storage cause at or above the threshold. The real
+# rules and the shipped launcher run from isolated copies as the running user.
+st_env="${WORKSPACE}/storage-env"
+mkdir -p "${st_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/site-template" "${TOP}/scripts" "${st_env}/"
+rm -f "${st_env}/configure/"*.local "${st_env}/site-template/archappl.conf"
+st_opts=(SUDO= "SUDOBASH=bash -c" "AA_USERID=$(id -un)" "AA_GROUPID=$(id -gn)")
+st_root_mount=$(df -P / | sed -n '2p' | awk '{print $NF}')
+for st_case in root:/var/tmp shm:/dev/shm home:"${HOME}"; do
+    st_kind="${st_case%%:*}"
+    st_base="${st_case#*:}"
+    if ! st_dir=$(mktemp -d "${st_base}/archappl-store.XXXXXX" 2>/dev/null); then
+        printf '  [SKIP] conf.storage %s case: cannot create a directory under %s\n' "${st_kind}" "${st_base}"
+        continue
+    fi
+    st_mount=$(df -P "${st_dir}" | sed -n '2p' | awk '{print $NF}')
+    if [[ "${st_kind}" == shm && "${st_mount}" == "${st_root_mount}" ]]; then
+        printf '  [SKIP] conf.storage shm case: /dev/shm shares the root filesystem\n'
+        rm -rf "${st_dir}"
+        continue
+    fi
+    st_rc=0
+    st_out=$(make -C "${st_env}" -s conf.storage "${st_opts[@]}" "ARCHAPPL_STORAGE_TOP=${st_dir}" 2>&1) || st_rc=$?
+    rm -rf "${st_dir}"
+    assert_status "${st_rc}" 0 "conf.storage succeeds for the ${st_kind} store"
+    if [[ "${st_mount}" == "${st_root_mount}" ]]; then st_want=yes; else st_want=no; fi
+    if [[ "${st_out}" == *"is on the root filesystem"* ]]; then st_got=yes; else st_got=no; fi
+    assert_eq "${st_got}" "${st_want}" "conf.storage root-filesystem warning for the ${st_kind} store"
+    if [[ "${st_kind}" == home ]]; then st_want=yes; else st_want=no; fi
+    if [[ "${st_out}" == *"lies under the home directory"* ]]; then st_got=yes; else st_got=no; fi
+    assert_eq "${st_got}" "${st_want}" "conf.storage user-home warning for the ${st_kind} store"
+done
+st_conf="${st_env}/site-template/archappl.conf"
+make -C "${st_env}" -s conf.archappl > /dev/null 2>&1 || true
+case "$(cat "${st_conf}")" in
+    *$'\nARCHAPPL_STORAGE_ALARM_PERCENT=85\n'*) _record_pass "archappl.conf carries ARCHAPPL_STORAGE_ALARM_PERCENT=85 by default" ;;
+    *) _record_fail "archappl.conf carries ARCHAPPL_STORAGE_ALARM_PERCENT=85 by default" "missing in ${st_conf}" ;;
+esac
+printf 'ARCHAPPL_STORAGE_ALARM_PERCENT:=70\n' > "${st_env}/../CONFIG_SITE.local"
+rm -f "${st_conf}"
+make -C "${st_env}" -s conf.archappl > /dev/null 2>&1 || true
+rm -f "${st_env}/../CONFIG_SITE.local"
+case "$(cat "${st_conf}")" in
+    *$'\nARCHAPPL_STORAGE_ALARM_PERCENT=70\n'*) _record_pass "A threshold in ../CONFIG_SITE.local reaches archappl.conf" ;;
+    *) _record_fail "A threshold in ../CONFIG_SITE.local reaches archappl.conf" "the shipped default won" ;;
+esac
+st_java=$(command -v java || true)
+if [[ -z "${st_java}" ]]; then
+    printf '  [SKIP] health storage line: needs a real java executable\n'
+else
+    st_jh=$(dirname "$(dirname "$(readlink -f "${st_java}")")")
+    st_hl="${WORKSPACE}/storage-health"
+    mkdir -p "${st_hl}/catalina"
+    cp "${TOP}/scripts/archappl.bash" "${st_hl}/"
+    for st_svc in mgmt engine etl retrieval; do mkdir -p "${st_hl}/${st_svc}/temp"; done
+    st_use=$(df -P "${TOP}" | sed -n '2p' | awk '{print $5}')
+    st_use="${st_use%\%}"
+    for st_threshold in "${st_use}" $((st_use + 1)); do
+        if (( st_threshold < 1 || st_threshold > 100 )); then
+            printf '  [SKIP] health threshold %s is outside 1 to 100\n' "${st_threshold}"
+            continue
+        fi
+        printf 'JAVA_HOME="%s"\nCATALINA_HOME="%s"\nARCHAPPL_STORAGE_TOP="%s"\nARCHAPPL_STORAGE_ALARM_PERCENT=%s\n' \
+            "${st_jh}" "${st_hl}/catalina" "${TOP}" "${st_threshold}" > "${st_hl}/archappl.conf"
+        st_rc=0
+        st_out=$(env -u ARCHAPPL_STORAGE_TOP -u ARCHAPPL_STORAGE_ALARM_PERCENT bash "${st_hl}/archappl.bash" health 2>&1) || st_rc=$?
+        assert_status "${st_rc}" 1 "health exits 1 with no instances and threshold ${st_threshold}%"
+        if (( st_use >= st_threshold )); then
+            st_line="storage path=${TOP} mount=* use=${st_use}% threshold=${st_threshold}% FAIL storage-threshold"
+            st_verdict="health FAIL one-or-more-invalid-instances; storage-threshold"
+        else
+            st_line="storage path=${TOP} mount=* use=${st_use}% threshold=${st_threshold}% PRESENT"
+            st_verdict="health FAIL one-or-more-invalid-instances"
+        fi
+        st_found=no
+        while IFS= read -r st_text; do
+            # shellcheck disable=SC2053
+            if [[ "${st_text}" == ${st_line} ]]; then st_found=yes; fi
+        done <<< "${st_out}"
+        assert_eq "${st_found}" yes "health storage line at threshold ${st_threshold}% (use ${st_use}%)"
+        assert_eq "$(tail -1 <<< "${st_out}")" "${st_verdict}" "health verdict at threshold ${st_threshold}%"
+    done
+    printf 'false\n' > "${st_hl}/archappl.conf"
+    st_rc=0
+    st_out=$(bash "${st_hl}/archappl.bash" health 2>&1) || st_rc=$?
+    assert_status "${st_rc}" 2 "health exits 2 when archappl.conf does not load"
+    case "${st_out}" in
+        *$'\nstorage path=- ERROR configuration-load-failed\n'*) _record_pass "health reports the storage path as unknown when archappl.conf does not load" ;;
+        *) _record_fail "health reports the storage path as unknown when archappl.conf does not load" "output=${st_out}" ;;
+    esac
+    printf 'JAVA_HOME="%s"\nCATALINA_HOME="/nonexistent"\nARCHAPPL_STORAGE_TOP="%s"\nARCHAPPL_STORAGE_ALARM_PERCENT=100\n' \
+        "${st_jh}" "${TOP}" > "${st_hl}/archappl.conf"
+    st_rc=0
+    st_out=$(env -u ARCHAPPL_STORAGE_TOP -u ARCHAPPL_STORAGE_ALARM_PERCENT bash "${st_hl}/archappl.bash" health 2>&1) || st_rc=$?
+    assert_status "${st_rc}" 2 "health exits 2 with invalid runtime paths"
+    case "${st_out}" in
+        *$'\nstorage path='"${TOP}"' mount='*) _record_pass "health still reports the store when only the runtime paths are invalid" ;;
+        *) _record_fail "health still reports the store when only the runtime paths are invalid" "output=${st_out}" ;;
+    esac
+fi
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

@@ -4,12 +4,16 @@ install.pkgs:
 req_storage_RULES_NAMES:=storage storage.show storage.rm 
 req_storage_RULES:=$(addprefix conf., $(req_storage_RULES_NAMES))
 
+# Creates the store directories for the service account, then warns when the
+# store shares the root filesystem or lies under a user home; the placement is
+# the host's, so the target succeeds either way.
 conf.storage:
 	@echo "\n>>> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
 	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_SHORT_TERM_FOLDER)
 	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_MEDIUM_TERM_FOLDER)
 	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_LONG_TERM_FOLDER)	
 	@$(SUDO) chown -R $(AA_USERID):$(AA_GROUPID) $(ARCHAPPL_STORAGE_TOP)
+	@$(SUDOBASH) 'bash "$(TOP)/scripts/check_storage_placement.bash" "$(ARCHAPPL_STORAGE_TOP)" "$(HOME)"'
 
 conf.storage.show:
 	@tree -pugL $(LEVEL) $(ARCHAPPL_STORAGE_TOP);

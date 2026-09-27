@@ -16,14 +16,15 @@ M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
 implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
 deployment verification without an override under M22 / T2.
-M26 is Ready: it will make `make conf.storage` warn when the archive store
+M26 is In progress: it will make `make conf.storage` warn when the archive store
 shares the root filesystem or lies under a user home, and the health timer
 alarm at a usage threshold (D26). M39 (macOS removed, D27) is
 Complete at `3b3bdf9`; the silent `db.create` failure it found is Backlog
-M40. M9 (selectable backend, SQLite before UDS per
-D28) is In progress under its plan accepted and authorized on 2026-09-26. M26's plan is a draft
-awaiting owner acceptance and implementation authorization before any code
-changes. M26's
+M40. M9 (selectable backend, SQLite before UDS per D28) is In progress: its
+steps 1 and 2 (the selector and SQLite) landed at `bbe0968`, and the UDS
+step (T4, on a provisioned host) remains. M26's plan was accepted and its
+implementation authorized on 2026-09-26.
+M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
 editing the shipped template. M32, the run that observes the chain with the
@@ -34,8 +35,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. One row is
-Ready: M26. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. No Milestone row is
+Ready. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -73,7 +74,7 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; VM checks remain for the 45-second failure-reporting target, no monitor-initiated stop/restart and preserved dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
-| Storage | M26 | Test-environment archive store | Milestone | Not started | Yes | D18, D21, D23, D26 | `make conf.storage` warns when the store shares the root filesystem or lies under a user home, and the health timer reports FAIL when the store's filesystem crosses a usage threshold; the host prerequisites name the storage volume; [detail](#m26---test-environment-archive-store) |
+| Storage | M26 | Test-environment archive store | Milestone | In progress | No | D18, D21, D23, D26 | `make conf.storage` warns when the store shares the root filesystem or lies under a user home, and the health timer reports FAIL when the store's filesystem crosses a usage threshold; the host prerequisites name the storage volume; [detail](#m26---test-environment-archive-store) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
@@ -1719,6 +1720,14 @@ MariaDB side of the same host budget.
   aa-maven `3c96141d`. This session checked the report and its arithmetic, not
   the VM, collector or original logs. T3 records that provenance explicitly.
 
+- Supporting evidence, not T2 (2026-09-27, from M26 / T2): a default install
+  with no `AA_JAVA_HEAPSIZE` set anywhere, on a disposable Rocky Linux 8.10
+  VM with the SQLite backend, ran all four JVMs with `-Xms256M -Xmx256M`, so
+  the default reaches the JVMs. The ansible-provision soak on `9eed006` used
+  256M through that operator's own `AA_JAVA_HEAPSIZE` line (confirmed
+  2026-09-26), so it is not default-install evidence either. T2 still needs
+  a 4 GB host with MariaDB sampling PVs for more than four hours.
+
 ##### Implementation Plan
 
 Plan Status: accepted
@@ -2382,7 +2391,7 @@ Origin: 265f580 / M26
 Identity History: Retitled 2026-09-23 from "Test-environment archive store and
 ETL timing" when the ETL-timing half moved to M31 (D23).
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -2414,8 +2423,9 @@ second hop could not be observed in a test run, moved to M31 on 2026-09-23
   the four instance lines, one line
   `storage path=<top> mount=<mount point> use=<n>% threshold=<t>%` followed by
   `PRESENT`, `FAIL storage-threshold` at or above
-  `ARCHAPPL_STORAGE_ALARM_PERCENT` (a Make variable, default 85, rendered into
-  `archappl.conf`), or `ERROR storage-unreadable` when `df` cannot read it.
+  `ARCHAPPL_STORAGE_ALARM_PERCENT` (a Make variable, default 85, defined in
+  `configure/CONFIG_SITE` before its `-include` of the local files so a site
+  value in `../CONFIG_SITE.local` wins, and rendered into `archappl.conf`), or `ERROR storage-unreadable` when `df` cannot read it.
   A storage FAIL keeps exit 1 and an ERROR exit 2, with ERROR taking
   precedence as today; the verdict line names each cause:
   `health FAIL one-or-more-invalid-instances`, `health FAIL storage-threshold`,
@@ -2433,6 +2443,15 @@ second hop could not be observed in a test run, moved to M31 on 2026-09-23
   `docs/technicaldocs/README.systemd.md`: the storage line of `health`, the
   verdict wording by cause, and the exit table, whose exit 1 then covers a
   store at or above the threshold as well as invalid instances.
+- Implementation notes (2026-09-26, during implementation): the placement
+  check lives in `scripts/check_storage_placement.bash`, which
+  `conf.storage` runs through `$(SUDOBASH)` with the store and `$(HOME)`, so
+  it can be read and shellchecked on its own; `health` also reports
+  `ERROR storage-invalid-threshold` (exit 2) when
+  `ARCHAPPL_STORAGE_ALARM_PERCENT` is not a whole percent from 1 to 100; and
+  the `archappl.conf` written by `tests/health-local.py` now names the store
+  and a 100 percent threshold, as an installed file does, so its instance
+  cases stay independent of the host's disk usage.
 
 Out of scope: creating or mounting a volume (the host's, D26); production
 storage sizing and per-tier media selection; retention policy for real data;
@@ -2460,9 +2479,14 @@ environment; the warning and the alarm apply to every install.
 - D23 (the ETL-timing half moved to M31, and its runtime test to M32).
 - D26 (warn and alarm only, including a store under a user home; the host
   places and sizes the store).
-- The fill rate is unknown until the pending load test reports disk growth with
-  a PV sampling. That figure sets the threshold value; it does not change the
-  shape of this work, so this row does not wait on it.
+- T2 installs with the SQLite backend that landed at `bbe0968` (M9 steps 1
+  and 2). M9 stays In progress for its UDS step, so it is not listed in Deps;
+  the landed path is what T2 needs.
+- The ansible-provision soak on `9eed006` (reported 2026-09-26) ended with the
+  19 GiB root filesystem of its test VM 91% full after 58 hours with up to 903
+  PVs, the store sharing that filesystem; it gave no growth rate. The figure
+  shows why the alarm is needed but does not set the threshold, so the
+  default stays a starting value and this row does not wait on a rate.
 - 2026-09-21: the shipped MTS granularity moved from `PARTITION_MONTH` to
   `PARTITION_DAY`, matching the recommended default the storage guide already
   carried in its "Final Recommended Default Policy" section. The guide and the
@@ -2481,9 +2505,9 @@ environment; the warning and the alarm apply to every install.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-26, the four-step plan in this detail
+Implementation Authorization: 2026-09-26, owner authorized the accepted plan
 Superseded Plan Artifacts: none
 
 1. Add the root-filesystem comparison and the user-home check, each with its
@@ -2492,22 +2516,25 @@ Superseded Plan Artifacts: none
    `archappl.conf`, and the storage line and the verdict by cause to
    `health`.
 3. Extend the Phase 1 checks; update the install and systemd guides.
-4. On a disposable VM, run T2: one install with the store on root, then the
-   home and `/dev/shm` warnings through `conf.storage` alone.
+4. On a disposable VM, run T2: one install with the SQLite backend, no heap
+   override and the store on root; the home and `/dev/shm` warnings through
+   `conf.storage` alone; the alarm through the health timer by lowering and
+   raising the threshold; and the JVM heap flags, recorded in M22 as
+   supporting evidence.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=2` with checks that run `conf.storage` from an isolated copy, with `SUDO=`, `SUDOBASH="bash -c"`, and `AA_USERID` and `AA_GROUPID` set to the running user on the `make` command line (the install location is not writable here, so the shipped values would call `sudo` and `chown` to `tomcat`, and `SUDO=` alone leaves `SUDOBASH` as ` -E bash -c`), against a directory on the root filesystem, under `/dev/shm` (skipped, and recorded as skipped, when `/dev/shm` shares the root mount), and under a directory made with `mktemp -d` in the running user's home and removed when the check ends; and the shipped launcher's `health` against a copy whose `archappl.conf` names an existing JDK as `JAVA_HOME`, a directory in the test workspace as `CATALINA_HOME`, another directory in the test workspace as `ARCHAPPL_STORAGE_TOP`, and a threshold below and then above the measured usage, which is the `df -P` usage of the filesystem holding that store directory | This host | The root-filesystem warning appears exactly when the store's mount is `/` (so also for the home case when the home is on root), the user-home warning only for the home case, and the target succeeds in every case; no appliance runs here, so the instance lines FAIL and the exit is 1 in both `health` runs, and the check judges by the storage line and the verdict: at or above the threshold the storage line ends `FAIL storage-threshold` and the verdict names both causes, below it the storage line ends `PRESENT` and the verdict names only the instance cause |
-| T2 | Runtime | On a disposable VM: one full install with the default store (`/arch`, on the root filesystem), which shows the root-filesystem warning; then `make conf.storage ARCHAPPL_STORAGE_TOP=<path>` for a directory under a login user's home and for one under `/dev/shm` (a tmpfs, a filesystem other than root; skipped, and recorded as skipped, if it shares the root mount), which check the warnings only (the installed store stays `/arch`, and the service account may not reach the home); then, with the appliance running, lower `ARCHAPPL_STORAGE_ALARM_PERCENT` in the installed `archappl.conf` below the root filesystem's current usage and read `journalctl -u epicsarchiverap-maven-health.service`, then raise it again; each check reads that file anew and the timer fires every `SYSTEMD_HEALTH_INTERVAL_SECONDS` (default 30) after the previous check ends | Disposable VM | The root-filesystem warning for the install and the home run (the home is on root there), the user-home warning for the home run only, neither for the `/dev/shm` run; after the threshold is lowered the next check's storage line ends `FAIL storage-threshold` and its verdict names the storage cause, and the timer keeps running; after it is raised the next check's storage line ends `PRESENT` |
+| T1 | Logic | `tests/run-all-tests.bash --phase=2` with checks that run `conf.storage` from an isolated copy, with `SUDO=`, `SUDOBASH="bash -c"`, and `AA_USERID` and `AA_GROUPID` set to the running user on the `make` command line (the install location is not writable here, so the shipped values would call `sudo` and `chown` to `tomcat`, and `SUDO=` alone leaves `SUDOBASH` as ` -E bash -c`), against a directory on the root filesystem, under `/dev/shm` (skipped, and recorded as skipped, when `/dev/shm` shares the root mount), and under a directory made with `mktemp -d` in the running user's home and removed when the check ends; and the real `conf.archappl` render from the copy, once with the default and once with `ARCHAPPL_STORAGE_ALARM_PERCENT:=70` written into the copy's `../CONFIG_SITE.local`; and the shipped launcher's `health` against a copy whose `archappl.conf` names an existing JDK as `JAVA_HOME`, a directory in the test workspace as `CATALINA_HOME`, another directory in the test workspace as `ARCHAPPL_STORAGE_TOP`, and a threshold below and then above the measured usage, which is the `df -P` usage of the filesystem holding that store directory | This host | `archappl.conf` carries `ARCHAPPL_STORAGE_ALARM_PERCENT=85` by default and `ARCHAPPL_STORAGE_ALARM_PERCENT=70` with the local value; the root-filesystem warning appears exactly when the store's mount is `/` (so also for the home case when the home is on root), the user-home warning only for the home case, and the target succeeds in every case; no appliance runs here, so the instance lines FAIL and the exit is 1 in both `health` runs, and the check judges by the storage line and the verdict: at or above the threshold the storage line ends `FAIL storage-threshold` and the verdict names both causes, below it the storage line ends `PRESENT` and the verdict names only the instance cause |
+| T2 | Runtime | On a disposable VM installed with `DB_BACKEND:=sqlite` in `../CONFIG_SITE.local`, so no database needs preparing on the fresh host (the warnings and the alarm do not depend on the backend), and with no `AA_JAVA_HEAPSIZE` set anywhere: first the host prerequisites of `docs/README.install.md` (the packages through `scripts/install_os_packages.bash --os rocky8`, leaving the listed `mariadb-server` disabled, and Tomcat through `make tomcat`), then one full install through steps 1 to 8 of that guide, step 5 run as root for SQLite, with the default store (`/arch`, on the root filesystem), which shows the root-filesystem warning; then `make conf.storage ARCHAPPL_STORAGE_TOP=<path>` for a directory under a login user's home and for one under `/dev/shm` (a tmpfs, a filesystem other than root; skipped, and recorded as skipped, if it shares the root mount), which check the warnings only (the installed store stays `/arch`, and the service account may not reach the home); then, with the appliance running, lower `ARCHAPPL_STORAGE_ALARM_PERCENT` in the installed `archappl.conf` below the root filesystem's current usage and read `journalctl -u epicsarchiverap-maven-health.service`, then raise it again, and read each JVM's `-Xms`/`-Xmx` from `/proc/<pid>/cmdline`, the PID taken from `/opt/epicsarchiverap-maven/<instance>/temp/<instance>.pid`; each check reads that file anew and the timer fires every `SYSTEMD_HEALTH_INTERVAL_SECONDS` (default 30) after the previous check ends | Disposable VM | The root-filesystem warning for the install and the home run (the home is on root there), the user-home warning for the home run only, neither for the `/dev/shm` run; after the threshold is lowered the next check's storage line ends `FAIL storage-threshold` and its verdict names the storage cause, and the timer keeps running; after it is raised the next check's storage line ends `PRESENT`; the four JVMs run with `-Xms256M -Xmx256M`, the shipped default, which is recorded in M22 as supporting evidence that the default reaches the JVMs; it does not satisfy M22 / T2, which needs a 4 GB host with MariaDB sampling PVs for more than four hours |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | Disposable VM | Pending | none |
+| T1 | 2026-09-27T07:02:01Z | This host (Debian 13; `/`, `/var/tmp` and the home on one filesystem, `/dev/shm` a tmpfs), working tree on `6fb725d` with the M26 changes | Pass | `tests/run-all-tests.bash --phase=2` exits 0: Phase 1 passed=183 failed=0, Phase 2 passed=13 failed=0. P1.25 (21 checks): `conf.storage` succeeded for stores under `/var/tmp`, `/dev/shm` and the home, with the root-filesystem warning for the `/var/tmp` and home stores only and the user-home warning for the home store only; `archappl.conf` carried `ARCHAPPL_STORAGE_ALARM_PERCENT=85`, and `70` from `../CONFIG_SITE.local`; `health` with no instances and the checkout as the store (21% used) printed `FAIL storage-threshold` and `health FAIL one-or-more-invalid-instances; storage-threshold` at 21%, `PRESENT` and only the instance cause at 22%, `storage path=- ERROR configuration-load-failed` with exit 2 for an unloadable file, and the storage line with exit 2 for invalid runtime paths. `tests/health-local.py` passes its 15 cases with the store-bearing fixture |
+| T2 | 2026-09-27T06:12:16Z (run 06:04Z to 06:12Z) | Disposable Rocky Linux 8.10 VM from cloud-provision, `DB_BACKEND:=sqlite`, no `AA_JAVA_HEAPSIZE` anywhere, source `modernize` built there | Pass | Step 6 on `/arch` (22% of the root filesystem) printed the root-filesystem warning; a store under the login user's home printed both warnings; one under `/dev/shm` (tmpfs, 0%) printed none; all succeeded. The installed `archappl.conf` carried `ARCHAPPL_STORAGE_ALARM_PERCENT=85`; the scheduled check logged `storage path=/arch mount=/ use=22% threshold=85% PRESENT`; with the threshold lowered to 22 the next check logged `FAIL storage-threshold` and `health FAIL storage-threshold`, the health service ended failed and the timer stayed active; raised back to 85, the next check logged `PRESENT`. All four JVMs ran with `-Xms256M -Xmx256M`, recorded in M22 as supporting evidence |
 
 ##### Closure Evidence
 
