@@ -3925,11 +3925,15 @@ Out of scope: the variables and their checks (M31); production values.
   ansible-provision operator); D23. Blocked from creation on G13; resume as
   Not started. G13 Complete 2026-09-26; the row resumed and its criterion is
   met; #50 closed 2026-09-26.
-- The same run measured the STS-to-MTS ETL job time rising about 9 s per hour
-  regardless of PV count, to 277 s against the 300 s period of the 5-minute
-  STS partition; STS file counts stayed level. The ETL job time is aa-maven's
-  code and is handed to aa-maven (2026-09-26, owner direction); aa-env keeps
-  the test values until the cause is known.
+- The same run first reported the STS-to-MTS ETL job time rising about 9 s per
+  hour, to 277 s against the 300 s period of the 5-minute STS partition. The
+  ansible-provision operator corrected this on 2026-09-26: "Approximate time
+  taken by last job in ETL(0>1)" is a running sum of per-PV durations that
+  resets only after 15 minutes without an update, so with 5-minute partitions
+  it never resets; 277 s was 401 passes at 0.69 s each, and a pass took 0.36 s
+  at 500 PVs and 0.49 s to 0.69 s at 903. The chain has no ETL headroom
+  concern, and the test values stand. aa-maven fixes the metric under
+  jeonghanlee/epicsarchiverap-maven#11.
 
 ##### Implementation Plan
 
