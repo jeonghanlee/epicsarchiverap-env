@@ -20,7 +20,7 @@ M26 is Complete at `ea554ff`: `make conf.storage` warns when the archive
 store shares the root filesystem or lies under a user home, and the health
 timer alarms at `ARCHAPPL_STORAGE_ALARM_PERCENT` (D26). M39 (macOS removed,
 D27) is Complete at `3b3bdf9`; the silent `db.create` failure it found is
-Backlog M40. M9 (selectable backend: MariaDB over TCP, SQLite, MariaDB over
+M40, assigned from Backlog to Milestone on 2026-09-28. M9 (selectable backend: MariaDB over TCP, SQLite, MariaDB over
 its socket per D28) is Complete: the selector and SQLite at `bbe0968`, the
 socket (`DB_SOCKET`) at `90e4a04`; #43 closed 2026-09-28.
 M26's
@@ -34,8 +34,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. M8 is the only Ready Milestone
-row, since M9 completed its last dependency. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. M8 (since M9 completed its
+last dependency) and M40 are the Ready Milestone rows. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
 Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
 unresolved scope or operating conditions of the other four keep them Open and
@@ -93,6 +93,7 @@ Release Verification 1 and 4 remain. M2
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
 | Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Complete | No | M36 | Implemented and verified (T1); landed at `2fc1a75` on origin/modernize 2026-09-25; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
 | Platform | M39 | Remove macOS support | Milestone | Complete | No | D24, D26, D27 | Implemented and verified (T1-T3); landed at `3b3bdf9` on origin/modernize 2026-09-25; [detail](#m39---remove-macos-support) |
+| DB | M40 | Fail db.create when the database client fails | Carry-forward | Not started | Yes | D22 | `make db.create` exits non-zero and names the failed statement when the admin client cannot run it; [detail](#m40---fail-dbcreate-when-the-database-client-fails) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -152,6 +153,7 @@ Release Verification 1 and 4 remain. M2
 | M2 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize | this synchronization commit | this synchronization commit |
 | M10, M13, M18, M19, M27 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-22) | this synchronization commit | this synchronization commit |
 | M38 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-25) | this synchronization commit | this synchronization commit |
+| M40 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-28) | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -4945,21 +4947,10 @@ Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-09-25T19:31Z, `gh issue view 52`
 
-## Backlog
-
-### Work
-
-| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
-| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
-| DB | M40 | Fail db.create when the database client fails | Carry-forward | Not started | Yes | D22 | `make db.create` exits non-zero and names the failed statement when the admin client cannot run it; [detail](#m40---fail-dbcreate-when-the-database-client-fails) |
-
-### Backlog Details
-
 #### M40 - Fail db.create when the database client fails
 
 Origin: 265f580 / M40
+Identity History: Backlog to Milestone 2026-09-28
 GitHub Issue: #51
 Status: Not started
 
@@ -5044,6 +5035,17 @@ Observed State: OPEN
 Observed Labels: bug
 Observed Milestone: none
 Last Compared: 2026-09-25T19:31Z, `gh issue view 51`
+
+## Backlog
+
+### Work
+
+| Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
+| Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
+
+### Backlog Details
 
 #### G5 - Baseline deployment reported by the ansible/cloud session
 
