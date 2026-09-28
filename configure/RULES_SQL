@@ -51,6 +51,7 @@ sql.fill: sql.update sql.table.fill
 
 sql.show: sql.table.show
 
+.PHONY: sql.drop sql.table.drop
 sql.drop: sql.table.drop
 
 # The schema load writes aa-env's modified copy of the source schema, with
@@ -95,6 +96,8 @@ sql.table.show: mariadb_setup.bash
 endif
 
 sql.table.drop: mariadb_setup.bash
+	$(call check_db_backend)
+	$(if $(filter mariadb,$(DB_BACKEND)),,$(error sql.drop/sql.table.drop is not supported for DB_BACKEND=sqlite; no database was changed))
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables Drop"
 	$(QUIET)bash $< tableDrop
 

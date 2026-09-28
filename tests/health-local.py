@@ -332,6 +332,30 @@ class SystemdFileTests(WorkspaceTest):
             with self.subTest(variable=key):
                 self.assertEqual(self.make("-s", f"print-{key}").strip(), str(value))
 
+    def test_sql_drop_backend_guard(self):
+        local = self.temp / "CONFIG_SITE.local"
+        local.write_text("DB_BACKEND=sqlite\n")
+        for target in ("sql.drop", "sql.table.drop"):
+            # Existing files with target names must not bypass the guard.
+            (self.root / target).touch()
+            for backend in (None, "invalid", "", "sqlite mariadb"):
+                for dry_run in (True, False):
+                    with self.subTest(target=target, backend=backend, dry_run=dry_run):
+                        args = ["make", "--no-print-directory", "-C", str(self.root), target]
+                        if backend is not None:
+                            args.append(f"DB_BACKEND={backend}")
+                        if dry_run:
+                            args.append("-n")
+                        run = subprocess.run(args, text=True, capture_output=True, timeout=10)
+                        self.assertNotEqual(run.returncode, 0, run.stdout + run.stderr)
+                        expected = ("not supported for DB_BACKEND=sqlite; no database was changed"
+                                    if backend is None else "DB_BACKEND must be one of:")
+                        self.assertIn(expected, run.stderr)
+                        self.assertNotIn("mariadb_setup.bash", run.stdout + run.stderr)
+            # MariaDB deletion is inspected only; no live database is dropped.
+            output = self.make("-n", target, "DB_BACKEND=mariadb")
+            self.assertIn("mariadb_setup.bash tableDrop", output)
+
     def test_full_install_and_monitor_removal_command_order(self):
         self.make("conf.archapplproperties")
         output = self.make("-j8", "-n", "install")

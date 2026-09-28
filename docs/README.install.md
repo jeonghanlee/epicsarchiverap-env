@@ -113,7 +113,13 @@ needs a different heap. Both heap options follow this value; for example,
   `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`
   (`/arch/config/archappl.sqlite`), owned by the service account. It sits under
   the store, so `make conf.storage.rm`, which removes `ARCHAPPL_STORAGE_TOP`,
-  removes the configuration database too.
+  removes the configuration database too. SQLite currently supports
+  `sql.update`, `sql.update.show`, `sql.fill` and `sql.show`, including their
+  `sql.table.fill` and `sql.table.show` targets. `sql.drop` and
+  `sql.table.drop` reject SQLite without changing either database.
+  `db.*` and the four application-table query targets (`PVRequests.show`,
+  `DataServers.show`, `PVAliases.show`, `PVTypeInfo.show`) remain MariaDB-specific;
+  do not use them to manage SQLite.
 - MariaDB transport: `DB_SOCKET` is empty by default, which connects over TCP to
   `DB_HOST_NAME:DB_HOST_PORT`. Set it in `../CONFIG_SITE.local` to the server's
   Unix domain socket (`/var/lib/mysql/mysql.sock` on Rocky Linux 8,
