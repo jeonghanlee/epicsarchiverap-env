@@ -173,6 +173,15 @@ the console summary; a skipped check is not verification.
   default, `--socket=<path>` with no host or port and the `localhost` account
   host with the path. The SQLite render is the same with and without
   `DB_SOCKET`. No database client runs.
+- The account and database targets stop when the database client fails: from
+  an isolated copy, with the real `mysql` client unable to connect, `make
+  db.create`, `db.drop`, `db.addAdmin` and `db.rmAdmin` and the
+  `mariadb_setup.bash` commands `dbCreate`, `dbDrop`, `userDrop`,
+  `hostnameAdminAdd` and `hostnameAdminRemove` each exit non-zero with
+  `ERROR 2002` and a message naming the failed step on stderr. The admin
+  command meets a closed loopback port; the root command meets a missing
+  socket through `DB_SOCKET`, with a pass-through `sudo` first in `PATH`.
+  Without a `mysql` client this part prints `[SKIP]`.
 
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.

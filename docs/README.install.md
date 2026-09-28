@@ -192,7 +192,13 @@ Notes:
   unit must resolve on the host; with SQLite the unit names no database service.
 - MariaDB: the database and account are created by the host; the sequence
   therefore skips `db.secure`, `db.addAdmin`, and `db.create` and runs only
-  `sql.fill`.
+  `sql.fill`. A host installed by aa-env alone runs those three targets
+  first; over TCP they need a server without `skip-name-resolve`, because
+  `db.addAdmin` creates the admin account at `localhost` while the TCP client
+  arrives as `127.0.0.1`. A server with `skip-name-resolve` uses `DB_SOCKET`,
+  whose clients arrive as `localhost`, or the host-provided path. Each of
+  these targets, and `db.rmAdmin` and `db.drop`, stops with a non-zero status
+  and names the failed step when the database client fails.
 - SQLite: step 5 needs root (R). `sql.fill` first creates the service account
   when it does not exist yet, as `make install` does later, then creates the
   directory of `ARCHAPPL_SQLITE_FILE` for that account and loads the schema

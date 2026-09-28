@@ -803,6 +803,65 @@ rm -f "${so_ctx}" "${so_env}/../CONFIG_SITE.local"
 make -C "${so_env}" -s conf.context DB_BACKEND=sqlite > /dev/null 2>&1
 assert_eq "${so_sqlite_socket}" "$(cat "${so_ctx}")" "DB_SOCKET leaves the SQLite resource unchanged"
 
+# P1.27 The account and database targets stop with a non-zero status and a
+# stderr message naming the failed step when the database client fails. The
+# real mysql client runs from an isolated copy of the Make system: the targets
+# on the admin command against a closed loopback port, the targets on the root
+# command against a missing socket through DB_SOCKET, with a pass-through sudo
+# first in PATH because this host's sudo prompts. DB_HOST_PORT and DB_SOCKET go
+# on every make command line, since each target re-renders mariadb.conf.
+if ! command -v mysql > /dev/null 2>&1; then
+    printf '  [SKIP] database target failures: needs a mysql client\n'
+else
+    cf_env="${WORKSPACE}/client-fail-env"
+    cf_bin="${WORKSPACE}/client-fail-bin"
+    cf_err="${WORKSPACE}/client-fail-stderr.txt"
+    cf_socket="${WORKSPACE}/client-fail-missing.sock"
+    mkdir -p "${cf_env}" "${cf_bin}"
+    cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${cf_env}/"
+    rm -f "${cf_env}/configure/"*.local "${cf_env}/../CONFIG_SITE.local" "${cf_env}/site-template/mariadb.conf"
+    printf '#!/bin/sh\nexec "$@"\n' > "${cf_bin}/sudo"
+    chmod +x "${cf_bin}/sudo"
+    # description|client|runner|target or command|message naming the failed step
+    cf_cases=(
+        "make db.create|admin|make|db.create|Creating the database archappl and the archappl account failed"
+        "make db.drop|admin|make|db.drop|Dropping the database archappl and the archappl account failed"
+        "dbCreate|admin|setup|dbCreate|Creating the database archappl failed"
+        "dbDrop|admin|setup|dbDrop|Dropping the database archappl failed"
+        "userDrop|admin|setup|userDrop|Dropping the archappl account failed"
+        "make db.addAdmin|root|make|db.addAdmin|Adding the admin@localhost account failed"
+        "make db.rmAdmin|root|make|db.rmAdmin|Removing the admin@localhost account failed"
+        "hostnameAdminAdd|root|setup|hostnameAdminAdd|Adding the admin@127.0.0.1 account failed"
+        "hostnameAdminRemove|root|setup|hostnameAdminRemove|Removing the admin@127.0.0.1 account failed"
+    )
+    for cf_case in "${cf_cases[@]}"; do
+        IFS='|' read -r cf_desc cf_client cf_runner cf_target cf_text <<< "${cf_case}"
+        if [[ "${cf_client}" == admin ]]; then
+            cf_vars=(DB_HOST_PORT=1 DB_SOCKET=)
+        else
+            cf_vars=(DB_SOCKET="${cf_socket}")
+        fi
+        cf_rc=0
+        if [[ "${cf_runner}" == make ]]; then
+            PATH="${cf_bin}:${PATH}" make -C "${cf_env}" -s "${cf_target}" "${cf_vars[@]}" \
+                > /dev/null 2> "${cf_err}" || cf_rc=$?
+        else
+            make -C "${cf_env}" -s db.conf "${cf_vars[@]}" > /dev/null 2>&1
+            PATH="${cf_bin}:${PATH}" bash "${cf_env}/scripts/mariadb_setup.bash" "${cf_target}" \
+                > /dev/null 2> "${cf_err}" || cf_rc=$?
+        fi
+        if [[ "${cf_rc}" -ne 0 ]]; then
+            _record_pass "${cf_desc} exits non-zero when the client fails (rc=${cf_rc})"
+        else
+            _record_fail "${cf_desc} exits non-zero when the client fails" "got rc=0"
+        fi
+        case "$(cat "${cf_err}")" in
+            *"ERROR 2002"*"${cf_text}"*) _record_pass "${cf_desc} reports the client error and the failed step" ;;
+            *) _record_fail "${cf_desc} reports the client error and the failed step" "stderr: $(cat "${cf_err}")" ;;
+        esac
+    done
+fi
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

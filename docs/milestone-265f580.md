@@ -34,8 +34,10 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. M8 (since M9 completed its
-last dependency) and M40 are the Ready Milestone rows. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. M8 is the only Ready Milestone
+row, since M9 completed its last dependency; M40 is In progress: implemented
+in the working tree with T1 and T2 passed on 2026-09-28, awaiting review and
+landing. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
 Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
 unresolved scope or operating conditions of the other four keep them Open and
@@ -93,7 +95,7 @@ Release Verification 1 and 4 remain. M2
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
 | Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Complete | No | M36 | Implemented and verified (T1); landed at `2fc1a75` on origin/modernize 2026-09-25; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
 | Platform | M39 | Remove macOS support | Milestone | Complete | No | D24, D26, D27 | Implemented and verified (T1-T3); landed at `3b3bdf9` on origin/modernize 2026-09-25; [detail](#m39---remove-macos-support) |
-| DB | M40 | Fail db.create when the database client fails | Carry-forward | Not started | Yes | D22 | `make db.create` exits non-zero and names the failed statement when the admin client cannot run it; [detail](#m40---fail-dbcreate-when-the-database-client-fails) |
+| DB | M40 | Fail the database targets when the database client fails | Carry-forward | In progress | No | D22 | `make db.addAdmin`, `db.rmAdmin`, `db.create` and `db.drop` exit non-zero and name the failed step when the database client cannot run it; [detail](#m40---fail-the-database-targets-when-the-database-client-fails) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -4947,12 +4949,12 @@ Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-09-25T19:31Z, `gh issue view 52`
 
-#### M40 - Fail db.create when the database client fails
+#### M40 - Fail the database targets when the database client fails
 
 Origin: 265f580 / M40
-Identity History: Backlog to Milestone 2026-09-28
+Identity History: Backlog to Milestone 2026-09-28; retitled 2026-09-28 from "Fail db.create when the database client fails" when the scope widened to every account and database function of the same shape
 GitHub Issue: #51
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -4964,34 +4966,67 @@ every statement failed. Observed on 2026-09-25 during M39 / T3 on a disposable
 Rocky Linux 8.10 VM with MariaDB `skip-name-resolve`: `db.create` printed
 `ERROR 1130 (HY000): Host '127.0.0.1' is not allowed to connect` twice, exited
 0, and the install sequence continued until `sql.fill` found no database.
-Found as an out-of-scope observation of M39.
+Found as an out-of-scope observation of M39. Re-observed 2026-09-28 at
+`46d1f89` in a `rockylinux:8` container with `skip-name-resolve`: the same
+`ERROR 1130`, exit 0 and no database; with the server stopped, `db.create`
+and `db.addAdmin` each print `ERROR 2002` and exit 0. Every function in
+`scripts/mariadb_generic_function.bash` that runs an account or database
+statement without checking the client has this shape:
+`add_admin_account_local`, `add_admin_account_hostname`,
+`remove_admin_account_local`, `remove_admin_account_hostname`,
+`create_db_and_user`, `drop_db_and_user`, `drop_user`, `create_db` and
+`drop_db`, reached through `db.addAdmin`, `db.rmAdmin`, `db.create`,
+`db.drop` and the `mariadb_setup.bash` commands `hostnameAdminAdd`,
+`hostnameAdminRemove`, `dbCreate`, `dbDrop` and `userDrop`. `mariadb_setup.bash` ends with its dispatch `case`, so a
+non-zero function status becomes the script's exit status.
 
-The same run showed that aa-env's own admin path cannot work on a server with
-`skip-name-resolve`: `db.addAdmin` creates the admin account as `@'localhost'`
-(`DB_ADMIN_HOST=localhost`) while `db.create` reaches the server over TCP
-`127.0.0.1`. The provisioned hosts do not use this path (they create the
+The same run showed that aa-env's own admin path over TCP cannot work on a
+server with `skip-name-resolve`: `db.addAdmin` creates the admin account as
+`@'localhost'` (`DB_ADMIN_HOST=localhost`) while `db.create` reaches the
+server over TCP `127.0.0.1`. Over the server's socket (`DB_SOCKET`, since
+`90e4a04`) the client's host is `localhost`, and the path works: on the same
+`skip-name-resolve` container on 2026-09-28, `db.addAdmin` and `db.create`
+exited 0 and created `admin@localhost`, `archappl@localhost` and the
+database. The provisioned hosts do not use this path (they create the
 database and accounts themselves and run only `sql.fill`, confirmed by the
 ansible-provision operator on 2026-09-25), so it affects a host installed by
 aa-env alone.
 
 ##### Scope
 
-- `create_db_and_user`: return non-zero, with a message on stderr naming the
-  failed step, when the admin client fails; `make db.create` then stops the
-  sequence.
-- `docs/README.install.md`: state that aa-env's own `db.secure`,
-  `db.addAdmin` and `db.create` path requires a server without
-  `skip-name-resolve`, and that a server with it takes the host-provided path.
+- Every function listed in the Summary (decided 2026-09-28, widened from
+  `create_db_and_user` alone): return non-zero, with a message on stderr
+  naming the failed step, when its client fails, so `make db.addAdmin`,
+  `db.rmAdmin`, `db.create` and `db.drop` and the `mariadb_setup.bash`
+  commands exit non-zero and stop the sequence. `mariadb_secure_setup`
+  (`db.secure`) already checks its client and is unchanged.
+- `drop_db_and_user`, `drop_user`, `remove_admin_account_local` and
+  `remove_admin_account_hostname` use `DROP USER IF EXISTS` (MariaDB 10.1.3
+  and later, so both 10.3 on Rocky 8 and 11.8 on Debian 13), so a repeated
+  drop still exits 0 once the client status is returned; today a drop of an
+  absent account fails in the client and the target exits 0 only because
+  that failure is ignored.
+- `docs/README.install.md` (decided 2026-09-28): state that aa-env's own
+  `db.secure`, `db.addAdmin` and `db.create` path over TCP requires a server
+  without `skip-name-resolve`, and that a server with it uses `DB_SOCKET` or
+  the host-provided path.
 
 Out of scope: changing `DB_ADMIN_HOST` or the admin account model; the
-provisioned-host path.
+provisioned-host path; the backup and restore commands, which already stop
+on failure (D22); and the read-only functions, which change nothing:
+`show_tables` and the query path stop through `isDb`, while `show_dbs`
+(`make db.show`) swallows a client failure in its `eval | awk` pipeline and
+exits 0 (observed 2026-09-28 against a closed port: `ERROR 2002`, exit 0).
 
 ##### Completion Criteria
 
-- With an admin account that cannot connect, `make db.create` exits non-zero
-  with the client error and the failed step on stderr; with a working admin
-  account it exits 0 as today.
-- The install guide states the name-resolution requirement of the admin path.
+- With a client that cannot connect, `make db.addAdmin`, `db.rmAdmin`,
+  `db.create` and `db.drop` and the `mariadb_setup.bash` commands
+  `hostnameAdminAdd`, `hostnameAdminRemove`, `dbCreate`, `dbDrop` and
+  `userDrop` each exit non-zero with the client error and the
+  failed step on stderr; with a working server they exit 0 as today.
+- The install guide states the name-resolution requirement of the TCP admin
+  path and the socket alternative.
 
 ##### Dependencies And Decisions
 
@@ -4999,28 +5034,33 @@ provisioned-host path.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-28, the plan in this detail
+Implementation Authorization: 2026-09-28, owner authorized the accepted plan
 Superseded Plan Artifacts: none
 
-1. Propagate the client status out of `create_db_and_user`.
-2. Add a Phase 1 check through the shipped function with a client that fails.
-3. Update the install guide.
+1. Propagate the client status out of every function listed in the Summary,
+   with a stderr message naming the failed step, and make the account drops
+   `DROP USER IF EXISTS`.
+2. Add a Phase 1 check that runs each listed target through the shipped
+   scripts with a client that fails.
+3. Update the install guide. `tests/README.md` describes the new Phase 1
+   check as it describes the others (added 2026-09-28 during implementation,
+   since that file lists every Phase 1 check).
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` with a check that runs `make db.create` against a database client that fails | This host | Non-zero exit and the failed step on stderr |
-| T2 | Runtime | `make db.create` on a disposable VM with MariaDB `skip-name-resolve`, then without it | Disposable VM | Non-zero exit with ERROR 1130 in the first case; exit 0 and the database created in the second |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` with a check that, from an isolated copy of the Make system, runs `make db.addAdmin`, `db.rmAdmin`, `db.create` and `db.drop` and the `mariadb_setup.bash` commands `hostnameAdminAdd`, `hostnameAdminRemove`, `dbCreate`, `dbDrop` and `userDrop` with the real `mysql` client unable to connect, in two groups: the targets on the admin command (`db.create`, `db.drop`, `dbCreate`, `dbDrop`, `userDrop`) against a closed loopback port with `DB_SOCKET` empty, and the targets on the root command (`db.addAdmin`, `db.rmAdmin`, `hostnameAdminAdd`, `hostnameAdminRemove`) against a missing socket through `DB_SOCKET` with a pass-through `sudo` first in `PATH`, since this host's `sudo` prompts. `DB_HOST_PORT` and `DB_SOCKET` go on every `make` command line, because each target re-renders `mariadb.conf` through `db.conf`; the `mariadb_setup.bash` commands run after `make db.conf` with the same values. Prints `[SKIP]` without a `mysql` client | This host | Each exits non-zero, with the client error and the failed step on stderr |
+| T2 | Runtime | On a disposable VM: `make db.create` with MariaDB `skip-name-resolve` over TCP, then without it; `make db.addAdmin` and `db.create` with the server stopped; then the socket path (`DB_SOCKET`) with `skip-name-resolve`; then, on the working server, every target of the completion criteria, each drop target run twice | Disposable VM | Non-zero exit with `ERROR 1130` in the first case; exit 0 and the database created in the second; non-zero exits with `ERROR 2002` with the server stopped; exit 0, the accounts at `localhost` and the database created over the socket; every target exits 0 on the working server, the second run of each drop included |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | Disposable VM | Pending | none |
+| T1 | 2026-09-28T06:10:03Z | This host (Debian 13, MariaDB client), working tree on `46d1f89` with the M40 changes | Pass | `tests/run-all-tests.bash --phase=2` exits 0: Phase 1 passed=218 failed=0, Phase 2 passed=13 failed=0. P1.27 (18 checks): `make db.create`, `db.drop`, `db.addAdmin` and `db.rmAdmin` exit 2 and `dbCreate`, `dbDrop`, `userDrop`, `hostnameAdminAdd` and `hostnameAdminRemove` exit 1, each with `ERROR 2002` and its `>> <step> failed, the database client returned an error.` line on stderr. P1.27 run in a local clone of `46d1f89` fails at its first check (`make db.create` rc=0). `shellcheck -x` reports nothing for the two database scripts and `tests/phase1-logic.bash` |
+| T2 | 2026-09-28T06:13:58Z (run 06:13Z to 06:14Z) | Disposable Rocky Linux 8.10 VM from cloud-provision, MariaDB 10.3.39, working tree on `46d1f89` with the M40 changes | Pass | TCP with `skip_name_resolve` ON: `db.secure` and `db.addAdmin` exit 0 (root over the socket), `db.create` exits 2 with `ERROR 1130` and the failed-step line, no database. Without it: `db.create` exits 0, database and `archappl@127.0.0.1` created. Server stopped: `db.addAdmin` and `db.create` exit 2 with `ERROR 2002` and the failed-step line. Socket (`DB_SOCKET=/var/lib/mysql/mysql.sock`) with `skip_name_resolve` ON: `db.addAdmin` and `db.create` exit 0, `admin@localhost` and `archappl@localhost` and the database created. On that working server `dbCreate` and `hostnameAdminAdd` exit 0, and `db.drop`, `dbDrop`, `userDrop`, `hostnameAdminRemove` and `db.rmAdmin` each exit 0 on both runs, leaving no database and no account. The VM was deleted after the run |
 
 ##### Closure Evidence
 
@@ -5028,7 +5068,7 @@ Superseded Plan Artifacts: none
 
 ##### GitHub Projection
 
-Title: Fail db.create when the database client fails
+Title: Fail the database targets when the database client fails
 Labels: bug
 GitHub Milestone: none
 Observed State: OPEN

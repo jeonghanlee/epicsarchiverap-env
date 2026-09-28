@@ -55,6 +55,13 @@ function isVar() {
     echo "${result}"
 }
 
+# Reports on stderr that an account or database step failed in the client;
+# callers return non-zero after it.
+function clientFailMessage
+{
+    printf ">> %s failed, the database client returned an error.\\n" "$1" >&2
+}
+
 function noDbMessage
 {
     local db_name="$1"; shift;
@@ -125,10 +132,14 @@ function add_admin_account_local
     #
     #
     printf ">> Add %s user with GRANT ALL in the MariaDB \\n" "${db_admin_name}"
-    ${SQL_ROOT_CMD} <<EOF
+    if ! ${SQL_ROOT_CMD} <<EOF
     GRANT ALL ON *.* TO '${db_admin_name}'@'localhost' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
     FLUSH PRIVILEGES;
 EOF
+    then
+        clientFailMessage "Adding the ${db_admin_name}@localhost account"
+        return 1
+    fi
     printf "\\n"
 }
 
@@ -145,10 +156,14 @@ function add_admin_account_hostname
     #
     #
     printf ">> Add %s user with GRANT ALL in the MariaDB \\n" "${db_admin_name}"
-    ${SQL_ROOT_CMD} <<EOF
+    if ! ${SQL_ROOT_CMD} <<EOF
     GRANT ALL ON *.* TO '${db_admin_name}'@'${db_hostname}' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
     FLUSH PRIVILEGES;
 EOF
+    then
+        clientFailMessage "Adding the ${db_admin_name}@${db_hostname} account"
+        return 1
+    fi
     printf "\\n"
 }
 
@@ -157,10 +172,14 @@ EOF
 function remove_admin_account_hostname
 {
     local db_hostname="$1"; shift;
-    ${SQL_ROOT_CMD} <<EOF
-    DROP USER 'admin'@'${db_hostname}';
+    if ! ${SQL_ROOT_CMD} <<EOF
+    DROP USER IF EXISTS 'admin'@'${db_hostname}';
     FLUSH PRIVILEGES;
 EOF
+    then
+        clientFailMessage "Removing the admin@${db_hostname} account"
+        return 1
+    fi
     printf "\\n"
 }
 
@@ -168,10 +187,14 @@ EOF
 function remove_admin_account_local
 {
     printf ">> Remove local admin user \\n"
-    ${SQL_ROOT_CMD} <<EOF
-    DROP USER 'admin'@'localhost';
+    if ! ${SQL_ROOT_CMD} <<EOF
+    DROP USER IF EXISTS 'admin'@'localhost';
     FLUSH PRIVILEGES;
 EOF
+    then
+        clientFailMessage "Removing the admin@localhost account"
+        return 1
+    fi
     printf "\\n"
 }
 
@@ -213,7 +236,11 @@ function create_db_and_user
     done
     echo "FLUSH PRIVILEGES;" >> "${temp_sql_file}"; 
 #    echo "${temp_sql_file}"
-    admin_query_from_sql_file "${temp_sql_file}";
+    if ! admin_query_from_sql_file "${temp_sql_file}"; then
+        rm -f "${temp_sql_file}"
+        clientFailMessage "Creating the database ${db_name} and the ${db_user_name} account"
+        return 1
+    fi
     rm -f "${temp_sql_file}"
     
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
@@ -239,10 +266,15 @@ function drop_db_and_user
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "DROP DATABASE IF EXISTS ${db_name};" > "$temp_sql_file";
     for aHost in $db_hosts;  do
-        echo "DROP USER '$db_user_name'@'$aHost';" >> "$temp_sql_file";
+        echo "DROP USER IF EXISTS '$db_user_name'@'$aHost';" >> "$temp_sql_file";
     done
     echo "${temp_sql_file}"
-    admin_query_from_sql_file "${temp_sql_file}";
+    if ! admin_query_from_sql_file "${temp_sql_file}"; then
+        rm -f "${temp_sql_file}"
+        clientFailMessage "Dropping the database ${db_name} and the ${db_user_name} account"
+        return 1
+    fi
+    rm -f "${temp_sql_file}"
 
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "SHOW databases;" >  "$temp_sql_file";
@@ -262,10 +294,15 @@ function drop_user
     local temp_sql_file="";
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     for aHost in $db_hosts;  do
-        echo "DROP USER '$db_user_name'@'$aHost';" >> "$temp_sql_file";
+        echo "DROP USER IF EXISTS '$db_user_name'@'$aHost';" >> "$temp_sql_file";
     done
     echo "${temp_sql_file}"
-    admin_query_from_sql_file "${temp_sql_file}";
+    if ! admin_query_from_sql_file "${temp_sql_file}"; then
+        rm -f "${temp_sql_file}"
+        clientFailMessage "Dropping the ${db_user_name} account"
+        return 1
+    fi
+    rm -f "${temp_sql_file}"
 
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
@@ -281,9 +318,13 @@ function create_db
    if [ "$verbose" == "YES" ]; then
        printf ">> Create the Database %s \\n" "${db_name}";
    fi
-   ${SQL_ADMIN_CMD} <<EOF
+   if ! ${SQL_ADMIN_CMD} <<EOF
 CREATE DATABASE IF NOT EXISTS ${db_name} CHARACTER SET utf8mb4;
 EOF
+   then
+       clientFailMessage "Creating the database ${db_name}"
+       return 1
+   fi
    printf "\\n"  
 }
 
@@ -296,9 +337,13 @@ function drop_db
         printf ">> Drop the Database %s \\n" "${db_name}";
     fi
 
-    ${SQL_ADMIN_CMD} <<EOF
+    if ! ${SQL_ADMIN_CMD} <<EOF
 DROP DATABASE IF EXISTS ${db_name};
 EOF
+    then
+        clientFailMessage "Dropping the database ${db_name}"
+        return 1
+    fi
     printf "\\n"
 }
 
