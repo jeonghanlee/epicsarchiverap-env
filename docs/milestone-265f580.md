@@ -12,9 +12,10 @@ Next session entry point: the journald logging model (D24, D25) is complete:
 M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (the launcher's
 `loglevel` command) is Complete at `6302b12` and M37 (the Rocky 8 JDK package)
 at `5fc8d6e`; M38 (the configured mgmt port in `status`) is Complete at `2fc1a75`.
-M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
-select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
-implementation at `9ee6ac0`; local implementation review passed. M22 (the
+M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. M23's
+VM checks (T4 to T7, implementation at `9ee6ac0`) were re-planned on
+2026-09-28 for the M33 unit and passed on a disposable VM that day; M23 is
+Complete and #44 closed. M22 (the
 256M heap default at `0df950d`) is Complete since 2026-09-28 under its
 amended criterion, and heap needs by load are Backlog M41 (#53).
 M26 is Complete at `ea554ff`: `make conf.storage` warns when the archive
@@ -34,9 +35,8 @@ closed. M24 is Complete at `4b4cb41`; issue #45 was
 updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
-M23 is In progress: local implementation, checks and independent implementation
-review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. M8 is the only Ready Milestone
+M23 is Complete: implementation at `9ee6ac0`, VM checks passed 2026-09-28,
+#44 closed. M8 is the only Ready Milestone
 row, since M9 completed its last dependency. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
 Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
@@ -69,7 +69,7 @@ Release Verification 1 and 4 remain. M2
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
 | Runtime | M22 | Size the JVM heap default to the host | Milestone | Complete | No | D18 | Default landed at `0df950d`; the default reaches the JVMs (M26 / T2) and a loaded 256M soak on a 4 GiB VM with MariaDB ran about three days with no JVM OOM; #46 closed 2026-09-28; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
-| Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; VM checks remain for the 45-second failure-reporting target, no monitor-initiated stop/restart and preserved dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
+| Runtime | M23 | Make a dead instance visible to systemd | Milestone | Complete | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; with the M33 unit a dead instance ends the appliance `failed` and the health unit reports it within 31 s without restarting anything (T4 to T7, 2026-09-28); #44 closed 2026-09-28; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Storage | M26 | Test-environment archive store | Milestone | Complete | No | D18, D21, D23, D26 | Implemented and verified (T1-T2); landed at `ea554ff` on origin/modernize 2026-09-27; [detail](#m26---test-environment-archive-store) |
@@ -1925,7 +1925,7 @@ Last Compared: 2026-09-28T08:53Z; `gh issue view 46` read after the body sync an
 Origin: 265f580 / M23
 Identity History: none
 GitHub Issue: #44
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1938,6 +1938,17 @@ identify a main process. During the ansible-provision archiver-dev
 run a host reported the unit active while mgmt served nothing, and the operator
 had to check the four processes itself. Under D19 this row makes that failure
 visible and deliberately does not recover it.
+
+The appliance unit changed after this row was planned. Since `f75c84c` (M33)
+it is `Type=simple` with the launcher as its main process: the launcher runs
+the four JVMs in the foreground, waits with `wait -n`, and when any JVM exits
+it stops the others in order and exits non-zero, so the unit ends `failed`
+with no restart (M33 / T2, 2026-09-24: `kill -KILL` of the retrieval JVM left
+the unit `failed` with status 1). The symptom that opened #44, the unit active
+while an instance is dead, therefore no longer occurs, and the "unit remains
+active" case this row was built for is gone. The health pair stays: its
+scheduled check reports the appliance state and the four processes, and since
+`ea554ff` (M26) it also carries the store usage alarm.
 
 ##### Scope
 
@@ -1966,12 +1977,14 @@ a single Tomcat, which D19 keeps as its own question.
 
 ##### Completion Criteria
 
-- After the startup allowance, a stable instance failure while the appliance
-  remains active makes the separate health unit report `failed`, naming the
-  affected instances and reasons. The runtime acceptance target is detection
-  within 45 seconds on an awake, responsive test VM, including timer accuracy,
-  check execution and dispatch delay. This target requires measured verification;
-  it is not a hard real-time guarantee or a claim of current behavior.
+- After the startup allowance, an instance failure makes the separate
+  health unit report `failed` within 45 seconds on an awake, responsive test
+  VM, naming the appliance state (`appliance-failed` once the launcher has
+  stopped the unit) or, while the appliance is still active, the affected
+  instances and reasons. The 45 seconds include timer accuracy, check
+  execution and dispatch delay; it is a measured acceptance target, not a hard
+  real-time guarantee (amended 2026-09-28 from "while the appliance remains
+  active", which the M33 unit no longer produces).
 - The monitor issues no appliance/JVM start, stop, restart or terminating signal,
   directly or through unit dependencies. Existing appliance supervision and D12
   startup/shutdown order are preserved. JVM survival and continued operation of
@@ -1983,9 +1996,11 @@ a single Tomcat, which D19 keeps as its own question.
 - Repeated checks, boot/restart allowance, intentional stop, operator recovery
   and health-pair installation/removal behave as specified below and are
   exercised through the actual shipped paths.
-- MainPID-related appliance shutdown is observed and reported as existing
-  appliance behavior, not prevented or presented as a monitor recovery action.
-  Test evidence distinguishes the monitor's actions from dependency effects.
+- The launcher's shutdown of the surviving JVMs after an instance failure is
+  observed and reported as appliance behavior (M33), not prevented or presented
+  as a monitor action. Test evidence distinguishes the monitor's actions from
+  the launcher's (amended 2026-09-28 from the MainPID wording of the forking
+  unit).
 
 ##### Dependencies And Decisions
 
@@ -2013,6 +2028,13 @@ a single Tomcat, which D19 keeps as its own question.
   such a scan matches script text and reports events that did not happen; the
   reporting side counted phantom OOM entries that way. Checking the processes
   is the reliable path, which is what this design already does.
+
+- Decision Date: 2026-09-28. #44 is to be closed on the M33 evidence above, since
+  its symptom no longer occurs; this row continues as the runtime verification
+  of the health pair under the M33 unit, with T4 to T8 re-planned for it. The
+  store usage alarm on the same timer was verified on a VM under M26 / T2
+  (2026-09-27: scheduled `PRESENT`, `FAIL storage-threshold` with the health
+  service failed and the timer still active, then `PRESENT` again).
 
 ##### Planning Findings
 
@@ -2043,7 +2065,9 @@ Manual-based constraints, not observations from a deployed VM:
 - MainPID guessing can fail for a multi-process forking service. Once a
   successfully started service stops, its stop command can run even after
   process death [1]. With this repository's `ExecStop`, MainPID death and
-  non-main death therefore cannot share an assumed survivor guarantee.
+  non-main death therefore cannot share an assumed survivor guarantee. This
+  applies to the forking unit before `f75c84c`; the M33 unit has no
+  `ExecStop` and a known main process, the launcher.
 - Timer expiry includes `AccuracySec`, and a timer does not start another copy
   of an already active service [2]. Use a completing oneshot, explicit timing
   and timeout settings, and verify recurring checks after both success and
@@ -2071,10 +2095,15 @@ of appliance correctness. Capture this distinction in diagnostics and tests.
 
 ##### Implementation Plan
 
-Plan Status: accepted
-Plan Acceptance: 2026-09-22, detect-and-report scope selected and strengthened plan confirmed
-Implementation Authorization: 2026-09-22; implement the accepted plan
-Superseded Plan Artifacts: earlier M23 plans in this canonical detail
+Plan Status: accepted (runtime verification re-planned 2026-09-28 for the M33
+unit; steps 1 to 7 landed at `9ee6ac0` under the 2026-09-22 acceptance)
+Plan Acceptance: 2026-09-28, the re-planned runtime verification (T4 to T8);
+2026-09-22, detect-and-report scope selected and strengthened plan confirmed
+Implementation Authorization: 2026-09-28, owner authorized running T4 to T7 on a
+disposable VM; 2026-09-22; implement the accepted plan
+Superseded Plan Artifacts: earlier M23 plans in this canonical detail; T4 to T8
+of 2026-09-22, written for the forking unit (appliance active after an
+instance dies, MainPID comparison), replaced 2026-09-28
 
 1. Establish the test baseline under the accepted D12/D19 constraints. VM
    access is a runtime verification prerequisite, not a prerequisite for local
@@ -2082,6 +2111,8 @@ Superseded Plan Artifacts: earlier M23 plans in this canonical detail
    commits, systemd version, effective unit including drop-ins, service account,
    MainPID and four JVM PID/start times. Obtain original-unit failure observations
    during the scheduled VM tests so later exits can be attributed correctly.
+   (The VM baseline moved to T4 on the M33 unit on 2026-09-28; the failure
+   behavior of the unit that replaced the original one is recorded by M33 / T2.)
 2. Add `archappl.bash health` with an explicit command contract. Inspect every
    configured instance even after one fails. Return 0 only for four verified
    live instances, 1 for an invalid or missing instance, and 2 when inspection
@@ -2141,12 +2172,12 @@ Superseded Plan Artifacts: earlier M23 plans in this canonical detail
    ShellCheck and existing local tests. Keep the appliance template and original
    launcher ordering unchanged. Document that dependent functionality and
    surviving JVMs are not protected by this monitor.
-8. Run the VM tests outside M22's uninterrupted load observation. Capture the
+8. Run T4 to T8 on a disposable VM with the M33 unit and HEAD. Capture the
    pre-test state, terminate only a revalidated test-instance PID, and record
-   detection times, unit results and surviving process start times. Recovery
-   uses the existing full-appliance procedure under operator control; monitoring
-   never performs it. Retain failure evidence and restore the agreed test state
-   after each interruption before proceeding to the next case.
+   detection times, unit results and process start times. Recovery uses the
+   existing full-appliance procedure under operator control; monitoring never
+   performs it. Restore the test state after each interruption before the
+   next case.
 
 ##### Scheduled Check Contract
 
@@ -2160,7 +2191,7 @@ failure, inspection error and skip, including the appliance state and reason.
 | Starting, within the allowance | Skip | Use the current start's monotonic timestamp; do not renew the allowance on every check |
 | Active, within the allowance | Skip | Direct `health` remains available; scheduled checks begin after the allowance |
 | Active, beyond the allowance | Inspect | All four verified processes succeed; any invalid instance or inspection error fails the health unit |
-| Still starting beyond the allowance | Fail | Report exceeded startup allowance rather than skipping indefinitely |
+| Still starting beyond the allowance | Fail | Report exceeded startup allowance rather than skipping indefinitely; the M33 unit is `Type=simple` and never stays `activating`, so this row is kept in the code but no longer reached (noted 2026-09-28) |
 | Stopping | Skip | Avoid treating intentional teardown as a new instance failure |
 | Failed | Fail | Report appliance failure without attempting recovery; preserve the appliance's own evidence |
 | Missing unit, unknown state, unreadable state or invalid timestamp | Inspection error | Fail visibly; never interpret inability to observe as healthy or intentionally stopped |
@@ -2180,18 +2211,17 @@ be identifiable in the output and must not be presented as recovery evidence.
 | T1 | Local behavior | Run the shipped health command with absent/unreadable/empty/malformed/multiple PID values, absent process, wrong instance identity and simultaneous failures; use real unrelated processes for negative identity checks | Isolated workspace, non-root | All affected instances and reasons are reported; exit 1/2 follows the contract; no internal function replacement, PID deletion or JVM signal |
 | T2 | Generation/install | Run real configuration and file-install targets with -j1 and -j8 (shipped .NOTPARALLEL retained), using default and alternate install paths/account; inspect full install dependencies with Make | Isolated writable destination | No unresolved placeholders; correct installed units, mode and paths; required ordering is represented and exercised for local file operations; dry-runs are not claimed as systemd execution |
 | T3 | Regression | Run the existing local test entry point, Bash syntax checks and ShellCheck; inspect the appliance template and existing command paths | This host | Existing checks pass; no new warnings; original status/start/stop behavior and platform scope are preserved |
-| T4 | Runtime baseline | Observe the original appliance first, then install the real health pair and run direct and scheduled checks under the service account | Selected systemd VM, four real Tomcat JVMs | Correct instance identity and exit 0; at least three successful scheduled observations; effective units, MainPID, timestamps and versions recorded |
-| T5 | Runtime detection | Revalidate and terminate a non-main JVM, retain its PID file, observe repeated checks, then repeat with two non-main failures after restoring baseline; include a failure immediately after its instance check | Selected VM, outside M22 observation | Stable instance failures are named within 45 seconds while the appliance remains active; the monitor causes no restart/stop; record secondary exits and dependency effects without requiring continued JVM survival or mgmt availability |
-| T6 | Lifecycle | Observe reboot, direct systemctl restart, Make start, intentional stop and a startup failure beyond the allowance | Selected VM | Fresh bounded allowance for each start, no stop/start false alarm, no indefinite skip, monitoring resumes on both supported start paths |
-| T7 | Existing supervision | Compare original-unit and monitored-unit behavior on MainPID death where one is assigned; if MainPID is 0, record that fact and the observed process-group behavior rather than invent a representative PID | Selected VM, separately scheduled interruption | Existing appliance shutdown behavior is preserved; health diagnostics identify the observed appliance state, not a survivor guarantee; monitoring adds no stop/restart operation |
-| T8 | Monitoring failure/recovery | Observe at least three repeated failures, a bounded check timeout or observation error, operator recovery, then disable/clean and reinstall the health pair while preserving the appliance | Selected VM | Checks continue after failures; no false healthy result on an error; real success restores current health status; timer/check stops before removal, no stale enable links remain, and reinstall restores monitoring |
+| T4 | Runtime baseline | Install HEAD with the M33 unit; record the effective appliance and health units, systemd version, service account, launcher MainPID and the four JVM PIDs and start times; run `health` directly and let the timer run; then point one instance's PID file (`<INSTALL_LOCATION>/<instance>/temp/<instance>.pid`, for example `/opt/epicsarchiverap-maven/engine/temp/engine.pid`, written by the launcher) at another instance's live Tomcat PID and run `health` directly | Disposable VM, four real Tomcat JVMs | Direct `health` exits 0 with each instance verified; at least three scheduled checks succeed; the swapped PID file is rejected as a mismatched instance with exit 1, and `health` itself changes no PID file or process (the T1 cross-instance case); after the PID file is restored, direct `health` exits 0 again |
+| T5 | Runtime detection | After the allowance, `kill -KILL` one revalidated non-main JVM, once right after the timer's check, once a few seconds before the next scheduled check, so that the check falls inside the roughly 10 s the launcher needs to stop the other JVMs (10.3 s in M33 / T2), and once at a random point; record the launcher's shutdown of the others and every health result until the first failure | Disposable VM | The appliance unit ends `failed` with no restart; within 45 seconds of the kill the health unit is `failed` with `appliance-failed` or the dead instance named, counting any `SKIP appliance-transition` in between (a transition skip defers the verdict by one interval, about 31 s, and a case that then exceeds 45 s fails T5 and calls for a correction under step 4); the monitor issues no start, stop or signal; the timer stays active |
+| T6 | Lifecycle | Reboot; `systemctl restart`; `make sd_start`; `systemctl stop`; a start whose JVM fails at once (one instance's `server.xml` made invalid, restored after; that Tomcat then exits rather than staying up is expected but unverified, and if its JVM stays up the case is redone with another fault that ends the JVM, recorded with the reason) | Disposable VM | Each start gets a fresh allowance and scheduled checks skip within it; no false failure across restart or stop (`SKIP appliance-stopping`, then `SKIP appliance-inactive`, which needs the stop to end with `Result=success`); monitoring resumes after both start paths and after reboot; the failed start ends in `appliance-failed`, not an indefinite skip |
+| T7 | Monitoring failure and recovery | Keep a failure for at least three checks; make the installed `archappl.conf` unreadable to the service account for one check, then restore it; recover the appliance with `make sd_start`; with the appliance running, remove the health pair with `make sd_health_disable` then `make sd_health_clean`, and reinstall it with `make sd_install`, `make sd_enable` and `make sd_start` (on a running appliance `sd_start` only starts the timer, `docs/technicaldocs/README.systemd.md`) | Disposable VM | Checks continue after failures; the unreadable configuration gives `ERROR unreadable-or-invalid-configuration` for each instance and the store, then `health ERROR inspection-incomplete` with exit 2 and a failed health service, never a healthy result; a verified success clears the health failure; disable and clean stop the timer and any running check without touching the appliance, leave no enable link, and reinstall restores monitoring |
+| T8 | Store alarm on the timer | Covered by M26 / T2 (2026-09-27) | Disposable VM (M26) | Recorded there: scheduled `PRESENT`, `FAIL storage-threshold` with the health service failed and the timer active, then `PRESENT` |
 
-For T5/T7, record the appliance and health-unit journal with precise timestamps,
-unit results, four PID/start times and the exact fault. Process loss alone is
-not proof that the monitor caused it. If attribution remains unclear, retain
-Pending evidence and resolve it before closure; do not claim non-interference
-from an unexamined exit. A changing appliance state is evaluated by the state
-contract rather than a guarantee that it stays active after any instance dies.
+For T5 to T7, record the appliance and health-unit journal with precise
+timestamps, unit results, the four PID/start times and the exact fault. The
+launcher's shutdown of the other JVMs is appliance behavior; the monitor must
+not be the cause of any stop, and attribution rests on the journal, not on
+process loss alone.
 
 T1/T2 validate only the paths actually executed locally. T4-T8 require the
 installed scripts, generated units, real systemd and real Tomcat instances.
@@ -2223,14 +2253,14 @@ runtime T4-T8.
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | 2026-09-22T23:35Z | Isolated workspace, non-root; real installed JDK, unrelated child processes and zombie | Pending | Local negative cases in `tests/health-local.py` passed: configuration/PID errors, nonexistent process, wrong executable, zombie, multi-instance output, symlink traversal denial and exit precedence. A real unrelated Java main class with Tomcat-like VM properties or application arguments was rejected; PID files/processes were preserved. Both added regressions failed against the preceding implementation and passed after correction. Cross-instance identity using a real Tomcat PID remains for the documented VM case. No healthy JVM fixture was fabricated. |
+| T1 | 2026-09-22T23:35Z; real Tomcat case 2026-09-28 under T4 | Isolated workspace, non-root; real installed JDK, unrelated child processes and zombie | Pass (the cross-instance case with a real Tomcat PID observed under T4) | Local negative cases in `tests/health-local.py` passed: configuration/PID errors, nonexistent process, wrong executable, zombie, multi-instance output, symlink traversal denial and exit precedence. A real unrelated Java main class with Tomcat-like VM properties or application arguments was rejected; PID files/processes were preserved. Both added regressions failed against the preceding implementation and passed after correction. Cross-instance identity using a real Tomcat PID remains for the documented VM case. No healthy JVM fixture was fabricated. |
 | T2 | 2026-09-22T23:22:58Z | Isolated real Make checkout and file destination; systemd-analyze 257 | Pass (local scope) | Real `install.systemd` under -j1 and -j8, default/alternate paths and accounts, plus site timing overrides passed. Unit modes/placeholders and generated-pair syntax verified. Global .NOTPARALLEL remained enabled. Full-install/cleanup ordering was checked by real Make dry-run only; live systemctl effects remain T4-T8. |
 | T3 | 2026-09-22T23:35Z | Linux local checkout, Bash, ShellCheck 0.10.0 | Pass | `TMPDIR=/tmp bash tests/run-all-tests.bash --local` passed existing 59 logic/14 wrapper assertions plus 15 health/file-install test methods, with no skips. Changed Bash syntax and `shellcheck -x -P SCRIPTDIR scripts/archappl.bash tests/phase1-logic.bash` passed. The earlier full tracked Bash ShellCheck comparison exactly matched HEAD under the same command/version; existing unrelated warnings remain, and the subsequently corrected launcher still reports no diagnostics. Appliance unit bytes and existing status/storage/start/stop helper bodies equal HEAD. `git diff --check` passed. |
-| T4 | Not run | Test VM not selected | Pending | none |
-| T5 | Not run | Test VM not selected | Pending | none |
-| T6 | Not run | Test VM not selected | Pending | none |
-| T7 | Not run | Test VM not selected | Pending | none |
-| T8 | Not run | Test VM not selected | Pending | none |
+| T4 | 2026-09-28T16:18:45Z (run 16:15Z to 16:19Z) | Disposable Rocky Linux 8.10 VM from cloud-provision (systemd 239), aa-env `02737b0` with the source built there, SQLite backend, service account `tomcat` | Pass | The unit `Type=simple` with the launcher as MainPID; the health pair as generated. Direct `health` as `tomcat` after the allowance printed `PRESENT verified-process-presence` for all four and exited 0; four scheduled checks ended `health PRESENT` in 100 s. With `engine/temp/engine.pid` set to the mgmt JVM's PID, direct `health` printed `engine pid=<mgmt pid> FAIL wrong-instance-base` and exited 1; the file still held that value afterwards, the engine JVM kept its PID and start time and the other instances were unchanged; after the file was restored direct `health` exited 0 |
+| T5 | 2026-09-28T16:24:00Z (run 16:18Z to 16:25Z) | Disposable Rocky Linux 8.10 VM from cloud-provision (systemd 239), aa-env `02737b0` with the source built there, SQLite backend, service account `tomcat` | Pass | `kill -KILL` of the revalidated retrieval JVM, three times, each followed by recovery with `make sd_start`. (a) 0.2 s after a completed check: the launcher stopped the others and the unit ended `failed` (status 1) 10.1 s after the kill; the next check reported `state=failed` and the health service was failed 30.5 s after the kill. (b) 27 s after a check, so the next one ran during the launcher's shutdown: it printed `retrieval pid=... FAIL missing-process` and `health FAIL one-or-more-invalid-instances`, 3.1 s after the kill; no `SKIP appliance-transition` occurred. (c) at a random point: `state=failed`, 14.8 s after the kill. Every case: `NRestarts=0`, no restart, the timer stayed active, and the appliance journal shows the launcher's own shutdown and exit |
+| T6 | 2026-09-28T16:47:29Z (runs 16:26Z to 16:47Z) | Disposable Rocky Linux 8.10 VM from cloud-provision (systemd 239), aa-env `02737b0` with the source built there, SQLite backend, service account `tomcat` | Pass | `systemctl restart` timed so a check fell in the stop: `state=deactivating`, `SKIP appliance-stopping`, then `SKIP startup-allowance` twice and `health PRESENT` 95 s after the restart. `systemctl stop`: the unit `inactive` with `Result=success`, then `SKIP appliance-inactive` on each check. `make sd_start`: `SKIP startup-allowance` twice, then `health PRESENT`. Reboot: the unit active at boot, `SKIP startup-allowance` twice, then `health PRESENT` 65 s after boot. A start with the retrieval `server.xml` broken: Tomcat logged `Cannot start server, server instance is not configured` and exited, the launcher reported `archappl-retrieval: process ... is gone` and the unit ended `failed`; every check then printed `FAIL appliance-failed`. The journal is volatile on this image, so the verdict lines of the first pass before the reboot were lost; every step except the reboot was run again and the verdicts above are from that pass |
+| T7 | 2026-09-28T16:39:17Z (run 16:34Z to 16:39Z) | Disposable Rocky Linux 8.10 VM from cloud-provision (systemd 239), aa-env `02737b0` with the source built there, SQLite backend, service account `tomcat` | Pass | After a retrieval kill, four consecutive checks printed `FAIL appliance-failed` with the timer active; `make sd_start` recovered and the next check ended `health PRESENT`, clearing the failure. With `archappl.conf` at mode 000 for one check: each instance and the store printed `ERROR unreadable-or-invalid-configuration`, then `health ERROR inspection-incomplete`, and the health service ended failed; mode 755 restored, `health PRESENT` 20 s later. `make sd_health_disable` and `sd_health_clean` with the appliance running removed both enable links and the unit files, the timer inactive, the appliance MainPID unchanged; `make sd_install`, `sd_enable` and `sd_start` recreated the links, the timer active, `health PRESENT` within 2 s, the appliance MainPID and JVMs unchanged |
+| T8 | 2026-09-27T06:12:16Z (M26 / T2) | Disposable Rocky Linux 8.10 VM | Pass (by reference) | M26 / T2: the scheduled check logged `PRESENT`, then `FAIL storage-threshold` and `health FAIL storage-threshold` with the health service failed and the timer active, then `PRESENT` |
 
 ##### References
 
@@ -2246,6 +2276,13 @@ the IEEE Reference Guide's I. Manuals, Manual (Online) format.
 
 ##### Closure Evidence
 
+- 2026-09-28: T4 to T7 passed on a disposable VM with the M33 unit; T8 is
+  M26 / T2. With T1 to T3, every check of the completion criteria is met; the
+  VM was deleted after the run.
+- 2026-09-28T16:55:00Z: #44 body synced with the two implementation steps
+  (`9ee6ac0`, `f75c84c`), the reversed choice and the amended criterion,
+  closing comment posted, and the issue closed as completed; read back as
+  `CLOSED`.
 - Implementation, tests and operator documentation landed at `9ee6ac0` on
   origin/modernize on 2026-09-23. The commit is an ancestor of the pushed tip
   `75d3460`; recheck with `git merge-base --is-ancestor 9ee6ac0 origin/modernize`.
@@ -2257,10 +2294,10 @@ the IEEE Reference Guide's I. Manuals, Manual (Online) format.
 Title: Service reports active after an instance dies
 Labels: bug
 GitHub Milestone: none
-Observed State: open
+Observed State: closed (completed, 2026-09-28T16:55:00Z)
 Observed Labels: bug
 Observed Milestone: none
-Last Compared: 2026-09-21
+Last Compared: 2026-09-28T16:55Z, `gh issue view 44` after the body sync and close
 
 #### M24 - Remove the dead jsvc shutdown path
 
