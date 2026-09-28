@@ -46,7 +46,12 @@ quantified disk growth rate for M26. M8 was re-planned 2026-09-28: `SRC_TAG`
 pinned to aa-maven `d8a7813f`, the changelog rewritten and dated `[2.0.0]`,
 Release Verification 2 and 3 again on a Debian 13 VM from cloud-provision,
 then fast-forward, tag `2.0.0` and GitHub release; the plan was accepted
-and authorized 2026-09-28 and M8 is In progress. M2
+and authorized 2026-09-28 and M8 is In progress. Release Verification 1 passed
+on `37b3a16`. Next: Release Verification 2 and 3 on `57021de` on a Debian 13
+VM on this hypervisor, requested from the cloud-provision session that runs
+here (the lab session's VM is on another hypervisor and unreachable), with the
+`softIoc` on this host; then date the changelog `[2.0.0]`, rerun Release
+Verification 1 on that commit, and fast-forward, tag and release. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
@@ -867,7 +872,7 @@ source pin and the changelog content open
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| Release Verification 1 | Not run | This host | Pending | none |
+| Release Verification 1 | 2026-09-28T17:48:08Z (first run; the rerun on the dated release commit is pending) | This host (Debian 13), aa-env `37b3a16` | Pass | `tests/run-all-tests.bash --local` exits 0: Phase 1 passed=218 failed=0, Phase 2 passed=13 failed=0; `SRC_TAG:=d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. `57021de` (the Debian 13 preset) passed the same suite with Phase 1 at 220 before its commit |
 | Release Verification 2 | Not run | Disposable Debian 13 VM, final tree | Pending | none (the 2026-09-21 row below is on `fb43522` and superseded) |
 | Release Verification 3 | Not run | Disposable Debian 13 VM, final tree | Pending | none (the 2026-09-21 row below is on `fb43522` and superseded) |
 | Release Verification 2 | 2026-09-21 | Three provisioned hosts (Rocky 8.10 x2, one built from bare for this check; Debian 13), aa-env `fb43522`, aa-maven `3c96141d`, Tomcat 9.0.121, OpenJDK 21, MariaDB over loopback TCP | Pass | LAB-ansible-provision drove the documented make sequence as root through its operator: `init`, `db.conf`, `conf.archapplproperties`, `build.mvn` and `sql.fill` completed under `set -e`; the als `classpathfiles` (`appliances.xml`, `archappl.properties`, `policies.py`) are packed in `WEB-INF/classes` of all four deployed webapps; four instances sit under the install root with the unit enabled and active and the storage root owned by the service account (0755); mgmt `/bpl/getApplianceInfo` returned 200 with identity `appliance0` and version 2025-6 on all three hosts. The privilege split was measured rather than derived: built as root, the four JVMs run as the service account. Observed on the reporting side, not on this host. Re-observed 2026-09-21 directly at `e06c554` on a freshly provisioned Rocky 8.10 host: a forced reinstall completed with failed=0 and left four instances, the unit active, the als `classpathfiles` in the deployed webapp, and mgmt returning 200 with identity `appliance0` and version 2025-6 on the first probe. The result therefore no longer rests on the D18 path-equivalence argument, which the reporting side also re-derived (`fb43522` is an ancestor of `e06c554`, and their diff touches nothing under `site-template/`, `scripts/`, `configure/CONFIG_SITE` or `configure/CONFIG_SRC`). |
