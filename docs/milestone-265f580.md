@@ -14,8 +14,9 @@ M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (the launcher's
 at `5fc8d6e`; M38 (the configured mgmt port in `status`) is Complete at `2fc1a75`.
 M28, M29 and M30 are Complete at `1fc20a8`, `9f22eac` and `18356d1`. Then
 select a systemd VM and an interruption window for M23's remaining real-process/runtime checks using the
-implementation at `9ee6ac0`; local implementation review passed. The heap default at `0df950d` also awaits
-deployment verification without an override under M22 / T2.
+implementation at `9ee6ac0`; local implementation review passed. M22 (the
+256M heap default at `0df950d`) is Complete since 2026-09-28 under its
+amended criterion, and heap needs by load are Backlog M41 (#53).
 M26 is Complete at `ea554ff`: `make conf.storage` warns when the archive
 store shares the root filesystem or lies under a user home, and the health
 timer alarms at `ARCHAPPL_STORAGE_ALARM_PERCENT` (D26). M39 (macOS removed,
@@ -40,13 +41,8 @@ row, since M9 completed its last dependency. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
 Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
 unresolved scope or operating conditions of the other four keep them Open and
-not Ready. M22 is In progress: the `256M` heap is
-selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
-another 1 GiB. The operator report supplies approximately 21 hours of light
-sampling-load evidence with the 256M override; it reports no OOM or restart.
-The heap default landed at `0df950d` on origin/modernize on 2026-09-23;
-default-install runtime verification remains outstanding. The
-report does not provide a quantified disk growth rate for M26. M8's Release Verification 2 and 3 passed on three provisioned hosts;
+not Ready. The operator's 2026-09-22 heap report does not provide a
+quantified disk growth rate for M26. M8's Release Verification 2 and 3 passed on three provisioned hosts;
 Release Verification 1 and 4 remain. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
@@ -72,7 +68,7 @@ Release Verification 1 and 4 remain. M2
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
 | Deploy | M2 | Non-interactive install sequence for the ansible role | Milestone | Complete | No | M1, D7 | `docs/README.install.md` adopted by ansible-provision (T1 Pass 2026-09-19); landed at `b6a80af`, refined at `a12516d`; [detail](#m2---non-interactive-install-sequence-for-the-ansible-role) |
-| Runtime | M22 | Size the JVM heap default to the host | Milestone | In progress | No | D18 | Default landed at `0df950d`; 256M override passed the reported approximately 21-hour light-load run; changed-default deployment/runtime verification remains; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
+| Runtime | M22 | Size the JVM heap default to the host | Milestone | Complete | No | D18 | Default landed at `0df950d`; the default reaches the JVMs (M26 / T2) and a loaded 256M soak on a 4 GiB VM with MariaDB ran about three days with no JVM OOM; #46 closed 2026-09-28; [detail](#m22---size-the-jvm-heap-default-to-the-host) |
 | Runtime | M23 | Make a dead instance visible to systemd | Milestone | In progress | No | D12, D18, D19 | Implementation landed at `9ee6ac0`; VM checks remain for the 45-second failure-reporting target, no monitor-initiated stop/restart and preserved dependency behavior; [detail](#m23---make-a-dead-instance-visible-to-systemd) |
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
@@ -1725,7 +1721,7 @@ Last Compared: never
 Origin: 265f580 / M22
 Identity History: none
 GitHub Issue: #46
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1758,8 +1754,14 @@ MariaDB side of the same host budget.
 
 ##### Completion Criteria
 
-- A default install on a 4 GB host runs the four instances beside MariaDB with
-  no kernel OOM kill across the interval that previously failed.
+- A 4 GB host running the four instances with the default's effective JVM
+  options (`-Xms256M -Xmx256M -XX:MaxMetaspaceSize=256M`) beside MariaDB,
+  under PV load, has no kernel OOM kill of a JVM across the interval that
+  previously failed; and a default install gives the JVMs those options
+  (amended 2026-09-28 from "a default install on a 4 GB host runs ...": the
+  JVM options are the same whether 256M comes from the default or an
+  override, so the memory behaviour does not depend on where the value is
+  set).
 - The documented host prerequisite states the memory requirement implied by the
   chosen default.
 
@@ -1791,6 +1793,18 @@ MariaDB side of the same host budget.
   256M through that operator's own `AA_JAVA_HEAPSIZE` line (confirmed
   2026-09-26), so it is not default-install evidence either. T2 still needs
   a 4 GB host with MariaDB sampling PVs for more than four hours.
+- Decision Date: 2026-09-28. The completion criterion is amended as above and
+  T2 is met by the `9eed006` soak together with M26 / T2, instead of a new
+  default-install run. The ansible-provision operator reported on 2026-09-28
+  that no host of theirs ever ran the shipped default: `archiver_build`
+  always writes `AA_JAVA_HEAPSIZE` (256M by default) into
+  `../CONFIG_SITE.local`. The soak is heavier and longer than T2 asked for
+  (T2 below), and M26 / T2 showed that the default reaches the JVMs, so the
+  two together cover the criterion.
+- Observed on the same soak, outside this row: under 903 PVs and the
+  retrieval load the etl heap peaked at 251 MiB of 256 MiB with 10 full GCs,
+  and the other three instances had none. Heap needs by load are measured
+  under M41 (#53).
 
 ##### Implementation Plan
 
@@ -1827,7 +1841,7 @@ Superseded Plan Artifacts: none
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | T1 | 2026-09-22T20:49:32Z | Working tree based on `9a64fb6`; isolated copy of real tracked files | Pass | The real `make conf.archappl` output passes `bash -n` and, when sourced by Bash, supplies exactly one Xms/Xmx256M pair. A real parent `CONFIG_SITE.local` override produces exactly one Xms/Xmx512M pair; both retain MaxMetaspaceSize=256M. Four-instance arithmetic confirms 1024 MiB heap plus 1024 MiB metaspace caps, leaving 2048 MiB from a 4 GiB VM for other consumers. `TMPDIR=/tmp tests/run-all-tests.bash --local` passes 59 logic and 14 build-wrapper assertions; `git diff --check` passes. No JVM or VM runtime was exercised. |
-| T2 | Not run | 4 GB host with MariaDB | Pending | none |
+| T2 | 2026-09-28T07:5xZ (read; soak from 2026-09-24T09:09:52Z) | aa-env `9eed006`, aa-maven `3c96141d`; Rocky Linux 8.10, 2 vCPU, 3.58 GiB guest RAM (3665 MiB), no swap, MariaDB on the same host; 256M through the operator's `AA_JAVA_HEAPSIZE` line. Observed on the reporting side, not on this host | Pass (amended criterion, with M26 / T2) | All four JVMs read from `/proc/<pid>/cmdline` with `-Xms256M -Xmx256M -XX:MaxMetaspaceSize=256M`; the same PIDs since the planned restart at 2026-09-25T09:25:13Z, `NRestarts=0`, one boot since 2026-09-24. Load: 100 PVs from 2026-09-24T09:09:52Z, 500 from 2026-09-25T09:46Z, 903 (100 at 10 Hz, three waveforms) from 15:46Z to 2026-09-26T18:55Z, retrieval clients 2026-09-25T21:46Z to 21:56Z and 2026-09-26T08:30Z to 14:30Z. Kernel OOM over the whole boot: one kill, at 2026-09-25T21:56:45Z, of a load-test client (python3, about 1.2 GB anonymous RSS) in its own transient unit, not a JVM. Peak RSS per JVM 374 to 500 MiB; lowest MemAvailable 1003 MiB under load. The default reaching the JVMs is M26 / T2 (2026-09-27) |
 | T3 | 2026-09-22T01:00:19Z to 2026-09-22T21:59:58Z (reported) | aa-env `6a026d4`, aa-maven `3c96141d`; 256M override; Rocky Linux 8.10, 3.58 GiB RAM, no swap | Pass (operator report; light workload only) | Owner-supplied VM heap verification report, dated 2026-09-22; 10 scalar PVs at 1 Hz each for 20 h 59 min 39 s. Reports four JVMs with the effective 256M options, zero OOM/restarts, and successful sampling/retrieval. Original VM records were not inspected by this session; details and limits below. |
 
 ##### Loaded Runtime Evidence And Limits
@@ -1889,17 +1903,22 @@ Arithmetic and interpretation:
   origin/modernize on 2026-09-23. The commit is an ancestor of the pushed tip
   `75d3460`; recheck with `git merge-base --is-ancestor 0df950d origin/modernize`.
   Repository landing does not establish deployment or satisfy T2.
+- 2026-09-28: T2 met under the amended completion criterion (Decision Date
+  2026-09-28) by the `9eed006` soak with M26 / T2; both criteria are met.
+- 2026-09-28T08:52:52Z: #46 body synced with the loaded soak, the default
+  reaching the JVMs and the amended criterion, closing comment posted, and
+  the issue closed as completed; read back as `CLOSED`.
 
 ##### GitHub Projection
 
 Title: Size the JVM heap default to the host
 Labels: enhancement
 GitHub Milestone: none
-Observed State: open
+Observed State: closed (completed, 2026-09-28T08:52:52Z)
 Observed Labels: enhancement
 Observed Milestone: none
 Observed Updated At: 2026-09-23T20:53:26Z
-Last Compared: 2026-09-23T20:53:27Z; `gh api repos/jeonghanlee/epicsarchiverap-env/issues/46` read after the body was synchronized with the 256M default at `0df950d` and the title set to Title; title, labels and milestone match
+Last Compared: 2026-09-28T08:53Z; `gh issue view 46` read after the body sync and close; title, labels and milestone match
 
 #### M23 - Make a dead instance visible to systemd
 
