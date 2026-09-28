@@ -8,7 +8,12 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: the journald logging model (D24, D25) is complete:
+Next session entry point: commit the derived-path correction, SQL deletion
+guard, matching tests and documentation, and this register update. Then run
+Release Verification 1 on the committed tip before preparing M8's PR to
+`maven`. Full backend consistency remains Deferred Backlog M42 under D29.
+
+The journald logging model (D24, D25) is complete:
 M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (the launcher's
 `loglevel` command) is Complete at `6302b12` and M37 (the Rocky 8 JDK package)
 at `5fc8d6e`; M38 (the configured mgmt port in `status`) is Complete at `2fc1a75`.
@@ -57,8 +62,12 @@ gateway with auto-address discovery disabled, and all three PVs returned 156
 samples timestamped after the configuration restart. Evidence is retained
 under `work/rv-m8-*20260928.*`; the VM remains running. Final local evidence
 is in `work/rv1-209f285-evidence.tar.gz` and `work/rv4-209f285.txt`.
-Next: commit the final verification record, then prepare the PR to `maven`,
-fast-forward, tag and release under their separate authorizations. M2
+That verification record is committed at `46faeb9`. The subsequent local
+checks on the working tree passed Phase 1 (220), health and unit file tests
+(18), and Phase 2 (13), including the derived-path and SQL deletion guards.
+The later corrections have not been installed on a VM. After committing them,
+repeat Release Verification 1 on the committed tip, then prepare the PR to
+`maven`, fast-forward, tag and release under their separate authorizations. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
@@ -154,6 +163,7 @@ fast-forward, tag and release under their separate authorizations. M2
 | D26 | aa-env does not stop an install whose archive store shares the root filesystem or lies under a user home directory, and does not provision storage. A production host must place the store correctly, and the right size differs per site, so a directory on the root filesystem can be valid; a store under a user home is never the intended placement (the service account may not reach it, and the home may be network-mounted or removed with its account), but it too is reported rather than refused. aa-env warns during the environment step and alarms through the existing health timer when the store's filesystem crosses a configurable usage threshold. The volume and its mount stay with the host. | 2026-09-25 |
 | D27 | aa-env drops macOS support; the supported hosts are Debian and Rocky Linux. The runtime model is a systemd unit whose output journald collects (D24), which macOS does not have, and the macOS environment target places the archive store under the invoking user's home (`ARCHAPPL_STORAGE_TOP:=${HOME}/arch`), the placement D26 warns about. The macOS presets, the launchd service file and its targets, the `darwin` branches of the scripts and the macOS guide are removed rather than kept unmaintained. | 2026-09-25 |
 | D28 | The DB-backend rollout order becomes MariaDB over TCP, then SQLite3, then MariaDB over Unix domain socket: SQLite moves ahead of UDS because aa-maven's SQLite check (its M13, jeonghanlee/epicsarchiverap-maven#5) needs an SQLite deploy path, while UDS has no waiting consumer. The SQLite database file is `ARCHAPPL_SQLITE_FILE`, default `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`, so the configuration database sits on the archive volume, is backed up with it and is writable by the service account. Its schema comes from `archappl_sqlite.sql` in the source tree aa-env builds, loaded with the `sqlite3` command-line tool, as the MariaDB schema comes from the same tree. Amends D16's order only. | 2026-09-25 |
+| D29 | Limit current DB changes to rejecting `sql.drop` and `sql.table.drop` for SQLite or an invalid backend before invoking any database client. Record full backend consistency as Backlog M42, deferred from current execution; SQLite deletion support and the remaining DB command behavior require a later accepted plan. | 2026-09-28 |
 
 ### Assignment History
 
@@ -886,6 +896,7 @@ source pin and the changelog content open
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
+| Release Verification 1 | 2026-09-28 | This host (Debian 13), working tree based on `46faeb9`, with derived-path and SQL deletion guard corrections | Pass (working tree) | The real `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=220 failed=0, all 18 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The new tests exercise local path overrides and explicit derived-path overrides through shipped Make rules, and execute rejection cases for both SQL deletion targets. MariaDB deletion is inspected only with a dry-run. This result does not replace the required committed-tip check or extend the VM evidence below to these corrections. |
 | Release Verification 1 | 2026-09-28T20:11:01Z (run 20:10:58Z to 20:11:01Z) | This host (Debian 13), clean aa-env `209f285cce15e4bb0ec705f1a40170f41e2a090c` | Pass | The shipped `tests/run-all-tests.bash --local` exits 0: Phase 1 passed=220 failed=0, all 15 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. `SRC_TAG:=d8a7813f40083c1bf7148e6c3b7bffd368d70ee0` is confirmed. `KEEP_WORKSPACE=1` retains the real test workspaces; full console output is `work/rv1-209f285-console.log`, and the evidence archive is `work/rv1-209f285-evidence.tar.gz` (SHA-256 `aa1c6cf0a46453b6d881fa45967d608ca529d79ad5e25f671eb85e04ed0a0c6b`). This is the required rerun after dating the changelog; the earlier `37b3a16` run at 17:48:08Z passed Phase 1 at 218 and Phase 2 at 13, and `57021de` passed Phase 1 at 220 before its commit. |
 | Release Verification 2 | 2026-09-28T19:14:41Z (install run 18:50:53Z to 19:04:02Z; CA configuration reapplied and restarted at 19:10:50Z) | Disposable Debian 13.4 x86_64 VM, aa-env `57021de1508138420edecc48b3a16eb14c60e0fc`, aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`, Tomcat 9.0.121, distro JDK 21, MariaDB over loopback TCP | Pass | The shipped package installer, `debian13.conf`, `tomcat`, database creation targets and all eight install-guide steps completed; Maven reported BUILD SUCCESS. After correcting the CA override file, `conf.archapplproperties`, `sd_stop`, `install` and `sd_start` completed. The appliance and health timer are enabled and active; the appliance is running with NRestarts=0. The installed `archappl.bash health` verifies all four JVMs; the health service reports Result=success and ExecMainStatus=0. Mgmt returns HTTP 200 and identity `appliance0`. Logs: `work/rv-m8-install-20260928.log` and `work/rv-m8-ca-reinstall-20260928.log`. |
 | Release Verification 3 | 2026-09-28T19:13:55Z | Same Debian 13.4 VM and pinned commits as Release Verification 2; existing host softIoc; gateway selected through `../CONFIG_EPICSENV.local` | Pass | `/proc/<pid>/environ` confirms the gateway address and `EPICS_CA_AUTO_ADDR_LIST=NO` in mgmt, engine, etl and retrieval. `M33:CNT`, `M33:SIN` and `M33:AI` report Being archived and connectionState=true. The real retrieval endpoint returned 156 samples per PV timestamped after the 19:10:50Z restart, with changing values and latest timestamps within 15 seconds of the observation. Each response also contains one earlier boundary sample, retained as evidence but excluded from the count. `work/verify-m8-ca.py` exited 0; full responses and runtime checks are in `work/rv-m8-ca-verification-20260928.json` (SHA-256 `e5558c66ddb3bbb2ff606b38eae398af911d47f1a2e1c8ace92d4135e849f875`). The original default-CA run returned 59 samples per PV but did not satisfy the explicit gateway setting; this row records the corrected run. |
@@ -5234,6 +5245,7 @@ Last Compared: 2026-09-28T07:38Z, `gh issue view 51` (title matches this project
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
 | Runtime | M41 | Measure per-component heap needs by archiving load | Carry-forward | Not started | Yes | | A measured table of the live heap each instance keeps at several PV counts and sampling rates, from which a heap per load is recommended; [detail](#m41---measure-per-component-heap-needs-by-archiving-load) |
+| DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M9, D29 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
 
 ### Backlog Details
 
@@ -5468,3 +5480,111 @@ Observed State: OPEN
 Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-09-28, `gh issue view 53` after creation
+
+#### M42 - Apply backend selection to all database operations
+
+Origin: 265f580 / M42
+Identity History: none
+GitHub Issue: none
+Status: Deferred
+
+##### Summary
+
+`DB_BACKEND` selects the appliance JDBC resource and MariaDB service dependency,
+but does not consistently select aa-env's database commands. At `46faeb9`,
+`configure/RULES_SQL` switches schema generation, loading and table listing;
+table deletion and the four application-table queries still invoke
+`scripts/mariadb_setup.bash`. All `db.*` commands remain MariaDB-specific.
+An unrecognized backend falls through to MariaDB in the SQL rules, while
+`conf.context` and `conf.systemd0` reject it. The MariaDB application-table
+query also hardcodes `archappl` instead of honoring `DB_NAME` in
+`scripts/mariadb_setup.bash`'s `show_archappl` function.
+
+The current narrow correction rejects SQLite and invalid backend values at
+`sql.drop` and `sql.table.drop`. It does not implement SQLite deletion or
+complete backend isolation for the other commands.
+
+##### Scope
+
+- Inventory every public database operation, including `sql.*`, `db.*`,
+  `PVRequests.show`, `DataServers.show`, `PVAliases.show`, `PVTypeInfo.show`,
+  and the setup script's query, backup and restore entrypoints.
+- Make generic operations consistently select MariaDB over TCP or a Unix
+  domain socket, or the SQLite file at `ARCHAPPL_SQLITE_FILE`. Validate the
+  backend before any configuration write, database connection or deletion;
+  an unknown value must never fall through to MariaDB.
+- Implement SQLite table deletion and application-table queries against the
+  source repository's shipped schema. Specify handling of associated triggers,
+  missing databases, file ownership, WAL files and active appliance connections.
+- Define backend-specific behavior for database creation, removal, inspection,
+  backup and restore. MariaDB account and server administration have no SQLite
+  equivalent: make the command boundary explicit and return a clear error for
+  unsupported operations without contacting MariaDB under SQLite selection.
+- Keep database identity consistent across Make, generated configuration,
+  helper scripts and JDBC. Honor `DB_NAME` on MariaDB and the configured file
+  on SQLite; define how stale generated configuration is detected or refreshed.
+- Align the install procedure, command documentation and tests with that
+  behavior, including when MariaDB configuration generation is unnecessary.
+
+Out of scope: automatic data migration or replication between engines,
+application schema redesign, PV archive-file deletion, and DB performance
+tuning. The current deletion guard is a partial safeguard, not completion of
+this work.
+
+##### Completion Criteria
+
+- Every inventoried entrypoint has documented behavior for both supported
+  backends and for invalid selection; no generic command contacts the
+  unselected backend.
+- SQLite supports schema load, table listing, all four application-table
+  queries, table deletion and reload using the shipped schema. MariaDB retains
+  those operations over both TCP and its Unix domain socket.
+- Database lifecycle, backup and restore follow the documented backend policy;
+  unsupported operations and client failures return nonzero status.
+- Disposable-database tests verify the selected database's result and that the
+  other database's schema and rows remain unchanged, including deletion tests.
+- The install and operator documentation describes the same behavior as the
+  commands, with no unconditional MariaDB step in the SQLite procedure.
+
+##### Dependencies And Decisions
+
+- M9 supplies the installed backend selection and source schemas.
+- D29, Decision Date: 2026-09-28. Full work is deferred from current execution;
+  only the `sql.drop` / `sql.table.drop` safeguard is authorized now. A new
+  dated decision is required to return M42 to Not started.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Define the operation matrix and database lifecycle policy, including the
+   MariaDB-only administration boundary and standalone script invocation.
+2. Apply shared backend validation and route generic operations to the matching
+   client and database identity. Implement missing SQLite operations.
+3. Align documentation and exercise the complete matrix on disposable databases
+   using the shipped rules, scripts and source schemas.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Command routing | Run every entrypoint with both backends, both local configuration locations, command-line overrides and invalid values | Isolated aa-env checkout and disposable databases | Selected client and identity agree; invalid or unsupported operations fail before side effects |
+| T2 | Database integration | Load the shipped schemas, insert records, query all four tables, drop tables and reload through real targets | SQLite and MariaDB over TCP and Unix domain socket | Expected schema and rows in the selected database; unselected database unchanged |
+| T3 | Database lifecycle | Exercise creation, removal, backup and restore, including a non-default name or file, WAL mode and defined active-connection handling | Disposable databases under the service account | Documented lifecycle and ownership; backup restores the expected rows; failures propagate |
+| T4 | Deployment | Follow the documented sequence for each backend and exercise the appliance configuration database | Debian 13 and Rocky Linux 8 disposable VMs | JDBC, helpers and service dependencies use the selected backend consistently |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Isolated aa-env checkout and disposable databases | Pending | none |
+| T2 | Not run | SQLite and MariaDB over TCP and Unix domain socket | Pending | none |
+| T3 | Not run | Disposable databases under the service account | Pending | none |
+| T4 | Not run | Debian 13 and Rocky Linux 8 disposable VMs | Pending | none |
+
+##### Closure Evidence
+
+- none
