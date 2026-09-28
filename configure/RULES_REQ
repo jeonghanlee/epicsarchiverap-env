@@ -4,16 +4,13 @@ install.pkgs:
 req_storage_RULES_NAMES:=storage storage.show storage.rm 
 req_storage_RULES:=$(addprefix conf., $(req_storage_RULES_NAMES))
 
-# Creates the store directories for the service account, then warns when the
-# store shares the root filesystem or lies under a user home; the placement is
-# the host's, so the target succeeds either way.
+# Creates the archive root and each configured tier for the service account.
+# Placement warnings cover every path, including tiers outside the archive root.
 conf.storage:
 	@echo "\n>>> Preparing $(ARCHAPPL_STORAGE_TOP) .... "
-	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_SHORT_TERM_FOLDER)
-	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_MEDIUM_TERM_FOLDER)
-	@$(SUDO) $(INSTALL) -d $(ARCHAPPL_LONG_TERM_FOLDER)	
-	@$(SUDO) chown -R $(AA_USERID):$(AA_GROUPID) $(ARCHAPPL_STORAGE_TOP)
-	@$(SUDOBASH) 'bash "$(TOP)/scripts/check_storage_placement.bash" "$(ARCHAPPL_STORAGE_TOP)" "$(HOME)"'
+	@$(SUDO) $(INSTALL) -d "$(ARCHAPPL_STORAGE_TOP)" "$(ARCHAPPL_SHORT_TERM_FOLDER)" "$(ARCHAPPL_MEDIUM_TERM_FOLDER)" "$(ARCHAPPL_LONG_TERM_FOLDER)"
+	@$(SUDO) chown -R $(AA_USERID):$(AA_GROUPID) "$(ARCHAPPL_STORAGE_TOP)" "$(ARCHAPPL_SHORT_TERM_FOLDER)" "$(ARCHAPPL_MEDIUM_TERM_FOLDER)" "$(ARCHAPPL_LONG_TERM_FOLDER)"
+	@$(SUDOBASH) 'for path in "$(ARCHAPPL_STORAGE_TOP)" "$(ARCHAPPL_SHORT_TERM_FOLDER)" "$(ARCHAPPL_MEDIUM_TERM_FOLDER)" "$(ARCHAPPL_LONG_TERM_FOLDER)"; do bash "$(TOP)/scripts/check_storage_placement.bash" "$$path" "$(HOME)" || exit $$?; done'
 
 conf.storage.show:
 	@tree -pugL $(LEVEL) $(ARCHAPPL_STORAGE_TOP);

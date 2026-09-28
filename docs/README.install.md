@@ -44,8 +44,10 @@ the check that proves it ran.
   default) other than the root filesystem and outside any user home, sized by
   the site. `make conf.storage` warns, and still succeeds, when the store shares
   the root filesystem or lies under `/home`, `/root` or the home of the user
-  running it; the health timer reports `FAIL storage-threshold` once the
-  store's filesystem reaches `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85, set
+  running it. These checks and service-account ownership apply to the archive
+  root and each configured STS, MTS and LTS directory, including paths outside
+  the root. The health timer reports `FAIL storage-threshold` once any checked
+  filesystem reaches `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85, set
   in `../CONFIG_SITE.local`). To change it on an installed host, edit
   `../CONFIG_SITE.local`, then run `make conf.archapplproperties` and
   `make install`, followed by `make sd_start`. The install stops the health

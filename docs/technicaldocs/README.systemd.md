@@ -173,7 +173,10 @@ sudo -u tomcat /opt/epicsarchiverap-maven/archappl.bash health
 
 The Linux-only `health` command checks every instance in startup order. Each
 line names the instance, the observed PID when available, and `PRESENT`, `FAIL`
-or `ERROR` with a reason. A storage line follows,
+or `ERROR` with a reason. Storage lines follow for `ARCHAPPL_STORAGE_TOP` and
+each configured STS, MTS and LTS directory, including separate filesystems.
+Older configurations without tier paths check only `ARCHAPPL_STORAGE_TOP`.
+Each storage line has the form
 `storage path=<store> mount=<mount point> use=<n>% threshold=<t>%`, ending in
 `PRESENT`, `FAIL storage-threshold` when the store's filesystem usage is at or
 above `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85), or `ERROR` when `df`

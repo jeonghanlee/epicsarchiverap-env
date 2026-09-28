@@ -314,12 +314,12 @@ function health_instance {
     return "$rc"
 }
 
-# Prints the storage line of health for the loaded configuration: the store's
+# Prints one storage line for a configured path: the store's
 # mount, its usage and the alarm threshold, then PRESENT, FAIL storage-threshold
 # at or above the threshold, or ERROR when df cannot read the store or the
 # threshold is not a percent. Returns 0, 1 or 2 like an instance check.
-function health_storage {
-    local top="${ARCHAPPL_STORAGE_TOP:-}" threshold="${ARCHAPPL_STORAGE_ALARM_PERCENT:-85}"
+function health_storage_path {
+    local top="$1" threshold="${ARCHAPPL_STORAGE_ALARM_PERCENT:-85}"
     local line="" use="" mount=""
     if [[ ! $threshold =~ ^[0-9]{1,3}$ ]] || (( 10#$threshold < 1 || 10#$threshold > 100 )); then
         printf 'storage path=%s mount=- use=- threshold=%s ERROR storage-invalid-threshold\n' "${top:--}" "$threshold"
@@ -343,6 +343,22 @@ function health_storage {
     fi
     printf 'storage path=%s mount=%s use=%s%% threshold=%s%% PRESENT\n' "$top" "$mount" "$use" "$threshold"
     return 0
+}
+
+# Checks the archive root and every configured tier, including separate mounts.
+# Older configurations without tier paths retain the archive-root check.
+function health_storage {
+    local path rc result=0
+    local -a paths=("${ARCHAPPL_STORAGE_TOP:-}")
+    for path in "${ARCHAPPL_SHORT_TERM_FOLDER:-}" "${ARCHAPPL_MEDIUM_TERM_FOLDER:-}" "${ARCHAPPL_LONG_TERM_FOLDER:-}"; do
+        if [[ -n $path ]]; then paths+=("$path"); fi
+    done
+    for path in "${paths[@]}"; do
+        rc=0
+        health_storage_path "$path" || rc=$?
+        if (( rc > result )); then result=$rc; fi
+    done
+    return "$result"
 }
 
 function health_archappl {

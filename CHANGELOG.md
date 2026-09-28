@@ -40,6 +40,7 @@ changes to the environment repository.
 
 ### Fixed
 - Local configuration preserves Tomcat installation and runtime paths, service and shutdown ports, and the cluster address across all OS presets; Ant uses the final Tomcat path.
+- Storage preparation sets ownership on the archive root and every configured tier, including existing files outside the root; health checks inspect each tier's filesystem.
 - Preserve failed command exit statuses in the test runner so stale build artifacts cannot turn a build failure into a passing Phase 2 result, and do not mask a failure to resolve the test root.
 - Align runtime, installation, policy, ETL, and test documentation with the implementation; correct the README screenshot path.
 - `a_service_BUIDER` -> `a_service_BUILDER` macro typo across `RULES_FUNC` and `RULES_VARS`.

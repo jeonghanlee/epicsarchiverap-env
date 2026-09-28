@@ -366,6 +366,55 @@ class SystemdFileTests(WorkspaceTest):
                         self.assertIn('CATALINA_HOME="/srv/command-tomcat"', config)
             location.unlink()
 
+    def test_external_storage_ownership_and_health(self):
+        java = shutil.which("java")
+        if not java:
+            self.skipTest("A real Java executable is required for health configuration")
+        store = self.temp / "archive"
+        tiers = [self.temp / name for name in ("short", "medium", "long")]
+        group = next((gid for gid in os.getgroups() if gid != os.getgid()), os.getgid())
+        local = self.temp / "CONFIG_SITE.local"
+        local.write_text(
+            f"ARCHAPPL_STORAGE_TOP={store}\nAA_USERID={os.getuid()}\nAA_GROUPID={group}\n"
+            f"JAVA_HOME={Path(java).resolve().parent.parent}\nTOMCAT_HOME={self.root}\n"
+            "ARCHAPPL_STORAGE_ALARM_PERCENT=100\n"
+            + "".join(f"ARCHAPPL_{name}_TERM_FOLDER={path}\n"
+                      for name, path in zip(("SHORT", "MEDIUM", "LONG"), tiers))
+        )
+        # Existing files outside the archive root must receive the configured group too.
+        for path in tiers:
+            path.mkdir()
+            (path / "existing.pb").touch()
+        self.make("conf.storage", "SUDOBASH=bash -c")
+        for path in [store, *tiers, *(path / "existing.pb" for path in tiers)]:
+            self.assertEqual(path.stat().st_uid, os.getuid())
+            self.assertEqual(path.stat().st_gid, group)
+        launcher = self.root / "scripts/archappl.bash"
+        for overrides, expected in (([], 1), ([f"ARCHAPPL_MEDIUM_TERM_FOLDER={self.temp}/missing"], 2),
+                                    (["ARCHAPPL_SHORT_TERM_FOLDER=/dev/shm"], 1)):
+            with self.subTest(overrides=overrides):
+                if overrides == ["ARCHAPPL_SHORT_TERM_FOLDER=/dev/shm"] and not Path("/dev/shm").is_dir():
+                    self.skipTest("Separate-filesystem health check requires /dev/shm")
+                self.make("conf.archappl", *overrides)
+                shutil.copyfile(self.root / "site-template/archappl.conf", launcher.parent / "archappl.conf")
+                run = subprocess.run(["bash", str(launcher), "health"], text=True, capture_output=True, timeout=8)
+                with (self.temp / "run.log").open("a") as log:
+                    log.write(f"exit={run.returncode}\n{run.stdout}{run.stderr}")
+                self.assertEqual(run.returncode, expected, run.stdout + run.stderr)
+                lines = [line for line in run.stdout.splitlines() if line.startswith("storage path=")]
+                self.assertEqual(len(lines), 4, run.stdout)
+                if expected == 2:
+                    self.assertIn(f"storage path={self.temp}/missing mount=-", run.stdout)
+                    self.assertIn("ERROR storage-unreadable", run.stdout)
+                    self.assertIn("health ERROR inspection-incomplete", run.stdout)
+                else:
+                    paths = [store, *tiers]
+                    if overrides:
+                        paths[1] = Path("/dev/shm")
+                    for path in paths:
+                        data = subprocess.check_output(["df", "-P", str(path)], text=True).splitlines()[1].split()
+                        self.assertIn(f"storage path={path} mount={data[5]} use={data[4]} threshold=100% PRESENT", run.stdout)
+
     def test_explicit_derived_path_overrides(self):
         values = {
             "ARCHAPPL_TOP": self.temp / "runtime",
