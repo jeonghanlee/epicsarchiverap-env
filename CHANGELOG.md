@@ -5,7 +5,7 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The source repository's POM defines build artifact names; this changelog records
 changes to the environment repository.
 
-## [Unreleased]
+## [2.0.0] - 2026-09-28
 
 ### Added
 - `configure/os/<os>.pkgs` declarative per-OS package lists (`debian13`, `rocky8`) and `scripts/install_os_packages.bash`, the installer that consumes them.
