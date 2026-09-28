@@ -14,8 +14,10 @@ SRC_NAME:=${APPNAME}
 #SRC_TAG:=32db8e4810489fca280c360b657ed360f7ada116
 #SRC_TAG:=734f31f
 ## Placeholder for the site-specific version control
-#
-SRC_TAG:=modernize
+## The release builds the pinned aa-maven commit below; a later source release
+## changes only this value, and development may point at a branch instead.
+#SRC_TAG:=modernize
+SRC_TAG:=d8a7813f40083c1bf7148e6c3b7bffd368d70ee0
 #
 SRC_VERSION:=$(SRC_TAG)
 #SRC_VERSION:=${SRC_TAG}-2022-08-08
