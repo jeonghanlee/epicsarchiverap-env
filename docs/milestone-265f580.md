@@ -20,7 +20,8 @@ M26 is Complete at `ea554ff`: `make conf.storage` warns when the archive
 store shares the root filesystem or lies under a user home, and the health
 timer alarms at `ARCHAPPL_STORAGE_ALARM_PERCENT` (D26). M39 (macOS removed,
 D27) is Complete at `3b3bdf9`; the silent `db.create` failure it found is
-M40, assigned from Backlog to Milestone on 2026-09-28. M9 (selectable backend: MariaDB over TCP, SQLite, MariaDB over
+M40, assigned from Backlog to Milestone on 2026-09-28 and Complete at
+`ea91660` (#51 closed). M9 (selectable backend: MariaDB over TCP, SQLite, MariaDB over
 its socket per D28) is Complete: the selector and SQLite at `bbe0968`, the
 socket (`DB_SOCKET`) at `90e4a04`; #43 closed 2026-09-28.
 M26's
@@ -35,9 +36,7 @@ was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
 2026-09-23, and real-VM verification remains. M8 is the only Ready Milestone
-row, since M9 completed its last dependency; M40 is In progress: implemented
-in the working tree with T1 and T2 passed on 2026-09-28, awaiting review and
-landing. The five unfinished Backlog items
+row, since M9 completed its last dependency. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
 Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
 unresolved scope or operating conditions of the other four keep them Open and
@@ -95,7 +94,7 @@ Release Verification 1 and 4 remain. M2
 | Toolchain | M37 | Install the JDK package that provides JAVA_HOME on Rocky Linux 8 | Milestone | Complete | No | M11 | Implemented and verified (T1-T3); landed at `5fc8d6e` on origin/modernize 2026-09-25; [detail](#m37---install-the-jdk-package-that-provides-java_home-on-rocky-linux-8) |
 | Runtime | M38 | Print the configured mgmt port in the launcher's status | Milestone | Complete | No | M36 | Implemented and verified (T1); landed at `2fc1a75` on origin/modernize 2026-09-25; [detail](#m38---print-the-configured-mgmt-port-in-the-launchers-status) |
 | Platform | M39 | Remove macOS support | Milestone | Complete | No | D24, D26, D27 | Implemented and verified (T1-T3); landed at `3b3bdf9` on origin/modernize 2026-09-25; [detail](#m39---remove-macos-support) |
-| DB | M40 | Fail the database targets when the database client fails | Carry-forward | In progress | No | D22 | `make db.addAdmin`, `db.rmAdmin`, `db.create` and `db.drop` exit non-zero and name the failed step when the database client cannot run it; [detail](#m40---fail-the-database-targets-when-the-database-client-fails) |
+| DB | M40 | Fail the database targets when the database client fails | Carry-forward | Complete | No | D22 | `make db.addAdmin`, `db.rmAdmin`, `db.create` and `db.drop` exit non-zero and name the failed step when the database client cannot run it; landed at `ea91660`, #51 closed 2026-09-28; [detail](#m40---fail-the-database-targets-when-the-database-client-fails) |
 | Gate | G1 | aa-maven baseline tag reported by the aa-maven session | External gate | Complete | No | | Tag `NewHope` -> `abf6545` verified on the aa-maven origin 2026-09-11; [detail](#g1---aa-maven-baseline-tag-reported-by-the-aa-maven-session) |
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
@@ -4954,7 +4953,7 @@ Last Compared: 2026-09-25T19:31Z, `gh issue view 52`
 Origin: 265f580 / M40
 Identity History: Backlog to Milestone 2026-09-28; retitled 2026-09-28 from "Fail db.create when the database client fails" when the scope widened to every account and database function of the same shape
 GitHub Issue: #51
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -5064,17 +5063,22 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- 2026-09-28T07:32:26Z: landed at `ea91660`; `git fetch` then
+  `git rev-parse HEAD @{upstream}` both `ea91660` on origin/modernize. T1 and
+  T2 passed, meeting both completion criteria.
+- 2026-09-28T07:38:26Z: #51 retitled to this row's title, its body synced to
+  the implementation and checked acceptance criteria, closing comment posted,
+  and the issue closed as completed; read back as `CLOSED`.
 
 ##### GitHub Projection
 
 Title: Fail the database targets when the database client fails
 Labels: bug
 GitHub Milestone: none
-Observed State: OPEN
+Observed State: CLOSED (completed, 2026-09-28T07:38:26Z)
 Observed Labels: bug
 Observed Milestone: none
-Last Compared: 2026-09-25T19:31Z, `gh issue view 51`
+Last Compared: 2026-09-28T07:38Z, `gh issue view 51` (title matches this projection)
 
 ## Backlog
 
