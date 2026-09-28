@@ -5088,6 +5088,7 @@ Last Compared: 2026-09-28T07:38Z, `gh issue view 51` (title matches this project
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
+| Runtime | M41 | Measure per-component heap needs by archiving load | Carry-forward | Not started | Yes | | A measured table of the live heap each instance keeps at several PV counts and sampling rates, from which a heap per load is recommended; [detail](#m41---measure-per-component-heap-needs-by-archiving-load) |
 
 ### Backlog Details
 
@@ -5226,3 +5227,99 @@ Superseded Plan Artifacts: none
   boundary that produces it, and landed at `e513267`. Both halves of the
   completion criterion are met and both carry landing evidence, so this row
   closes.
+
+#### M41 - Measure per-component heap needs by archiving load
+
+Origin: 265f580 / M41
+Identity History: none
+GitHub Issue: #53
+Status: Not started
+
+##### Summary
+
+The 256M heap default (M22) is a test default, and no measurement says what
+heap each instance needs as the archiving load grows. The one data point is
+the ansible-provision soak on aa-env `9eed006` and aa-maven `3c96141d`
+(reported 2026-09-28): with `-Xms256M -Xmx256M` on every JVM, 903 PVs
+(100 of them at 10 Hz, three waveforms) and a retrieval load, the etl heap
+peaked at 251 MiB of 256 MiB with 10 full GCs, while the other three had no
+full GC. A peak of heap used does not size a heap: the live set left after
+a full GC does, and it likely follows a different load per component (PV
+count and rate for engine, partition size for etl, query span for
+retrieval), which is a hypothesis until measured.
+
+##### Scope
+
+- Measure, per instance, the live set (heap in use right after a GC, not the
+  peak), the GC counts and pause times, and the RSS on a disposable VM over a
+  load matrix: PV counts (for example 100, 500, 1000 and 2000) at 1 Hz and
+  10 Hz from a `softIoc` on the test host, archived in bulk through the mgmt
+  BPL, plus one step with a retrieval client. Each step runs long enough to
+  cover several ETL passes, with the M31 test store values
+  (`PARTITION_5MIN`) so STS, MTS and LTS are all reached within hours.
+- Measurement method, one or both, fixed during planning: G1 unified GC
+  logging (`-Xlog:gc*:file=<instance>/logs/gc.log:time,uptime`) on the four
+  JVMs, whose `Pause ... <before>-><after>(<max>)` lines give the live set
+  as the after-GC values; or, with the install unchanged, `jstat -gc <pid>`
+  sampled every minute as the service account (old-generation use `OU` and
+  full GC count `FGC`; `jstat` ships in the JDK devel package the Rocky 8
+  list installs). Whether aa-env has a path to add a JVM option for the GC
+  log is checked during planning.
+- From the measurements, write a heap recommendation per load into
+  `docs/README.install.md` beside the four-instance memory calculation, as
+  the live set times a headroom factor; the factor (2 to 3 is the usual rule
+  of thumb) is chosen from the measured GC counts and pause times.
+
+Out of scope: changing the shipped default (M22); per-instance heap
+variables, unless the measurements show one shared value cannot fit; GC
+tuning beyond sizing; production storage sizing.
+
+##### Completion Criteria
+
+- A recorded table of the after-GC heap, GC counts and pause times per
+  instance for each load in the matrix, with the aa-env and aa-maven refs and
+  the measurement method used.
+- The install guide gives a heap per load derived from that table.
+
+##### Dependencies And Decisions
+
+- Recorded 2026-09-28 from the owner's direction after the M22 review of the
+  `9eed006` soak figures; not assigned to current work.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Fix the load matrix, the run length and the measurement method (GC log,
+   `jstat`, or both) during planning.
+2. Run the matrix on a disposable VM and record the measurements.
+3. Derive and document the recommendation.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Runtime | Run each load of the matrix with the chosen method (GC log, `jstat`, or both) on all four instances; read the stable after-GC heap, the GC counts and pause times, and the RSS | Disposable VM | A complete table per instance and load, tied to the aa-env and aa-maven refs |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Disposable VM | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Measure per-component heap needs by archiving load
+Labels: enhancement
+GitHub Milestone: none
+Observed State: OPEN
+Observed Labels: enhancement
+Observed Milestone: none
+Last Compared: 2026-09-28, `gh issue view 53` after creation
