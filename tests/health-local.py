@@ -218,7 +218,7 @@ class SystemdFileTests(WorkspaceTest):
             ["git", "-C", str(TOP), "ls-files", "-z", "--cached", "--others", "--exclude-standard"]
         ).decode().split("\0")
         for item in paths:
-            if item and (item == "Makefile" or item.startswith(("configure/", "site-template/", "scripts/"))):
+            if item and (TOP / item).is_file() and (item == "Makefile" or item.startswith(("configure/", "site-template/", "scripts/"))):
                 destination = self.root / item
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(TOP / item, destination)

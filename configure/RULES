@@ -19,9 +19,7 @@ include $(TOP)/configure/RULES_PATCH
 include $(TOP)/configure/RULES_SRC
 include $(TOP)/configure/RULES_INSTALL
 include $(TOP)/configure/RULES_SYSTEMD
--include $(TOP)/configure/RULES_DOCKER
 include $(TOP)/configure/RULES_SQL
 include $(TOP)/configure/RULES_PROPERTIES
 include $(TOP)/configure/RULES_TOMCAT
 include $(TOP)/configure/RULES_VARS
-

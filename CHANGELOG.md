@@ -52,6 +52,7 @@ changes to the environment repository.
 - `make db.addAdmin`, `db.rmAdmin`, `db.create` and `db.drop` and the matching `mariadb_setup.bash` commands stop with a non-zero status and name the failed step when the database client fails; account drops use `DROP USER IF EXISTS`.
 
 ### Removed
+- Obsolete `install.docker`, `build.docker` and `prune.docker` targets.
 - Obsolete documentation: `README.ant.md` (pre-Maven build guide), `README.centos7.md` (EOL 2024-06-30), `README.centos8.md` (EOL 2021-12-31), `README.javapkgs.md` (Java 11/12 superseded by Java 21).
 - `configure/CONFIG_COMMON` (folded into `CONFIG_SITE`).
 - `get.jdbc`, `clean.jdbc`, `install.jdbc` rules in `RULES_REQ` and the `jdbc` download case in `scripts/install_java_pkgs_local.bash`: Maven packages `mariadb-java-client` into each WAR, so a copy in the Tomcat lib is not used (phase 1 guard P1.11).
