@@ -131,8 +131,9 @@ needs a different heap. Both heap options follow this value; for example,
   copies `context.xml` into each instance) and restart the appliance unit.
   `DB_SOCKET` is ignored for `sqlite`.
 - Toolchain (`JAVA_HOME`, `TOMCAT_HOME`): set through the OS preset
-  (`make <os>.conf` writes `configure/CONFIG_SITE.local` to include
-  `configure/os/<os>.mk`), or set them in `../CONFIG_SITE.local`. Do not place
+  (`make <os>.conf`, with `<os>` one of `debian13`, `debian12` and `rocky8`,
+  writes `configure/CONFIG_SITE.local` to include `configure/os/<os>.mk`), or
+  set them in `../CONFIG_SITE.local`. Do not place
   overrides in `configure/CONFIG_SITE.local` when `make <os>.conf` is used, since
   that target overwrites the file.
 

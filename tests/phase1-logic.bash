@@ -28,7 +28,7 @@ remaining=$(grep -rl 'CONFIG_COMMON' "${TOP}/configure/" 2>/dev/null || true)
 assert_empty "${remaining}" "No CONFIG_COMMON references in configure/"
 
 # P1.3 OS preset files exist as separately tracked Makefile fragments.
-for preset in debian12 rocky8; do
+for preset in debian12 debian13 rocky8; do
     assert_file "${TOP}/configure/os/${preset}.mk" "configure/os/${preset}.mk present"
 done
 
@@ -37,7 +37,7 @@ make -C "${TOP}" -n build > "${WORKSPACE}/make-n-build.txt" 2>&1
 assert_status $? 0 "make -n build parses"
 
 # P1.5 Both OS conf targets parse and reference their preset.
-for target in debian12.conf rocky8.conf; do
+for target in debian12.conf debian13.conf rocky8.conf; do
     out=$(make -C "${TOP}" -n "${target}" 2>&1)
     rc=$?
     if [[ ${rc} -ne 0 ]]; then

@@ -9,7 +9,7 @@ changes to the environment repository.
 
 ### Added
 - `configure/os/<os>.pkgs` declarative per-OS package lists (`debian13`, `rocky8`) and `scripts/install_os_packages.bash`, the installer that consumes them.
-- `configure/os/*.mk` tracked OS preset files (`debian12`, `rocky8`).
+- `configure/os/*.mk` tracked OS preset files (`debian12`, `debian13`, `rocky8`) and their `make <os>.conf` targets.
 - Scope and Out-of-scope blocks in `README.md`, `docs/README.policies.md`, and `docs/README.DataJourney.md`.
 - `## help` annotations on user-facing Tomcat targets and `.PHONY` wiring for `$(all_tomcat_RULES)`.
 - Phased test framework under `tests/`: `tests/run-all-tests.bash` runs the Phase 1 logic checks and the Phase 2 build-wrapper check (`--local`).
@@ -27,7 +27,7 @@ changes to the environment repository.
 - `XXX.conf` Tomcat targets generate `CONFIG_SITE.local` with an include of the matching tracked preset under `configure/os/`.
 - Top-level documentation reformatted: convert multi-attribute bullet lists to tables in the policies guide (sections 4.1, 4.3, 6); compress `docs/README.md` to a true index; convert single-cell figure tables to plain images with captions across all docs.
 - `tests/phase1-logic.bash` expects branch `modernize` by default (`EXPECTED_BRANCH` still overrides).
-- Toolchain: `JAVA_HOME` is the distribution JDK 21 (on Rocky Linux 8 the `java-21-openjdk-devel` package provides the link) and the build runs the source repository's Maven Wrapper (`./mvnw`, pinned 3.9.9); the environment installs no Maven and no longer references java-env.
+- Toolchain: `JAVA_HOME` is the distribution JDK 21 (on Rocky Linux 8 the `java-21-openjdk-devel` package provides the link) and the build runs the source repository's Maven Wrapper (`./mvnw`, Maven 3.9.16 at the pinned source); the environment installs no Maven and no longer references java-env.
 - The build consumes the source repository's own `pom.xml`; the environment no longer ships or copies one. `SRC_TAG` pins the source to jeonghanlee/epicsarchiverap-maven commit `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`.
 - Apache Tomcat 9.0.121 for the four runtime instances.
 - The appliance unit is `Type=simple` with the launcher as its main process: the four Tomcats run in the foreground, each through `systemd-cat` into the journal under `archappl-<component>`, and when one exits the launcher stops the others in order and the unit ends `failed`, with no `ExecStop` and no restart.

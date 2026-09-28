@@ -132,7 +132,13 @@ tomcat.sd_disable:
 	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), $(SUDO) systemctl disable $(TOMCAT_SYSTEMD))
 #
 
-.PHONY: centos8.conf rocky8.conf centos7.conf
+.PHONY: centos8.conf rocky8.conf centos7.conf debian12.conf debian13.conf
+
+debian13.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/debian13.mk" > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
 
 debian12.conf:
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"

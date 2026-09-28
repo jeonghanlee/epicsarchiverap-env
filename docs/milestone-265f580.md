@@ -749,6 +749,12 @@ misses most of the work since.
   hold (added, changed, removed, fixed), then dated as `## [2.0.0] - <date>`.
 - A GitHub release `2.0.0` whose notes come from that changelog section, as
   every earlier tag of this repository has one.
+- `configure/os/debian13.mk` and a `debian13.conf` target, with the Phase 1
+  preset checks, the install guide and the changelog (added 2026-09-28 during
+  implementation: Debian 13 had a package list but no preset target, so a
+  Debian 13 host had to use `debian12.conf`). The changelog's Maven Wrapper
+  version was corrected the same day to 3.9.16, the version the pinned source
+  uses.
 - Final pull request from `modernize` to `maven`, fast-forward.
 - Annotated tag `2.0.0` (no `v` prefix) on the merge commit.
 
