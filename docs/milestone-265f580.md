@@ -3930,10 +3930,14 @@ Out of scope: the variables and their checks (M31); production values.
   ansible-provision operator corrected this on 2026-09-26: "Approximate time
   taken by last job in ETL(0>1)" is a running sum of per-PV durations that
   resets only after 15 minutes without an update, so with 5-minute partitions
-  it never resets; 277 s was 401 passes at 0.69 s each, and a pass took 0.36 s
-  at 500 PVs and 0.49 s to 0.69 s at 903. The chain has no ETL headroom
-  concern, and the test values stand. aa-maven fixes the metric under
-  jeonghanlee/epicsarchiverap-maven#11.
+  it never resets (277 s after 401 runs). "Average time spent in ETL(0>1)
+  (s/run)" is that sum over the run count, a lifetime average (0.69 s then).
+  The time of one pass is the sum's growth per run: about 0.43 s at 500 PVs,
+  0.68 s to 1.03 s at 903, 0.78 s under the 6 h retrieval load and 0.69 s in
+  the final hold, against the 300 s period (per-run figures corrected
+  2026-09-27 by the same operator; #50 comment of that date). The chain has no
+  ETL headroom concern, and the test values stand. aa-maven fixes the metric
+  under jeonghanlee/epicsarchiverap-maven#11.
 
 ##### Implementation Plan
 
