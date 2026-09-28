@@ -36,8 +36,10 @@ M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
 2026-09-23, and real-VM verification remains. M8 is the only Ready Milestone
 row, since M9 completed its last dependency. The five unfinished Backlog items
-M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
-unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
+M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
+Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
+unresolved scope or operating conditions of the other four keep them Open and
+not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
 another 1 GiB. The operator report supplies approximately 21 hours of light
 sampling-load evidence with the 256M override; it reports no OOM or restart.
@@ -77,7 +79,7 @@ Release Verification 1 and 4 remain. M2
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
-| Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #25; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
+| Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Complete | No | | Every name shape transfers STS to MTS to LTS and stays retrievable; no change needed, #25 closed as not reproducible 2026-09-28; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
@@ -3338,7 +3340,7 @@ Last Compared: 2026-09-15; GitHub REST issue #24 read, remote updated_at 2024-03
 Origin: 265f580 / M19
 Identity History: none
 GitHub Issue: [#25](https://github.com/jeonghanlee/epicsarchiverap-env/issues/25)
-Status: Open
+Status: Complete
 
 ##### Summary
 
@@ -3370,6 +3372,12 @@ and closing the issue without runtime evidence.
 - Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The reproduction environment and investigation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
 - D14; recorded 2026-09-15 as unresolved work. Reproduction still needs a defined
   environment and investigation plan after assignment.
+- Results reported on #25 on 2026-09-22 and 2026-09-25 (T1 below) show every
+  tested name shape reaching MTS and LTS under the report's separator
+  configuration; they reported no retrieval check after the transfer, which the
+  second completion criterion requires. Recorded 2026-09-28. The retrieval
+  check was then requested of the ansible-provision operator and reported the
+  same day (T1 below).
 
 ##### Implementation Plan
 
@@ -3394,21 +3402,25 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | Runtime environment not assigned | Pending | none |
+| T1 | 2026-09-28T04:0xZ (retrieval, reported; transfer reported on #25 2026-09-22T22:21:37Z and 2026-09-25T19:47:29Z) | Two test appliances built from aa-env: `6a026d4` with the shipped store policy (STS `PARTITION_HOUR`, MTS `PARTITION_DAY` `hold=2`, LTS `PARTITION_YEAR`), and `9eed006` with the chain shortened (STS `PARTITION_5MIN`, MTS `PARTITION_HOUR`, LTS `PARTITION_DAY`); both with `siteNameSpaceSeparators = [\\:\\-\\___\\__\\_]` and `siteNameSpaceTerminator = :` as in the report. Observed on the reporting side, not on this host | Pass | On `6a026d4`, eleven 1 Hz PVs, among them underscores and dashes after the terminator colon (`AASOAK:ONE_UNDER`, an eight-segment multi-underscore name) and underscores in prefix segments (`AASOAK:PFX_A:PFX_B:LEAF`), all reached MTS and then LTS between 06:45Z and 09:15Z on 2026-09-25, at the split paths (`lts/ArchiverStore/AASOAK/PFX/A/PFX/B/LEAF:2026.pb`). On `9eed006`, 100 PVs registered 2026-09-24T09:09Z, ten each of the prefix-segment shape, underscores after the terminator, dashes, nested colons (the colon-only control) and long multi-underscore names, reached STS by 09:15Z, MTS by 09:30Z and LTS by 12:15Z, with a second LTS day partition after midnight. The reports name no fix: the issue predates both refs and states no version. Retrieval on the `9eed006` appliance (aa-maven `3c96141d`), read-only, after archiving stopped on 2026-09-26 at 19:10:38Z and ETL had moved every sample to LTS (STS and MTS empty, three LTS day partitions per PV): `getData.json` returned HTTP 200 for the first PV of each shape (`AASOAK:S1_UND:CH_01`, `AASOAK:N1:N2:N3:CH01` as the colon-only control, `AASOAK-DASH:S1-CH-01`, `AASOAK:PFX_A:PFX_B:LEAF01`, and a long multi-underscore name), 86320 to 86331 samples over the day 2026-09-25 and 208669 to 208681 over the whole run (2026-09-24T09:11:27Z to 2026-09-26T19:10:38Z). The run spans 208751 s; less the two gaps every PV shares (55 s at the deliberate appliance restart, 28 s at a load-test client's OOM kill, neither at an hour or day boundary) and counting both ends, 208669 samples are expected, so no sample was lost across the hourly MTS and daily LTS boundaries. The reporter's `ONE_UNDER` and `LEAF` names were checked for transfer on `6a026d4`; retrieval used the same shapes on `9eed006` |
 
 ##### Closure Evidence
 
-- None; issue remains open.
+- 2026-09-28T04:06:16Z: both completion criteria are met by T1 (transfer of
+  every name shape, including underscores in prefix segments and a colon-only
+  control, and retrieval afterwards with no sample lost); no repository change
+  was needed. #25 received a closing comment stating that the report does not
+  reproduce and was closed as not planned; read back as `CLOSED`.
 
 ##### GitHub Projection
 
 Title: Investigate ETL for PV names containing underscores
 Labels: none
 GitHub Milestone: none
-Observed State: open
+Observed State: closed (2026-09-28T04:06:16Z, not planned)
 Observed Labels: none
 Observed Milestone: none
-Last Compared: 2026-09-15; GitHub REST issue #25 read, remote updated_at 2024-05-02T08:05:00Z
+Last Compared: 2026-09-28; `gh issue view 25` read after the close, state closed, no labels or milestone
 
 #### M27 - LTS retrieval pre-processing (`pp`)
 
