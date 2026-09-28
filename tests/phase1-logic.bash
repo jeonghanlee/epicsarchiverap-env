@@ -826,6 +826,8 @@ else
     cf_cases=(
         "make db.create|admin|make|db.create|Creating the database archappl and the archappl account failed"
         "make db.drop|admin|make|db.drop|Dropping the database archappl and the archappl account failed"
+        "make db.show|admin|make|db.show|Listing databases failed"
+        "dbShow|admin|setup|dbShow|Listing databases failed"
         "dbCreate|admin|setup|dbCreate|Creating the database archappl failed"
         "dbDrop|admin|setup|dbDrop|Dropping the database archappl failed"
         "userDrop|admin|setup|userDrop|Dropping the archappl account failed"

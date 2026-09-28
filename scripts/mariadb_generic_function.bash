@@ -360,7 +360,10 @@ function show_dbs
     cmd+="SHOW DATABASES;";
     cmd+="\"";
     commandPrn "$cmd"
-    dBs=$(eval "${cmd}" | awk '{print $1}')
+    if ! dBs=$(eval "${cmd}"); then
+        clientFailMessage "Listing databases"
+        return 1
+    fi
     for db in $dBs
     do
         printf ">>>>> %24s was found.\n" "${db}"

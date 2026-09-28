@@ -179,8 +179,8 @@ the console summary; a skipped check is not verification.
   `DB_SOCKET`. No database client runs.
 - The account and database targets stop when the database client fails: from
   an isolated copy, with the real `mysql` client unable to connect, `make
-  db.create`, `db.drop`, `db.addAdmin` and `db.rmAdmin` and the
-  `mariadb_setup.bash` commands `dbCreate`, `dbDrop`, `userDrop`,
+  db.create`, `db.drop`, `db.show`, `db.addAdmin` and `db.rmAdmin` and the
+  `mariadb_setup.bash` commands `dbCreate`, `dbDrop`, `dbShow`, `userDrop`,
   `hostnameAdminAdd` and `hostnameAdminRemove` each exit non-zero with
   `ERROR 2002` and a message naming the failed step on stderr. The admin
   command meets a closed loopback port; the root command meets a missing
