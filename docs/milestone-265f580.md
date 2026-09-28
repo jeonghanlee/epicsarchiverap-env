@@ -8,10 +8,14 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit the derived-path correction, SQL deletion
-guard, matching tests and documentation, and this register update. Then run
-Release Verification 1 on the committed tip before preparing M8's PR to
-`maven`. Full backend consistency remains Deferred Backlog M42 under D29.
+Next session entry point: finish committing the Docker target removal,
+Tomcat path and port corrections, per-tier storage checks, database listing
+failure handling, and their tests and documentation. Then run Release
+Verification 1 on the committed tip before preparing M8's PR to `maven`.
+The targeted Debian 13 and Rocky 8.10 VM checks passed on the working tree;
+their scope and evidence are recorded in M8. PV acquisition, storage, ETL,
+retrieval and long-duration testing belong to the ansible-provision soak.
+Full backend consistency remains Deferred Backlog M42 under D29.
 
 The journald logging model (D24, D25) is complete:
 M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (the launcher's
@@ -750,14 +754,12 @@ source. Order: G10 (aa-maven Phase 1 done) -> install and run on that VM
 before the install verification passes. The merge is a fast-forward (owner
 choice 2026-09-12); `modernize` is ahead of `maven` with nothing behind.
 
-Re-planned 2026-09-28. Release Verification 2 and 3 passed on 2026-09-21 on
-aa-env `fb43522`, before the foreground service unit (M33), the log4j2
-routing (M34, M35), the selectable backend (M9), the store alarm (M26), the
-database target failures (M40) and the health monitor verification (M23), so
-they run again on the final tree. `configure/RELEASE` still follows the
-aa-maven `modernize` branch (`SRC_TAG:=modernize`), and `CHANGELOG.md`
-`[Unreleased]` is stale: it still lists the macOS presets M39 removed and
-misses most of the work since.
+The source is pinned to `d8a7813f` and the changelog is dated `2.0.0`,
+2026-09-28. Release Verification 2 and 3 passed on aa-env `57021de` that
+day. Subsequent configuration and runtime corrections passed the targeted
+VM checks below; those checks do not extend the earlier PV retrieval
+evidence to the corrected tree. The final committed-tip local check and
+release execution remain pending.
 
 ##### Scope
 
@@ -896,6 +898,7 @@ source pin and the changelog content open
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
+| Release Verification 1 | 2026-09-28 | Debian 13, working tree based on `dde4a7b`, with Docker removal, local Tomcat and port corrections, per-tier storage checks and database listing failure handling | Pass (working tree) | The shipped `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=224 failed=0, all 20 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The final committed-tip check remains pending. |
 | Release Verification 1 | 2026-09-28 | This host (Debian 13), working tree based on `46faeb9`, with derived-path and SQL deletion guard corrections | Pass (working tree) | The real `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=220 failed=0, all 18 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The new tests exercise local path overrides and explicit derived-path overrides through shipped Make rules, and execute rejection cases for both SQL deletion targets. MariaDB deletion is inspected only with a dry-run. This result does not replace the required committed-tip check or extend the VM evidence below to these corrections. |
 | Release Verification 1 | 2026-09-28T20:11:01Z (run 20:10:58Z to 20:11:01Z) | This host (Debian 13), clean aa-env `209f285cce15e4bb0ec705f1a40170f41e2a090c` | Pass | The shipped `tests/run-all-tests.bash --local` exits 0: Phase 1 passed=220 failed=0, all 15 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. `SRC_TAG:=d8a7813f40083c1bf7148e6c3b7bffd368d70ee0` is confirmed. `KEEP_WORKSPACE=1` retains the real test workspaces; full console output is `work/rv1-209f285-console.log`, and the evidence archive is `work/rv1-209f285-evidence.tar.gz` (SHA-256 `aa1c6cf0a46453b6d881fa45967d608ca529d79ad5e25f671eb85e04ed0a0c6b`). This is the required rerun after dating the changelog; the earlier `37b3a16` run at 17:48:08Z passed Phase 1 at 218 and Phase 2 at 13, and `57021de` passed Phase 1 at 220 before its commit. |
 | Release Verification 2 | 2026-09-28T19:14:41Z (install run 18:50:53Z to 19:04:02Z; CA configuration reapplied and restarted at 19:10:50Z) | Disposable Debian 13.4 x86_64 VM, aa-env `57021de1508138420edecc48b3a16eb14c60e0fc`, aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`, Tomcat 9.0.121, distro JDK 21, MariaDB over loopback TCP | Pass | The shipped package installer, `debian13.conf`, `tomcat`, database creation targets and all eight install-guide steps completed; Maven reported BUILD SUCCESS. After correcting the CA override file, `conf.archapplproperties`, `sd_stop`, `install` and `sd_start` completed. The appliance and health timer are enabled and active; the appliance is running with NRestarts=0. The installed `archappl.bash health` verifies all four JVMs; the health service reports Result=success and ExecMainStatus=0. Mgmt returns HTTP 200 and identity `appliance0`. Logs: `work/rv-m8-install-20260928.log` and `work/rv-m8-ca-reinstall-20260928.log`. |
@@ -903,6 +906,38 @@ source pin and the changelog content open
 | Release Verification 2 | 2026-09-21 | Three provisioned hosts (Rocky 8.10 x2, one built from bare for this check; Debian 13), aa-env `fb43522`, aa-maven `3c96141d`, Tomcat 9.0.121, OpenJDK 21, MariaDB over loopback TCP | Pass | LAB-ansible-provision drove the documented make sequence as root through its operator: `init`, `db.conf`, `conf.archapplproperties`, `build.mvn` and `sql.fill` completed under `set -e`; the als `classpathfiles` (`appliances.xml`, `archappl.properties`, `policies.py`) are packed in `WEB-INF/classes` of all four deployed webapps; four instances sit under the install root with the unit enabled and active and the storage root owned by the service account (0755); mgmt `/bpl/getApplianceInfo` returned 200 with identity `appliance0` and version 2025-6 on all three hosts. The privilege split was measured rather than derived: built as root, the four JVMs run as the service account. Observed on the reporting side, not on this host. Re-observed 2026-09-21 directly at `e06c554` on a freshly provisioned Rocky 8.10 host: a forced reinstall completed with failed=0 and left four instances, the unit active, the als `classpathfiles` in the deployed webapp, and mgmt returning 200 with identity `appliance0` and version 2025-6 on the first probe. The result therefore no longer rests on the D18 path-equivalence argument, which the reporting side also re-derived (`fb43522` is an ancestor of `e06c554`, and their diff touches nothing under `site-template/`, `scripts/`, `configure/CONFIG_SITE` or `configure/CONFIG_SRC`). |
 | Release Verification 3 | 2026-09-21 | The same three hosts as Release Verification 2 | Pass | A 1 Hz calc record submitted through mgmt `/bpl/archivePV` moved Initial sampling to Appliance assigned to Being archived in about two minutes; `retrieval/data/getData.json` then returned 68 points carrying the record EGU at one-second spacing with incrementing values, and the short-term store held the expected `.pb` file. The fixture was removed afterwards. Re-applying the role reported no change, with the install tree, the four instance PIDs and the unit start time identical before and after. |
 | Release Verification 4 | 2026-09-28T20:11:46Z | aa-env `209f285cce15e4bb0ec705f1a40170f41e2a090c` | Pass | `CHANGELOG.md` is byte-identical to the committed file, contains exactly one `## [2.0.0] - 2026-09-28` heading, and contains no `Unreleased`. The source pin is unchanged. Evidence: `work/rv4-209f285.txt`. |
+
+###### Configuration and runtime regression checks
+
+Observed 2026-09-28: Debian 13 at 22:39:36Z to 22:40:54Z and Rocky 8.10
+at 22:42:05Z to 22:43:14Z. Both used the working tree based on
+`dde4a7beb0c1f4bf9a46bf8574db1611ea762194`, with snapshot SHA-256
+`d533fe368ccab4dee8204fc26905a7893f3dcddb7c0245ea977db3144b4671b3`.
+All 16 modified files matched their snapshot hashes on each VM and the
+deleted Docker rule file was absent. Application source:
+`d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Debian reused its real WARs
+from that pin; Rocky built it with the shipped `build.mvn` target.
+
+Both VMs passed the real installation and runtime checks: alternate Tomcat
+prefix in all four JVMs; configured ports in server XML and appliance URLs;
+HTTP 200 and live loglevel calls; service-account ownership and write access
+for the archive root, external tiers and existing files; health across all
+four JVMs and all storage paths, including a separate tmpfs filesystem;
+successful database listing and nonzero failure against a closed port;
+storage threshold and missing-tier failures followed by recovery; a
+successful scheduled health check; and rejection of all three removed
+Docker targets before any recipe. Both verification procedures exited 0.
+Debian's previous installation and unit files were restored with HTTP 200
+and healthy JVMs; Rocky's test installation remained active.
+
+These checks verify the environment corrections, not PV acquisition,
+ETL movement, retrieval, load or long-duration operation. Those belong to
+the ansible-provision soak, as confirmed on 2026-09-28. The prior Release
+Verification 3 observations retain their original commit scope.
+Local evidence: `work/vm-coherence-20260928/README.md`, `verify.bash`,
+`debian13-results.txt`, `rocky8-results.txt`, `provenance.json` and
+`changed-files.sha256` in that directory. These ignored local artifacts
+are diagnostic evidence; this register owns the durable result and scope.
 
 ##### Closure Evidence
 
