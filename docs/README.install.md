@@ -11,10 +11,9 @@ the check that proves it ran.
 - aa-env clones the source repository (https://github.com/jeonghanlee/epicsarchiverap-maven) and drives its Maven Wrapper build, then
   installs four Tomcat instances under a single systemd service: `mgmt` (17665),
   `engine` (17666), `etl` (17667), `retrieval` (17668).
-- The source WARs are site-built: the default `als` site overlay is copied into
-  the source tree before the build (built in; no operator action — override
-  `ARCHAPPL_SITEID` only for a different site), so each WAR carries the site
-  `classpathfiles`.
+- The source WARs are built for the `als` site. Keep `ARCHAPPL_SITEID=als`.
+  The site overlay is copied into the source tree automatically before the
+  build, so each WAR carries the `als` site `classpathfiles`.
 - The runtime uses the shared Tomcat as a read-only `CATALINA_HOME`; each
   instance is a writable `CATALINA_BASE` under the install location.
 
@@ -49,8 +48,10 @@ the check that proves it ran.
   store's filesystem reaches `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85, set
   in `../CONFIG_SITE.local`). To change it on an installed host, edit
   `../CONFIG_SITE.local`, then run `make conf.archapplproperties` and
-  `make install`; each check reads the installed `archappl.conf` anew, so the
-  next scheduled check uses the new value without an appliance restart.
+  `make install`, followed by `make sd_start`. The install stops the health
+  timer; `sd_start` starts it again and leaves an already-running appliance
+  running. Each check reads the installed `archappl.conf` anew, so the next
+  scheduled check uses the new value without an appliance restart.
 - The service group and user (`AA_GROUPID`, `AA_USERID`) may be pre-created; the
   install leaves an existing group/user unchanged.
 
