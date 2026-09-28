@@ -36,14 +36,17 @@ updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
 M23 is Complete: implementation at `9ee6ac0`, VM checks passed 2026-09-28,
-#44 closed. M8 is the only Ready Milestone
-row, since M9 completed its last dependency. The five unfinished Backlog items
+#44 closed. No Milestone row is Ready: M8 is In
+progress. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
 Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
 unresolved scope or operating conditions of the other four keep them Open and
 not Ready. The operator's 2026-09-22 heap report does not provide a
-quantified disk growth rate for M26. M8's Release Verification 2 and 3 passed on three provisioned hosts;
-Release Verification 1 and 4 remain. M2
+quantified disk growth rate for M26. M8 was re-planned 2026-09-28: `SRC_TAG`
+pinned to aa-maven `d8a7813f`, the changelog rewritten and dated `[2.0.0]`,
+Release Verification 2 and 3 again on a Debian 13 VM from cloud-provision,
+then fast-forward, tag `2.0.0` and GitHub release; the plan was accepted
+and authorized 2026-09-28 and M8 is In progress. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
@@ -62,7 +65,7 @@ Release Verification 1 and 4 remain. M2
 | DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | Complete | No | G9, M11, D15, D28 | One PV archives and retrieves under each backend selected in `context.xml`, in the D28 order; landed at `bbe0968` and `90e4a04`, #43 closed 2026-09-28; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Not started | Yes | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
+| Release | M8 | Modernized baseline release to maven | Milestone | In progress | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Deferred | No | G6, D9, D17 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package, build still passes; deferred 2026-09-20 (D17) with Ant removal out of Phase 1 on both sides, returning to Not started only by a new dated decision; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Complete | No | G7, D9 | Implemented and locally verified; landed at `d748d4f` on origin/modernize, verified 2026-09-22; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
@@ -253,8 +256,9 @@ The legacy GitHub issues and milestones are already retired through G2.
 
 - Confirm that M8's merge carries this register and the already committed
   removal of `docs/MILESTONES.md` onto `maven`.
-- Keep the legacy GitHub retirement evidence from G2. No new per-row issues
-  are created (D13).
+- Keep the legacy GitHub retirement evidence from G2. Issues are not opened
+  one per row (D13); a row gets an issue only when its work needs an outward
+  record.
 
 Out of scope: a separate PR or merge, new feature work, and reopening the retired
 GitHub roadmap. M8 owns the integrated checks and release execution.
@@ -263,7 +267,11 @@ GitHub roadmap. M8 owns the integrated checks and release execution.
 
 - `origin/maven` contains this document and not `docs/MILESTONES.md`.
 - Issues #35–#42 and milestones M0–M5 are closed on GitHub. Done 2026-09-13 (G2).
-- No per-row GitHub issues are created (D13); this register is the sole tracker.
+- Issues are opened only for rows whose work needs an outward record, not one
+  per row (D13); this register stays the tracker of every row and each issue
+  is linked from its row (reworded 2026-09-28 from "No per-row GitHub issues
+  are created", which read as no issue at all, while D13 rules out one issue
+  per row).
 
 ##### Dependencies And Decisions
 
@@ -709,28 +717,49 @@ Last Compared: never
 Origin: 265f580 / M8
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
 Merge the completed `modernize` work into `maven` only after the install
-verification passes on this host against the finished aa-maven Phase 1
-source. Order: G10 (aa-maven Phase 1 done) -> install and run on this host
+verification passes on a disposable Debian 13 VM against the pinned aa-maven
+source. Order: G10 (aa-maven Phase 1 done) -> install and run on that VM
 (Release Verification 2 and 3) -> PR `modernize` to `maven`. No PR is opened
 before the install verification passes. The merge is a fast-forward (owner
 choice 2026-09-12); `modernize` is ahead of `maven` with nothing behind.
 
+Re-planned 2026-09-28. Release Verification 2 and 3 passed on 2026-09-21 on
+aa-env `fb43522`, before the foreground service unit (M33), the log4j2
+routing (M34, M35), the selectable backend (M9), the store alarm (M26), the
+database target failures (M40) and the health monitor verification (M23), so
+they run again on the final tree. `configure/RELEASE` still follows the
+aa-maven `modernize` branch (`SRC_TAG:=modernize`), and `CHANGELOG.md`
+`[Unreleased]` is stale: it still lists the macOS presets M39 removed and
+misses most of the work since.
+
 ##### Scope
 
-- Final pull request from `modernize` to `maven`.
-- Release tag on the merge commit.
-- `CHANGELOG.md` `[Unreleased]` becomes a dated section.
+- `configure/RELEASE`: `SRC_TAG` pinned to the aa-maven commit
+  `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0` (`d8a7813f`, the `modernize` tip read
+  2026-09-28), so the release builds one fixed source; a later aa-maven
+  release changes only this value.
+- `CHANGELOG.md`: `[Unreleased]` rewritten to cover the work after the
+  `[2025-12-23]` section, that is `origin/maven..modernize` (100 commits,
+  2026-04-28 to 2026-09-28), keeping the entries already there that still
+  hold (added, changed, removed, fixed), then dated as `## [2.0.0] - <date>`.
+- A GitHub release `2.0.0` whose notes come from that changelog section, as
+  every earlier tag of this repository has one.
+- Final pull request from `modernize` to `maven`, fast-forward.
+- Annotated tag `2.0.0` (no `v` prefix) on the merge commit.
 
 Out of scope: any new feature.
 
 ##### Completion Criteria
 
 - Release Verification 1–4 recorded with evidence.
+- `origin/maven` equals the release commit, reached by fast-forward.
+- Tag `2.0.0` on `origin` points at that commit.
+- GitHub release `2.0.0` is published with the `[2.0.0]` changelog notes.
 
 ##### Dependencies And Decisions
 
@@ -746,53 +775,86 @@ Out of scope: any new feature.
   service and script carry the runtime; this row owns its live verification.
 - D14: M3 is completed by this row's merge and is not a prerequisite.
 - D7: the ansible deployment (M2, G5) is Backlog and does not gate this row.
+- Decision Date: 2026-09-28. Release Verification 2 and 3 run again on the
+  final tree on a disposable Debian 13 VM, requested from the cloud-provision
+  operator, instead of this host, which is a work machine; the Rocky 8
+  install path was exercised on disposable VMs throughout 2026-09-26 to
+  2026-09-28 (M9, M26, M40, M23). The aa-maven source is pinned to
+  `d8a7813f`, which carries the ETL pass driver that landed there on
+  2026-09-28 (`d04e4a08`); Release Verification 3 is the first aa-env run
+  of it. The version is `2.0.0` without a `v`, a major step because the
+  service unit, the logging path and the install sequence changed. The
+  changelog is rewritten before it is dated; from this section on the
+  headings carry the version and the date (`## [2.0.0] - <date>`, the Keep a
+  Changelog form the file's preamble names), where the earlier sections carry
+  only a date.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-28, the plan in this detail
+Implementation Authorization: 2026-09-28, owner authorized steps 1 to 4; each
+release execution step still needs its own git and GitHub authorization
+Superseded Plan Artifacts: the two-step plan of this detail before
+2026-09-28, which ran Release Verification 2 and 3 on this host and left the
+source pin and the changelog content open
 
-1. Re-run the integrated checks below on the final tree.
-2. Prepare the pull request, tag, and changelog edit for the owner.
+1. Pin `SRC_TAG` in `configure/RELEASE` to `d8a7813f` (full hash) and
+   rewrite `CHANGELOG.md` `[Unreleased]` from the `origin/maven..modernize`
+   history and the register; commit both.
+2. Release Verification 1 on this host on that commit.
+3. Release Verification 2 and 3 on a disposable Debian 13 VM on that commit:
+   the documented sequence on a bare host with MariaDB, then one PV archived
+   from the `softIoc` on this host and retrieved. The VM sits behind the
+   libvirt NAT, so its `../CONFIG_SITE.local` sets `EPICS_CA_ADDR_LIST` to
+   the VM network's gateway address and `EPICS_CA_AUTO_ADDR_LIST:=NO`. The
+   VM belongs to cloud-provision, which created it on request: when the run
+   ends, aa-env tells that operator, who removes it; aa-env does not.
+4. Date the changelog section as `[2.0.0]` (Release Verification 4), commit
+   it, and run Release Verification 1 again on that commit, which is the
+   release commit.
+5. Release execution below (fast-forward, tag, GitHub release), each step
+   under its own owner authorization.
 
 ##### Integrated Verification
 
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M17 / T1 and T3 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass with correct failure handling | pending |
-| M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | pending |
-| M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | pending |
+| M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | pending (2026-09-21 result on `fb43522` superseded) |
+| M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | pending (2026-09-21 result on `fb43522` superseded) |
 
 ##### Production Environment Tests
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 3 | pre-PR | This host | Debian 13 | x86_64 | `make install` then start the service on the aa-maven Phase 1 source | README procedure | mgmt URL 200, one PV archived | pending |
+| Release Verification 2 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200; the unit and the health timer active | pending |
+| Release Verification 3 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200, one PV archived and retrieved | pending |
 
 ##### Version Changes
 
 | Field | File | Before | Planned After | Pre-check | Pre-check Label | Post-check | Post-check Label |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Unreleased heading | `CHANGELOG.md` | `[Unreleased]` | dated section | `grep -n Unreleased CHANGELOG.md` | Release Verification 4 | same | Release Verification 4 |
+| Source pin | `configure/RELEASE` | `SRC_TAG:=modernize` | `SRC_TAG:=d8a7813f40083c1bf7148e6c3b7bffd368d70ee0` | `grep -n '^SRC_TAG' configure/RELEASE` | Release Verification 1 | same | Release Verification 1 |
+| Unreleased heading | `CHANGELOG.md` | `[Unreleased]` | `[2.0.0] - <date>` | `grep -n Unreleased CHANGELOG.md` | Release Verification 4 | `grep -n '^## \[2.0.0\]' CHANGELOG.md` | Release Verification 4 |
 
 ##### Release Execution
 
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
-| 0 | Install-verify on this host against the aa-maven Phase 1 source (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived | pending |
+| 0 | Install-verify on a disposable Debian 13 VM against aa-maven `d8a7813f` (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived and retrieved | pending |
 | 1 | Open the PR `modernize` to `maven` with the verification result | owner | PR opened | pending |
 | 2 | Fast-forward `maven` to `modernize` (`git push origin origin/modernize:maven`) | owner | `origin/maven` equals `origin/modernize` | pending |
-| 3 | Annotated tag on the merged commit | owner | tag on origin | pending |
+| 3 | Annotated tag `2.0.0` with the message `epicsarchiverap-env 2.0.0` on the merged commit, and push of that tag | owner | tag `2.0.0` on origin at `origin/maven` | pending |
+| 4 | `gh release create 2.0.0 --title "epicsarchiverap-env 2.0.0" --notes-file work/release-notes-2.0.0.md`, the notes taken from the `[2.0.0]` changelog section | owner | release `2.0.0` published on GitHub | pending |
 
 ##### Release Verification Plan
 
 | Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
 | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 1 | Logic and compile | pre-change | `tests/run-all-tests.bash --local` | This host | all pass | run log |
-| Release Verification 2 | Runtime | pre-PR, on the aa-maven Phase 1 source | `make install` then start the service; mgmt probe | This host | HTTP 200 | curl output |
-| Release Verification 3 | Function | pre-PR, on the aa-maven Phase 1 source | archive one PV, then retrieve it | This host | non-empty samples | curl output and retrieval sample |
+| Release Verification 1 | Logic and compile | pre-PR, on the pinned commit and again on the dated release commit | `tests/run-all-tests.bash --local` and `grep -n '^SRC_TAG' configure/RELEASE` | This host | all pass; `SRC_TAG` is the full `d8a7813f` hash | run log |
+| Release Verification 2 | Runtime | pre-PR, on the pinned commit | the ordered install sequence with MariaDB, then `make sd_start`; mgmt probe | Disposable Debian 13 VM | HTTP 200; the unit and the health timer active | curl output |
+| Release Verification 3 | Function | pre-PR, on the pinned commit | archive one PV from the `softIoc` on this host, then retrieve it | Disposable Debian 13 VM | non-empty samples | curl output and retrieval sample |
 | Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
 
 ##### Release Verification Results
@@ -800,6 +862,8 @@ Superseded Plan Artifacts: none
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | Release Verification 1 | Not run | This host | Pending | none |
+| Release Verification 2 | Not run | Disposable Debian 13 VM, final tree | Pending | none (the 2026-09-21 row below is on `fb43522` and superseded) |
+| Release Verification 3 | Not run | Disposable Debian 13 VM, final tree | Pending | none (the 2026-09-21 row below is on `fb43522` and superseded) |
 | Release Verification 2 | 2026-09-21 | Three provisioned hosts (Rocky 8.10 x2, one built from bare for this check; Debian 13), aa-env `fb43522`, aa-maven `3c96141d`, Tomcat 9.0.121, OpenJDK 21, MariaDB over loopback TCP | Pass | LAB-ansible-provision drove the documented make sequence as root through its operator: `init`, `db.conf`, `conf.archapplproperties`, `build.mvn` and `sql.fill` completed under `set -e`; the als `classpathfiles` (`appliances.xml`, `archappl.properties`, `policies.py`) are packed in `WEB-INF/classes` of all four deployed webapps; four instances sit under the install root with the unit enabled and active and the storage root owned by the service account (0755); mgmt `/bpl/getApplianceInfo` returned 200 with identity `appliance0` and version 2025-6 on all three hosts. The privilege split was measured rather than derived: built as root, the four JVMs run as the service account. Observed on the reporting side, not on this host. Re-observed 2026-09-21 directly at `e06c554` on a freshly provisioned Rocky 8.10 host: a forced reinstall completed with failed=0 and left four instances, the unit active, the als `classpathfiles` in the deployed webapp, and mgmt returning 200 with identity `appliance0` and version 2025-6 on the first probe. The result therefore no longer rests on the D18 path-equivalence argument, which the reporting side also re-derived (`fb43522` is an ancestor of `e06c554`, and their diff touches nothing under `site-template/`, `scripts/`, `configure/CONFIG_SITE` or `configure/CONFIG_SRC`). |
 | Release Verification 3 | 2026-09-21 | The same three hosts as Release Verification 2 | Pass | A 1 Hz calc record submitted through mgmt `/bpl/archivePV` moved Initial sampling to Appliance assigned to Being archived in about two minutes; `retrieval/data/getData.json` then returned 68 points carrying the record EGU at one-second spacing with incrementing values, and the short-term store held the expected `.pb` file. The fixture was removed afterwards. Re-applying the role reported no change, with the install tree, the four instance PIDs and the unit start time identical before and after. |
 | Release Verification 4 | Not run | aa-env checkout | Pending | none |
