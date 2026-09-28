@@ -20,12 +20,9 @@ M26 is Complete at `ea554ff`: `make conf.storage` warns when the archive
 store shares the root filesystem or lies under a user home, and the health
 timer alarms at `ARCHAPPL_STORAGE_ALARM_PERCENT` (D26). M39 (macOS removed,
 D27) is Complete at `3b3bdf9`; the silent `db.create` failure it found is
-Backlog M40. M9 (selectable backend, SQLite before UDS per D28) is In
-progress: its steps 1 and 2 (the selector and SQLite) landed at `bbe0968`,
-and the UDS step (`DB_SOCKET`, every MariaDB connection over the socket;
-plan accepted and authorized 2026-09-27) is implemented in the working tree
-with T4 (Rocky 8), T5 and T6 (Debian 13) passed on 2026-09-28; it awaits
-review and landing.
+Backlog M40. M9 (selectable backend: MariaDB over TCP, SQLite, MariaDB over
+its socket per D28) is Complete: the selector and SQLite at `bbe0968`, the
+socket (`DB_SOCKET`) at `90e4a04`; #43 closed 2026-09-28.
 M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
@@ -37,8 +34,8 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is In progress: local implementation, checks and independent implementation
 review passed; implementation landed at `9ee6ac0` on origin/modernize on
-2026-09-23, and real-VM verification remains. No Milestone row is
-Ready. The five unfinished Backlog items
+2026-09-23, and real-VM verification remains. M8 is the only Ready Milestone
+row, since M9 completed its last dependency. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 are assigned to Milestone on 2026-09-22; their
 unresolved scope or operating conditions keep them Open and not Ready. M22 is In progress: the `256M` heap is
 selected for VM testing, with four heaps totaling 1 GiB and metaspace caps adding
@@ -47,7 +44,7 @@ sampling-load evidence with the 256M override; it reports no OOM or restart.
 The heap default landed at `0df950d` on origin/modernize on 2026-09-23;
 default-install runtime verification remains outstanding. The
 report does not provide a quantified disk growth rate for M26. M8's Release Verification 2 and 3 passed on three provisioned hosts;
-Release Verification 1 and 4 remain, and M8 still waits on M9. M2
+Release Verification 1 and 4 remain. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
@@ -63,10 +60,10 @@ Release Verification 1 and 4 remain, and M8 still waits on M9. M2
 | Build | M6 | Single-source pom: remove aa-env pom overwrite | Milestone | Complete | No | G3 | Verified 2026-09-12: full build with no aa-env pom, clean source tree (`0e9cee6`); [detail](#m6---single-source-pom-remove-aa-env-pom-overwrite) |
 | Tomcat | M7 | Tomcat 11 migration (aa-env side) | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; Tomcat 9 is fixed for Phase 2; [detail](#m7---tomcat-11-migration-aa-env-side) |
 | Tomcat | M12 | Tomcat 9.1.x fallback | Milestone | Complete | No | D11 | Retired 2026-09-12 by D11; [detail](#m12---tomcat-91x-fallback) |
-| DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | In progress | No | G9, M11, D15, D28 | One PV archives and retrieves under each backend selected in `context.xml`, in the D28 order; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
+| DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | Complete | No | G9, M11, D15, D28 | One PV archives and retrieves under each backend selected in `context.xml`, in the D28 order; landed at `bbe0968` and `90e4a04`, #43 closed 2026-09-28; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Not started | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Not started | Yes | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
 | Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Deferred | No | G6, D9, D17 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package, build still passes; deferred 2026-09-20 (D17) with Ant removal out of Phase 1 on both sides, returning to Not started only by a new dated decision; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Complete | No | G7, D9 | Implemented and locally verified; landed at `d748d4f` on origin/modernize, verified 2026-09-22; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
@@ -1015,7 +1012,7 @@ Last Compared: never
 Origin: 265f580 / M9
 Identity History: Backlog "SQLite as the configuration database" to Milestone, retitled 2026-09-12 (D11), reframed to the selectable model 2026-09-18 (D15)
 GitHub Issue: #43
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1263,13 +1260,19 @@ socket for every MariaDB connection, and T4 on a disposable VM
 - 2026-09-26T21:09:16Z: steps 1 and 2 landed at `bbe0968`; `git fetch` then
   `git rev-parse HEAD @{upstream}` both `bbe0968` on origin/modernize. Step 3
   (T4) remains, so the row stays In progress and #43 stays open.
+- 2026-09-28T03:30:01Z: step 3 landed at `90e4a04`; `git fetch` then
+  `git rev-parse HEAD @{upstream}` both `90e4a04` on origin/modernize. With
+  T1 to T6 passed, all three backends of the completion criteria are met.
+- 2026-09-28T03:41:38Z: #43 body synced to the implementation and checked
+  acceptance criteria, closing comment posted, and the issue closed as
+  completed; read back as `CLOSED`.
 
 ##### GitHub Projection
 
 Title: Selectable persistence backend
 Labels: enhancement
 GitHub Milestone: none
-Observed State: open
+Observed State: closed (2026-09-28T03:41:38Z)
 Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-09-21
