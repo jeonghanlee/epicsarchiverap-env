@@ -163,6 +163,16 @@ the console summary; a skipped check is not verification.
   percent above it; `storage path=- ERROR configuration-load-failed` with exit 2
   when `archappl.conf` does not load; and the storage line with exit 2 when only
   the runtime paths are invalid.
+- `DB_SOCKET` selects the MariaDB transport: from an isolated copy, the real
+  `conf.context` and `db.conf` render the TCP URL and `DB_SOCKET=""` by
+  default, and with a socket path in `../CONFIG_SITE.local` the
+  `jdbc:mariadb://localhost/<db>?localSocket=<path>` URL and that path in
+  `mariadb.conf`. Sourcing the rendered `mariadb.conf` and the shipped
+  `scripts/mariadb_generic_function.bash` expands the root, admin, user and
+  backup commands: TCP host and port and the `DB_HOST_NAME` account host by
+  default, `--socket=<path>` with no host or port and the `localhost` account
+  host with the path. The SQLite render is the same with and without
+  `DB_SOCKET`. No database client runs.
 
 ### Phase 2 — Build wrapper
 - The real `make -n build` target parses and generates commands successfully.

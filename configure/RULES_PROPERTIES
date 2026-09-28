@@ -94,9 +94,8 @@ conf.context: $(ARCHAPPL_CONTEXT_XML).in $(ARCHAPPL_CONTEXT_SQLITE_XML).in
 			-e "s:@JDBC_DB_USER@:$(JDBC_DB_USER):g" \
 			-e "s:@JDBC_DB_USER_PASS@:$(JDBC_DB_USER_PASS):g" \
 			-e "s:@JDBC_DB_TYPE@:$(JDBC_DB_TYPE):g" \
-			-e "s:@JDBC_DB_HOSTNAME@:$(JDBC_DB_HOSTNAME):g" \
-			-e "s:@JDBC_DB_PORTNUM@:$(JDBC_DB_PORTNUM):g" \
 			-e "s:@JDBC_DB_NAME@:$(JDBC_DB_NAME):g" \
+			-e "s|@JDBC_DB_URL@|$(JDBC_DB_URL)|g" \
 			-e "s:@ARCHAPPL_SQLITE_FILE@:$(ARCHAPPL_SQLITE_FILE):g" \
 			< $(if $(filter sqlite,$(DB_BACKEND)),$(word 2,$^),$<) > $(basename $<)
 

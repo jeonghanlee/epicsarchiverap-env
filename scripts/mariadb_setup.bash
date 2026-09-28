@@ -43,8 +43,8 @@ function usage
 	echo "          dbDrop             : drop   the DB -${DB_NAME}- at -${DB_HOST_NAME}-";
 	echo "          dbShow             : show all dbs exist";
 	echo "";
- 	echo "          dbUserCreate       : create the DB -${DB_NAME}- with ${DB_USER} at -${DB_HOST_NAME}-";
-	echo "          dbUserDrop         : drop   the DB -${DB_NAME}- with ${DB_USER} at -${DB_HOST_NAME}-";
+	echo "          dbUserCreate       : create the DB -${DB_NAME}- with ${DB_USER} at -${DB_USER_HOST}-";
+	echo "          dbUserDrop         : drop   the DB -${DB_NAME}- with ${DB_USER} at -${DB_USER_HOST}-";
 
 	echo "";
 	echo "          dbBackup           : back up the DB -${DB_NAME}- at default -${DEFAULT_DB_BACKUP_PATH}.";
@@ -378,16 +378,16 @@ case "$input" in
         ;;
     dbUserCreate)
         # shellcheck disable=SC2153
-        create_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}" "${DB_USER_PASS}";
+        create_db_and_user "${DB_NAME}" "${DB_USER_HOST}" "${DB_USER}" "${DB_USER_PASS}";
         ;;
     dbShow)
         show_dbs;
         ;;
     dbUserDrop)
-        drop_db_and_user "${DB_NAME}" "${DB_HOST_NAME}" "${DB_USER}";
+        drop_db_and_user "${DB_NAME}" "${DB_USER_HOST}" "${DB_USER}";
         ;;
     userDrop)
-      drop_user "${DB_HOST_NAME}" "${DB_USER}";
+      drop_user "${DB_USER_HOST}" "${DB_USER}";
         ;;
     dbDrop)
         drop_db "${DB_NAME}"

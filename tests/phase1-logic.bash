@@ -734,6 +734,75 @@ else
     esac
 fi
 
+# P1.26 DB_SOCKET selects the MariaDB transport. Empty keeps the TCP URL and
+# TCP client commands; a socket path set in ../CONFIG_SITE.local renders the
+# localSocket URL, carries the path into mariadb.conf, and turns all four
+# client commands and the account host to the socket. The shipped
+# mariadb_generic_function.bash expands the commands from the rendered
+# mariadb.conf; no database client runs.
+so_env="${WORKSPACE}/socket-env"
+so_path="/run/p1-socket/mysqld.sock"
+mkdir -p "${so_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${so_env}/"
+rm -f "${so_env}/configure/"*.local "${so_env}/../CONFIG_SITE.local" \
+    "${so_env}/site-template/context.xml" "${so_env}/site-template/mariadb.conf"
+so_ctx="${so_env}/site-template/context.xml"
+so_conf="${so_env}/site-template/mariadb.conf"
+# Prints the four client commands and the account host from the rendered mariadb.conf.
+function socket_commands
+{
+    bash -c '
+        source "$1/site-template/mariadb.conf"
+        source "$1/scripts/mariadb_generic_function.bash"
+        printf "root=%s\nadmin=%s\nuser=%s\nbackup=%s\nhost=%s\n" \
+            "${SQL_ROOT_CMD}" "${SQL_ADMIN_CMD}" "${SQL_DBUSER_CMD}" "${SQL_BACKUP_CMD}" "${DB_USER_HOST}"
+    ' _ "${so_env}"
+}
+so_rc=0
+make -C "${so_env}" -s conf.context db.conf > /dev/null 2>&1 || so_rc=$?
+assert_status "${so_rc}" 0 "Empty DB_SOCKET renders context.xml and mariadb.conf"
+case "$(cat "${so_ctx}")" in
+    *'url="jdbc:mariadb://127.0.0.1:3306/archappl"'*) _record_pass "Empty DB_SOCKET keeps the TCP URL" ;;
+    *) _record_fail "Empty DB_SOCKET keeps the TCP URL" "$(grep 'url=' "${so_ctx}" || true)" ;;
+esac
+assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" 'DB_SOCKET=""' "Empty DB_SOCKET renders an empty value in mariadb.conf"
+so_cmds=$(socket_commands)
+assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root" "Empty DB_SOCKET keeps the root command"
+for so_role in admin user backup; do
+    case "$(grep "^${so_role}=" <<< "${so_cmds}" || true)" in
+        *'--port=3306 --host=127.0.0.1 --protocol=tcp') _record_pass "Empty DB_SOCKET keeps the TCP ${so_role} command" ;;
+        *) _record_fail "Empty DB_SOCKET keeps the TCP ${so_role} command" "$(grep "^${so_role}=" <<< "${so_cmds}" || true)" ;;
+    esac
+done
+assert_eq "$(grep '^host=' <<< "${so_cmds}" || true)" "host=127.0.0.1" "Empty DB_SOCKET grants the account at DB_HOST_NAME"
+rm -f "${so_ctx}" "${so_conf}"
+printf 'DB_SOCKET:=%s\n' "${so_path}" > "${so_env}/../CONFIG_SITE.local"
+so_rc=0
+make -C "${so_env}" -s conf.context db.conf > /dev/null 2>&1 || so_rc=$?
+assert_status "${so_rc}" 0 "DB_SOCKET in ../CONFIG_SITE.local renders context.xml and mariadb.conf"
+case "$(cat "${so_ctx}")" in
+    *'url="jdbc:mariadb://localhost/archappl?localSocket='"${so_path}"'"'*) _record_pass "DB_SOCKET renders the localSocket URL" ;;
+    *) _record_fail "DB_SOCKET renders the localSocket URL" "$(grep 'url=' "${so_ctx}" || true)" ;;
+esac
+assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=\"${so_path}\"" "DB_SOCKET reaches mariadb.conf"
+so_cmds=$(socket_commands)
+assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --socket=${so_path}" "DB_SOCKET reaches the root command"
+for so_role in admin user backup; do
+    so_line=$(grep "^${so_role}=" <<< "${so_cmds}" || true)
+    if [[ "${so_line}" == *"--protocol=socket --socket=${so_path}" && "${so_line}" != *--host=* && "${so_line}" != *--port=* ]]; then
+        _record_pass "DB_SOCKET turns the ${so_role} command to the socket"
+    else
+        _record_fail "DB_SOCKET turns the ${so_role} command to the socket" "${so_line}"
+    fi
+done
+assert_eq "$(grep '^host=' <<< "${so_cmds}" || true)" "host=localhost" "DB_SOCKET grants the account at localhost"
+rm -f "${so_ctx}"
+make -C "${so_env}" -s conf.context DB_BACKEND=sqlite > /dev/null 2>&1
+so_sqlite_socket=$(cat "${so_ctx}")
+rm -f "${so_ctx}" "${so_env}/../CONFIG_SITE.local"
+make -C "${so_env}" -s conf.context DB_BACKEND=sqlite > /dev/null 2>&1
+assert_eq "${so_sqlite_socket}" "$(cat "${so_ctx}")" "DB_SOCKET leaves the SQLite resource unchanged"
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

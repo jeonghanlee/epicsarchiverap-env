@@ -52,7 +52,7 @@
         removeAbandonedTimeout="60"
         logAbandoned="true"
         driverClassName="@JDBC_DATASOURCE_CLASSNAME@"
-        url="jdbc:@JDBC_DB_TYPE@://@JDBC_DB_HOSTNAME@:@JDBC_DB_PORTNUM@/@JDBC_DB_NAME@"
+        url="@JDBC_DB_URL@"
     />
 </Context>
 

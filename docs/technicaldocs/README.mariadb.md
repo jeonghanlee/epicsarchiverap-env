@@ -4,6 +4,8 @@ We bind MariaDB to the loopback interface only (`localhost`, i.e. `127.0.0.1`), 
 
 The Archiver Appliance connects to the database over `127.0.0.1` (IPv4 loopback), set by `DB_HOST_NAME=127.0.0.1` in `configure/CONFIG_SITE`. When MariaDB is exposed over TCP, the application account is `archappl@'127.0.0.1'` with `skip-name-resolve` ON, so the grant matches the IPv4 connection deterministically. The `admin` account below belongs to the local-only setup path.
 
+With `DB_SOCKET` set to the server's Unix domain socket in `../CONFIG_SITE.local`, every connection uses that socket instead: the appliance's `localSocket` URL and every client command of `scripts/mariadb_generic_function.bash`, including the root command of `make db.secure` and `make db.addAdmin`. MariaDB names a socket client's host `localhost`, so the application account is `archappl@'localhost'`, which `make db.create` grants, and the `admin@'localhost'` account below matches as it is. The server may then run with `skip-networking`, and no TCP listener is needed.
+
 ## Generic Configuration
 
 * Secure Setup and add administor : only need to do at the beginning of the MariaDB configuration. One has

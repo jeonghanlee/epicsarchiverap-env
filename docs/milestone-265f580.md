@@ -22,7 +22,10 @@ timer alarms at `ARCHAPPL_STORAGE_ALARM_PERCENT` (D26). M39 (macOS removed,
 D27) is Complete at `3b3bdf9`; the silent `db.create` failure it found is
 Backlog M40. M9 (selectable backend, SQLite before UDS per D28) is In
 progress: its steps 1 and 2 (the selector and SQLite) landed at `bbe0968`,
-and the UDS step (T4, on a provisioned host) remains.
+and the UDS step (`DB_SOCKET`, every MariaDB connection over the socket;
+plan accepted and authorized 2026-09-27) is implemented in the working tree
+with T4 (Rocky 8), T5 and T6 (Debian 13) passed on 2026-09-28; it awaits
+review and landing.
 M26's
 ETL-timing half moved to M31 (D23), Complete at `9eed006`: Make variables for
 the store granularity and hold, so test hosts shorten the chain without
@@ -1099,6 +1102,38 @@ initialization.
 - MariaDB over UDS (third, D28): the driver's `localSocket` needs JNA on the
   classpath, and the WARs built from aa-maven `3c96141d` carry `jna` and
   `jna-platform` 5.13.0 (G12 Complete 2026-09-21), so this step is not gated.
+  Decided 2026-09-27:
+  - `DB_SOCKET` (Make variable, empty by default) selects the transport within
+    the MariaDB backend: empty keeps TCP to `DB_HOST_NAME:DB_HOST_PORT` as
+    today; a path makes every MariaDB connection use that socket. It is
+    defined in `configure/CONFIG_SITE` beside `DB_BACKEND`, before the local
+    includes, and has no default path, because the socket location differs by
+    distribution and provisioning (Rocky 8 `/var/lib/mysql/mysql.sock`,
+    Debian 13 `/run/mysqld/mysqld.sock`, the ansible role its own path); the
+    site sets it in `../CONFIG_SITE.local`. It is ignored under
+    `DB_BACKEND=sqlite`.
+  - `conf.context` renders, when `DB_SOCKET` is set,
+    `jdbc:mariadb://localhost/<DB_NAME>?localSocket=<DB_SOCKET>`; with
+    `DB_SOCKET` empty the rendered `context.xml` stays byte-identical to
+    today's.
+  - "Every connection" includes aa-env's own clients: `db.conf` carries
+    `DB_SOCKET` into `site-template/mariadb.conf`, and
+    `scripts/mariadb_generic_function.bash` builds the admin, user and backup
+    commands (`SQL_ADMIN_CMD`, `SQL_DBUSER_CMD`, `SQL_BACKUP_CMD`) with
+    `--protocol=socket --socket=<DB_SOCKET>` instead of the TCP host and port,
+    and the root command (`SQL_ROOT_CMD`, `sudo mysql --user=root`) with
+    `--socket=<DB_SOCKET>`, which it otherwise takes from the client's default
+    configuration, so `db.secure`, `db.addAdmin`, `db.create`, `sql.fill`,
+    `sql.show` and `mariadb_setup.bash dbBackup` all reach the server at `DB_SOCKET` even
+    where it differs from the client default.
+  - MariaDB names a socket client's host `localhost`, so an account at
+    `127.0.0.1` does not match it. With `DB_SOCKET` set, `db.create`
+    (`dbUserCreate`) grants `DB_USER` at `localhost`, and `dbUserDrop` and
+    `userDrop` drop that account; with it empty they keep `DB_HOST_NAME`. The
+    admin account is already `admin@'localhost'` (`db.addAdmin`), which the
+    socket client matches.
+  - The unit keeps `After=`/`Requires=mariadb.service`: the socket belongs to
+    the same local server.
 - Documentation: `docs/README.install.md` (the backend choice and where to
   set it, the SQLite sequence with step 5 as R, the file location, and that
   `make conf.storage.rm`, which removes `ARCHAPPL_STORAGE_TOP`, also removes
@@ -1168,11 +1203,17 @@ does not use.
 
 ##### Implementation Plan
 
-Plan Status: accepted
-Plan Acceptance: 2026-09-26, the three-step plan in this detail
-Implementation Authorization: 2026-09-26, owner authorized the accepted plan
+Plan Status: accepted (step 3 revised 2026-09-27; steps 1 and 2 landed at
+`bbe0968` under the 2026-09-26 acceptance)
+Plan Acceptance: 2026-09-27, step 3 as revised in this detail; 2026-09-26 for
+the three-step plan
+Implementation Authorization: 2026-09-27, owner authorized step 3 as
+accepted; 2026-09-26 for the three-step plan
 Superseded Plan Artifacts: the three-step plan of 2026-09-18 (TCP, UDS,
-SQLite), replaced 2026-09-25 by D28's order
+SQLite), replaced 2026-09-25 by D28's order; step 3 as accepted 2026-09-26
+("render the `localSocket` URL form and verify over the socket", T4 on a
+provisioned host), detailed 2026-09-27 with the transport selector, the
+socket for every MariaDB connection, and T4 on a disposable VM
 
 1. Selector and MariaDB/TCP: add `DB_BACKEND` and its validation, render the
    resource from it with MariaDB as today, and keep `sql.fill` and the unit's
@@ -1180,8 +1221,20 @@ SQLite), replaced 2026-09-25 by D28's order
 2. SQLite3: add `ARCHAPPL_SQLITE_FILE`, the SQLite resource, the SQLite
    branch of `sql.fill`, the unit without the MariaDB dependency, the
    packages, and the documents. Closed by T1 and T3.
-3. MariaDB/UDS: render the `localSocket` URL form and verify over the socket.
-   Closed by T4.
+3. MariaDB/UDS, as decided in Scope: `DB_SOCKET` in `configure/CONFIG_SITE`;
+   the URL chosen in `configure/CONFIG_SQL` and rendered by `conf.context`
+   (`site-template/context.xml.in`, `configure/RULES_PROPERTIES`);
+   `DB_SOCKET` in `site-template/mariadb.conf.in` and the `db.conf` rule;
+   the socket form of the four client commands in
+   `scripts/mariadb_generic_function.bash`; the account host in
+   `scripts/mariadb_setup.bash`; a Phase 1 check; `docs/README.install.md`
+   (setting `DB_SOCKET`, the per-distribution paths, the `localhost`
+   account) and `docs/technicaldocs/README.mariadb.md` (the connection and
+   account under each transport); `tests/README.md` describes the new Phase 1
+   check as it describes the others (added 2026-09-28 during implementation,
+   since that file lists every Phase 1 check). Closed by T5, T4 and T6 (T6
+   added 2026-09-28). The ansible and cloud operators are told the
+   variable and the account host after the implementation lands.
 
 ##### Test Plan
 
@@ -1190,7 +1243,9 @@ SQLite), replaced 2026-09-25 by D28's order
 | T1 | Logic | `tests/run-all-tests.bash --phase=2` with checks that render `context.xml` and the unit for `mariadb`, for `sqlite`, and for an invalid value, and that `DB_BACKEND=sqlite` set in the copy's `../CONFIG_SITE.local` reaches the rendering, and that `sql.update` writes `archappl_sqlite_updated.sql` with every `CREATE` guarded by `IF NOT EXISTS` and leaves the MariaDB copy unchanged, and that run the shipped `sql.fill` and `sql.show` SQLite branches with the real `sqlite3` against a file in the test workspace, from an isolated copy with `SUDO=`, `SQLITE_RUN_AS=` and `AA_USERID` and `AA_GROUPID` set to the running user on the `make` command line (the host has no service account and `sudo` would prompt), the two `SQLITE_RUN_AS` forms being checked by expansion instead: absent, present with the four tables, present with one table dropped, and in WAL mode as mgmt leaves it, and that expand `SQLITE_RUN_AS` for a root-run and a user-run build | This host | The MariaDB rendering is unchanged; the SQLite resource carries the driver, the URL with `journal_mode=WAL` and a one-connection pool; the unit names `mariadb.service` only for `mariadb`; an invalid value stops; the `../CONFIG_SITE.local` value wins over the default; `sql.fill` creates the file, succeeds on a second run, and restores a dropped table; `sql.show` lists the four tables, also for the WAL-mode file; the file and its WAL files belong to the service account; `SQLITE_RUN_AS` expands to `runuser -u <account> --` for a root-run build and to `sudo -u <account>` otherwise |
 | T2 | Runtime | Disposable Rocky 8 VM with MariaDB at its distribution defaults (no `skip-name-resolve`, #51), `DB_BACKEND` unset; `make db.conf`, `db.secure`, `db.addAdmin` and `db.create`, since the VM has no host-provided database; the ordered install sequence; archive one PV from a `softIoc` on this host reached over Channel Access, as in earlier VM runs; retrieve it | Disposable VM | Non-empty samples, as before the selector |
 | T3 | Runtime | Disposable Rocky 8 VM prepared as a `P_sqlite` host: the packages of `install_os_packages.bash --os rocky8 --list-only` without `mariadb-server`, plus `sqlite`; `DB_BACKEND=sqlite` in `../CONFIG_SITE.local`; the ordered install sequence; archive one PV from the `softIoc` on this host; retrieve it; restart the unit and check the PV is still archived | Disposable VM | Non-empty samples; the unit active without MariaDB; the file under the store owned by the service account; the PV still archived after the restart |
-| T4 | Runtime | Select MariaDB/UDS; start the units; archive one PV; retrieve | Provisioned host (Rocky 8 / Debian 13) | Non-empty samples over the socket |
+| T4 | Runtime | Disposable Rocky 8 VM with MariaDB at its distribution defaults plus `skip-networking` under `[mysqld]` in `/etc/my.cnf.d/mariadb-server.cnf`, then `systemctl restart mariadb`, so the server accepts no TCP connection, the socket at the distribution default; `DB_SOCKET=/var/lib/mysql/mysql.sock` in `../CONFIG_SITE.local` (decided 2026-09-27: the default path, as a site would use it; that the root command follows a `DB_SOCKET` different from the client default rests on T5); `make db.conf`, `db.secure`, `db.addAdmin`, `db.create`, then the ordered install sequence; archive one PV from the `softIoc` on this host; retrieve it (environment changed 2026-09-27 from a provisioned host; the check on an ansible host is requested of that operator after the landing) | Disposable VM | `SHOW VARIABLES LIKE 'skip_networking'` reports `ON` and `mysql --protocol=tcp --host=127.0.0.1` is refused; every `make` target, including the root-run `db.secure` and `db.addAdmin`, succeeds; `mysql.user` holds `archappl@'localhost'` and no `archappl@'127.0.0.1'`; `context.xml` carries the `localSocket` URL; non-empty samples |
+| T5 | Logic | `tests/run-all-tests.bash --phase=2` with a Phase 1 check, from an isolated copy, that renders `context.xml` and `mariadb.conf` with `DB_SOCKET` empty and set in the copy's `../CONFIG_SITE.local`, and that sources the rendered `mariadb.conf` and the shipped `scripts/mariadb_generic_function.bash` to expand the four client commands; once at the T5 run, the empty-`DB_SOCKET` `context.xml` of the changed tree is compared with that of an isolated copy of `930011d`, outside the Phase 1 check, as the step 1 renders were compared with `82bbc95` | This host | Empty: `context.xml` byte-identical to the `930011d` render (the one-time comparison) and carrying the TCP URL (the Phase 1 check), the admin, user and backup commands with `--protocol=tcp --host=127.0.0.1 --port=3306`, and the root command as today; set: the `localSocket` URL with host `localhost`, the admin, user and backup commands with `--protocol=socket --socket=<path>` and no TCP host or port, and the root command with `--socket=<path>`; `DB_BACKEND=sqlite` with `DB_SOCKET` set renders a `context.xml` byte-identical to the same copy's SQLite render with `DB_SOCKET` empty |
+| T6 | Runtime | `debian:13` container with MariaDB from the distribution plus `skip-networking`, the socket at the distribution default `/run/mysqld/mysqld.sock`, `DB_SOCKET` set to it in `../CONFIG_SITE.local` of an isolated copy of the Make system; the shipped `make db.conf`, `db.secure`, `db.addAdmin`, `db.create`, then `mariadb_setup.bash dbShow` and `dbBackup` (added 2026-09-28 during implementation: T4 covers Rocky 8 only, and no check ran the backup command) | Debian 13 container | TCP refused and no listener on `3306`; every target and command succeeds over the socket; the accounts are `admin@localhost` and `archappl@localhost`; `dbBackup` writes a dump |
 
 ##### Verification Results
 
@@ -1199,7 +1254,9 @@ SQLite), replaced 2026-09-25 by D28's order
 | T1 | 2026-09-26T21:05:29Z | This host (Debian 13, sqlite 3.46.1), working tree on `82bbc95` with the M9 changes | Pass | `tests/run-all-tests.bash --phase=2` exits 0: Phase 1 passed=162 failed=0, Phase 2 passed=13 failed=0. P1.24 (25 checks): the default renders the MariaDB resource and a unit requiring `mariadb.service`; `DB_BACKEND:=sqlite` in `../CONFIG_SITE.local` renders `org.sqlite.JDBC`, `jdbc:sqlite:/arch/config/archappl.sqlite?journal_mode=WAL`, `maxActive="1"`, no user or password, and a unit without `mariadb.service`; `postgres` stops `conf.context` and `conf.systemd0`; `SQLITE_RUN_AS` expands to `sudo -u svcacct` and, with `id -u` reporting 0, to `runuser -u svcacct --`; `sql.fill` succeeds twice, restores a dropped table and succeeds on a WAL-mode file, the modified copy guards all 8 `CREATE` statements, the MariaDB copy is untouched, and `sql.show` lists the four tables. The MariaDB `context.xml` and unit renders are byte-identical to those of `82bbc95`. Moving the `DB_BACKEND` default after the local includes, in a copy, makes P1.24 fail; a copy without the source tree prints `[SKIP]` for the schema rules and passes the rest |
 | T2 | 2026-09-26T20:40:27Z (run 20:32Z to 20:40Z) | Disposable Rocky Linux 8.10 VM from cloud-provision, MariaDB at distribution defaults, `DB_BACKEND` unset, source `modernize` built there, a `softIoc` on this host over Channel Access | Pass | `db.secure` to `db.create` and steps 1 to 8 succeeded (`build.mvn` BUILD SUCCESS); the unit active with `After=`/`Requires=mariadb.service`; `context.xml` carries `org.mariadb.jdbc.Driver` and `jdbc:mariadb://127.0.0.1:3306/archappl`; three PVs `Being archived` with 18 to 19 samples each in the last 3 minutes |
 | T3 | 2026-09-26T20:44:01Z (run 20:34Z to 20:44Z) | Disposable Rocky Linux 8.10 VM prepared as a `P_sqlite` host (the Rocky 8 list without `mariadb-server`: not installed, no `mariadb*` unit file), `DB_BACKEND:=sqlite` in `../CONFIG_SITE.local`, the same `softIoc` | Pass | `sudo make sql.fill` (root, `runuser`) created `/arch/config/archappl.sqlite` owned by `tomcat`; `make sql.show` as the login user (`sudo -u`) listed the four tables before and after the appliance switched the file to WAL; the unit active with no database service in `After=`/`Requires=`; `context.xml` carries `org.sqlite.JDBC`, the WAL URL and `maxActive="1"`; three PVs `Being archived` with 19 samples each; the `-wal` and `-shm` files belong to `tomcat`; after `systemctl restart` the three PVs were still `Being archived` with 114 to 115 samples each in the next 2 minutes |
-| T4 | Not run | Provisioned host (Rocky 8 / Debian 13) | Pending | none |
+| T4 | 2026-09-28T02:56:02Z (run 02:49Z to 02:56Z) | Disposable Rocky Linux 8.10 VM from cloud-provision, MariaDB 10.3.39 with `skip-networking` added under `[mysqld]` in `/etc/my.cnf.d/mariadb-server.cnf` and the socket at the distribution default `/var/lib/mysql/mysql.sock`, `DB_SOCKET:=/var/lib/mysql/mysql.sock` in `../CONFIG_SITE.local`, working tree on `930011d` with the step 3 changes built there, a `softIoc` on this host over Channel Access | Pass | Before the install, `skip_networking` was `ON` and `mysql --protocol=tcp --host=127.0.0.1 --port=3306` failed with `ERROR 2002`, with no listener on `:3306`; the same held after the PVs were archived. `db.conf` wrote `DB_SOCKET="/var/lib/mysql/mysql.sock"`; `db.secure`, `db.addAdmin` and `db.create` and steps 1 to 8 succeeded (`build.mvn` BUILD SUCCESS, `sql.show` listed the four tables); `mysql.user` held `admin@localhost` and `archappl@localhost` and no `archappl@127.0.0.1`; `context.xml` carries `jdbc:mariadb://localhost/archappl?localSocket=/var/lib/mysql/mysql.sock`; the unit active with `After=`/`Requires=mariadb.service`; three PVs `Being archived` with 18 samples each in the last 3 minutes; the unit's journal has no `SQLException` or connection error. The VM was deleted after the run |
+| T5 | 2026-09-28T03:01:47Z (first run 02:46:42Z; re-run after the review corrections) | This host (Debian 13), working tree on `930011d` with the step 3 changes | Pass | `tests/run-all-tests.bash --phase=2` exits 0: Phase 1 passed=200 failed=0, Phase 2 passed=13 failed=0. P1.26 (17 checks): with `DB_SOCKET` empty the URL is `jdbc:mariadb://127.0.0.1:3306/archappl`, `mariadb.conf` carries `DB_SOCKET=""`, the root command is `sudo mysql --user=root`, the admin, user and backup commands end in `--port=3306 --host=127.0.0.1 --protocol=tcp`, and the account host is `127.0.0.1`; with `DB_SOCKET:=/run/p1-socket/mysqld.sock` in `../CONFIG_SITE.local` the URL is `jdbc:mariadb://localhost/archappl?localSocket=/run/p1-socket/mysqld.sock`, the path reaches `mariadb.conf` and the root command, the three other commands end in `--protocol=socket --socket=<path>` with no host or port, and the account host is `localhost`; the SQLite render is the same with and without `DB_SOCKET`. The one-time comparison: the empty-`DB_SOCKET` `context.xml` of the changed tree is byte-identical to that of an isolated copy of `930011d`. P1.26 run in a local clone of `930011d` fails at its first discriminating check (`mariadb.conf` carries no `DB_SOCKET`). `shellcheck -x` reports nothing for the two database scripts and `tests/phase1-logic.bash`. The review corrections (the unused host and port substitutions dropped from `conf.context`, the usage text, the install guide) leave the empty-`DB_SOCKET` `context.xml` byte-identical to the `930011d` render; T4 ran before them, and none of them changes a path T4 exercised |
+| T6 | 2026-09-28T03:07Z (the dump's timestamp; the TCP refusal re-checked afterwards in a second container of the same setup) | `debian:13` container on this host, MariaDB 11.8.6, working tree with the step 3 changes and the review corrections | Pass | `skip_networking` `ON`; `mariadb --protocol=tcp --host=127.0.0.1 --port=3306` exits 1 with `ERROR 2002`, and `/proc/net/tcp` and `tcp6` show no listener on `3306`; `db.conf` wrote `DB_SOCKET="/run/mysqld/mysqld.sock"`; `db.conf`, `db.secure`, `db.addAdmin` and `db.create` exit 0; `mysql.user` holds `admin@localhost` and `archappl@localhost`; `dbShow` lists `archappl`; `dbBackup` exits 0 and writes `archappl_<date>.sql.gz`; the usage text names `localhost` for `dbUserCreate` and `dbUserDrop` |
 
 ##### Closure Evidence
 

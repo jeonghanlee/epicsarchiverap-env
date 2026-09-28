@@ -44,4 +44,11 @@ JDBC_DB_USER_PASS=$(DB_USER_PASS)
 JDBC_DB_HOSTNAME=$(DB_HOST_NAME)
 JDBC_DB_PORTNUM=$(DB_HOST_PORT)
 JDBC_DB_NAME=$(DB_NAME)
+## Connection URL of the MariaDB resource: TCP, or the DB_SOCKET socket, whose
+## clients MariaDB names localhost
+ifeq ($(strip $(DB_SOCKET)),)
+JDBC_DB_URL=jdbc:$(JDBC_DB_TYPE)://$(JDBC_DB_HOSTNAME):$(JDBC_DB_PORTNUM)/$(JDBC_DB_NAME)
+else
+JDBC_DB_URL=jdbc:$(JDBC_DB_TYPE)://localhost/$(JDBC_DB_NAME)?localSocket=$(strip $(DB_SOCKET))
+endif
 # -- end of line

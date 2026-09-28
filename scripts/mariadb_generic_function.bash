@@ -7,14 +7,26 @@
 
 DB_PROTOCOL="tcp";
 
-
-SQL_ROOT_CMD="sudo mysql --user=root"
+# Every client reaches the server over the Unix domain socket DB_SOCKET when it
+# is set, otherwise over TCP. MariaDB names a socket client's host localhost,
+# so the application account is granted at DB_USER_HOST.
+if [ -n "${DB_SOCKET:-}" ]; then
+    DB_CONNECT_OPTS="--protocol=socket --socket=${DB_SOCKET}"
+    SQL_ROOT_CMD="sudo mysql --user=root --socket=${DB_SOCKET}"
+    DB_USER_HOST="localhost"
+else
+    # shellcheck disable=SC2153
+    DB_CONNECT_OPTS="--port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+    SQL_ROOT_CMD="sudo mysql --user=root"
+    # shellcheck disable=SC2034
+    DB_USER_HOST="${DB_HOST_NAME}"
+fi
 # shellcheck disable=SC2153
-SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} ${DB_CONNECT_OPTS}"
 # shellcheck disable=SC2153
-SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} ${DB_CONNECT_OPTS}"
 # shellcheck disable=SC2034
-SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} --port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
+SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} ${DB_CONNECT_OPTS}"
 
 EXIST=1
 NON_EXIST=0

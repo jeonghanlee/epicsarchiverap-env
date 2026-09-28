@@ -28,7 +28,8 @@ the check that proves it ran.
   over the IPv4 loopback (`127.0.0.1:3306`, `skip-name-resolve` on), with the
   configuration database and the application account already created (account
   host-spec `@'127.0.0.1'`; password equal to `DB_USER_PASS`, set in
-  Configuration below).
+  Configuration below). With `DB_SOCKET` set, MariaDB is reached over that
+  Unix domain socket instead, and the account host-spec is `@'localhost'`.
 - For the SQLite backend (`DB_BACKEND=sqlite`): the `sqlite3` command-line tool
   (package `sqlite` on Rocky Linux 8, `sqlite3` on Debian 13) and no MariaDB.
   A host that also carries `mariadb-server` from the per-OS package list need
@@ -113,6 +114,22 @@ needs a different heap. Both heap options follow this value; for example,
   (`/arch/config/archappl.sqlite`), owned by the service account. It sits under
   the store, so `make conf.storage.rm`, which removes `ARCHAPPL_STORAGE_TOP`,
   removes the configuration database too.
+- MariaDB transport: `DB_SOCKET` is empty by default, which connects over TCP to
+  `DB_HOST_NAME:DB_HOST_PORT`. Set it in `../CONFIG_SITE.local` to the server's
+  Unix domain socket (`/var/lib/mysql/mysql.sock` on Rocky Linux 8,
+  `/run/mysqld/mysqld.sock` on Debian 13, or the path the provisioning sets)
+  and every MariaDB connection uses it: the appliance through a `localSocket`
+  URL in `context.xml`, and `db.secure`, `db.addAdmin`, `db.create`,
+  `sql.fill`, `sql.show` and the backup commands of
+  `scripts/mariadb_setup.bash`. MariaDB names a socket client's host
+  `localhost`, so `make db.create` then grants `DB_USER` at `localhost`, and a
+  provisioned account must be `@'localhost'`. The appliance connects as the
+  service account (`AA_USERID`), so the socket and its directory must be
+  reachable by that account; the distribution defaults are. The server may
+  then run with `skip-networking`. After changing `DB_SOCKET`, run step 2 (`make db.conf`)
+  and step 3 again, then, on an installed host, step 7 (`make install`, which
+  copies `context.xml` into each instance) and restart the appliance unit.
+  `DB_SOCKET` is ignored for `sqlite`.
 - Toolchain (`JAVA_HOME`, `TOMCAT_HOME`): set through the OS preset
   (`make <os>.conf` writes `configure/CONFIG_SITE.local` to include
   `configure/os/<os>.mk`), or set them in `../CONFIG_SITE.local`. Do not place
@@ -157,7 +174,7 @@ already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 | 2 | `make db.conf` | U | `DB_*` | `site-template/mariadb.conf` | file exists (`make db.conf.show`) |
 | 3 | `make conf.archapplproperties` | U | `ARCHAPPL_*` (incl. `ARCHAPPL_*_PORT`, default 17665-17668) | `site-template/*` and source `classpathfiles` | files exist (`make conf.archapplproperties.show`) |
 | 4 | `make build.mvn` | U | source clone, `JAVA_HOME` | four WARs and the Tomcat log4j jar set in `epicsarchiverap-maven-src/target` | four `*-{mgmt,engine,etl,retrieval}.war`; `target/tomcat-log4j` holds `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` |
-| 5 | `make sql.fill` | U (R for SQLite) | `DB_BACKEND`; `DB_USER`/`DB_USER_PASS` or `ARCHAPPL_SQLITE_FILE`; source SQL | schema loaded over TCP, or into the SQLite file | `make sql.show` lists the tables |
+| 5 | `make sql.fill` | U (R for SQLite) | `DB_BACKEND`; `DB_USER`/`DB_USER_PASS` or `ARCHAPPL_SQLITE_FILE`; source SQL | schema loaded over TCP or `DB_SOCKET`, or into the SQLite file | `make sql.show` lists the tables |
 | 6 | `make conf.storage` | R | `ARCHAPPL_STORAGE_TOP` | `/arch/{sts,mts,lts}/ArchiverStore` | directories exist, owned by the service user |
 | 7 | `make install` | R | WARs, `AA_USERID`/`AA_GROUPID` | four instances, appliance service, health service and timer | units installed; appliance and timer enabled, not started |
 | 8 | `make sd_start` | R | installed units and complete instance configuration | appliance and health timer started | timer active; process checks after startup allowance; separate mgmt probe returns HTTP 200 |

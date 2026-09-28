@@ -28,6 +28,11 @@ DB_BACKUP_PATH=db
 ## ../CONFIG_SITE.local; a default defined after the local includes below
 ## would override the site's value.
 DB_BACKEND:=mariadb
+## MariaDB transport: empty connects over TCP to DB_HOST_NAME:DB_HOST_PORT; a
+## Unix domain socket path (for example /var/lib/mysql/mysql.sock on Rocky 8,
+## /run/mysqld/mysqld.sock on Debian 13) makes every MariaDB connection, the
+## appliance and aa-env's own clients, use that socket. Ignored for sqlite.
+DB_SOCKET:=
 
 ARCHAPPL_HOST_IPADDR=localhost
 

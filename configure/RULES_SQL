@@ -15,6 +15,7 @@ db.conf: $(SQL_CONFIG_FILE).in
 			-e "s|@DB_HOST_PORT@|$(DB_HOST_PORT)|g"\
 			-e "s|@DB_USER@|$(DB_USER)|g"\
 			-e "s|@DB_USER_PASS@|$(DB_USER_PASS)|g"\
+			-e "s|@DB_SOCKET@|$(strip $(DB_SOCKET))|g"\
 			< $< > $(basename $<)
 
 db.conf.show:
