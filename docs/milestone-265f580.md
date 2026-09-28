@@ -47,11 +47,15 @@ pinned to aa-maven `d8a7813f`, the changelog rewritten and dated `[2.0.0]`,
 Release Verification 2 and 3 again on a Debian 13 VM from cloud-provision,
 then fast-forward, tag `2.0.0` and GitHub release; the plan was accepted
 and authorized 2026-09-28 and M8 is In progress. Release Verification 1 passed
-on `37b3a16`. Next: Release Verification 2 and 3 on `57021de` on a Debian 13
-VM on this hypervisor, requested from the cloud-provision session that runs
-here (the lab session's VM is on another hypervisor and unreachable), with the
-`softIoc` on this host; then date the changelog `[2.0.0]`, rerun Release
-Verification 1 on that commit, and fast-forward, tag and release. M2
+on `37b3a16`. Release Verification 2 and 3 passed on `57021de` on a Debian 13
+VM on this hypervisor on 2026-09-28, with the `softIoc` on this host. The CA
+override path is `../CONFIG_EPICSENV.local`: all four JVMs use the VM network
+gateway with auto-address discovery disabled, and all three PVs returned 156
+samples timestamped after the configuration restart. Evidence is retained
+under `work/rv-m8-*20260928.*`; the VM remains running. Next: commit the
+verification evidence, date the changelog `[2.0.0]`, rerun Release Verification
+1 on that commit, and fast-forward, tag and release under their separate
+authorizations. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
@@ -803,9 +807,11 @@ Out of scope: any new feature.
 ##### Implementation Plan
 
 Plan Status: accepted
-Plan Acceptance: 2026-09-28, the plan in this detail
+Plan Acceptance: 2026-09-28, the plan in this detail, including the CA override
+path correction and re-verification below
 Implementation Authorization: 2026-09-28, owner authorized steps 1 to 4; each
-release execution step still needs its own git and GitHub authorization
+release execution step still needs its own git and GitHub authorization.
+The CA override path correction and re-verification were authorized 2026-09-28.
 Superseded Plan Artifacts: the two-step plan of this detail before
 2026-09-28, which ran Release Verification 2 and 3 on this host and left the
 source pin and the changelog content open
@@ -817,9 +823,14 @@ source pin and the changelog content open
 3. Release Verification 2 and 3 on a disposable Debian 13 VM on that commit:
    the documented sequence on a bare host with MariaDB, then one PV archived
    from the `softIoc` on this host and retrieved. The VM sits behind the
-   libvirt NAT, so its `../CONFIG_SITE.local` sets `EPICS_CA_ADDR_LIST` to
+   libvirt NAT, so its `../CONFIG_EPICSENV.local` sets `EPICS_CA_ADDR_LIST` to
    the VM network's gateway address and `EPICS_CA_AUTO_ADDR_LIST:=NO`. The
-   VM belongs to cloud-provision, which created it on request: when the run
+   override path was corrected 2026-09-28: `CONFIG_EPICSENV` is loaded after
+   `CONFIG_SITE` and replaces CA values set in `CONFIG_SITE.local`. After
+   regenerating and installing the configuration, restart the appliance,
+   verify both values in all four JVM environments, and retrieve samples
+   timestamped after that restart.
+   The VM belongs to cloud-provision, which created it on request: when the run
    ends, aa-env tells that operator, who removes it; aa-env does not.
 4. Date the changelog section as `[2.0.0]` (Release Verification 4), commit
    it, and run Release Verification 1 again on that commit, which is the
@@ -832,15 +843,15 @@ source pin and the changelog content open
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M17 / T1 and T3 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass with correct failure handling | pending |
-| M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | pending (2026-09-21 result on `fb43522` superseded) |
-| M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | pending (2026-09-21 result on `fb43522` superseded) |
+| M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | Pass on `57021de`, 2026-09-28; see Release Verification Results |
+| M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | Pass on `57021de`, 2026-09-28; 156 post-restart samples per PV; see Release Verification Results |
 
 ##### Production Environment Tests
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 2 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200; the unit and the health timer active | pending |
-| Release Verification 3 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200, one PV archived and retrieved | pending |
+| Release Verification 2 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200; the unit and the health timer active | Pass, 2026-09-28; see Release Verification Results |
+| Release Verification 3 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200, one PV archived and retrieved | Pass, 2026-09-28; see Release Verification Results |
 
 ##### Version Changes
 
@@ -853,7 +864,7 @@ source pin and the changelog content open
 
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
-| 0 | Install-verify on a disposable Debian 13 VM against aa-maven `d8a7813f` (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived and retrieved | pending |
+| 0 | Install-verify on a disposable Debian 13 VM against aa-maven `d8a7813f` (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived and retrieved | Pass on aa-env `57021de`, 2026-09-28; see Release Verification Results |
 | 1 | Open the PR `modernize` to `maven` with the verification result | owner | PR opened | pending |
 | 2 | Fast-forward `maven` to `modernize` (`git push origin origin/modernize:maven`) | owner | `origin/maven` equals `origin/modernize` | pending |
 | 3 | Annotated tag `2.0.0` with the message `epicsarchiverap-env 2.0.0` on the merged commit, and push of that tag | owner | tag `2.0.0` on origin at `origin/maven` | pending |
@@ -865,7 +876,7 @@ source pin and the changelog content open
 | --- | --- | --- | --- | --- | --- | --- |
 | Release Verification 1 | Logic and compile | pre-PR, on the pinned commit and again on the dated release commit | `tests/run-all-tests.bash --local` and `grep -n '^SRC_TAG' configure/RELEASE` | This host | all pass; `SRC_TAG` is the full `d8a7813f` hash | run log |
 | Release Verification 2 | Runtime | pre-PR, on the pinned commit | the ordered install sequence with MariaDB, then `make sd_start`; mgmt probe | Disposable Debian 13 VM | HTTP 200; the unit and the health timer active | curl output |
-| Release Verification 3 | Function | pre-PR, on the pinned commit | archive one PV from the `softIoc` on this host, then retrieve it | Disposable Debian 13 VM | non-empty samples | curl output and retrieval sample |
+| Release Verification 3 | Function | pre-PR, on the pinned commit | archive PVs from the `softIoc` on this host; verify the gateway and auto-address `NO` in all four JVM environments after restart; retrieve samples timestamped after that restart, excluding any preceding boundary sample returned by retrieval | Disposable Debian 13 VM | non-empty post-restart samples and the planned CA settings | curl output, JVM environment checks and retrieval samples |
 | Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
 
 ##### Release Verification Results
@@ -873,8 +884,8 @@ source pin and the changelog content open
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | Release Verification 1 | 2026-09-28T17:48:08Z (first run; the rerun on the dated release commit is pending) | This host (Debian 13), aa-env `37b3a16` | Pass | `tests/run-all-tests.bash --local` exits 0: Phase 1 passed=218 failed=0, Phase 2 passed=13 failed=0; `SRC_TAG:=d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. `57021de` (the Debian 13 preset) passed the same suite with Phase 1 at 220 before its commit |
-| Release Verification 2 | Not run | Disposable Debian 13 VM, final tree | Pending | none (the 2026-09-21 row below is on `fb43522` and superseded) |
-| Release Verification 3 | Not run | Disposable Debian 13 VM, final tree | Pending | none (the 2026-09-21 row below is on `fb43522` and superseded) |
+| Release Verification 2 | 2026-09-28T19:14:41Z (install run 18:50:53Z to 19:04:02Z; CA configuration reapplied and restarted at 19:10:50Z) | Disposable Debian 13.4 x86_64 VM, aa-env `57021de1508138420edecc48b3a16eb14c60e0fc`, aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`, Tomcat 9.0.121, distro JDK 21, MariaDB over loopback TCP | Pass | The shipped package installer, `debian13.conf`, `tomcat`, database creation targets and all eight install-guide steps completed; Maven reported BUILD SUCCESS. After correcting the CA override file, `conf.archapplproperties`, `sd_stop`, `install` and `sd_start` completed. The appliance and health timer are enabled and active; the appliance is running with NRestarts=0. The installed `archappl.bash health` verifies all four JVMs; the health service reports Result=success and ExecMainStatus=0. Mgmt returns HTTP 200 and identity `appliance0`. Logs: `work/rv-m8-install-20260928.log` and `work/rv-m8-ca-reinstall-20260928.log`. |
+| Release Verification 3 | 2026-09-28T19:13:55Z | Same Debian 13.4 VM and pinned commits as Release Verification 2; existing host softIoc; gateway selected through `../CONFIG_EPICSENV.local` | Pass | `/proc/<pid>/environ` confirms the gateway address and `EPICS_CA_AUTO_ADDR_LIST=NO` in mgmt, engine, etl and retrieval. `M33:CNT`, `M33:SIN` and `M33:AI` report Being archived and connectionState=true. The real retrieval endpoint returned 156 samples per PV timestamped after the 19:10:50Z restart, with changing values and latest timestamps within 15 seconds of the observation. Each response also contains one earlier boundary sample, retained as evidence but excluded from the count. `work/verify-m8-ca.py` exited 0; full responses and runtime checks are in `work/rv-m8-ca-verification-20260928.json` (SHA-256 `e5558c66ddb3bbb2ff606b38eae398af911d47f1a2e1c8ace92d4135e849f875`). The original default-CA run returned 59 samples per PV but did not satisfy the explicit gateway setting; this row records the corrected run. |
 | Release Verification 2 | 2026-09-21 | Three provisioned hosts (Rocky 8.10 x2, one built from bare for this check; Debian 13), aa-env `fb43522`, aa-maven `3c96141d`, Tomcat 9.0.121, OpenJDK 21, MariaDB over loopback TCP | Pass | LAB-ansible-provision drove the documented make sequence as root through its operator: `init`, `db.conf`, `conf.archapplproperties`, `build.mvn` and `sql.fill` completed under `set -e`; the als `classpathfiles` (`appliances.xml`, `archappl.properties`, `policies.py`) are packed in `WEB-INF/classes` of all four deployed webapps; four instances sit under the install root with the unit enabled and active and the storage root owned by the service account (0755); mgmt `/bpl/getApplianceInfo` returned 200 with identity `appliance0` and version 2025-6 on all three hosts. The privilege split was measured rather than derived: built as root, the four JVMs run as the service account. Observed on the reporting side, not on this host. Re-observed 2026-09-21 directly at `e06c554` on a freshly provisioned Rocky 8.10 host: a forced reinstall completed with failed=0 and left four instances, the unit active, the als `classpathfiles` in the deployed webapp, and mgmt returning 200 with identity `appliance0` and version 2025-6 on the first probe. The result therefore no longer rests on the D18 path-equivalence argument, which the reporting side also re-derived (`fb43522` is an ancestor of `e06c554`, and their diff touches nothing under `site-template/`, `scripts/`, `configure/CONFIG_SITE` or `configure/CONFIG_SRC`). |
 | Release Verification 3 | 2026-09-21 | The same three hosts as Release Verification 2 | Pass | A 1 Hz calc record submitted through mgmt `/bpl/archivePV` moved Initial sampling to Appliance assigned to Being archived in about two minutes; `retrieval/data/getData.json` then returned 68 points carrying the record EGU at one-second spacing with incrementing values, and the short-term store held the expected `.pb` file. The fixture was removed afterwards. Re-applying the role reported no change, with the install tree, the four instance PIDs and the unit start time identical before and after. |
 | Release Verification 4 | Not run | aa-env checkout | Pending | none |
