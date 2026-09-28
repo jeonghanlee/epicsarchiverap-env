@@ -274,6 +274,64 @@ class SystemdFileTests(WorkspaceTest):
         self.assertIn(".service 90\n", (self.units / "epicsarchiverap-maven-health.service").read_text())
         self.assertIn("OnUnitInactiveSec=20s\n", (self.units / "epicsarchiverap-maven-health.timer").read_text())
 
+    def test_local_path_overrides(self):
+        # Move the shipped templates so a stale default cannot supply the inputs.
+        templates = self.temp / "templates"
+        (self.root / "site-template").rename(templates)
+        store = self.temp / "archive"
+        for local in (self.temp / "CONFIG_SITE.local", self.root / "configure/CONFIG_SITE.local"):
+            for setting in ("AA_INSTALL_PATH", "AA_INSTALL_LOCATION"):
+                with self.subTest(local=local, setting=setting):
+                    base = self.temp / "install"
+                    install = base / "epicsarchiverap-maven" if setting == "AA_INSTALL_PATH" else base
+                    local.write_text(
+                        f"{setting}={base}\nAA_SITE_TEMPLATE_PATH={templates}\n"
+                        f"ARCHAPPL_STORAGE_TOP={store}\nDB_BACKEND=sqlite\n"
+                    )
+                    self.assertEqual(self.make("-s", "print-ARCHAPPL_TOP").strip(), str(install))
+                    self.make("conf.archapplproperties", "conf.systemd0")
+                    config = (templates / "archappl.conf").read_text()
+                    policy = (templates / "policies.py").read_text()
+                    self.assertIn(f'ARCHAPPL_APPLIANCES="{install}/appliances.xml"', config)
+                    self.assertIn(f'ARCHAPPL_STORAGE_TOP="{store}"', config)
+                    for name, tier in (("SHORT", "sts"), ("MEDIUM", "mts"), ("LONG", "lts")):
+                        folder = store / tier / "ArchiverStore"
+                        self.assertIn(f'ARCHAPPL_{name}_TERM_FOLDER="{folder}"', config)
+                        self.assertIn(f"rootFolder={folder}&", policy)
+                    self.assertIn(f"jdbc:sqlite:{store}/config/archappl.sqlite?", (templates / "context.xml").read_text())
+                    for name in ("policies.py", "appliances.xml", "archappl.properties"):
+                        self.assertEqual((templates / "siteid/classpathfiles" / name).read_bytes(),
+                                         (templates / name).read_bytes())
+                    service = (templates / "systemd/epicsarchiverap-maven.service").read_text()
+                    self.assertIn(f'"{install}/archappl.bash" service', service)
+                    # Inspect the shipped installation recipe; no WAR or Tomcat substitute.
+                    output = self.make("-n", "install.mgmt")
+                    for script in ("startup.sh", "shutdown.sh", "run.sh"):
+                        lines = [line for line in output.splitlines() if f"{templates}/{script}.in" in line]
+                        self.assertEqual(len(lines), 1)
+                        self.assertIn(f"s|@ARCHAPPL_TOP@|{install}|g", lines[0])
+                    # Check the resolved paths before a real filesystem operation.
+                    self.make("conf.storage", "SUDOBASH=bash -c",
+                              f"AA_USERID={os.getuid()}", f"AA_GROUPID={os.getgid()}")
+                    for tier in ("sts", "mts", "lts"):
+                        self.assertTrue((store / tier / "ArchiverStore").is_dir())
+            local.unlink()
+
+    def test_explicit_derived_path_overrides(self):
+        values = {
+            "ARCHAPPL_TOP": self.temp / "runtime",
+            "ARCHAPPL_SITEID_TEMPATE_PATH": self.temp / "overlay",
+            "ARCHAPPL_SITEID_CLASSPATHFILES_PATH": self.temp / "classpath",
+            "ARCHAPPL_SHORT_TERM_FOLDER": self.temp / "short",
+            "ARCHAPPL_MEDIUM_TERM_FOLDER": self.temp / "medium",
+            "ARCHAPPL_LONG_TERM_FOLDER": self.temp / "long",
+        }
+        local = self.root / "configure/CONFIG_SITE.local"
+        local.write_text("".join(f"{key}={value}\n" for key, value in values.items()))
+        for key, value in values.items():
+            with self.subTest(variable=key):
+                self.assertEqual(self.make("-s", f"print-{key}").strip(), str(value))
+
     def test_full_install_and_monitor_removal_command_order(self):
         self.make("conf.archapplproperties")
         output = self.make("-j8", "-n", "install")
