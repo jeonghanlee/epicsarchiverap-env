@@ -39,6 +39,7 @@ changes to the environment repository.
 - Phase 2 is a Make dry-run check of the build wrapper; compilation and artifact checks run in the source repository's CI.
 
 ### Fixed
+- Local configuration preserves Tomcat installation and runtime paths, service and shutdown ports, and the cluster address across all OS presets; Ant uses the final Tomcat path.
 - Preserve failed command exit statuses in the test runner so stale build artifacts cannot turn a build failure into a passing Phase 2 result, and do not mask a failure to resolve the test root.
 - Align runtime, installation, policy, ETL, and test documentation with the implementation; correct the README screenshot path.
 - `a_service_BUIDER` -> `a_service_BUILDER` macro typo across `RULES_FUNC` and `RULES_VARS`.

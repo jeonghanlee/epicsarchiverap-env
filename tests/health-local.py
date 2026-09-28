@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 
 
 TOP = Path(__file__).resolve().parents[1]
@@ -316,6 +317,54 @@ class SystemdFileTests(WorkspaceTest):
                     for tier in ("sts", "mts", "lts"):
                         self.assertTrue((store / tier / "ArchiverStore").is_dir())
             local.unlink()
+
+    def test_local_tomcat_paths_and_ports(self):
+        base = self.temp / "install"
+        template = self.root / "site-template"
+        ports = dict(zip(SERVICES, range(18765, 18769)))
+        for location in (self.temp / "CONFIG_SITE.local", self.root / "configure/CONFIG_SITE.local"):
+            for preset in ("debian12", "debian13", "rocky8"):
+                preset_line = f"include $(TOP)/configure/os/{preset}.mk\n"
+                (self.root / "configure/CONFIG_SITE.local").write_text(preset_line)
+                settings = f"AA_INSTALL_PATH={base}\nARCHAPPL_CLUSTER_INETPORT=localhost:18870\n"
+                for service, port in ports.items():
+                    settings += f"ARCHAPPL_{service.upper()}_PORT={port}\n"
+                    settings += f"ARCHAPPL_SHUTDOWN_{service.upper()}_PORT={port + 100}\n"
+                for override, expected_home, expected_install in (
+                    ("", base / "tomcat9", base / "tomcat9"),
+                    (f"TOMCAT_INSTALL_LOCATION={self.temp}/tomcat-install\n",
+                     self.temp / "tomcat-install", self.temp / "tomcat-install"),
+                    (f"TOMCAT_HOME={self.temp}/external-tomcat\n",
+                     self.temp / "external-tomcat", base / "tomcat9"),
+                ):
+                    with self.subTest(location=location, preset=preset, override=override):
+                        location.write_text((preset_line if location.parent == self.root / "configure" else "")
+                                            + settings + override)
+                        self.make("conf.archapplproperties")
+                        config = (template / "archappl.conf").read_text()
+                        self.assertIn(f'CATALINA_HOME="{expected_home}"', config)
+                        self.assertIn("ARCHAPPL_MGMT_PORT=18765\n", config)
+                        self.assertEqual(self.make("-s", "print-TOMCAT_INSTALL_LOCATION").strip(), str(expected_install))
+                        self.assertIn(f"-Dtomcathome={expected_home}", self.make("-s", "print-ANT_OPTS"))
+                        install_commands = self.make("-n", "tomcat.src_install")
+                        self.assertIn(f'tar -C "{expected_install}"', install_commands)
+                        appliances = ET.parse(template / "appliances.xml").getroot().find("appliance")
+                        self.assertEqual(appliances.findtext("cluster_inetport"), "localhost:18870")
+                        for service, port in ports.items():
+                            self.assertIn(f":{port}/", appliances.findtext(f"{service}_url"))
+                            server = base / "epicsarchiverap-maven" / service / "conf/server.xml"
+                            server.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copyfile(template / "skel/conf/server.xml", server)
+                        self.make("serverxml.install")
+                        for service, port in ports.items():
+                            server = ET.parse(base / "epicsarchiverap-maven" / service / "conf/server.xml").getroot()
+                            self.assertEqual(server.get("port"), str(port + 100))
+                            self.assertEqual(server.find("Service/Connector").get("port"), str(port))
+                        self.make("conf.archappl", "ARCHAPPL_MGMT_PORT=19965", "TOMCAT_HOME=/srv/command-tomcat")
+                        config = (template / "archappl.conf").read_text()
+                        self.assertIn("ARCHAPPL_MGMT_PORT=19965\n", config)
+                        self.assertIn('CATALINA_HOME="/srv/command-tomcat"', config)
+            location.unlink()
 
     def test_explicit_derived_path_overrides(self):
         values = {

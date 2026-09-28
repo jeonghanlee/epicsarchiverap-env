@@ -25,6 +25,12 @@ TOMCAT_VER = 9.0.121
 
 ## Setup
 
+`TOMCAT_INSTALL_LOCATION` defaults to `$(AA_INSTALL_PATH)/tomcat9`.
+`TOMCAT_HOME`, used by the appliance at runtime, defaults to that location.
+Both accept overrides in `../CONFIG_SITE.local`; OS presets preserve them.
+Set `TOMCAT_HOME` separately when using an externally installed Tomcat.
+The `tomcat.*` installation targets still operate on `TOMCAT_INSTALL_LOCATION`.
+
 ```bash
 make tomcat.get
 make tomcat.install

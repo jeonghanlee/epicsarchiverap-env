@@ -137,10 +137,12 @@ needs a different heap. Both heap options follow this value; for example,
   and step 3 again, then, on an installed host, step 7 (`make install`, which
   copies `context.xml` into each instance) and restart the appliance unit.
   `DB_SOCKET` is ignored for `sqlite`.
-- Toolchain (`JAVA_HOME`, `TOMCAT_HOME`): set through the OS preset
+- Toolchain: `JAVA_HOME` is set through the OS preset
   (`make <os>.conf`, with `<os>` one of `debian13`, `debian12` and `rocky8`,
   writes `configure/CONFIG_SITE.local` to include `configure/os/<os>.mk`), or
-  set them in `../CONFIG_SITE.local`. Do not place
+  set in `../CONFIG_SITE.local`. `TOMCAT_HOME` defaults to
+  `TOMCAT_INSTALL_LOCATION`, which follows `AA_INSTALL_PATH` unless explicitly
+  overridden. OS presets preserve both Tomcat path overrides. Do not place
   overrides in `configure/CONFIG_SITE.local` when `make <os>.conf` is used, since
   that target overwrites the file.
 

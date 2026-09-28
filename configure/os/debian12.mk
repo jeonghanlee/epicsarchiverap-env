@@ -1,1 +1,1 @@
-TOMCAT_HOME:=/opt/tomcat9
+# Tomcat paths inherit CONFIG_SITE defaults and local overrides.
