@@ -8,9 +8,10 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: publish the remote-tag and release-verification
-checkpoint commits on `maven` with separate push authorization, then run
-Release Verification 6 on a clean Debian 13 VM. The published tag targets the fixed release commit
+Next session entry point: commit and publish the clean released-object
+installation evidence with separate authorization, then perform Release
+Verification 7 and prepare cycle closure. Release Verification 6 passed on a
+clean Debian 13 VM. The published tag targets the fixed release commit
 `386c91d74086313efe04e0b64eb5dacfd91f8389`.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
@@ -23,8 +24,9 @@ existing Debian VM, and real PV acquisition and retrieval. Release Verification
 `maven` was published at `386c91d74086313efe04e0b64eb5dacfd91f8389` and
 PR #54 is merged. The publication checkpoint is committed and published at `7b49a15`; annotated
 tag `2.0.0` and its GitHub release are published. Release Verification 5
-passed on 2026-09-29; the clean released-object installation and cycle closure
-checks remain Pending. Release Verification 6 and 7 must finish before M8 closes.
+passed on 2026-09-29; Release Verification 6 passed at 2026-09-29T20:26:36Z
+on a separate clean Debian VM using the published release. Release
+Verification 7 remains Pending and must finish before M8 closes.
 The VM result covers MariaDB over a Unix socket; the earlier bare installation
 and Rocky results retain their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
@@ -768,7 +770,10 @@ and retrieval of three changing PVs. Four JVMs used the configured CA and
 nondefault database settings. The deployed WAR and logging JAR contents
 matched the build, and six existing log/work/temp files were preserved.
 This is a reinstall result; the earlier bare-host installation remains
-scoped to `57021de`. PR creation and release execution remain pending.
+scoped to `57021de`. PR #54 is merged, and tag/release `2.0.0` are published
+on fixed commit `386c91d74086313efe04e0b64eb5dacfd91f8389`. The separate
+released-object clean installation passed Release Verification 6 on
+2026-09-29; cycle closure remains Release Verification 7.
 
 ##### Scope
 
@@ -947,7 +952,7 @@ required check:
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 6 | post-release | Clean disposable production-equivalent VM | Debian 13 | x86_64 | Released 2.0.0 object, documented host prerequisites and ordered installation | Execute the released install guide with MariaDB, including its Functional verification procedure | Build/install succeed; four JVMs healthy; management HTTP 200; post-start changing samples retrieved | Pending; install/build logs and timestamped runtime responses |
+| Release Verification 6 | post-release | Clean disposable production-equivalent VM | Debian 13.4 | x86_64 | Released 2.0.0 object, documented host prerequisites and ordered installation | Execute the released install guide with MariaDB, including its Functional verification procedure | Build/install succeed; four JVMs healthy; management HTTP 200; post-start changing samples retrieved | Pass at 2026-09-29T20:26:36Z; see Released Installation Evidence |
 
 ##### Version Changes
 
@@ -1028,12 +1033,14 @@ clone mode/refspecs, immutable IDs, allocated-size bounds and 1 GiB reserve.
 Check space before object fetch and again before checkout. A missing bound
 or insufficient space stops that operation; prior evidence is retained.
 
-Installation scope: the final check executes installation as root on an
-existing VM. An ordinary-user invocation failed because the invoking shell
+Installation scope: Release Verification 2 and 3 retain their root-reinstall
+scope on the existing VM. An ordinary-user invocation failed because the invoking shell
 could not expand an existing service-owned `bin/*` path before `sudo chmod`.
 That invocation is not verified as working. The original installation backup
-is retained on the VM. Current-tip fresh provisioning, Rocky installation,
-SQLite runtime and long-duration behavior were not rerun in this check.
+is retained on that VM. Release Verification 6 separately verifies a fresh
+Debian installation from the actual released object with a cold Maven cache,
+ordinary-user configuration/build and root storage/install targets. Rocky
+installation, SQLite runtime and long-duration behavior are outside that check.
 
 ##### Release Verification Results
 
@@ -1047,8 +1054,67 @@ remain in Release Verification History with their original commit and scope.
 | Release Verification 3 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Three connected PVs with changing post-start samples; see history. |
 | Release Verification 4 | 2026-09-29T16:14:53Z | Committed `7670d39` | Pass | The committed `CHANGELOG.md` has exactly one dated `2.0.0` heading, no `Unreleased`, and SHA-256 `0de0100715e454634463d3fa5248afa299f18ad2ed5ebc127bf34fde2368d65f`. `configure/RELEASE` matches the committed file and pins aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Both files match the checkout. Evidence: `work/release-docs-check.json`. |
 | Release Verification 5 | 2026-09-29T19:22:56Z | Published annotated tag and GitHub release 2.0.0 | Pass | Local and remote tag objects equal `8bd31845746b8850fe9ce4d0ba7216bdae18020b` and peel to the authorized candidate `386c91d74086313efe04e0b64eb5dacfd91f8389`. Published release ID `399455855`, title/tag `2.0.0`, draft=false, prerelease=false; latest endpoint returns the same ID. Notes match the reviewed text after newline normalization; SHA-256 of the reviewed text is recorded above. Published maven checkpoint `a42aa41` descends from the candidate. Recheck with the origin tag refs and GitHub REST release-by-tag and latest endpoints. |
-| Release Verification 6 | Not yet observed | Clean Debian 13 VM, released object | Pending | Post-release installation has not run. |
+| Release Verification 6 | 2026-09-29T20:26:36Z | Clean Debian 13.4 VM; released aa-env `386c91d`, source `d8a7813f`, MariaDB over loopback TCP | Pass | Documented host prerequisites and all eight ordered targets completed; four installed webapps match their newly built WARs; four JVMs and active/enabled service/timer verified; management HTTP 200; all three PVs connected and each returned two distinct post-start samples; scheduled health Result=success and ExecMainStatus=0. See Released Installation Evidence for exact IDs and private evidence digests. |
 | Release Verification 7 | Not yet observed | Canonical record and issue projections | Pending | Owner selected no next release line on 2026-09-29; post-release closure and issue-state observations remain outstanding. |
+
+###### Released Installation Evidence
+
+Observed on a separate Debian 13.4 VM with no previous appliance, Tomcat,
+source checkout or Maven cache. SSH key access and cloud-init completed with
+no errors; a missing-password warning did not prevent key access. The VM and
+real IOC host clocks were synchronized. Prior VMs and their data were preserved.
+
+The canonical remote's published tag object was
+`8bd31845746b8850fe9ce4d0ba7216bdae18020b`, peeling to
+`386c91d74086313efe04e0b64eb5dacfd91f8389`; release ID `399455855` remained
+published. The clone fetched full objects with no checkout until identity and
+storage checks passed. Initial available storage was 18,652,352,512 bytes;
+the environment object bound was 134,217,728 bytes. Before checkout,
+18,608,132,096 bytes remained, exceeding the 6,696,960-byte published tree,
+6,442,450,944-byte workspace/evidence bound and 1,073,741,824-byte reserve.
+Full local clone measurements matched the advertised canonical refs. The
+source object bound was 536,870,912 bytes, checked before the actual `make init`.
+
+The installed guide matched the released file's SHA-256
+`5064617fa6fdb05a17a990b484320313da72ad2b0d4564e9898f49fa8fb2de7d`.
+Its host prerequisites and eight targets ran from the tag checkout, with
+source HEAD `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Configuration/build
+ran as the login user; storage/install ran as root. The host supplied the
+MariaDB database and loopback TCP application account. OpenJDK 21.0.12.1,
+MariaDB 11.8.6 and the shipped 256M heap setting were observed. No prior
+source build or Maven cache was copied. Maven reported BUILD SUCCESS and
+installation completed at 2026-09-29T20:23:58Z.
+
+All packaged files of the newly built WARs matched the installed webapps:
+898 mgmt, 878 engine, 878 etl and 881 retrieval files. The real functional
+procedure verified the four distinct service-user JVMs and their CA settings,
+the enabled/active appliance and timer, and management HTTP 200 with identity
+`appliance0`. Each of the three changing numeric IOC PVs reached
+`Being archived` with connectionState=true before its 180-second deadline.
+Retrieval used the pre-start lower bound 2026-09-29T20:23:58Z and upper bound
+2026-09-29T20:26:24Z. Each PV had two in-range samples with two distinct
+values and a newest sample approximately 0.142 seconds before the upper
+bound. Only samples inside these bounds were counted. The repeated process check
+passed, and the subsequent scheduled health execution at 20:26:34Z returned
+Result=success and ExecMainStatus=0. Verification completed at 20:26:36Z.
+This check establishes installation and functional operation; it does not
+measure sustained load, ETL timing, production capacity or vulnerability fixes.
+After recording the result, the unchanged local executable tree passed
+`TMPDIR=/tmp bash tests/run-all-tests.bash --local` outside the filesystem
+sandbox: 223 logic, 20 health/unit, 6 database configuration and 13 build-wrapper
+checks, with no failures or skips. The canonical diff passed `git diff --check`.
+
+Raw inputs, internal endpoints, complete HTTP responses and logs remain in the
+private directory `work/rv6-2.0.0/`; the VM and test data are retained.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| `clone.log` | `63b8bc95821cc0581da0326edac76e9af8ce5475bcd48fc320faea6594c65941` |
+| `install.log` | `969fbc281c0fc042ca1fd3d9df8c69163c4cfb7f5027094e285cce2fa4631c71` |
+| `runtime.json` | `553522c59c400234ba442a448a71cfc94d56ab77db27893c67d68b898c3ca6ab` |
+| `payload.json` | `b51e860e5a15263791c3db3258849fab2b9f10e2ddc4f779542c0f008ea6a9a0` |
+| `ioc.json` | `8df39aff1aad6feb392722bfe0be1e09b12f8c366d31b911486c68dad8e39eb2` |
+| `local-checks-unsandboxed.log` | `707434bfb6970df5739418d7355b116d870d3f3cdefd0204c0b2d26e46ba6e98` |
 
 ###### Documentation Readiness Evidence
 
