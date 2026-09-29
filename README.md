@@ -20,7 +20,7 @@ This repository provides a set of `Makefiles` and scripts to automate the setup 
 ## Prerequisites
 * **JDK 21+**: the distro package (`openjdk-21-jdk-headless` on Debian 13), installed by the package step below.
 * **Apache Maven**: none to install. The source repository ships the Maven Wrapper (`./mvnw`), which downloads its pinned Maven version on the first build.
-* **Git**: Required for generating release notes from commit history (this is part of the documentation generation process).
+* **Git**: Required to clone and select the pinned application source.
 * **Operating System**:
     * Core build (JARs/WARs) is generally OS-agnostic.
 
@@ -32,6 +32,7 @@ Install the OS packages from the per-OS list in `configure/os/` (one package per
 
 ```bash
 sudo bash scripts/install_os_packages.bash
+make debian13.conf
 make init
 ```
 ### MariaDB
@@ -43,15 +44,11 @@ sudo systemctl start mariadb
 sudo systemctl status mariadb
 ```
 
-The following make targets automate common database administration tasks:
+Set database credentials and transport in `../CONFIG_SITE.local` as described in the [configuration guide](docs/README.install.md#configuration-variable-placement), then create the database and account:
 ```bash
-make db.secure
+make db.conf
 make db.addAdmin
-make db.show
 make db.create
-make db.show
-make sql.fill
-make sql.show
 ```
 
 ### Tomcat 9
@@ -71,25 +68,21 @@ make tomcat.install
 make tomcat.exist
 ```
 
-### Build, install, and Service
-With the environment and dependencies in place, these commands compile the Archiver Appliance source code, install it to the target directories, and manage the systemd service.
+### Build, install, and verify
+
+Follow the [ordered install sequence](docs/README.install.md#ordered-sequence) after the host prerequisites and database setup above. Generate the configuration, build the four WARs, and load the MariaDB schema as the build user:
 
 ```bash
-# Compile the EPICS Archiver Appliance source code
-make build
-
-# Install the compiled application and necessary files
-make install
-
-# Check if the application components exist in their installed locations
-make exist
-
-# Start the Archiver Appliance systemd service
-make sd_start
-
-# Check the current status of the Archiver Appliance service
-make sd_status
+make db.conf
+make conf.archapplproperties
+make build.mvn
+make sql.fill
+make sql.show
 ```
+
+Then run storage preparation, installation, and startup as root, in that order. The [ordered sequence](docs/README.install.md#ordered-sequence) identifies each privileged target and its expected result. Do not use the combined `make build` target because it also performs privileged storage preparation.
+
+For an existing installation, follow the [reinstall procedure](docs/README.install.md#reinstall-and-upgrade), including the appliance stop before replacement. Complete the install guide's [verification checks](docs/README.install.md#health-check) to confirm process health and application operation.
 
 ### Home Screenshot
 ![Archiver Appliance Home Screen](docs/technicaldocs/images/home-2025-06-05.png)

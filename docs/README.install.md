@@ -186,11 +186,14 @@ resolution, not Git or Maven Wrapper distribution downloads.
 
 Build and generate the configuration before the maintenance window. Stop the
 appliance before replacing its files; Tomcat must not load classes while the
-WAR and logging libraries are being replaced. From the aa-env checkout:
+WAR and logging libraries are being replaced. From the aa-env checkout,
+stop the appliance, install as root, and start only after installation succeeds.
+The `sudo make install` command runs Make itself as root so its shell can
+access existing service-owned instance directories:
 
 ```bash
 make sd_stop
-make install
+sudo make install
 make sd_start
 ```
 
@@ -318,10 +321,8 @@ Notes:
   service. A successful or skipped oneshot becomes inactive, so inactive alone
   is not proof of four healthy processes. Inspect its journal and exit status.
 - HTTP readiness: `curl http://<host>:17665/mgmt/bpl/getApplianceInfo` returns HTTP 200.
-- Functional verification (archive a PV, then retrieve its samples through the
-  mgmt and retrieval endpoints) is the M8/G5 runtime check, which owns the full
-  procedure, the time-range parameters, and the archiving-delay wait; it is out
-  of scope for this install sequence.
+- Functional verification: complete the [PV acquisition and retrieval check](#functional-verification)
+  below after process presence and HTTP readiness succeed.
 
 Monitoring neither restarts nor protects surviving JVMs after a failure. Existing
 MainPID handling and component dependencies still apply. See the
@@ -330,3 +331,75 @@ for timing, skip results, operator recovery and monitor-only removal, and the
 [VM test procedure](../tests/README.md#process-monitoring-vm-verification)
 for runtime acceptance. Current verification evidence is maintained in
 [M23](milestone-265f580.md#m23---make-a-dead-instance-visible-to-systemd).
+
+## Functional verification
+
+Use this procedure on the appliance host after installation. It checks actual
+IOC acquisition and retrieval through the running appliance. It does not
+measure ETL, sustained load, or production capacity.
+
+### Required inputs
+
+Record these inputs with the test evidence before starting:
+
+| Input | Requirement |
+| --- | --- |
+| Environment and source | Exact aa-env release commit or tag and pinned aa-maven commit |
+| IOC address | A reachable real IOC endpoint selected for the test; retain internal addresses only in private evidence |
+| Test PVs | Three scalar numeric PVs that change at least once per second; record their names and expected changes; the IOC operator supplies and keeps them running |
+| Appliance endpoints | Management and retrieval base URLs using the configured host and ports; defaults are 17665 and 17668 |
+| Runtime identity | Configured appliance identity, service user, install path and systemd unit names |
+| Clock | IOC and appliance clocks synchronized so sample timestamps can be compared with the request interval |
+| Evidence location | A private run directory for input values, UTC times, HTTP responses and process observations |
+
+### Acquisition and retrieval procedure
+
+1. In `../CONFIG_EPICSENV.local` relative to the aa-env checkout, set
+   `EPICS_CA_ADDR_LIST` to the selected IOC address and
+   `EPICS_CA_AUTO_ADDR_LIST` to `NO`. Follow the configuration/build steps
+   and the root [reinstall procedure](#reinstall-and-upgrade). Record UTC
+   time immediately before starting the appliance as the retrieval lower
+   bound. Preserve that timestamp for every request in this run.
+2. On the appliance host, wait up to 180 seconds for the management
+   `GET /mgmt/bpl/getApplianceInfo` endpoint to return HTTP 200 with the
+   configured appliance identity. Retry every two seconds; limit each HTTP
+   request to ten seconds. An exhausted deadline is a failed check.
+3. Confirm the appliance service and health timer are enabled and active.
+   Run the installed health command as the service user and require exit 0.
+   Inspect all four actual JVM environments through `/proc/<pid>/environ`
+   with sufficient read permission. Require the selected CA address and
+   auto-address `NO` in each component. Record the PIDs and observations.
+4. For each test PV, submit `GET /mgmt/bpl/archivePV` to the management
+   endpoint with the URL-encoded `pv` parameter. Save the response. Poll
+   `GET /mgmt/bpl/getPVStatus` with the same parameter every two seconds,
+   for up to 180 seconds. Require exactly one matching PV entry with
+   `status` equal to `Being archived` and `connectionState` equal to `true`.
+   A submitted archive request alone is not success.
+5. For each PV, request `GET /retrieval/data/getData.json` from the retrieval
+   endpoint. URL-encode the query parameters below. Retry every two seconds
+   for up to 120 seconds until every PV meets the pass criteria. Refresh
+   the upper bound on each retry, and save the complete responses and the
+   bounds used. Do not count a response returned after its deadline as a pass.
+
+   | Parameter | Value |
+   | --- | --- |
+   | `pv` | One recorded test PV name |
+   | `from` | The recorded pre-start UTC lower bound, formatted as `YYYY-MM-DDTHH:MM:SSZ` |
+   | `to` | Current appliance-host UTC time, in the same format |
+
+6. Require one returned series whose `meta.name` matches the requested PV.
+   Compute each sample timestamp as `secs + nanos / 1000000000` (zero nanos
+   when absent). Count only samples within the requested inclusive bounds;
+   retain but exclude any earlier boundary sample. For each PV, require at
+   least two counted samples, at least two distinct values, and a newest
+   timestamp no more than 15 seconds before the request's upper bound.
+7. Repeat the process health check and save its exit status. After a scheduled
+   health check has run, record that service's actual execution time,
+   `Result=success` and `ExecMainStatus=0`; an inactive oneshot alone does not
+   establish success. Record completion time and Pass only when all checks
+   above succeed. Otherwise record Fail with the responses and failed step.
+
+Keep the test PVs, database and installed tree available until their owner
+approves cleanup. For release verification, place the durable result, exact
+release/source commits and private evidence digests in the canonical release
+record; do not publish internal endpoints or credentials.

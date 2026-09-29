@@ -39,6 +39,9 @@ changes to the environment repository.
 - Phase 2 is a Make dry-run check of the build wrapper; compilation and artifact checks run in the source repository's CI.
 
 ### Fixed
+- Preserve database credentials through Make, XML, shell configuration and MariaDB client arguments; use the configured database name for JDBC lookup and application queries, and the configured admin account for removal.
+- Replace the deployed WAR contents and logging JAR set on reinstall, removing stale payload files while preserving external logs, work/temp files and data; attempt per-instance payload restoration on replacement failure.
+- Return SKIP (exit 77) from unimplemented system test phases and report the requested run as incomplete.
 - Local configuration preserves Tomcat installation and runtime paths, service and shutdown ports, and the cluster address across all OS presets; Ant uses the final Tomcat path.
 - Storage preparation sets ownership on the archive root and every configured tier, including existing files outside the root; health checks inspect each tier's filesystem.
 - `make db.show` and `mariadb_setup.bash dbShow` return a non-zero status when the database client fails.

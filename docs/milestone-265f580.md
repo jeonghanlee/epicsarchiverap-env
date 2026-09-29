@@ -8,8 +8,12 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: review and commit the final verification record,
-then prepare the PR from `modernize` to `maven`. Release Verification 1-4
+Next session entry point: review and commit the four documentation updates,
+then repeat the committed-file version comparison and finalize the PR draft.
+M8's follow-up procedure is accepted and authorized on 2026-09-29.
+Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
+line in this cycle. Its version and plan will be decided separately.
+The final verification record is committed at `b65fb61`. Release Verification 1-4
 passed on `e6f2bd5` on 2026-09-29: 263 local checks, a root reinstall on the
 existing Debian VM, real PV acquisition and retrieval, and version checks.
 The PR draft is prepared locally; PR creation and release execution remain
@@ -58,23 +62,12 @@ quantified disk growth rate for M26. M8 was re-planned 2026-09-28: `SRC_TAG`
 pinned to aa-maven `d8a7813f`, the changelog rewritten and dated `[2.0.0]`,
 Release Verification 2 and 3 again on a Debian 13 VM from cloud-provision,
 then fast-forward, tag `2.0.0` and GitHub release; the plan was accepted
-and authorized 2026-09-28 and M8 is In progress. Release Verification 1 passed
-again on the dated changelog commit `209f285` (Phase 1: 220, health and unit
-file tests: 15, Phase 2: 13; no failures or skips). Release Verification 4
-passed on that commit: `[2.0.0] - 2026-09-28` is present and `Unreleased` is
-absent. Release Verification 2 and 3 passed on `57021de` on a Debian 13
-VM on this hypervisor on 2026-09-28, with the `softIoc` on this host. The CA
-override path is `../CONFIG_EPICSENV.local`: all four JVMs use the VM network
-gateway with auto-address discovery disabled, and all three PVs returned 156
-samples timestamped after the configuration restart. Evidence is retained
-under `work/rv-m8-*20260928.*`; the VM remains running. Final local evidence
-is in `work/rv1-209f285-evidence.tar.gz` and `work/rv4-209f285.txt`.
-That verification record is committed at `46faeb9`. The subsequent Docker
-removal, local Tomcat and port corrections, per-tier storage checks and
-database listing failure handling landed in `5e3413d`, `2aedf07`, `863fd5d`
-and `e48502c`, with the verification record at `3cf9c3c`. The targeted Debian
-13 and Rocky 8.10 checks passed before those commits; their scope is recorded
-in M8. The clean committed-tip local run on `decff38` passed all 257 checks.
+and authorized 2026-09-28 and M8 is In progress. The current pre-release
+verification is at `e6f2bd5`, recorded in `b65fb61`: 263 local checks and a
+Debian 13.4 root reinstall with real acquisition and retrieval of three PVs.
+Earlier bare-host and targeted Rocky observations retain their commit scope
+in M8's verification history. The release readiness follow-up covers document
+alignment, post-release checks, and the next-line decision before PR preparation.
 The heap observation report landed at `decff38`; additional measurements
 remain Backlog M41. PR creation, fast-forward, tag and release remain under
 their separate authorizations. M2
@@ -795,9 +788,12 @@ Out of scope: any new feature.
 
 ##### Completion Criteria
 
-- Release Verification 1–4 recorded with evidence.
-- `origin/maven` equals the release commit, reached by fast-forward.
-- Tag `2.0.0` on `origin` points at that commit.
+- Release Verification 1-7 recorded with passing evidence; historical runs retain their original scope.
+- At publication, `origin/maven` reaches the recorded release commit by
+  fast-forward. At cycle closure, it contains that commit and the subsequent
+  canonical checkpoint and closure commits.
+- Annotated tag `2.0.0` on `origin` continues to peel to the recorded release
+  commit; later evidence commits never move the tag.
 - GitHub release `2.0.0` is published with the `[2.0.0]` changelog notes.
 
 ##### Dependencies And Decisions
@@ -857,10 +853,68 @@ source pin and the changelog content open
    The VM belongs to cloud-provision, which created it on request: when the run
    ends, aa-env tells that operator, who removes it; aa-env does not.
 4. Date the changelog section as `[2.0.0]` (Release Verification 4), commit
-   it, and run Release Verification 1 again on that commit, which is the
-   release commit.
-5. Release execution below (fast-forward, tag, GitHub release), each step
-   under its own owner authorization.
+   it, and run Release Verification 1 again on that version commit. Preserve
+   this commit as version-change evidence. The final release candidate also
+   includes subsequent readiness evidence and the PR record, as specified
+   in Release Execution below.
+5. Complete the Release Readiness Follow-up Procedure below before proceeding
+   to release execution (fast-forward, tag, GitHub release), each action under
+   its own owner authorization.
+
+###### Release Readiness Follow-up Procedure
+
+Recorded: 2026-09-29.
+Plan Status: accepted
+Plan Acceptance: 2026-09-29, owner accepted the recorded follow-up procedure.
+Implementation Authorization: 2026-09-29, owner authorized documentation
+alignment, release-plan completion, consistency checks and PR preparation.
+Unresolved choices and git/GitHub mutations retain their separate authority.
+The accepted 2026-09-28 plan and its observations remain historical evidence.
+
+Proceed in the following order. Routine completion of a step does not require another
+approval; unresolved choices, failed checks and changes of scope do.
+
+1. **Align the four documentation files.** Update `CHANGELOG.md` with the
+   shipped database credential/name fixes, replacement of stale WAR and
+   logging JAR payloads, and SKIP/incomplete results for unimplemented tests.
+   Align `README.md` with the ordered install procedure rather than a combined
+   `make build` command. State the root requirement beside the reinstall
+   example in `docs/README.install.md`. Refresh this document's current-state
+   summary and next entry point, preserving dated verification history and
+   its exact commit scope. Completion: each revised statement matches the
+   shipped implementation and the recorded observations. This step changes
+   documentation only; it does not fix ordinary-user reinstall behavior.
+2. **Complete the release plan in this M8 detail.** Reconcile Integrated
+   Verification, Production Environment Tests, Version Changes, Release
+   Execution and Release Verification rows with `release-cycle`. Add explicit
+   post-release checks for the tag/release object and the documented install
+   path on a clean equivalent host, or record an accepted reason that the
+   latter does not apply. Resolve whether to open a next release line and
+   its canonical path before execution. Present unresolved choices before
+   selecting them. Completion: each action has an explicit target and
+   authority, and each check has its real method, environment, timing,
+   expected result and evidence destination; unexecuted checks stay Pending.
+3. **Verify consistency and prepare the documentation commit.** Compare the
+   revised documents with code, recorded results and the accepted plan. Keep
+   the existing pre-release evidence; rerun checks affected by changed inputs
+   and record the reason for any evidence carried forward. Changelog changes
+   require the narrow version consistency check again; changes to an install
+   procedure require checking the documented execution path. Run repository
+   checks, including `git diff --check`, and prepare the commit through
+   `git-workflow`. Completion: findings are resolved or explicitly retained,
+   evidence is tied to the checked content, and commit scope is reviewable.
+   Commit and push require their own authorization.
+4. **Prepare the PR from `modernize` to `maven`.** After the readiness record
+   is committed, prepare the PR body with the checked pre-PR commit, changes,
+   verification and known limits, including the root reinstall scope. Prepare
+   the creation command. Completion: the PR draft agrees with the committed
+   release plan and evidence. PR creation remains a separate action. The
+   release candidate is finalized after recording the created PR, not here.
+
+Merge, tag and GitHub release follow PR preparation under their separate
+authorizations. Verify the actual released objects and environment afterward,
+then close the cycle only when the canonical evidence and next-line state
+agree. Pre-release VM results do not satisfy post-release checks.
 
 ##### Integrated Verification
 
@@ -874,8 +928,19 @@ source pin and the changelog content open
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 2 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200; the unit and the health timer active | Pass, 2026-09-28; see Release Verification Results |
-| Release Verification 3 | pre-PR | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-maven `d8a7813f` | README procedure | mgmt URL 200, one PV archived and retrieved | Pass, 2026-09-28; see Release Verification Results |
+| Release Verification 2 | post-change | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-env `57021de`, aa-maven `d8a7813f` | README procedure | mgmt URL 200; the unit and the health timer active | Pass, 2026-09-28; see Release Verification History |
+| Release Verification 3 | post-change | Disposable VM from cloud-provision | Debian 13 | x86_64 | The ordered sequence of `docs/README.install.md` on a bare host with MariaDB, aa-env `57021de`, aa-maven `d8a7813f` | README procedure | mgmt URL 200, one PV archived and retrieved | Pass, 2026-09-28; see Release Verification History |
+
+The final committed snapshot was also reinstalled on the existing Debian
+13.4 VM at `e6f2bd5`; that result does not establish fresh provisioning of
+that commit. Release Verification Results contains the current `e6f2bd5`
+root-reinstall and PV results; Release Verification History preserves the
+`57021de` bare-host observations. Post-release installation has its own
+required check:
+
+| Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Release Verification 6 | post-release | Clean disposable production-equivalent VM | Debian 13 | x86_64 | Released 2.0.0 object, documented host prerequisites and ordered installation | Execute the released install guide with MariaDB, including its Functional verification procedure | Build/install succeed; four JVMs healthy; management HTTP 200; post-start changing samples retrieved | Pending; install/build logs and timestamped runtime responses |
 
 ##### Version Changes
 
@@ -886,22 +951,61 @@ source pin and the changelog content open
 
 ##### Release Execution
 
+Before PR creation, record the checked pre-PR commit and canonical remote.
+After the PR record is committed and published, verify that the remote PR
+head equals the checked `modernize` tip. Fix that full commit ID as the final
+release candidate in the verification output and publication authorization.
+The publication checkpoint subsequently records that ID in this document;
+the candidate need not contain its own commit ID.
+
+Do not add another `modernize` commit between that check and publication.
+If its head changes, recheck the changed scope and obtain authorization for
+the revised target before publishing. Publication, tag creation and release
+publication use the same fixed candidate even when later canonical checkpoint
+commits advance `maven`. The 2.0.0 release date remains 2026-09-28; this
+follow-up does not authorize another version change.
+
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
-| 0 | Install-verify on a disposable Debian 13 VM against aa-maven `d8a7813f` (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived and retrieved | Pass on aa-env `e6f2bd5`, 2026-09-29, root reinstall; bare-host baseline at `57021de`; see Release Verification Results |
-| 1 | Open the PR `modernize` to `maven` with the verification result | owner | PR opened | pending |
-| 2 | Fast-forward `maven` to `modernize` (`git push origin origin/modernize:maven`) | owner | `origin/maven` equals `origin/modernize` | pending |
-| 3 | Annotated tag `2.0.0` with the message `epicsarchiverap-env 2.0.0` on the merged commit, and push of that tag | owner | tag `2.0.0` on origin at `origin/maven` | pending |
-| 4 | `gh release create 2.0.0 --title "epicsarchiverap-env 2.0.0" --notes-file work/release-notes-2.0.0.md`, the notes taken from the `[2.0.0]` changelog section | owner | release `2.0.0` published on GitHub | pending |
+| 1 | Create the PR from `modernize` to `maven` with committed readiness evidence | User-run PR creation under git-workflow | PR identifies the checked pre-PR commit and scope | Pending |
+| 2 | Record the observed PR URL and state in this document on `modernize`; commit and publish that record | Separate commit and push authorization | Remote PR head includes the PR record and readiness evidence | Pending; checkpoint commit and remote observation |
+| 3 | Verify the resulting commit, affected checks and remote PR head; fix its full ID as the final candidate | Read-only verification; publication authority obtained for this exact ID | Checked local tip, remote modernize tip and PR head are identical | Pending; comparison output and verification evidence |
+| 4 | Fast-forward `maven` to the fixed candidate and publish that branch | Separate previewed release authorization | Remote branch reaches the exact candidate | Pending; full commit and remote observation |
+| 5 | Create annotated tag `2.0.0` with message `epicsarchiverap-env 2.0.0` on the fixed release commit | Separate previewed release authorization | Annotated tag peels to the release commit | Pending; tag object and peeled commit |
+| 6 | Push only `refs/tags/2.0.0` to origin | Separate tag-push or previewed release authorization | Remote tag object equals the local object | Pending; remote object ID |
+| 7 | Publish GitHub release `2.0.0` from that tag using the reviewed changelog notes | Separate previewed release authorization | Published release resolves to the recorded tag and notes | Pending; release URL and observed metadata |
+| 8 | Retain the current canonical path; open no next release line in this cycle | Decision Date: 2026-09-29, owner selected 2.0.0 only | Closure entry point records that the next release is undecided | Decision recorded; closure consistency check remains Pending |
+| 9 | Record post-release checks and close M8 | Separate canonical checkpoint/closure commit authorization | Required results Pass; released objects unchanged | Pending |
+
+Record the PR on `modernize` before finalizing the candidate. After the
+fast-forward publication, create canonical checkpoint and closure commits
+on `maven`, based on the published release commit or its latest checkpoint.
+Publish those documentation commits with separate authorization. The branch
+may advance; the recorded release commit and annotated tag remain fixed.
+Compare tag identity with the recorded release commit, and compare branch
+ancestry with that commit rather than requiring branch-tip equality at closure.
+
+After each release mutation, observe its result and prepare the required
+canonical checkpoint commit before the next dependent action. No GitHub
+milestone is currently assigned; do not create or close one implicitly.
 
 ##### Release Verification Plan
 
 | Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
 | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 1 | Logic and build wrapper | pre-PR, on the pinned commit and again on the dated release commit | `tests/run-all-tests.bash --local` and `grep -n '^SRC_TAG' configure/RELEASE` | This host | all pass; `SRC_TAG` is the full `d8a7813f` hash | run log |
-| Release Verification 2 | Runtime | pre-PR, on the pinned commit | the ordered install sequence with MariaDB, then `make sd_start`; mgmt probe | Disposable Debian 13 VM | HTTP 200; the unit and the health timer active | curl output |
-| Release Verification 3 | Function | pre-PR, on the pinned commit | archive PVs from the `softIoc` on this host; verify the gateway and auto-address `NO` in all four JVM environments after restart; retrieve samples timestamped after that restart, excluding any preceding boundary sample returned by retrieval | Disposable Debian 13 VM | non-empty post-restart samples and the planned CA settings | curl output, JVM environment checks and retrieval samples |
+| Release Verification 1 | Logic and build wrapper | post-change | `tests/run-all-tests.bash --local` and `grep -n '^SRC_TAG' configure/RELEASE` | This host | all pass; `SRC_TAG` is the full `d8a7813f` hash | run log |
+| Release Verification 2 | Runtime | post-change | the ordered install sequence with MariaDB, then `make sd_start`; mgmt probe | Disposable Debian 13 VM | HTTP 200; the unit and the health timer active | curl output |
+| Release Verification 3 | Function | post-change | archive PVs from the `softIoc` on this host; verify the gateway and auto-address `NO` in all four JVM environments after restart; retrieve samples timestamped after that restart, excluding any preceding boundary sample returned by retrieval | Disposable Debian 13 VM | non-empty post-restart samples and the planned CA settings | curl output, JVM environment checks and retrieval samples |
 | Release Verification 4 | Version | post-change | Check for exactly one dated `2.0.0` heading and no `Unreleased` in `CHANGELOG.md`; compare the file and `configure/RELEASE` with the checked commit | aa-env checkout | dated heading present; source pin unchanged | file content |
+| Release Verification 5 | Released objects | post-release | Compare recorded candidate/release commit with remote branch at publication, annotated tag object and peeled commit; read published release metadata and notes | Canonical origin and GitHub | All IDs match their authorized targets; published notes and version agree | Remote ref output, tag inspection and release metadata |
+| Release Verification 6 | Installation and operation | post-release | Execute the released install guide on a clean Debian 13 VM, including [Functional verification](README.install.md#functional-verification) with the recorded IOC inputs, time bounds and pass criteria | Clean disposable Debian 13 VM | Four JVMs and health timer healthy; management HTTP 200; post-start samples retrieved | Build/install logs, health output and timestamped retrieval JSON |
+| Release Verification 7 | Cycle closure | post-release | Compare work table/details and linked issue state; verify next-line decision and canonical entry point | Canonical document and optional GitHub issue projections | Required work and evidence complete; issue state matches closure intent; next-line choice recorded | Dated closure observations and canonical commit |
+
+Before the fresh released-object verification tree is created, follow the
+release-cycle storage preflight: record the filesystem, absent destination,
+clone mode/refspecs, immutable IDs, allocated-size bounds and 1 GiB reserve.
+Check space before object fetch and again before checkout. A missing bound
+or insufficient space stops that operation; prior evidence is retained.
 
 Installation scope: the final check executes installation as root on an
 existing VM. An ordinary-user invocation failed because the invoking shell
@@ -911,6 +1015,42 @@ is retained on the VM. Current-tip fresh provisioning, Rocky installation,
 SQLite runtime and long-duration behavior were not rerun in this check.
 
 ##### Release Verification Results
+
+One current result per planned label is recorded here. Earlier observations
+remain in Release Verification History with their original commit and scope.
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| Release Verification 1 | 2026-09-29T07:24:41Z | Committed `e6f2bd5` | Pass | 263 checks; see history. The 2026-09-29 documentation scope comparison below confirms no change to tested executable inputs. |
+| Release Verification 2 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Root reinstall; see history for payload, database and health evidence. |
+| Release Verification 3 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Three connected PVs with changing post-start samples; see history. |
+| Release Verification 4 | Not yet observed for revised changelog | Documentation follow-up | Pending | Working-tree assertions passed at 2026-09-29T08:29:04Z for the dated heading, absence of Unreleased and unchanged source pin. Committed-file comparison remains Pending until the documentation commit; evidence: `work/release-docs-check.json`. |
+| Release Verification 5 | Not yet observed | Released objects | Pending | Release has not been executed. |
+| Release Verification 6 | Not yet observed | Clean Debian 13 VM, released object | Pending | Post-release installation has not run. |
+| Release Verification 7 | Not yet observed | Canonical record and issue projections | Pending | Owner selected no next release line on 2026-09-29; post-release closure and issue-state observations remain outstanding. |
+
+###### Documentation Readiness Evidence
+
+Observed 2026-09-29T08:29:04Z against the working tree based on `b65fb61`.
+`git diff --name-only e6f2bd5` contains only `CHANGELOG.md`, `README.md`,
+`docs/README.install.md` and this canonical document. Executable code, test
+fixtures, templates and the source pin are byte-unchanged from the tested
+commit. Release Verification 1-3 retain their original observations and
+limits; no new runtime pass is claimed for this documentation update.
+
+Local Markdown targets and heading anchors resolve. The revised reinstall
+sequence matches the real VM harness's executed stop, root install and start
+sequence. The README's configuration/build/schema commands occur in the
+executed preparation harness. This is evidence comparison, not a fresh host
+installation. The clean released-object install remains Release Verification 6.
+
+The current verification plan and results each contain exactly one row for
+labels 1-7. Version assertions pass on the working tree; the revised changelog
+SHA-256 is `0de0100715e454634463d3fa5248afa299f18ad2ed5ebc127bf34fde2368d65f`.
+Release Verification 4 remains Pending until byte comparison against the
+resulting documentation commit. Evidence: `work/release-docs-check.json`.
+
+##### Release Verification History
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
@@ -974,7 +1114,7 @@ the reinstall hypothesis. The subsequent instruction includes the confirmed
 reinstall defect in the same correction and requires documentation of its
 scope and verification. Full backend expansion remains Deferred under M42.
 
-The working tree based on `8fa1af0` now preserves database passwords through
+The corrections committed at `e6f2bd5` preserve database passwords through
 Make, XML, shell configuration and MariaDB client arguments; uses
 `JDBC_DB_NAME` for both the resource and runtime JNDI lookup; uses `DB_NAME`
 for application-table queries; and removes the configured `DB_ADMIN` account.
