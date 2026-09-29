@@ -8,14 +8,17 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: finish committing the Docker target removal,
-Tomcat path and port corrections, per-tier storage checks, database listing
-failure handling, and their tests and documentation. Then run Release
-Verification 1 on the committed tip before preparing M8's PR to `maven`.
-The targeted Debian 13 and Rocky 8.10 VM checks passed on the working tree;
-their scope and evidence are recorded in M8. PV acquisition, storage, ETL,
-retrieval and long-duration testing belong to the ansible-provision soak.
-Full backend consistency remains Deferred Backlog M42 under D29.
+Next session entry point: commit this verification-record update, then open
+M8's prepared PR from `modernize` to `maven` under its separate authorization.
+The configuration and runtime corrections landed through `3cf9c3c`; Release
+Verification 1 passed on clean `decff38` with 224 logic checks, 20 health and
+unit-file tests, and 13 build-wrapper checks. Release Verification 4 also
+passed on that commit. The targeted Debian 13 and Rocky 8.10 VM checks retain
+their recorded scope; their 16-file snapshot matches the current files.
+PV acquisition, storage, ETL, retrieval and long-duration testing belong to
+the ansible-provision soak. Additional heap measurements have been requested
+for Backlog M41; they do not gate M8. Full backend consistency remains
+Deferred Backlog M42 under D29.
 
 The journald logging model (D24, D25) is complete:
 M33 at `f75c84c`, M35 at `a707cf5` and M34 at `1400ae7`. M36 (the launcher's
@@ -66,12 +69,15 @@ gateway with auto-address discovery disabled, and all three PVs returned 156
 samples timestamped after the configuration restart. Evidence is retained
 under `work/rv-m8-*20260928.*`; the VM remains running. Final local evidence
 is in `work/rv1-209f285-evidence.tar.gz` and `work/rv4-209f285.txt`.
-That verification record is committed at `46faeb9`. The subsequent local
-checks on the working tree passed Phase 1 (220), health and unit file tests
-(18), and Phase 2 (13), including the derived-path and SQL deletion guards.
-The later corrections have not been installed on a VM. After committing them,
-repeat Release Verification 1 on the committed tip, then prepare the PR to
-`maven`, fast-forward, tag and release under their separate authorizations. M2
+That verification record is committed at `46faeb9`. The subsequent Docker
+removal, local Tomcat and port corrections, per-tier storage checks and
+database listing failure handling landed in `5e3413d`, `2aedf07`, `863fd5d`
+and `e48502c`, with the verification record at `3cf9c3c`. The targeted Debian
+13 and Rocky 8.10 checks passed before those commits; their scope is recorded
+in M8. The clean committed-tip local run on `decff38` passed all 257 checks.
+The heap observation report landed at `decff38`; additional measurements
+remain Backlog M41. PR creation, fast-forward, tag and release remain under
+their separate authorizations. M2
 (`b6a80af`), M17 (`a159b79`), M21 (`a12516d`) and M20 (`e513267`) have landed.
 
 ## Milestone
@@ -758,8 +764,9 @@ The source is pinned to `d8a7813f` and the changelog is dated `2.0.0`,
 2026-09-28. Release Verification 2 and 3 passed on aa-env `57021de` that
 day. Subsequent configuration and runtime corrections passed the targeted
 VM checks below; those checks do not extend the earlier PV retrieval
-evidence to the corrected tree. The final committed-tip local check and
-release execution remain pending.
+evidence to the corrected tree. The committed-tip local check passed on
+`decff38` with 257 checks, and the version check passed on the same commit.
+PR creation and release execution remain pending.
 
 ##### Scope
 
@@ -857,7 +864,7 @@ source pin and the changelog content open
 
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M17 / T1 and T3 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass with correct failure handling | Pass on `209f285`, 2026-09-28; Phase 1: 220, health and unit file tests: 15, Phase 2: 13; no failures or skips |
+| M17 / T1 and T3 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass with correct failure handling | Pass on `decff38`, 2026-09-28 PDT (2026-09-29 UTC); Phase 1: 224, health and unit file tests: 20, Phase 2: 13; no failures or skips |
 | M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | Pass on `57021de`, 2026-09-28; see Release Verification Results |
 | M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | Pass on `57021de`, 2026-09-28; 156 post-restart samples per PV; see Release Verification Results |
 
@@ -889,23 +896,24 @@ source pin and the changelog content open
 
 | Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
 | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 1 | Logic and compile | pre-PR, on the pinned commit and again on the dated release commit | `tests/run-all-tests.bash --local` and `grep -n '^SRC_TAG' configure/RELEASE` | This host | all pass; `SRC_TAG` is the full `d8a7813f` hash | run log |
+| Release Verification 1 | Logic and build wrapper | pre-PR, on the pinned commit and again on the dated release commit | `tests/run-all-tests.bash --local` and `grep -n '^SRC_TAG' configure/RELEASE` | This host | all pass; `SRC_TAG` is the full `d8a7813f` hash | run log |
 | Release Verification 2 | Runtime | pre-PR, on the pinned commit | the ordered install sequence with MariaDB, then `make sd_start`; mgmt probe | Disposable Debian 13 VM | HTTP 200; the unit and the health timer active | curl output |
 | Release Verification 3 | Function | pre-PR, on the pinned commit | archive PVs from the `softIoc` on this host; verify the gateway and auto-address `NO` in all four JVM environments after restart; retrieve samples timestamped after that restart, excluding any preceding boundary sample returned by retrieval | Disposable Debian 13 VM | non-empty post-restart samples and the planned CA settings | curl output, JVM environment checks and retrieval samples |
-| Release Verification 4 | Version | post-change | `grep -n Unreleased CHANGELOG.md` | aa-env checkout | dated heading present | file content |
+| Release Verification 4 | Version | post-change | Check for exactly one dated `2.0.0` heading and no `Unreleased` in `CHANGELOG.md`; compare the file and `configure/RELEASE` with the checked commit | aa-env checkout | dated heading present; source pin unchanged | file content |
 
 ##### Release Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| Release Verification 1 | 2026-09-28 | Debian 13, working tree based on `dde4a7b`, with Docker removal, local Tomcat and port corrections, per-tier storage checks and database listing failure handling | Pass (working tree) | The shipped `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=224 failed=0, all 20 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The final committed-tip check remains pending. |
+| Release Verification 1 | 2026-09-29T02:08:35Z (2026-09-28 PDT; run 02:08:30Z to 02:08:35Z) | Debian 13, clean aa-env `decff387441fc8ef1ad23439e6d25a761c8ba14f` | Pass | The shipped `TMPDIR=/tmp KEEP_WORKSPACE=1 tests/run-all-tests.bash --local` exits 0: Phase 1 passed=224 failed=0, all 20 health and unit-file tests pass, Phase 2 passed=13 failed=0, with no skips. The source pin is `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Log: `work/rv1-decff38-release-prep-permitted.log`, SHA-256 `8af0503d73a67cf575c224b14a58ea67b61c73dadb92c54a8c44f49670c0d5e9`; timestamps, return code and digest are in the adjacent `.json`. The real MariaDB client checks require permission to create local sockets. |
+| Release Verification 1 | 2026-09-28 | Debian 13, working tree based on `dde4a7b`, with Docker removal, local Tomcat and port corrections, per-tier storage checks and database listing failure handling | Pass (working tree) | The shipped `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=224 failed=0, all 20 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The committed-tip rerun is recorded above. |
 | Release Verification 1 | 2026-09-28 | This host (Debian 13), working tree based on `46faeb9`, with derived-path and SQL deletion guard corrections | Pass (working tree) | The real `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=220 failed=0, all 18 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The new tests exercise local path overrides and explicit derived-path overrides through shipped Make rules, and execute rejection cases for both SQL deletion targets. MariaDB deletion is inspected only with a dry-run. This result does not replace the required committed-tip check or extend the VM evidence below to these corrections. |
 | Release Verification 1 | 2026-09-28T20:11:01Z (run 20:10:58Z to 20:11:01Z) | This host (Debian 13), clean aa-env `209f285cce15e4bb0ec705f1a40170f41e2a090c` | Pass | The shipped `tests/run-all-tests.bash --local` exits 0: Phase 1 passed=220 failed=0, all 15 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. `SRC_TAG:=d8a7813f40083c1bf7148e6c3b7bffd368d70ee0` is confirmed. `KEEP_WORKSPACE=1` retains the real test workspaces; full console output is `work/rv1-209f285-console.log`, and the evidence archive is `work/rv1-209f285-evidence.tar.gz` (SHA-256 `aa1c6cf0a46453b6d881fa45967d608ca529d79ad5e25f671eb85e04ed0a0c6b`). This is the required rerun after dating the changelog; the earlier `37b3a16` run at 17:48:08Z passed Phase 1 at 218 and Phase 2 at 13, and `57021de` passed Phase 1 at 220 before its commit. |
 | Release Verification 2 | 2026-09-28T19:14:41Z (install run 18:50:53Z to 19:04:02Z; CA configuration reapplied and restarted at 19:10:50Z) | Disposable Debian 13.4 x86_64 VM, aa-env `57021de1508138420edecc48b3a16eb14c60e0fc`, aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`, Tomcat 9.0.121, distro JDK 21, MariaDB over loopback TCP | Pass | The shipped package installer, `debian13.conf`, `tomcat`, database creation targets and all eight install-guide steps completed; Maven reported BUILD SUCCESS. After correcting the CA override file, `conf.archapplproperties`, `sd_stop`, `install` and `sd_start` completed. The appliance and health timer are enabled and active; the appliance is running with NRestarts=0. The installed `archappl.bash health` verifies all four JVMs; the health service reports Result=success and ExecMainStatus=0. Mgmt returns HTTP 200 and identity `appliance0`. Logs: `work/rv-m8-install-20260928.log` and `work/rv-m8-ca-reinstall-20260928.log`. |
 | Release Verification 3 | 2026-09-28T19:13:55Z | Same Debian 13.4 VM and pinned commits as Release Verification 2; existing host softIoc; gateway selected through `../CONFIG_EPICSENV.local` | Pass | `/proc/<pid>/environ` confirms the gateway address and `EPICS_CA_AUTO_ADDR_LIST=NO` in mgmt, engine, etl and retrieval. `M33:CNT`, `M33:SIN` and `M33:AI` report Being archived and connectionState=true. The real retrieval endpoint returned 156 samples per PV timestamped after the 19:10:50Z restart, with changing values and latest timestamps within 15 seconds of the observation. Each response also contains one earlier boundary sample, retained as evidence but excluded from the count. `work/verify-m8-ca.py` exited 0; full responses and runtime checks are in `work/rv-m8-ca-verification-20260928.json` (SHA-256 `e5558c66ddb3bbb2ff606b38eae398af911d47f1a2e1c8ace92d4135e849f875`). The original default-CA run returned 59 samples per PV but did not satisfy the explicit gateway setting; this row records the corrected run. |
 | Release Verification 2 | 2026-09-21 | Three provisioned hosts (Rocky 8.10 x2, one built from bare for this check; Debian 13), aa-env `fb43522`, aa-maven `3c96141d`, Tomcat 9.0.121, OpenJDK 21, MariaDB over loopback TCP | Pass | LAB-ansible-provision drove the documented make sequence as root through its operator: `init`, `db.conf`, `conf.archapplproperties`, `build.mvn` and `sql.fill` completed under `set -e`; the als `classpathfiles` (`appliances.xml`, `archappl.properties`, `policies.py`) are packed in `WEB-INF/classes` of all four deployed webapps; four instances sit under the install root with the unit enabled and active and the storage root owned by the service account (0755); mgmt `/bpl/getApplianceInfo` returned 200 with identity `appliance0` and version 2025-6 on all three hosts. The privilege split was measured rather than derived: built as root, the four JVMs run as the service account. Observed on the reporting side, not on this host. Re-observed 2026-09-21 directly at `e06c554` on a freshly provisioned Rocky 8.10 host: a forced reinstall completed with failed=0 and left four instances, the unit active, the als `classpathfiles` in the deployed webapp, and mgmt returning 200 with identity `appliance0` and version 2025-6 on the first probe. The result therefore no longer rests on the D18 path-equivalence argument, which the reporting side also re-derived (`fb43522` is an ancestor of `e06c554`, and their diff touches nothing under `site-template/`, `scripts/`, `configure/CONFIG_SITE` or `configure/CONFIG_SRC`). |
 | Release Verification 3 | 2026-09-21 | The same three hosts as Release Verification 2 | Pass | A 1 Hz calc record submitted through mgmt `/bpl/archivePV` moved Initial sampling to Appliance assigned to Being archived in about two minutes; `retrieval/data/getData.json` then returned 68 points carrying the record EGU at one-second spacing with incrementing values, and the short-term store held the expected `.pb` file. The fixture was removed afterwards. Re-applying the role reported no change, with the install tree, the four instance PIDs and the unit start time identical before and after. |
-| Release Verification 4 | 2026-09-28T20:11:46Z | aa-env `209f285cce15e4bb0ec705f1a40170f41e2a090c` | Pass | `CHANGELOG.md` is byte-identical to the committed file, contains exactly one `## [2.0.0] - 2026-09-28` heading, and contains no `Unreleased`. The source pin is unchanged. Evidence: `work/rv4-209f285.txt`. |
+| Release Verification 4 | 2026-09-29T02:08:57Z (2026-09-28 PDT) | aa-env `decff387441fc8ef1ad23439e6d25a761c8ba14f` | Pass | Python assertions confirmed that `CHANGELOG.md` is byte-identical to the committed file, contains exactly one `## [2.0.0] - 2026-09-28` heading, and contains no `Unreleased`. `configure/RELEASE` matches the committed file and pins the full `d8a7813f` source hash. The earlier check on `209f285` passed at 2026-09-28T20:11:46Z; its evidence remains in `work/rv4-209f285.txt`. |
 
 ###### Configuration and runtime regression checks
 
@@ -917,6 +925,13 @@ All 16 modified files matched their snapshot hashes on each VM and the
 deleted Docker rule file was absent. Application source:
 `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Debian reused its real WARs
 from that pin; Rocky built it with the shipped `build.mvn` target.
+
+Rechecked 2026-09-28 PDT against committed `decff38`: all 16 entries in
+`changed-files.sha256` match the checkout, and `configure/RULES_DOCKER`
+remains absent. The changes landed in `5e3413d`, `2aedf07`, `863fd5d` and
+`e48502c`; their durable verification record landed at `3cf9c3c`.
+This file comparison ties the tested corrections to the current commit;
+it is not a new VM run.
 
 Both VMs passed the real installation and runtime checks: alternate Tomcat
 prefix in all four JVMs; configured ports in server XML and appliance URLs;
@@ -5429,16 +5444,23 @@ Status: Not started
 
 ##### Summary
 
-The 256M heap default (M22) is a test default, and no measurement says what
-heap each instance needs as the archiving load grows. The one data point is
-the ansible-provision soak on aa-env `9eed006` and aa-maven `3c96141d`
-(reported 2026-09-28): with `-Xms256M -Xmx256M` on every JVM, 903 PVs
-(100 of them at 10 Hz, three waveforms) and a retrieval load, the etl heap
-peaked at 251 MiB of 256 MiB with 10 full GCs, while the other three had no
-full GC. A peak of heap used does not size a heap: the live set left after
-a full GC does, and it likely follows a different load per component (PV
-count and rate for engine, partition size for etl, query span for
-retrieval), which is a hypothesis until measured.
+The 256M heap default (M22) is a test default; the available measurements
+do not establish a heap recommendation by load. The ansible-provision soak
+on aa-env `9eed006`, aa-maven `3c96141d` and Ansible `dca2255` covers 100,
+500 and 903 PV stages. The 903 PV stage includes 110 PVs at 10 Hz and eight
+waveforms. With `-Xms256M -Xmx256M` on every JVM, the largest sampled ETL
+heap was 250.9 MiB. Its ten Full GCs cover the combined interval from the
+500 PV stage through the run's end, including fault tests; one occurred
+in the 500 PV stage. The other three components had no Full GC in that
+interval.
+
+The [heap observation report](reports/heap-soak-20260928.md), committed at
+`decff38`, records the supplied figures and their limits. Five-minute
+samples do not provide immediate post-GC heap or individual GC pauses,
+so this evidence does not meet this work item's completion criteria.
+The heap needed may depend on different workloads per component (PV count
+and rate for engine, partition size for etl, query span for retrieval);
+that relationship remains a hypothesis until measured.
 
 ##### Scope
 
@@ -5477,6 +5499,10 @@ tuning beyond sizing; production storage sizing.
 
 - Recorded 2026-09-28 from the owner's direction after the M22 review of the
   `9eed006` soak figures; not assigned to current work.
+- Additional post-GC heap and individual GC pause measurements were requested
+  from the Ansible operator on 2026-09-28. Results have not been received;
+  no new measurement run is verified here. This Backlog item remains separate
+  from M8's release criteria.
 
 ##### Implementation Plan
 
