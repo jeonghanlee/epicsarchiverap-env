@@ -8,12 +8,13 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: review the configuration/database and reinstall
-corrections together, then prepare their commit before M8's PR.
-The current working tree is based on `8fa1af0`; its local checks and private
-MariaDB verification are recorded under M8 below. Earlier committed-tip and
-VM results retain their original commit and file scope; they do not establish
-VM verification of these configuration/database changes.
+Next session entry point: review and commit the final verification record,
+then prepare the PR from `modernize` to `maven`. Release Verification 1-4
+passed on `e6f2bd5` on 2026-09-29: 263 local checks, a root reinstall on the
+existing Debian VM, real PV acquisition and retrieval, and version checks.
+The PR draft is prepared locally; PR creation and release execution remain
+pending. The VM result covers MariaDB over a Unix socket; the earlier bare
+installation and Rocky results retain their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
 the ansible-provision soak. Additional heap measurements have been requested
 for Backlog M41; they do not gate M8. Full backend consistency remains
@@ -760,12 +761,14 @@ before the install verification passes. The merge is a fast-forward (owner
 choice 2026-09-12); `modernize` is ahead of `maven` with nothing behind.
 
 The source is pinned to `d8a7813f` and the changelog is dated `2.0.0`,
-2026-09-28. Release Verification 2 and 3 passed on aa-env `57021de` that
-day. Subsequent configuration and runtime corrections passed the targeted
-VM checks below; those checks do not extend the earlier PV retrieval
-evidence to the corrected tree. The committed-tip local check passed on
-`decff38` with 257 checks, and the version check passed on the same commit.
-PR creation and release execution remain pending.
+2026-09-28. Release Verification 1-4 passed on committed aa-env `e6f2bd5`
+on 2026-09-29: 263 local checks, an exact committed snapshot rebuilt and
+reinstalled as root on the existing Debian 13.4 VM, and actual acquisition
+and retrieval of three changing PVs. Four JVMs used the configured CA and
+nondefault database settings. The deployed WAR and logging JAR contents
+matched the build, and six existing log/work/temp files were preserved.
+This is a reinstall result; the earlier bare-host installation remains
+scoped to `57021de`. PR creation and release execution remain pending.
 
 ##### Scope
 
@@ -863,9 +866,9 @@ source pin and the changelog content open
 
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M17 / T1 and T3 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass with correct failure handling | Pass on `decff38`, 2026-09-28 PDT (2026-09-29 UTC); Phase 1: 224, health and unit file tests: 20, Phase 2: 13; no failures or skips |
-| M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | Pass on `57021de`, 2026-09-28; see Release Verification Results |
-| M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | Pass on `57021de`, 2026-09-28; 156 post-restart samples per PV; see Release Verification Results |
+| M17 / T1 and T3 | Final tree | `tests/` | Release Verification 1 | Phase 1 and 2 pass with correct failure handling | Pass on `e6f2bd5`, 2026-09-29; Phase 1: 224, health and unit file tests: 20, database configuration tests: 6, Phase 2: 13; no failures or skips |
+| M5 (deferred live checks, D8/D12) | Final tree | Runtime | Release Verification 2 | HTTP 200 from the mgmt probe | Pass on `e6f2bd5`, 2026-09-29, root reinstall on the existing VM; see Release Verification Results |
+| M8 first observation (PV archive on the install) | Final tree | Function | Release Verification 3 | one PV archived and retrieved | Pass on `e6f2bd5`, 2026-09-29; 3, 4 and 3 post-restart samples for three changing PVs; see Release Verification Results |
 
 ##### Production Environment Tests
 
@@ -885,7 +888,7 @@ source pin and the changelog content open
 
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
-| 0 | Install-verify on a disposable Debian 13 VM against aa-maven `d8a7813f` (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived and retrieved | Pass on aa-env `57021de`, 2026-09-28; see Release Verification Results |
+| 0 | Install-verify on a disposable Debian 13 VM against aa-maven `d8a7813f` (Release Verification 2 and 3 pass) | owner | mgmt probe 200, one PV archived and retrieved | Pass on aa-env `e6f2bd5`, 2026-09-29, root reinstall; bare-host baseline at `57021de`; see Release Verification Results |
 | 1 | Open the PR `modernize` to `maven` with the verification result | owner | PR opened | pending |
 | 2 | Fast-forward `maven` to `modernize` (`git push origin origin/modernize:maven`) | owner | `origin/maven` equals `origin/modernize` | pending |
 | 3 | Annotated tag `2.0.0` with the message `epicsarchiverap-env 2.0.0` on the merged commit, and push of that tag | owner | tag `2.0.0` on origin at `origin/maven` | pending |
@@ -900,10 +903,21 @@ source pin and the changelog content open
 | Release Verification 3 | Function | pre-PR, on the pinned commit | archive PVs from the `softIoc` on this host; verify the gateway and auto-address `NO` in all four JVM environments after restart; retrieve samples timestamped after that restart, excluding any preceding boundary sample returned by retrieval | Disposable Debian 13 VM | non-empty post-restart samples and the planned CA settings | curl output, JVM environment checks and retrieval samples |
 | Release Verification 4 | Version | post-change | Check for exactly one dated `2.0.0` heading and no `Unreleased` in `CHANGELOG.md`; compare the file and `configure/RELEASE` with the checked commit | aa-env checkout | dated heading present; source pin unchanged | file content |
 
+Installation scope: the final check executes installation as root on an
+existing VM. An ordinary-user invocation failed because the invoking shell
+could not expand an existing service-owned `bin/*` path before `sudo chmod`.
+That invocation is not verified as working. The original installation backup
+is retained on the VM. Current-tip fresh provisioning, Rocky installation,
+SQLite runtime and long-duration behavior were not rerun in this check.
+
 ##### Release Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
+| Release Verification 1 | 2026-09-29T07:24:41Z | Debian 13, clean committed aa-env `e6f2bd59766e65e601ffe03db66b499e93387e13` | Pass | The shipped local runner exits 0: 224 Phase 1, 20 health/unit, 6 database configuration and 13 Phase 2 checks; 263 total, no failures or skips. Log: `work/rv1-e6f2bd5-20260929.log`, SHA-256 `8c0bd730b956cc5dad7f39a61c442781765f3523b926becd2515b4928f76fdff`. |
+| Release Verification 2 | 2026-09-29T07:34:53Z | Existing disposable Debian 13.4 VM, manifest-verified archive of `e6f2bd5`, source `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`, MariaDB Unix socket | Pass (root reinstall) | Real Maven build and root installation completed. Each deployed WAR file set and every file byte matched the built archive; logging JAR names and bytes matched the build for all four components. Six existing files under logs/work/temp were preserved. Four JVMs had the nondefault database name and 256 MiB heap settings; management returned appliance identity, service and timer were active and enabled. The actual health service run at 07:35:35Z returned Result=success and ExecMainStatus=0; appliance NRestarts=0. Special-character database credentials were used by the real database and application. Evidence: `work/final-e6f2bd5-20260929/payload.json`, SHA-256 `86eab911e5c006bca5747a432e9d5862dad13158b9612b180a1f01d69ef8a533`, and adjacent build/install logs. |
+| Release Verification 3 | 2026-09-29T07:34:53Z | Same committed snapshot, VM and pinned source as the latest Release Verification 2; real host IOC | Pass | All four JVM environments contained the configured CA gateway and auto-address NO. Three PVs were connected and Being archived. Retrieval returned 3, 4 and 3 samples timestamped after the 07:32:28Z restart, with changing values and newest samples within 15 seconds. Evidence: `work/final-e6f2bd5-20260929/runtime.json`, SHA-256 `e10d99bf76f847cde1e66e8a1415888d0406ae796f4a55aa0cf6fbf97cd834eb`. This short functional check does not replace soak, ETL, load or heap measurements. |
+| Release Verification 4 | 2026-09-29T07:24:41Z | Clean committed aa-env `e6f2bd5` | Pass | Assertions confirmed exactly one dated 2.0.0 heading, no Unreleased heading, and byte equality of CHANGELOG.md and configure/RELEASE with the commit; the full source pin remains unchanged. Evidence: `work/final-e6f2bd5-20260929/local-results.json`. |
 | Release Verification 1 | 2026-09-29T02:08:35Z (2026-09-28 PDT; run 02:08:30Z to 02:08:35Z) | Debian 13, clean aa-env `decff387441fc8ef1ad23439e6d25a761c8ba14f` | Pass | The shipped `TMPDIR=/tmp KEEP_WORKSPACE=1 tests/run-all-tests.bash --local` exits 0: Phase 1 passed=224 failed=0, all 20 health and unit-file tests pass, Phase 2 passed=13 failed=0, with no skips. The source pin is `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Log: `work/rv1-decff38-release-prep-permitted.log`, SHA-256 `8af0503d73a67cf575c224b14a58ea67b61c73dadb92c54a8c44f49670c0d5e9`; timestamps, return code and digest are in the adjacent `.json`. The real MariaDB client checks require permission to create local sockets. |
 | Release Verification 1 | 2026-09-28 | Debian 13, working tree based on `dde4a7b`, with Docker removal, local Tomcat and port corrections, per-tier storage checks and database listing failure handling | Pass (working tree) | The shipped `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=224 failed=0, all 20 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The committed-tip rerun is recorded above. |
 | Release Verification 1 | 2026-09-28 | This host (Debian 13), working tree based on `46faeb9`, with derived-path and SQL deletion guard corrections | Pass (working tree) | The real `TMPDIR=/tmp tests/run-all-tests.bash --local` exits 0: Phase 1 passed=220 failed=0, all 18 health and unit file tests pass, Phase 2 passed=13 failed=0, with no skips. The new tests exercise local path overrides and explicit derived-path overrides through shipped Make rules, and execute rejection cases for both SQL deletion targets. MariaDB deletion is inspected only with a dry-run. This result does not replace the required committed-tip check or extend the VM evidence below to these corrections. |
