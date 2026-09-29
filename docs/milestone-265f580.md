@@ -8,9 +8,9 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit and publish the annotated-tag checkpoint on
-`maven`, then push the existing `refs/tags/2.0.0` under the release authorization
-recorded on 2026-09-29. The tag targets the fixed release commit
+Next session entry point: commit the remote-tag checkpoint on `maven`, then
+publish GitHub release `2.0.0` under the release authorization recorded on
+2026-09-29. The published tag targets the fixed release commit
 `386c91d74086313efe04e0b64eb5dacfd91f8389`.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
@@ -22,7 +22,7 @@ existing Debian VM, and real PV acquisition and retrieval. Release Verification
 `386c91d`; local checks and version checks were rerun on that candidate.
 `maven` was published at `386c91d74086313efe04e0b64eb5dacfd91f8389` and
 PR #54 is merged. The publication checkpoint is committed and published at `7b49a15`; annotated
-tag `2.0.0` is created locally; tag publication and GitHub release remain pending.
+tag `2.0.0` is published; GitHub release publication remains pending.
 The VM result covers MariaDB over a Unix socket; the earlier bare installation
 and Rocky results retain their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
@@ -976,8 +976,8 @@ follow-up does not authorize another version change.
 | 2 | Record the observed PR URL and state in this document on `modernize`; commit and publish that record | Separate commit and push authorization | Remote PR head includes the PR record and readiness evidence | Published at `386c91d74086313efe04e0b64eb5dacfd91f8389`; GitHub REST reads of the modernize ref and PR #54 confirm the same head |
 | 3 | Verify the resulting commit, affected checks and remote PR head; fix its full ID as the final candidate | Read-only verification; publication authority obtained for this exact ID | Checked local tip, remote modernize tip and PR head are identical | Verified candidate `386c91d74086313efe04e0b64eb5dacfd91f8389`: `TMPDIR=/tmp bash tests/run-all-tests.bash --local` exits 0 with 224 logic, 20 health/unit, 6 database and 13 build-wrapper checks; no failures or skips. Version assertions confirm one dated 2.0.0 heading, no Unreleased heading, unchanged source pin and committed-file equality. Local tip, fetched origin/modernize and PR head match. Codacy ShellCheck has no result after its container exited 137; the local ShellCheck warning/error check passed. The owner removed the Codacy App; maven has no required checks or branch rules |
 | 4 | Fast-forward `maven` to the fixed candidate and publish that branch | Separate previewed release authorization | Remote branch reaches the exact candidate | Authorized and executed on 2026-09-29. Observed at 2026-09-29T17:29:37Z: local maven, origin/maven and the GitHub maven ref all equal `386c91d74086313efe04e0b64eb5dacfd91f8389`. PR #54 is merged at 2026-09-29T17:29:27Z with the same merge commit. Recheck through the GitHub REST branch-ref and PR endpoints. Publication checkpoint committed and published at `7b49a15`; issue #24 closure evidence committed and published at `b8c2e46` |
-| 5 | Create annotated tag `2.0.0` with message `epicsarchiverap-env 2.0.0` on the fixed release commit | Authorized 2026-09-29 for the exact previewed release sequence | Annotated tag peels to the release commit | Created locally 2026-09-29T19:16:05Z. Object type `tag`; tag object `8bd31845746b8850fe9ce4d0ba7216bdae18020b`; peeled commit `386c91d74086313efe04e0b64eb5dacfd91f8389`; tag message matches. Canonical checkpoint commit pending. |
-| 6 | Push only `refs/tags/2.0.0` to origin | Exact previewed command authorized 2026-09-29; requires the preceding canonical checkpoint | Remote tag object equals the local object | Pending; remote object ID |
+| 5 | Create annotated tag `2.0.0` with message `epicsarchiverap-env 2.0.0` on the fixed release commit | Authorized 2026-09-29 for the exact previewed release sequence | Annotated tag peels to the release commit | Created locally 2026-09-29T19:16:05Z. Object type `tag`; tag object `8bd31845746b8850fe9ce4d0ba7216bdae18020b`; peeled commit `386c91d74086313efe04e0b64eb5dacfd91f8389`; tag message matches. Canonical checkpoint committed and published at `a42aa41ed13251770a163979b8d0939108de6f7c`; remote maven ref read-back matched. |
+| 6 | Push only `refs/tags/2.0.0` to origin | Exact previewed command authorized 2026-09-29; requires the preceding canonical checkpoint | Remote tag object equals the local object | Published and read back 2026-09-29T19:21:04Z: remote tag object `8bd31845746b8850fe9ce4d0ba7216bdae18020b`, peeled commit `386c91d74086313efe04e0b64eb5dacfd91f8389`; both match the recorded local objects. |
 | 7 | Publish GitHub release `2.0.0` from that tag using the reviewed changelog notes | Exact previewed command authorized 2026-09-29; requires the preceding canonical checkpoint | Published release resolves to the recorded tag and notes | Pending; release URL and observed metadata |
 | 8 | Retain the current canonical path; open no next release line in this cycle | Decision Date: 2026-09-29, owner selected 2.0.0 only | Closure entry point records that the next release is undecided | Decision recorded; closure consistency check remains Pending |
 | 9 | Record post-release checks and close M8 | Separate canonical checkpoint/closure commit authorization | Required results Pass; released objects unchanged | Pending |
@@ -1004,7 +1004,7 @@ The prepared notes reproduce the candidate's 2.0.0 changelog with the
 release `v1.2.0`; notes SHA-256: `df940d5ca9bd16b213267736a4e3ac02406c9fe4fc3ab878e95650f6889b9c8f`.
 At preparation, tag creation, tag publication and release publication were
 unexecuted. The exact three-command sequence was authorized on 2026-09-29.
-Step 5 above records the observed local tag; steps 6 and 7 remain unexecuted.
+Steps 5 and 6 above record the observed local and remote tag; step 7 remains unexecuted.
 Each requires its preflight and the preceding canonical checkpoint. No GitHub
 milestone is assigned.
 
@@ -1044,7 +1044,7 @@ remain in Release Verification History with their original commit and scope.
 | Release Verification 2 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Root reinstall; see history for payload, database and health evidence. |
 | Release Verification 3 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Three connected PVs with changing post-start samples; see history. |
 | Release Verification 4 | 2026-09-29T16:14:53Z | Committed `7670d39` | Pass | The committed `CHANGELOG.md` has exactly one dated `2.0.0` heading, no `Unreleased`, and SHA-256 `0de0100715e454634463d3fa5248afa299f18ad2ed5ebc127bf34fde2368d65f`. `configure/RELEASE` matches the committed file and pins aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Both files match the checkout. Evidence: `work/release-docs-check.json`. |
-| Release Verification 5 | 2026-09-29T19:16:05Z (local tag only) | Local annotated tag; remote tag and release not published | Pending | Local tag type, object ID and peeled commit match step 5. Remote identity and published release metadata remain unobserved. |
+| Release Verification 5 | 2026-09-29T19:21:04Z (tag checks only) | Local and published annotated tag; GitHub release not yet published | Pending | Local and remote tag objects equal `8bd31845746b8850fe9ce4d0ba7216bdae18020b` and peel to the authorized candidate `386c91d74086313efe04e0b64eb5dacfd91f8389`. Published release metadata and notes remain unobserved. |
 | Release Verification 6 | Not yet observed | Clean Debian 13 VM, released object | Pending | Post-release installation has not run. |
 | Release Verification 7 | Not yet observed | Canonical record and issue projections | Pending | Owner selected no next release line on 2026-09-29; post-release closure and issue-state observations remain outstanding. |
 
