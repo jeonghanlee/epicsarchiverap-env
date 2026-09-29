@@ -3,22 +3,25 @@
 Release line: master (`maven` branch)
 Milestone index: 265f580
 Canonical path: `docs/milestone-265f580.md`
-Canonical branch or ref: modernize
-Git upstream: origin/modernize
+Canonical branch or ref: maven
+Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit and publish the PR #54 record, then compare
-the resulting `modernize` tip with the PR head before fixing the final release
-candidate.
+Next session entry point: commit and publish the publication checkpoint on
+`maven`, then prepare annotated tag `2.0.0` on the fixed release commit
+`386c91d74086313efe04e0b64eb5dacfd91f8389` with separate authorization.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
 line in this cycle. Its version and plan will be decided separately.
 The final verification record is committed at `b65fb61`. Release Verification 1-3
 passed on `e6f2bd5` on 2026-09-29: 263 local checks, a root reinstall on the
 existing Debian VM, and real PV acquisition and retrieval. Release Verification
-4 passed against committed `7670d39`. PR #54 is open from `modernize` to
-`maven`; its canonical record commit and release execution remain pending.
+4 passed against committed `7670d39`. The PR record is committed at
+`386c91d`; local checks and version checks were rerun on that candidate.
+`maven` was published at `386c91d74086313efe04e0b64eb5dacfd91f8389` and
+PR #54 is merged. The publication checkpoint commit, annotated tag and
+GitHub release remain pending.
 The VM result covers MariaDB over a Unix socket; the earlier bare installation
 and Rocky results retain their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
@@ -970,9 +973,9 @@ follow-up does not authorize another version change.
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
 | 1 | Create the PR from `modernize` to `maven` with committed readiness evidence | User-run PR creation under git-workflow | PR identifies the checked pre-PR commit and scope | Created; observed open at 2026-09-29T16:55:31Z: [PR #54](https://github.com/jeonghanlee/epicsarchiverap-env/pull/54), head `c94555d86f347b32b5cf3cbd847cba0c4ed6cff8`, base `4d85e7f5f8cac6ee2bcafa829a23892cb040d1fa` |
-| 2 | Record the observed PR URL and state in this document on `modernize`; commit and publish that record | Separate commit and push authorization | Remote PR head includes the PR record and readiness evidence | Pending; checkpoint commit and remote observation |
-| 3 | Verify the resulting commit, affected checks and remote PR head; fix its full ID as the final candidate | Read-only verification; publication authority obtained for this exact ID | Checked local tip, remote modernize tip and PR head are identical | Pending; comparison output and verification evidence |
-| 4 | Fast-forward `maven` to the fixed candidate and publish that branch | Separate previewed release authorization | Remote branch reaches the exact candidate | Pending; full commit and remote observation |
+| 2 | Record the observed PR URL and state in this document on `modernize`; commit and publish that record | Separate commit and push authorization | Remote PR head includes the PR record and readiness evidence | Published at `386c91d74086313efe04e0b64eb5dacfd91f8389`; GitHub REST reads of the modernize ref and PR #54 confirm the same head |
+| 3 | Verify the resulting commit, affected checks and remote PR head; fix its full ID as the final candidate | Read-only verification; publication authority obtained for this exact ID | Checked local tip, remote modernize tip and PR head are identical | Verified candidate `386c91d74086313efe04e0b64eb5dacfd91f8389`: `TMPDIR=/tmp bash tests/run-all-tests.bash --local` exits 0 with 224 logic, 20 health/unit, 6 database and 13 build-wrapper checks; no failures or skips. Version assertions confirm one dated 2.0.0 heading, no Unreleased heading, unchanged source pin and committed-file equality. Local tip, fetched origin/modernize and PR head match. Codacy ShellCheck has no result after its container exited 137; the local ShellCheck warning/error check passed. The owner removed the Codacy App; maven has no required checks or branch rules |
+| 4 | Fast-forward `maven` to the fixed candidate and publish that branch | Separate previewed release authorization | Remote branch reaches the exact candidate | Authorized and executed on 2026-09-29. Observed at 2026-09-29T17:29:37Z: local maven, origin/maven and the GitHub maven ref all equal `386c91d74086313efe04e0b64eb5dacfd91f8389`. PR #54 is merged at 2026-09-29T17:29:27Z with the same merge commit. Recheck through the GitHub REST branch-ref and PR endpoints. Publication checkpoint commit remains pending |
 | 5 | Create annotated tag `2.0.0` with message `epicsarchiverap-env 2.0.0` on the fixed release commit | Separate previewed release authorization | Annotated tag peels to the release commit | Pending; tag object and peeled commit |
 | 6 | Push only `refs/tags/2.0.0` to origin | Separate tag-push or previewed release authorization | Remote tag object equals the local object | Pending; remote object ID |
 | 7 | Publish GitHub release `2.0.0` from that tag using the reviewed changelog notes | Separate previewed release authorization | Published release resolves to the recorded tag and notes | Pending; release URL and observed metadata |
