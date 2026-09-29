@@ -8,9 +8,10 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit and publish the issue #24 closure evidence on
-`maven`, then prepare annotated tag `2.0.0` on the fixed release commit
-`386c91d74086313efe04e0b64eb5dacfd91f8389` with separate authorization.
+Next session entry point: commit and publish the annotated-tag checkpoint on
+`maven`, then push the existing `refs/tags/2.0.0` under the release authorization
+recorded on 2026-09-29. The tag targets the fixed release commit
+`386c91d74086313efe04e0b64eb5dacfd91f8389`.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
 line in this cycle. Its version and plan will be decided separately.
@@ -21,7 +22,7 @@ existing Debian VM, and real PV acquisition and retrieval. Release Verification
 `386c91d`; local checks and version checks were rerun on that candidate.
 `maven` was published at `386c91d74086313efe04e0b64eb5dacfd91f8389` and
 PR #54 is merged. The publication checkpoint is committed and published at `7b49a15`; annotated
-tag and GitHub release remain pending.
+tag `2.0.0` is created locally; tag publication and GitHub release remain pending.
 The VM result covers MariaDB over a Unix socket; the earlier bare installation
 and Rocky results retain their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
@@ -974,10 +975,10 @@ follow-up does not authorize another version change.
 | 1 | Create the PR from `modernize` to `maven` with committed readiness evidence | User-run PR creation under git-workflow | PR identifies the checked pre-PR commit and scope | Created; observed open at 2026-09-29T16:55:31Z: [PR #54](https://github.com/jeonghanlee/epicsarchiverap-env/pull/54), head `c94555d86f347b32b5cf3cbd847cba0c4ed6cff8`, base `4d85e7f5f8cac6ee2bcafa829a23892cb040d1fa` |
 | 2 | Record the observed PR URL and state in this document on `modernize`; commit and publish that record | Separate commit and push authorization | Remote PR head includes the PR record and readiness evidence | Published at `386c91d74086313efe04e0b64eb5dacfd91f8389`; GitHub REST reads of the modernize ref and PR #54 confirm the same head |
 | 3 | Verify the resulting commit, affected checks and remote PR head; fix its full ID as the final candidate | Read-only verification; publication authority obtained for this exact ID | Checked local tip, remote modernize tip and PR head are identical | Verified candidate `386c91d74086313efe04e0b64eb5dacfd91f8389`: `TMPDIR=/tmp bash tests/run-all-tests.bash --local` exits 0 with 224 logic, 20 health/unit, 6 database and 13 build-wrapper checks; no failures or skips. Version assertions confirm one dated 2.0.0 heading, no Unreleased heading, unchanged source pin and committed-file equality. Local tip, fetched origin/modernize and PR head match. Codacy ShellCheck has no result after its container exited 137; the local ShellCheck warning/error check passed. The owner removed the Codacy App; maven has no required checks or branch rules |
-| 4 | Fast-forward `maven` to the fixed candidate and publish that branch | Separate previewed release authorization | Remote branch reaches the exact candidate | Authorized and executed on 2026-09-29. Observed at 2026-09-29T17:29:37Z: local maven, origin/maven and the GitHub maven ref all equal `386c91d74086313efe04e0b64eb5dacfd91f8389`. PR #54 is merged at 2026-09-29T17:29:27Z with the same merge commit. Recheck through the GitHub REST branch-ref and PR endpoints. Publication checkpoint commit remains pending |
-| 5 | Create annotated tag `2.0.0` with message `epicsarchiverap-env 2.0.0` on the fixed release commit | Separate previewed release authorization | Annotated tag peels to the release commit | Pending; tag object and peeled commit |
-| 6 | Push only `refs/tags/2.0.0` to origin | Separate tag-push or previewed release authorization | Remote tag object equals the local object | Pending; remote object ID |
-| 7 | Publish GitHub release `2.0.0` from that tag using the reviewed changelog notes | Separate previewed release authorization | Published release resolves to the recorded tag and notes | Pending; release URL and observed metadata |
+| 4 | Fast-forward `maven` to the fixed candidate and publish that branch | Separate previewed release authorization | Remote branch reaches the exact candidate | Authorized and executed on 2026-09-29. Observed at 2026-09-29T17:29:37Z: local maven, origin/maven and the GitHub maven ref all equal `386c91d74086313efe04e0b64eb5dacfd91f8389`. PR #54 is merged at 2026-09-29T17:29:27Z with the same merge commit. Recheck through the GitHub REST branch-ref and PR endpoints. Publication checkpoint committed and published at `7b49a15`; issue #24 closure evidence committed and published at `b8c2e46` |
+| 5 | Create annotated tag `2.0.0` with message `epicsarchiverap-env 2.0.0` on the fixed release commit | Authorized 2026-09-29 for the exact previewed release sequence | Annotated tag peels to the release commit | Created locally 2026-09-29T19:16:05Z. Object type `tag`; tag object `8bd31845746b8850fe9ce4d0ba7216bdae18020b`; peeled commit `386c91d74086313efe04e0b64eb5dacfd91f8389`; tag message matches. Canonical checkpoint commit pending. |
+| 6 | Push only `refs/tags/2.0.0` to origin | Exact previewed command authorized 2026-09-29; requires the preceding canonical checkpoint | Remote tag object equals the local object | Pending; remote object ID |
+| 7 | Publish GitHub release `2.0.0` from that tag using the reviewed changelog notes | Exact previewed command authorized 2026-09-29; requires the preceding canonical checkpoint | Published release resolves to the recorded tag and notes | Pending; release URL and observed metadata |
 | 8 | Retain the current canonical path; open no next release line in this cycle | Decision Date: 2026-09-29, owner selected 2.0.0 only | Closure entry point records that the next release is undecided | Decision recorded; closure consistency check remains Pending |
 | 9 | Record post-release checks and close M8 | Separate canonical checkpoint/closure commit authorization | Required results Pass; released objects unchanged | Pending |
 
@@ -992,6 +993,20 @@ ancestry with that commit rather than requiring branch-tip equality at closure.
 After each release mutation, observe its result and prepare the required
 canonical checkpoint commit before the next dependent action. No GitHub
 milestone is currently assigned; do not create or close one implicitly.
+
+Release preparation observed on 2026-09-29: no local or advertised origin
+`2.0.0` tag and no 2.0.0 object in the GitHub release listing. The advertised
+`maven` tip is `b8c2e4695b834f17f464529a75a3f0019e5951f3`, a descendant of
+the fixed candidate. Its difference from the candidate is this canonical
+document only. The candidate's dated changelog and pinned source are unchanged.
+The prepared notes reproduce the candidate's 2.0.0 changelog with the
+`epicsarchiverap-env 2.0.0` lead and a comparison from the previous published
+release `v1.2.0`; notes SHA-256: `df940d5ca9bd16b213267736a4e3ac02406c9fe4fc3ab878e95650f6889b9c8f`.
+At preparation, tag creation, tag publication and release publication were
+unexecuted. The exact three-command sequence was authorized on 2026-09-29.
+Step 5 above records the observed local tag; steps 6 and 7 remain unexecuted.
+Each requires its preflight and the preceding canonical checkpoint. No GitHub
+milestone is assigned.
 
 ##### Release Verification Plan
 
@@ -1029,7 +1044,7 @@ remain in Release Verification History with their original commit and scope.
 | Release Verification 2 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Root reinstall; see history for payload, database and health evidence. |
 | Release Verification 3 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Three connected PVs with changing post-start samples; see history. |
 | Release Verification 4 | 2026-09-29T16:14:53Z | Committed `7670d39` | Pass | The committed `CHANGELOG.md` has exactly one dated `2.0.0` heading, no `Unreleased`, and SHA-256 `0de0100715e454634463d3fa5248afa299f18ad2ed5ebc127bf34fde2368d65f`. `configure/RELEASE` matches the committed file and pins aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Both files match the checkout. Evidence: `work/release-docs-check.json`. |
-| Release Verification 5 | Not yet observed | Released objects | Pending | Release has not been executed. |
+| Release Verification 5 | 2026-09-29T19:16:05Z (local tag only) | Local annotated tag; remote tag and release not published | Pending | Local tag type, object ID and peeled commit match step 5. Remote identity and published release metadata remain unobserved. |
 | Release Verification 6 | Not yet observed | Clean Debian 13 VM, released object | Pending | Post-release installation has not run. |
 | Release Verification 7 | Not yet observed | Canonical record and issue projections | Pending | Owner selected no next release line on 2026-09-29; post-release closure and issue-state observations remain outstanding. |
 
@@ -3769,7 +3784,7 @@ Environment equivalence: `git diff --name-only e6f2bd5..386c91d` contains only `
 ##### Closure Evidence
 
 - Decision Date: 2026-09-29. Retire the historical report on bounded non-reproduction in the tested current configuration; no runtime code change or fix regression is required because no defect was identified. No required reproduction check was waived; T1 ran through the installed path. Reconstructing the unknown historical environment and testing disconnected, reassigned or startup-race cases are not required for this accepted closure.
-- GitHub REST read-back on 2026-09-29 confirmed issue #24 closed with state reason `completed`, closed_at and updated_at `2026-09-29T19:02:37Z`. The body records the results and limits with all four acceptance checks satisfied; the [closure comment](https://github.com/jeonghanlee/epicsarchiverap-env/issues/24#issuecomment-5896739908) records bounded non-reproduction. No runtime change was made. The canonical evidence update is local and not yet committed.
+- GitHub REST read-back on 2026-09-29 confirmed issue #24 closed with state reason `completed`, closed_at and updated_at `2026-09-29T19:02:37Z`. The body records the results and limits with all four acceptance checks satisfied; the [closure comment](https://github.com/jeonghanlee/epicsarchiverap-env/issues/24#issuecomment-5896739908) records bounded non-reproduction. No runtime change was made. The canonical evidence update is committed and published at `b8c2e4695b834f17f464529a75a3f0019e5951f3`; the remote maven ref was read back on 2026-09-29 with that exact commit.
 
 ##### GitHub Projection
 
