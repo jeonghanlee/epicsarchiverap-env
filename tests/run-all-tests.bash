@@ -18,7 +18,8 @@
 
 set -euo pipefail
 
-readonly TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly TOP
 
 usage() {
     sed -n '3,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
@@ -26,13 +27,19 @@ usage() {
 
 run_phase() {
     local n="$1"
-    local script="${TOP}/tests/phase${n}-"*.bash
-    # Glob expands to the unique phase script for this number.
-    bash ${script}
+    local rc=0
+    local -a scripts=("${TOP}/tests/phase${n}-"*.bash)
+    bash "${scripts[0]}" || rc=$?
+    if [[ $rc -eq 77 ]]; then
+        incomplete=1
+    elif [[ $rc -ne 0 ]]; then
+        exit "$rc"
+    fi
 }
 
 main() {
     local mode="${1:-all}"
+    local incomplete=0
     case "${mode}" in
         --phase=1|--phase1) run_phase 1 ;;
         --phase=2|--phase2) run_phase 1; run_phase 2 ;;
@@ -44,6 +51,10 @@ main() {
         all)                for n in 1 2 3 4; do run_phase "${n}"; done ;;
         *)                  printf 'unknown mode: %s\n' "${mode}" >&2; usage; exit 2 ;;
     esac
+    if [[ $incomplete -ne 0 ]]; then
+        printf '%s\n' '[INCOMPLETE] Requested system phases are not implemented.' >&2
+        return 77
+    fi
 }
 
 main "$@"

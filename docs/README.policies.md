@@ -245,7 +245,12 @@ These policies use the `MONITOR` sampling method, meaning data is archived whene
     * LTS Reduction: Reduced to 60 seconds (`lastSample_60`)
 
 #### 4.1.2 Scan-Based Policies
-These policies use the `SCAN` sampling method, forcing a data read at fixed intervals regardless of value changes.
+These policies use the `SCAN` sampling method to sample monitor events. The engine buffers the latest monitor value and limits
+accepted events using the configured period and `scanJitterFactor`; its scheduled
+check can accept a buffered event after the interval has elapsed. It does not
+issue a forced IOC read at each interval. Once an event has been archived,
+the engine does not repeat it to fill later intervals. The period therefore does not guarantee a fixed number
+of archived samples.
 
 * **Slow**
     * Sampling: 60.0 seconds

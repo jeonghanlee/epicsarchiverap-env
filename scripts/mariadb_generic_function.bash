@@ -11,22 +11,36 @@ DB_PROTOCOL="tcp";
 # is set, otherwise over TCP. MariaDB names a socket client's host localhost,
 # so the application account is granted at DB_USER_HOST.
 if [ -n "${DB_SOCKET:-}" ]; then
-    DB_CONNECT_OPTS="--protocol=socket --socket=${DB_SOCKET}"
-    SQL_ROOT_CMD="sudo mysql --user=root --socket=${DB_SOCKET}"
+    DB_CONNECT_OPTS=(--protocol=socket "--socket=${DB_SOCKET}")
+    SQL_ROOT_CMD=(sudo mysql --user=root "--socket=${DB_SOCKET}")
     DB_USER_HOST="localhost"
 else
     # shellcheck disable=SC2153
-    DB_CONNECT_OPTS="--port=${DB_HOST_PORT} --host=${DB_HOST_NAME} --protocol=${DB_PROTOCOL}"
-    SQL_ROOT_CMD="sudo mysql --user=root"
+    DB_CONNECT_OPTS=("--port=${DB_HOST_PORT}" "--host=${DB_HOST_NAME}" "--protocol=${DB_PROTOCOL}")
+    SQL_ROOT_CMD=(sudo mysql --user=root)
     # shellcheck disable=SC2034
     DB_USER_HOST="${DB_HOST_NAME}"
 fi
 # shellcheck disable=SC2153
-SQL_ADMIN_CMD="mysql --user=${DB_ADMIN} --password=${DB_ADMIN_PASS} ${DB_CONNECT_OPTS}"
+SQL_ADMIN_CMD=(mysql "--user=${DB_ADMIN}" "--password=${DB_ADMIN_PASS}" "${DB_CONNECT_OPTS[@]}")
 # shellcheck disable=SC2153
-SQL_DBUSER_CMD="mysql --user=${DB_USER} --password=${DB_USER_PASS} ${DB_CONNECT_OPTS}"
+SQL_DBUSER_CMD=(mysql "--user=${DB_USER}" "--password=${DB_USER_PASS}" "${DB_CONNECT_OPTS[@]}")
 # shellcheck disable=SC2034
-SQL_BACKUP_CMD="mysqldump --user=${DB_USER} --password=${DB_USER_PASS} ${DB_CONNECT_OPTS}"
+SQL_BACKUP_CMD=(mysqldump "--user=${DB_USER}" "--password=${DB_USER_PASS}" "${DB_CONNECT_OPTS[@]}")
+
+function sql_string
+{
+    local value="$1"
+    value=${value//\'/\'\'}
+    printf "'%s'" "$value"
+}
+
+function sql_identifier
+{
+    local value="$1"
+    value=${value//\`/\`\`}
+    printf '`%s`' "$value"
+}
 
 EXIST=1
 NON_EXIST=0
@@ -103,7 +117,7 @@ function mariadb_secure_setup
     set -o pipefail
     printf ">> MariaDB Secure Installation\\n";
     # shellcheck disable=SC2154
-    if ! ${SQL_ROOT_CMD} -N -B <<'GENSQL' | ${SQL_ROOT_CMD}
+    if ! "${SQL_ROOT_CMD[@]}" -N -B <<'GENSQL' | "${SQL_ROOT_CMD[@]}"
 SET SESSION sql_mode='';
 SELECT CONCAT('DROP USER IF EXISTS ', QUOTE(User), '@', QUOTE(Host), ';')
   FROM mysql.user
@@ -111,7 +125,7 @@ SELECT CONCAT('DROP USER IF EXISTS ', QUOTE(User), '@', QUOTE(Host), ';')
 GENSQL
     then rc=1; fi
     # shellcheck disable=SC2154
-    if ! ${SQL_ROOT_CMD} <<EOF
+    if ! "${SQL_ROOT_CMD[@]}" <<EOF
     DROP DATABASE IF EXISTS test;
     DELETE FROM mysql.db WHERE Db='test' OR HEX(Db) IN ('746573745C5F25', '746573745F25');
     FLUSH PRIVILEGES;
@@ -132,8 +146,9 @@ function add_admin_account_local
     #
     #
     printf ">> Add %s user with GRANT ALL in the MariaDB \\n" "${db_admin_name}"
-    if ! ${SQL_ROOT_CMD} <<EOF
-    GRANT ALL ON *.* TO '${db_admin_name}'@'localhost' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
+    if ! "${SQL_ROOT_CMD[@]}" <<EOF
+    SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';
+    GRANT ALL ON *.* TO $(sql_string "$db_admin_name")@'localhost' IDENTIFIED BY $(sql_string "$db_admin_pass") WITH GRANT OPTION;
     FLUSH PRIVILEGES;
 EOF
     then
@@ -156,8 +171,9 @@ function add_admin_account_hostname
     #
     #
     printf ">> Add %s user with GRANT ALL in the MariaDB \\n" "${db_admin_name}"
-    if ! ${SQL_ROOT_CMD} <<EOF
-    GRANT ALL ON *.* TO '${db_admin_name}'@'${db_hostname}' IDENTIFIED BY '${db_admin_pass}' WITH GRANT OPTION;
+    if ! "${SQL_ROOT_CMD[@]}" <<EOF
+    SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';
+    GRANT ALL ON *.* TO $(sql_string "$db_admin_name")@$(sql_string "$db_hostname") IDENTIFIED BY $(sql_string "$db_admin_pass") WITH GRANT OPTION;
     FLUSH PRIVILEGES;
 EOF
     then
@@ -168,16 +184,19 @@ EOF
 }
 
 
-# 1 : Hostname
+# 1 : MariaDB admin name
+# 2 : Hostname
 function remove_admin_account_hostname
 {
+    local db_admin_name="$1"; shift;
     local db_hostname="$1"; shift;
-    if ! ${SQL_ROOT_CMD} <<EOF
-    DROP USER IF EXISTS 'admin'@'${db_hostname}';
+    if ! "${SQL_ROOT_CMD[@]}" <<EOF
+    SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';
+    DROP USER IF EXISTS $(sql_string "$db_admin_name")@$(sql_string "$db_hostname");
     FLUSH PRIVILEGES;
 EOF
     then
-        clientFailMessage "Removing the admin@${db_hostname} account"
+        clientFailMessage "Removing the ${db_admin_name}@${db_hostname} account"
         return 1
     fi
     printf "\\n"
@@ -186,13 +205,15 @@ EOF
 
 function remove_admin_account_local
 {
-    printf ">> Remove local admin user \\n"
-    if ! ${SQL_ROOT_CMD} <<EOF
-    DROP USER IF EXISTS 'admin'@'localhost';
+    local db_admin_name="$1"
+    printf ">> Remove local %s user \\n" "$db_admin_name"
+    if ! "${SQL_ROOT_CMD[@]}" <<EOF
+    SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';
+    DROP USER IF EXISTS $(sql_string "$db_admin_name")@'localhost';
     FLUSH PRIVILEGES;
 EOF
     then
-        clientFailMessage "Removing the admin@localhost account"
+        clientFailMessage "Removing the ${db_admin_name}@localhost account"
         return 1
     fi
     printf "\\n"
@@ -203,22 +224,10 @@ EOF
 # 2 : additional options (useful to use -N )
 function admin_query_from_sql_file
 {
-    local sql_file="$1"; shift;
-    local options="$1"; shift;
-    local cmd;
-
-    cmd+="$SQL_ADMIN_CMD";
-    cmd+=" ";
-    cmd+="${options}";
-    cmd+=" ";
-    cmd+="<";
-    cmd+=" ";
-    cmd+=""\";   
-    cmd+="${sql_file}";
-    cmd+="\"";
-    # The following cmd contains only mysql standard query
-    commandPrn "$cmd"
-    eval "${cmd}"
+    local sql_file="$1"
+    local -a options=()
+    read -r -a options <<< "${2:-}"
+    "${SQL_ADMIN_CMD[@]}" "${options[@]}" < "$sql_file"
 }
 
 function create_db_and_user 
@@ -228,11 +237,12 @@ function create_db_and_user
     local db_user_name="$1"; shift;
     local db_user_pass="$1";shift;
 
+    local aHost
     local temp_sql_file="";
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
-    echo "CREATE DATABASE IF NOT EXISTS ${db_name} CHARACTER SET utf8mb4;" > "$temp_sql_file";
+    printf "%s\n" "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';" "CREATE DATABASE IF NOT EXISTS $(sql_identifier "$db_name") CHARACTER SET utf8mb4;" > "$temp_sql_file";
     for aHost in $db_hosts;  do
-        echo "GRANT ALL PRIVILEGES ON ${db_name}.* TO '$db_user_name'@'$aHost' IDENTIFIED BY '$db_user_pass';" >> "$temp_sql_file";
+        printf '%s\n' "GRANT ALL PRIVILEGES ON $(sql_identifier "$db_name").* TO $(sql_string "$db_user_name")@$(sql_string "$aHost") IDENTIFIED BY $(sql_string "$db_user_pass");" >> "$temp_sql_file";
     done
     echo "FLUSH PRIVILEGES;" >> "${temp_sql_file}"; 
 #    echo "${temp_sql_file}"
@@ -262,11 +272,12 @@ function drop_db_and_user
     printf ">> Drop the Database -%s- \\n" "${db_name}";
     printf ">> Drop the user -%s- at -%s- \\n" "${db_user_name}" "${db_hosts[@]}"
     
+    local aHost
     local temp_sql_file="";
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
-    echo "DROP DATABASE IF EXISTS ${db_name};" > "$temp_sql_file";
+    printf '%s\n' "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';" "DROP DATABASE IF EXISTS $(sql_identifier "$db_name");" > "$temp_sql_file";
     for aHost in $db_hosts;  do
-        echo "DROP USER IF EXISTS '$db_user_name'@'$aHost';" >> "$temp_sql_file";
+        printf '%s\n' "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';" "DROP USER IF EXISTS $(sql_string "$db_user_name")@$(sql_string "$aHost");" >> "$temp_sql_file";
     done
     echo "${temp_sql_file}"
     if ! admin_query_from_sql_file "${temp_sql_file}"; then
@@ -291,10 +302,11 @@ function drop_user
 
     printf ">> Drop the user -%s- at -%s- \\n" "${db_user_name}" "${db_hosts[@]}"
     
+    local aHost
     local temp_sql_file="";
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     for aHost in $db_hosts;  do
-        echo "DROP USER IF EXISTS '$db_user_name'@'$aHost';" >> "$temp_sql_file";
+        printf '%s\n' "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';" "DROP USER IF EXISTS $(sql_string "$db_user_name")@$(sql_string "$aHost");" >> "$temp_sql_file";
     done
     echo "${temp_sql_file}"
     if ! admin_query_from_sql_file "${temp_sql_file}"; then
@@ -318,8 +330,8 @@ function create_db
    if [ "$verbose" == "YES" ]; then
        printf ">> Create the Database %s \\n" "${db_name}";
    fi
-   if ! ${SQL_ADMIN_CMD} <<EOF
-CREATE DATABASE IF NOT EXISTS ${db_name} CHARACTER SET utf8mb4;
+   if ! "${SQL_ADMIN_CMD[@]}" <<EOF
+CREATE DATABASE IF NOT EXISTS $(sql_identifier "$db_name") CHARACTER SET utf8mb4;
 EOF
    then
        clientFailMessage "Creating the database ${db_name}"
@@ -337,8 +349,8 @@ function drop_db
         printf ">> Drop the Database %s \\n" "${db_name}";
     fi
 
-    if ! ${SQL_ADMIN_CMD} <<EOF
-DROP DATABASE IF EXISTS ${db_name};
+    if ! "${SQL_ADMIN_CMD[@]}" <<EOF
+DROP DATABASE IF EXISTS $(sql_identifier "$db_name");
 EOF
     then
         clientFailMessage "Dropping the database ${db_name}"
@@ -349,66 +361,39 @@ EOF
 
 function show_dbs
 {
-    local dBs;
-    local cmd;
-    cmd+="$SQL_ADMIN_CMD";
-    cmd+=" ";
-    cmd+="-N";
-    cmd+=" ";   
-    cmd+="--execute=\"";
-    # The following cmd contains only mysql standard query
-    cmd+="SHOW DATABASES;";
-    cmd+="\"";
-    commandPrn "$cmd"
-    if ! dBs=$(eval "${cmd}"); then
+    local dBs db
+    if ! dBs=$("${SQL_ADMIN_CMD[@]}" -N --execute="SHOW DATABASES;"); then
         clientFailMessage "Listing databases"
         return 1
     fi
-    for db in $dBs
-    do
-        printf ">>>>> %24s was found.\n" "${db}"
+    for db in $dBs; do
+        printf ">>>>> %24s was found.\n" "$db"
     done
 }
 
 # 1 : database name
 # 2 : verbose
-# 3 : client command for the check (default: SQL_ADMIN_CMD); callers that act
+# 3 : client command array name (default: SQL_ADMIN_CMD); callers that act
 #     as the application account pass SQL_DBUSER_CMD
 # If the database exists,        it returns 1
 # If the database doesn't exist, it returns 0
 # A failed client invocation is reported on stderr and returns 0
 function isDb
 {
-    local db_name="$1"; shift;
-    local verbose="$1"; shift;
-    local sql_cmd="${1:-${SQL_ADMIN_CMD}}";
-
-    local outputs;
-    local cmd;
-    cmd+="${sql_cmd}";
-    cmd+=" ";
-    cmd+="-N";
-    cmd+=" ";
-    cmd+="--execute=\"";
-    # The following cmd contains only mysql standard query
-    cmd+="SELECT schema_name FROM information_schema.schemata WHERE schema_name='${db_name}'";
-    cmd+="\"";
-    if ! outputs=$(eval "${cmd}"); then
-        printf ">> Cannot check the database >> %s <<, the database client failed.\\n" "${db_name}" >&2
-        outputs="";
+    local db_name="$1"
+    local verbose="${2:-}"
+    local -n sql_cmd="${3:-SQL_ADMIN_CMD}"
+    local outputs
+    if ! outputs=$("${sql_cmd[@]}" -N --execute="SET SESSION sql_mode='NO_BACKSLASH_ESCAPES'; SELECT schema_name FROM information_schema.schemata WHERE schema_name=$(sql_string "$db_name")"); then
+        printf ">> Cannot check the database >> %s <<, the database client failed.\n" "$db_name" >&2
+        outputs=
     fi
-    outputs=$(printf "%s\n" "${outputs}" | awk '{print $1}')
-    if [ "$verbose" == "YES" ]; then
-        commandPrn "$cmd"
-        printf "We've found the DB -%s- \\n" "$outputs";
+    if [[ $verbose == YES ]]; then
+        printf "We've found the DB -%s- \n" "$outputs"
+    elif [[ -n $outputs ]]; then
+        printf '%s\n' "$EXIST"
     else
-        local result=""
-        if [[ -z "${outputs}" ]]; then
-            result=${NON_EXIST} # does not exist
-        else
-            result=${EXIST}     # exists
-        fi
-        echo "${result}"
+        printf '%s\n' "$NON_EXIST"
     fi
 }   
 
@@ -432,42 +417,21 @@ function commandPrn
 # 4 : verbose
 function query_from_sql_file
 {
-    local db_name="$1"; shift;
-    local sql_file="$1"; shift;
-    local options="$1"; shift;
-    local verbose="$1"; shift;
-    local db_exist;
-    local cmd;
-
-    if [ -z "${options}" ]; then
-        options="";
+    local db_name="$1"
+    local sql_file="$2"
+    local verbose="${4:-NO}"
+    local db_exist
+    local -a options=()
+    read -r -a options <<< "${3:-}"
+    db_exist=$(isDb "$db_name" "" SQL_DBUSER_CMD)
+    if [[ $db_exist -ne $EXIST ]]; then
+        noDbMessage "$db_name"
+        return 1
     fi
-
-    if [ -z "${verbose}" ]; then
-        verbose="NO"
+    if [[ $verbose == YES ]]; then
+        printf ">> Query database %s from %s\n" "$db_name" "$sql_file"
     fi
-
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
-
-    if [[ $db_exist -ne "$EXIST" ]]; then
-   	    noDbMessage "${db_name}";
-	    exit 1;
-    else
-        cmd+="$SQL_DBUSER_CMD";
-        cmd+=" ";
-        cmd+="${options}";
-        cmd+=" ";
-        cmd+="${db_name}";
-        cmd+=" ";
-        cmd+="<";
-        cmd+=" ";
-        cmd+=""\";   
-        cmd+="${sql_file}";
-        cmd+="\"";
-        # The following cmd contains only mysql standard query
-        commandPrn "$cmd" "$verbose"
-        eval "${cmd}"
-    fi
+    "${SQL_DBUSER_CMD[@]}" "${options[@]}" "$db_name" < "$sql_file"
 }
 
 
@@ -481,24 +445,13 @@ function show_tables
     local cmd;
     local i;
     i=0;
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
     
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        cmd+="$SQL_DBUSER_CMD";
-        cmd+=" ";
-        cmd+="${db_name}";
-        cmd+=" ";
-        cmd+="-N";
-        cmd+=" ";   
-        cmd+="--execute=\"";
-        # The following cmd contains only mysql standard query
-        cmd+="SHOW FULL TABLES WHERE Table_type='${type}'"
-        cmd+=";\"";
-        commandPrn "$cmd"
-        tables=$(eval "${cmd}" | awk '{print $1}')
+        tables=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}')
         printf "\n";
         # shellcheck disable=SC2206
         declare -a  table_array=( ${tables} )
@@ -523,24 +476,13 @@ function show_procedures
     local i;
     i=0;
 
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
     
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        cmd+="$SQL_DBUSER_CMD";
-        cmd+=" ";
-        cmd+="${db_name}";
-        cmd+=" ";
-        cmd+="-N";
-        cmd+=" ";   
-        cmd+="--execute=\"";
-        # The following cmd contains only mysql standard query
-        cmd+="SHOW PROCEDURE STATUS"
-        cmd+=";\"";
-        commandPrn "$cmd"
-        outputs=$(eval "${cmd}" | awk '{print $2}')
+        outputs=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}')
         printf "\n";
         # shellcheck disable=SC2206
         declare -a  array=( ${outputs} )
@@ -567,48 +509,27 @@ function drop_tables
     local db_exist;
     local cmd;
     local dropCmd;
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        cmd+="$SQL_DBUSER_CMD";
-        cmd+=" ";
-        cmd+="${db_name}";
-        cmd+=" ";
-        cmd+="-N";
-        cmd+=" ";   
-        cmd+="--silent"
-        cmd+=" ";   
-        cmd+="--execute=\"";
-        # The following cmd contains only mysql standard query
-        # It is ok to get all table and views, because we only use DROP TABEL query
-        cmd+="SHOW FULL TABLES WHERE Table_type='${type}'"
-        cmd+=";\"";
-        commandPrn "$cmd"
-        tables=$(eval "${cmd}" | awk '{print $1}' )
+        tables=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}')
         if [ "$tables" ]; then
             # shellcheck disable=SC2086
             tables_cmd=$(echo ${tables} | tr -s ' ' ',')
             printf "\n";
-            dropCmd+="$SQL_DBUSER_CMD";
-            dropCmd+=" ";
-            dropCmd+="${db_name}";
-            dropCmd+=" ";
-            dropCmd+="--execute=\"";
-            # Ignore all table orders, drop all
-            dropCmd+="SET foreign_key_checks = 0;"
+            dropCmd="SET foreign_key_checks = 0;"
             if [ "$type" == "VIEW" ]; then
                 dropCmd+="DROP VIEW IF EXISTS ${tables_cmd};"
             else
                 dropCmd+="DROP TABLE IF EXISTS ${tables_cmd};"
             fi
             dropCmd+="SET foreign_key_checks = 1"
-            dropCmd+=";\"";
+            dropCmd+=";";
        
-            commandPrn "$dropCmd"
-            eval "${dropCmd}"
+            "${SQL_DBUSER_CMD[@]}" "${db_name}" --execute="$dropCmd"
         fi
 
     fi
@@ -621,26 +542,13 @@ function drop_tables
 # 2 : MariaDB query
 function execute_query
 {
-    local db_name="$1"; shift;
-    local query="$1"; shift;
-    local db_exist;
-    local cmd;
-
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
-
-    if [[ $db_exist -ne "$EXIST" ]]; then
-   	    noDbMessage "${db_name}";
-	    exit 1;
-    else
-        cmd+="$SQL_DBUSER_CMD";
-        cmd+=" ";
-        cmd+="${db_name}";
-        cmd+=" ";
-        cmd+="--execute=\"";
-        cmd+="${query}";
-        cmd+="\"";
-        # The following cmd contains only mysql standard query
-        commandPrn "$cmd"
-        eval "${cmd}"
+    local db_name="$1"
+    local query="$2"
+    local db_exist
+    db_exist=$(isDb "$db_name" "" SQL_DBUSER_CMD)
+    if [[ $db_exist -ne $EXIST ]]; then
+        noDbMessage "$db_name"
+        return 1
     fi
+    "${SQL_DBUSER_CMD[@]}" "$db_name" --execute="$query"
 }

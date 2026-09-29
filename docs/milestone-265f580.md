@@ -8,13 +8,12 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit this verification-record update, then open
-M8's prepared PR from `modernize` to `maven` under its separate authorization.
-The configuration and runtime corrections landed through `3cf9c3c`; Release
-Verification 1 passed on clean `decff38` with 224 logic checks, 20 health and
-unit-file tests, and 13 build-wrapper checks. Release Verification 4 also
-passed on that commit. The targeted Debian 13 and Rocky 8.10 VM checks retain
-their recorded scope; their 16-file snapshot matches the current files.
+Next session entry point: review the configuration/database and reinstall
+corrections together, then prepare their commit before M8's PR.
+The current working tree is based on `8fa1af0`; its local checks and private
+MariaDB verification are recorded under M8 below. Earlier committed-tip and
+VM results retain their original commit and file scope; they do not establish
+VM verification of these configuration/database changes.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
 the ansible-provision soak. Additional heap measurements have been requested
 for Backlog M41; they do not gate M8. Full backend consistency remains
@@ -930,8 +929,8 @@ Rechecked 2026-09-28 PDT against committed `decff38`: all 16 entries in
 `changed-files.sha256` match the checkout, and `configure/RULES_DOCKER`
 remains absent. The changes landed in `5e3413d`, `2aedf07`, `863fd5d` and
 `e48502c`; their durable verification record landed at `3cf9c3c`.
-This file comparison ties the tested corrections to the current commit;
-it is not a new VM run.
+This file comparison ties the tested corrections to `decff38`; it is not
+a new VM run and does not cover the later configuration/database changes.
 
 Both VMs passed the real installation and runtime checks: alternate Tomcat
 prefix in all four JVMs; configured ports in server XML and appliance URLs;
@@ -953,6 +952,86 @@ Local evidence: `work/vm-coherence-20260928/README.md`, `verify.bash`,
 `debian13-results.txt`, `rocky8-results.txt`, `provenance.json` and
 `changed-files.sha256` in that directory. These ignored local artifacts
 are diagnostic evidence; this register owns the durable result and scope.
+
+##### Whole-Repository Review Corrections
+
+Decision Date: 2026-09-28. Apply the six confirmed review findings and check
+the reinstall hypothesis. The subsequent instruction includes the confirmed
+reinstall defect in the same correction and requires documentation of its
+scope and verification. Full backend expansion remains Deferred under M42.
+
+The working tree based on `8fa1af0` now preserves database passwords through
+Make, XML, shell configuration and MariaDB client arguments; uses
+`JDBC_DB_NAME` for both the resource and runtime JNDI lookup; uses `DB_NAME`
+for application-table queries; and removes the configured `DB_ADMIN` account.
+The unimplemented system phases return 77 without a success verdict. SCAN
+documentation describes monitor-event sampling, and the M22 heap evidence is
+aligned with the operator report without claiming a new soak.
+
+Observed 2026-09-28 PDT (2026-09-29 UTC), on this Debian 13 host:
+
+- The shipped `tests/run-all-tests.bash --local` returned 0: 224 Phase 1
+  checks, 20 health/unit-file tests, four configuration/entrypoint tests and
+  13 build-wrapper checks passed, with no skips. Configuration tests cover
+  command-line and local-file overrides, XML and shell escaping, and both
+  backend resource names. `--system` returned 77 and reported both missing
+  phases without `[PASS]`; the default all-phase run also returned 77 after
+  its local checks. No container or VM integration check ran.
+- `python3 tests/database-config.py --integration` returned 0 against a
+  private real MariaDB server. Both TCP and socket paths ran account creation,
+  the shipped schema load, queries, application-table lookup, backup/restore,
+  table removal and DB/user removal with a special-character password.
+  Configured local and hostname admin accounts were removed while unrelated
+  `admin` accounts survived. Only the sudo privilege boundary was replaced by
+  current-user execution; the real setup dispatcher, client and server ran.
+  Host sudo policy and Tomcat runtime authentication were not verified.
+- **Corrected: stale deployed payload on reinstall.** Before correction, the
+  real `install.mgmt` target retained 33 files absent from the second WAR
+  and five old log4j 2.20.0 JARs alongside 2.26.1. The baseline comparison
+  returned 1. The installer now prepares a fresh WAR and JAR set before
+  replacing those managed directories, preserving non-JAR logging files.
+  The install guide documents the stop/install/start sequence, overwritten
+  managed paths, preserved state and per-instance failure boundaries.
+- After correction, `tests/install-payload.py` returned 0 using retained
+  `5e6c1266` and `50e7382a` WARs and real old/new logging JARs. All four real
+  instance installation targets ran twice with `SUDO=` in a temporary prefix.
+  Every resulting WAR file and JAR matched the second artifact set: no stale,
+  missing or mismatched WAR files and no old JARs. Operator files in logs,
+  external configuration, work/temp and another webapp, plus a storage-file
+  marker, survived. Missing, ambiguous and truncated WARs and missing JARs
+  each failed before changing the installed mgmt payload. No `.payload.*`
+  temporary directory remained. The helper also rejected a filesystem-root
+  destination, its path alias, a symlink instance and an invalid service name
+  with the expected error reason. The test substitutes only filesystem state;
+  the Make rules, installer, WARs and JARs are real. This does not establish
+  a live upgrade, privileged deployment or recovery from power loss.
+
+Evidence: `work/coherence-fixes-20260928/` contains `local.log`,
+`local-with-reinstall.log` (final local rerun), `database.log`, `reinstall.log`
+(baseline), `reinstall-fixed.log`, `all-phases.log` and `provenance.json` with
+the base commit and SHA-256 digests. `changed-files.sha256` identifies the
+reviewed files. Reproduction
+entrypoints are shipped under `tests/database-config.py` and
+`tests/install-payload.py`. These results do not replace the committed-tip
+release check or extend earlier VM observations to this working tree.
+
+The accepted third-person findings are corrected in the same working tree.
+`conf.archappl` now renders only after its substitution succeeds; a failed
+substitution returns nonzero and preserves an existing output or leaves an
+absent output absent. `db.conf` normalizes `DB_SOCKET` with the same Make
+`strip` operation as the JDBC URL, including inline-comment whitespace.
+All installation-guide procedures for storage thresholds, socket changes and
+logging settings now require stopping the appliance before reinstalling.
+
+Observed 2026-09-28 20:52 PDT: the local suite returned 0 with 224 logic,
+20 health/unit, six configuration/entrypoint and 13 build-wrapper checks
+(263 total). The two additional configuration tests execute the real Make
+targets for substitution failure and socket/comment consistency. The private
+MariaDB integration test also returned 0, with its socket path read from an
+inline-comment local override and its TCP path selected explicitly. The sudo
+boundary and runtime limitations described above still apply. Evidence:
+`work/coherence-fixes-20260928/review-fixes-local.log`,
+`review-fixes-database.log` and `review-fixes.sha256` in the same directory.
 
 ##### Closure Evidence
 
@@ -1936,13 +2015,14 @@ MariaDB side of the same host budget.
   aa-maven `3c96141d`. This session checked the report and its arithmetic, not
   the VM, collector or original logs. T3 records that provenance explicitly.
 
-- Supporting evidence, not T2 (2026-09-27, from M26 / T2): a default install
+- Historical observation before the criterion amendment (2026-09-27, from
+  M26 / T2): a default install
   with no `AA_JAVA_HEAPSIZE` set anywhere, on a disposable Rocky Linux 8.10
   VM with the SQLite backend, ran all four JVMs with `-Xms256M -Xmx256M`, so
   the default reaches the JVMs. The ansible-provision soak on `9eed006` used
   256M through that operator's own `AA_JAVA_HEAPSIZE` line (confirmed
-  2026-09-26), so it is not default-install evidence either. T2 still needs
-  a 4 GB host with MariaDB sampling PVs for more than four hours.
+  2026-09-26), so it is not a default-install loaded run. The original request
+  for a separate four-hour run was superseded by the 2026-09-28 decision below.
 - Decision Date: 2026-09-28. The completion criterion is amended as above and
   T2 is met by the `9eed006` soak together with M26 / T2, instead of a new
   default-install run. The ansible-provision operator reported on 2026-09-28
@@ -1951,10 +2031,13 @@ MariaDB side of the same host budget.
   `../CONFIG_SITE.local`. The soak is heavier and longer than T2 asked for
   (T2 below), and M26 / T2 showed that the default reaches the JVMs, so the
   two together cover the criterion.
-- Observed on the same soak, outside this row: under 903 PVs and the
-  retrieval load the etl heap peaked at 251 MiB of 256 MiB with 10 full GCs,
-  and the other three instances had none. Heap needs by load are measured
-  under M41 (#53).
+- Corrected operator evidence received 2026-09-28: the maximum sampled ETL
+  heap was 250.9 MiB over the full 903-PV stage and 239.1 MiB during its
+  six-hour concurrent-query subset. Ten ETL Full GCs occurred from the
+  500-PV start through the end, including fault tests; one was in the
+  500-PV stage. These are five-minute samples, not instantaneous peaks or
+  post-GC retained heap. See [the report](reports/heap-soak-20260928.md) for
+  measurement scope and provenance; heap sizing remains M41 (#53).
 
 ##### Implementation Plan
 
@@ -1971,27 +2054,25 @@ Superseded Plan Artifacts: none
 3. Run the real `conf.archappl` target in a copy of tracked working-tree files
    with no local overrides. Check the generated options, repeat with a 512M
    local override, and run the existing local tests.
-4. Record the received override-based light-load result as supplemental T3
-   evidence. Keep T2 pending until an identified commit containing the default
-   change is deployed without a heap override and its runtime is verified beyond
-   both earlier failure intervals. VM deployment is not part of the current
-   local configuration change. The accepted default-install criterion remains
-   unchanged; supplemental evidence does not replace it.
+4. Record the override-based light-load result as supplemental T3 evidence.
+   Under the criterion amended on 2026-09-28, T2 combines the loaded
+   `9eed006` soak with M26 / T2's confirmation that the shipped default
+   reaches all four JVMs. No separate default-install loaded run is claimed.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | Config | Resolve heap and metaspace with the real Makefile; render `conf.archappl` with the default and a 512M local override; run existing local tests | This host and an isolated copy of tracked files | Default renders Xms/Xmx256M, override renders Xms/Xmx512M, metaspace remains 256M, and local tests pass |
-| T2 | Runtime | Install with the default and sample PVs beyond both earlier OOM intervals (more than four hours) | 4 GB host with MariaDB | Four instances stay up; no kernel OOM kill |
-| T3 | Supplemental runtime evidence | Review the supplied operator report of the real 256M override run; identify retained measurements and limits | Reported Rocky Linux 8.10 VM, 3.58 GiB guest RAM, MariaDB co-located | Record survival, OOM and sampling/retrieval outcome for the measured light workload separately from default-install T2 |
+| T2 | Runtime | Combine the loaded 256M soak with M26 / T2 default propagation, under the 2026-09-28 amended criterion | Reported 4 GB VM with MariaDB for load; separate default-install VM | Four appliance JVMs survive the measured load without OOM; the shipped default reaches all four JVMs |
+| T3 | Supplemental runtime evidence | Review the supplied operator report of the real 256M override run; identify retained measurements and limits | Reported Rocky Linux 8.10 VM, 3.58 GiB guest RAM, MariaDB co-located | Record survival, OOM and sampling/retrieval outcome for the measured light workload separately from the amended T2 evidence |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | T1 | 2026-09-22T20:49:32Z | Working tree based on `9a64fb6`; isolated copy of real tracked files | Pass | The real `make conf.archappl` output passes `bash -n` and, when sourced by Bash, supplies exactly one Xms/Xmx256M pair. A real parent `CONFIG_SITE.local` override produces exactly one Xms/Xmx512M pair; both retain MaxMetaspaceSize=256M. Four-instance arithmetic confirms 1024 MiB heap plus 1024 MiB metaspace caps, leaving 2048 MiB from a 4 GiB VM for other consumers. `TMPDIR=/tmp tests/run-all-tests.bash --local` passes 59 logic and 14 build-wrapper assertions; `git diff --check` passes. No JVM or VM runtime was exercised. |
-| T2 | 2026-09-28T07:5xZ (read; soak from 2026-09-24T09:09:52Z) | aa-env `9eed006`, aa-maven `3c96141d`; Rocky Linux 8.10, 2 vCPU, 3.58 GiB guest RAM (3665 MiB), no swap, MariaDB on the same host; 256M through the operator's `AA_JAVA_HEAPSIZE` line. Observed on the reporting side, not on this host | Pass (amended criterion, with M26 / T2) | All four JVMs read from `/proc/<pid>/cmdline` with `-Xms256M -Xmx256M -XX:MaxMetaspaceSize=256M`; the same PIDs since the planned restart at 2026-09-25T09:25:13Z, `NRestarts=0`, one boot since 2026-09-24. Load: 100 PVs from 2026-09-24T09:09:52Z, 500 from 2026-09-25T09:46Z, 903 (100 at 10 Hz, three waveforms) from 15:46Z to 2026-09-26T18:55Z, retrieval clients 2026-09-25T21:46Z to 21:56Z and 2026-09-26T08:30Z to 14:30Z. Kernel OOM over the whole boot: one kill, at 2026-09-25T21:56:45Z, of a load-test client (python3, about 1.2 GB anonymous RSS) in its own transient unit, not a JVM. Peak RSS per JVM 374 to 500 MiB; lowest MemAvailable 1003 MiB under load. The default reaching the JVMs is M26 / T2 (2026-09-27) |
+| T2 | 2026-09-28T07:5xZ (read; soak from 2026-09-24T09:09:52Z) | aa-env `9eed006`, aa-maven `3c96141d`; Rocky Linux 8.10, 2 vCPU, 3.58 GiB guest RAM (3665 MiB), no swap, MariaDB on the same host; 256M through the operator's `AA_JAVA_HEAPSIZE` line. Observed on the reporting side, not on this host | Pass (amended criterion, with M26 / T2) | All four JVMs read from `/proc/<pid>/cmdline` with `-Xms256M -Xmx256M -XX:MaxMetaspaceSize=256M`; the same PIDs since the planned restart at 2026-09-25T09:25:13Z, `NRestarts=0`, one boot since 2026-09-24. Load: 100 PVs from 2026-09-24T09:09:52Z, 500 from 2026-09-25T09:46Z, 903 (783 at 1 Hz, 110 at 10 Hz, 10 at 0.1 Hz; eight 1000-double waveforms included in the total) from 15:46Z to 2026-09-26T18:55Z, retrieval clients 2026-09-25T21:46Z to 21:56Z and 2026-09-26T08:30Z to 14:30Z. Kernel OOM over the whole boot: one kill, at 2026-09-25T21:56:45Z, of a load-test client (python3, about 1.2 GB anonymous RSS) in its own transient unit, not a JVM. Peak RSS per JVM 374 to 500 MiB; lowest MemAvailable 1003 MiB under load. The default reaching the JVMs is M26 / T2 (2026-09-27) |
 | T3 | 2026-09-22T01:00:19Z to 2026-09-22T21:59:58Z (reported) | aa-env `6a026d4`, aa-maven `3c96141d`; 256M override; Rocky Linux 8.10, 3.58 GiB RAM, no swap | Pass (operator report; light workload only) | Owner-supplied VM heap verification report, dated 2026-09-22; 10 scalar PVs at 1 Hz each for 20 h 59 min 39 s. Reports four JVMs with the effective 256M options, zero OOM/restarts, and successful sampling/retrieval. Original VM records were not inspected by this session; details and limits below. |
 
 ##### Loaded Runtime Evidence And Limits
@@ -2037,18 +2118,17 @@ Arithmetic and interpretation:
   no intervening restarts. Those retained records have not been independently
   inspected here. The recorded PASS is limited to the reported survival,
   no-OOM and sampling/retrieval criteria for this light workload.
-- T2 remains Pending: deploy `0df950d` or a descendant containing the heap default,
-  verify effective options without a heap override, and record its loaded run.
-  A capacity claim for larger PV populations, arrays or sustained retrieval
-  would require a separate representative workload; it is not implied by T3.
+- T3 alone does not satisfy T2. T2 is complete under the 2026-09-28 amended
+  criterion using the later loaded soak and M26 / T2, as recorded above.
+  Neither result establishes production capacity or an optimal heap size.
 
 ##### Closure Evidence
 
 - The 256M VM test default, comments and memory budget are implemented and
   locally verified (T1). Supplemental T3 records the operator-reported PASS
   for the 256M override under light sampling load for approximately 21 hours.
-  Default-install runtime verification (T2) remains outstanding; status stays
-  In progress.
+  T2 is complete under the 2026-09-28 amended criterion below; the older
+  requirement for a separate default-install loaded run no longer applies.
 - The heap default and memory-budget documentation landed at `0df950d` on
   origin/modernize on 2026-09-23. The commit is an ancestor of the pushed tip
   `75d3460`; recheck with `git merge-base --is-ancestor 0df950d origin/modernize`.
@@ -5557,9 +5637,12 @@ but does not consistently select aa-env's database commands. At `46faeb9`,
 table deletion and the four application-table queries still invoke
 `scripts/mariadb_setup.bash`. All `db.*` commands remain MariaDB-specific.
 An unrecognized backend falls through to MariaDB in the SQL rules, while
-`conf.context` and `conf.systemd0` reject it. The MariaDB application-table
-query also hardcodes `archappl` instead of honoring `DB_NAME` in
-`scripts/mariadb_setup.bash`'s `show_archappl` function.
+`conf.context` and `conf.systemd0` reject it. At that earlier commit, the
+MariaDB application-table query also hardcoded
+`archappl` in `show_archappl`. The 2026-09-28 correction authorized after the
+whole-repository review makes it honor `DB_NAME`, exports `JDBC_DB_NAME` as
+`ARCHAPPL_DB_NAME` for the JNDI lookup, and makes admin removal honor
+`DB_ADMIN`. These identity corrections do not implement backend isolation.
 
 The current narrow correction rejects SQLite and invalid backend values at
 `sql.drop` and `sql.table.drop`. It does not implement SQLite deletion or
@@ -5610,9 +5693,13 @@ this work.
 ##### Dependencies And Decisions
 
 - M9 supplies the installed backend selection and source schemas.
-- D29, Decision Date: 2026-09-28. Full work is deferred from current execution;
-  only the `sql.drop` / `sql.table.drop` safeguard is authorized now. A new
-  dated decision is required to return M42 to Not started.
+- D29, Decision Date: 2026-09-28. Full work remains deferred. The initial
+  authorization covered the `sql.drop` / `sql.table.drop` safeguard.
+- Decision Date: 2026-09-28. The subsequent whole-repository review correction
+  additionally covers password preservation, runtime DB-name propagation,
+  application-table DB selection and configured admin removal. It does not
+  authorize the full backend matrix; M42 remains Deferred. A new dated
+  decision is required to return it to Not started.
 
 ##### Implementation Plan
 

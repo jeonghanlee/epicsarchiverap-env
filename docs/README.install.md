@@ -49,11 +49,11 @@ the check that proves it ran.
   the root. The health timer reports `FAIL storage-threshold` once any checked
   filesystem reaches `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85, set
   in `../CONFIG_SITE.local`). To change it on an installed host, edit
-  `../CONFIG_SITE.local`, then run `make conf.archapplproperties` and
-  `make install`, followed by `make sd_start`. The install stops the health
-  timer; `sd_start` starts it again and leaves an already-running appliance
-  running. Each check reads the installed `archappl.conf` anew, so the next
-  scheduled check uses the new value without an appliance restart.
+  `../CONFIG_SITE.local`, then run `make conf.archapplproperties`. Apply it
+  using the [reinstall procedure](#reinstall-and-upgrade): stop the appliance,
+  install, then start it after installation succeeds. Each health check reads
+  the installed `archappl.conf` anew; this installation procedure also replaces
+  the WARs and logging JARs and therefore requires an appliance stop.
 - The service group and user (`AA_GROUPID`, `AA_USERID`) may be pre-created; the
   install leaves an existing group/user unchanged.
 
@@ -81,20 +81,27 @@ not a guarantee that the workload fits. On a VM reporting 3.58 GiB of actual
 guest RAM, the same calculation leaves approximately 1.58 GiB, so use measured
 guest RAM rather than the VM's nominal allocation.
 
-An operator-reported test with a 256 MiB heap override ran 10 scalar PVs at
-1 Hz each for approximately 21 hours on a 3.58 GiB Rocky Linux VM with MariaDB
-and no swap, with no reported OOM or JVM restart. That result covers the tested
-light workload; it does not validate the changed default through deployment or
-establish capacity for arrays, larger PV populations or sustained retrieval.
-See [the heap verification record](milestone-265f580.md#m22---size-the-jvm-heap-default-to-the-host)
-for the deployment basis, measurement limits and pending default-install test.
-Validate the intended workload before using this value as an operating default.
+The [loaded heap report](reports/heap-soak-20260928.md) records operator-reported
+100, 500 and 903 PV runs with 256 MiB heap overrides, including six hours of
+concurrent retrieval. A separate default-install check confirmed that all four
+JVMs receive the shipped 256 MiB setting. Together these satisfy the amended
+[heap verification criterion](milestone-265f580.md#m22---size-the-jvm-heap-default-to-the-host).
+The measurements do not establish production capacity or an optimal heap size:
+post-GC retained heap and individual GC pauses were not measured. Validate the
+intended workload before using this value as an operating default.
 
 Set `AA_JAVA_HEAPSIZE` in `../CONFIG_SITE.local` when the measured workload
 needs a different heap. Both heap options follow this value; for example,
 `512M` means 2 GiB of heap across four instances, plus up to 1 GiB of metaspace.
 
 ## Configuration (variable placement)
+
+`DB_NAME` selects the MariaDB database and defaults the JDBC resource name.
+`JDBC_DB_NAME`, if explicitly overridden, names both the resource in
+`context.xml` and the runtime `ARCHAPPL_DB_NAME` lookup. Keep it aligned with
+the intended database. Database passwords are rendered as XML attribute data
+and quoted shell values; shell metacharacters remain literal. In Make override
+files, use `$$` for a literal dollar and `\#` for a literal hash.
 
 - `configure/RELEASE.local`: `SRC_TAG` — the source pin for
   https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
@@ -136,8 +143,9 @@ needs a different heap. Both heap options follow this value; for example,
   service account (`AA_USERID`), so the socket and its directory must be
   reachable by that account; the distribution defaults are. The server may
   then run with `skip-networking`. After changing `DB_SOCKET`, run step 2 (`make db.conf`)
-  and step 3 again, then, on an installed host, step 7 (`make install`, which
-  copies `context.xml` into each instance) and restart the appliance unit.
+  and step 3 again, then follow the [reinstall procedure](#reinstall-and-upgrade)
+  on an installed host. Stop the appliance before step 7 (`make install`, which
+  also replaces the WARs), then start it after installation succeeds.
   `DB_SOCKET` is ignored for `sqlite`.
 - Toolchain: `JAVA_HOME` is set through the OS preset
   (`make <os>.conf`, with `<os>` one of `debian13`, `debian12` and `rocky8`,
@@ -174,6 +182,43 @@ Do not rely on shell proxy variables or JVM proxy properties as a portable
 replacement for Maven settings. These settings cover Maven dependency
 resolution, not Git or Maven Wrapper distribution downloads.
 
+## Reinstall and upgrade
+
+Build and generate the configuration before the maintenance window. Stop the
+appliance before replacing its files; Tomcat must not load classes while the
+WAR and logging libraries are being replaced. From the aa-env checkout:
+
+```bash
+make sd_stop
+make install
+make sd_start
+```
+
+Run `make sd_start` only after `make install` succeeds, then perform the
+process and application checks below. Installation itself does not stop or
+restart the appliance. Do not run concurrent installations into the same prefix.
+
+For each of `mgmt`, `engine`, `etl` and `retrieval`, installation prepares the
+WAR and logging JARs in a temporary directory before replacing the managed
+payload. Exactly one matching WAR and a nonempty logging JAR set are required.
+A missing, ambiguous or unreadable input, or a failed WAR extraction, stops
+that instance's payload replacement while retaining its previous payload.
+
+| Location | Reinstall behavior |
+| --- | --- |
+| `<instance>/webapps/<component>/` | Replaced completely by the selected WAR; removed upstream files and local edits inside this tree disappear |
+| `<instance>/log4j/*.jar` | Replaced by the selected `target/tomcat-log4j` set; older or manually added JARs disappear |
+| Other files under `<instance>/log4j/` | Retained; shipped logging configuration is refreshed by the normal template install |
+| Logs, work/temp files, other webapps, archive stores and SQLite data | Not removed by payload replacement |
+| Generated aa-env configuration and wrappers | Refreshed from the configured templates as in a normal install; keep site settings in the supported override files |
+
+The installer attempts to restore the prior payload if a replacement move
+fails. If restoration fails, it reports the retained `.payload.*` backup path
+on stderr. Keep the appliance stopped and resolve the reported failure before
+starting it. Replacement is per instance, not a transaction across all four
+components; an interrupted or failed installation requires a successful rerun.
+This procedure does not promise rollback after power loss or a forced kill.
+
 ## Ordered sequence
 
 `U` runs as an ordinary build user; `R` requires root (an automation role that
@@ -195,8 +240,9 @@ Notes:
 - `make install` creates the service account (idempotent), stops any existing
   health timer/check before changing files, then installs the appliance and
   health pair. It reloads systemd before enabling the appliance and timer, with
-  no implicit start. Run `make sd_start` after every install, including an
-  install on an already-running appliance, to start the timer explicitly.
+  no implicit appliance stop or start. For an upgrade or reinstall, run
+  `make sd_stop` before changing installed files, then `make sd_start` after
+  installation to start the appliance and timer explicitly.
 - The enabled timer is also wanted by the appliance service, so a direct
   `systemctl start epicsarchiverap-maven.service` starts monitoring. Enabling a
   timer does not retroactively activate it for an already-running appliance.
@@ -247,13 +293,14 @@ Notes:
 - Application lines come from the log4j2 configuration inside each WAR. Its
   root level is `ARCHAPPL_ROOT_LOGGER_LEVEL` (default `INFO`), exported to the
   JVMs through `archappl.conf`; set it in `../CONFIG_SITE.local`, then run
-  `make conf.archapplproperties` and `make install` again, then restart. A
+  `make conf.archapplproperties` and follow the
+  [reinstall procedure](#reinstall-and-upgrade). A
   site that needs another layout, or level changes without a restart, keeps a
   copy of the WAR's `log4j2.xml` on the host, taken from an installed
   instance such as
   `/opt/epicsarchiverap-maven/mgmt/webapps/mgmt/WEB-INF/classes/log4j2.xml`
   (the copy keeps the file's `monitorInterval="30"`), names it in `ARCHAPPL_LOG4J_SITE_FILE`, and
-  reinstalls once; `archappl.conf` then
+  follows the same stop/install/start procedure once; `archappl.conf` then
   carries `LOG4J_CONFIGURATION_FILE`, the copy replaces the WAR's file, and a
   logger level edited in the copy takes effect within the interval.
 - Journal retention (`MaxRetentionSec`, `SystemMaxUse`) is a host setting.

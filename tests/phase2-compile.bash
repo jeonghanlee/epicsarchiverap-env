@@ -61,9 +61,13 @@ assert_eq "${maven_count}" 1 "Build invokes the source Maven Wrapper with clean 
 # P2.4 Each rendered configuration precedes the overlay copy and Maven build.
 copy_command="cp -rf ${overlay_path} ${target_path}"
 for config_file in appliances.xml archappl.properties policies.py context.xml archappl.conf; do
-    config_redirection="< ${template_path}/${config_file}.in > ${template_path}/${config_file}"
+    case "$config_file" in
+        context.xml) config_redirection="bash ${TOP}/scripts/render-db-config.bash xml \"${template_path}/context.xml.in\" \"${template_path}/context.xml\"" ;;
+        archappl.conf) config_redirection="| bash ${TOP}/scripts/render-db-config.bash shell - \"${template_path}/archappl.conf\" JDBC_DB_NAME" ;;
+        *) config_redirection="< ${template_path}/${config_file}.in > ${template_path}/${config_file}" ;;
+    esac
     case $'\n'"${build_output}"$'\n' in
-        *"${config_redirection}"$'\n'*$'\n'"${copy_command}"$'\n'*"${maven_line}"$'\n'*)
+        *"${config_redirection}"*$'\n'*$'\n'"${copy_command}"$'\n'*"${maven_line}"$'\n'*)
             _record_pass "${config_file} generation precedes overlay copy and Maven build"
             ;;
         *)

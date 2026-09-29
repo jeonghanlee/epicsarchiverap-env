@@ -254,7 +254,7 @@ done
 # copy of the Make system so nothing under the checkout is rewritten.
 policy_env="${WORKSPACE}/policy-env"
 mkdir -p "${policy_env}"
-cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/site-template" "${policy_env}/"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${policy_env}/"
 rm -f "${policy_env}/site-template/policies.py" "${policy_env}/configure/"*.local
 policy_out="${policy_env}/site-template/policies.py"
 policy_rc=0
@@ -301,7 +301,7 @@ done
 # as shipped.
 unit_env="${WORKSPACE}/unit-env"
 mkdir -p "${unit_env}"
-cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/site-template" "${unit_env}/"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${unit_env}/"
 rm -f "${unit_env}/configure/"*.local "${unit_env}/site-template/systemd/"*.service
 unit_out="${unit_env}/site-template/systemd/epicsarchiverap-maven.service"
 unit_rc=0
@@ -441,8 +441,8 @@ done
 install_rules=$(make -C "${unit_env}" --no-print-directory -n install.engine 2>&1 || true)
 for needle in "setenv.sh.in /opt/epicsarchiverap-maven/engine/bin/setenv.sh" \
               "rm -f /opt/epicsarchiverap-maven/engine/conf/logging.properties" \
-              "test -d ${unit_env}/epicsarchiverap-maven-src/target/tomcat-log4j" \
-              "target/tomcat-log4j/*.jar /opt/epicsarchiverap-maven/engine/log4j/"; do
+              'bash -p scripts/install-payload.bash "/opt/epicsarchiverap-maven/engine" "engine"' \
+              "\"${unit_env}/epicsarchiverap-maven-src/target\" \"${unit_env}/epicsarchiverap-maven-src/target/tomcat-log4j\""; do
     case "${install_rules}" in
         *"${needle}"*) _record_pass "Instance install carries: ${needle}" ;;
         *) _record_fail "Instance install carries: ${needle}" "got: ${install_rules}" ;;
@@ -540,7 +540,7 @@ assert_eq "${st_urls}" "3" "status falls back to 17665 without ARCHAPPL_MGMT_POR
 # real sqlite3 against a file in the workspace, as the running user.
 be_env="${WORKSPACE}/backend-env"
 mkdir -p "${be_env}"
-cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/site-template" "${be_env}/"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${be_env}/"
 rm -f "${be_env}/configure/"*.local "${be_env}/site-template/context.xml" "${be_env}/site-template/systemd/"*.service
 be_ctx="${be_env}/site-template/context.xml"
 be_unit="${be_env}/site-template/systemd/epicsarchiverap-maven.service"
@@ -755,7 +755,7 @@ function socket_commands
         source "$1/site-template/mariadb.conf"
         source "$1/scripts/mariadb_generic_function.bash"
         printf "root=%s\nadmin=%s\nuser=%s\nbackup=%s\nhost=%s\n" \
-            "${SQL_ROOT_CMD}" "${SQL_ADMIN_CMD}" "${SQL_DBUSER_CMD}" "${SQL_BACKUP_CMD}" "${DB_USER_HOST}"
+            "${SQL_ROOT_CMD[*]}" "${SQL_ADMIN_CMD[*]}" "${SQL_DBUSER_CMD[*]}" "${SQL_BACKUP_CMD[*]}" "${DB_USER_HOST}"
     ' _ "${so_env}"
 }
 so_rc=0
@@ -765,7 +765,7 @@ case "$(cat "${so_ctx}")" in
     *'url="jdbc:mariadb://127.0.0.1:3306/archappl"'*) _record_pass "Empty DB_SOCKET keeps the TCP URL" ;;
     *) _record_fail "Empty DB_SOCKET keeps the TCP URL" "$(grep 'url=' "${so_ctx}" || true)" ;;
 esac
-assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" 'DB_SOCKET=""' "Empty DB_SOCKET renders an empty value in mariadb.conf"
+assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=''" "Empty DB_SOCKET renders an empty value in mariadb.conf"
 so_cmds=$(socket_commands)
 assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root" "Empty DB_SOCKET keeps the root command"
 for so_role in admin user backup; do
@@ -784,7 +784,7 @@ case "$(cat "${so_ctx}")" in
     *'url="jdbc:mariadb://localhost/archappl?localSocket='"${so_path}"'"'*) _record_pass "DB_SOCKET renders the localSocket URL" ;;
     *) _record_fail "DB_SOCKET renders the localSocket URL" "$(grep 'url=' "${so_ctx}" || true)" ;;
 esac
-assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=\"${so_path}\"" "DB_SOCKET reaches mariadb.conf"
+assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=${so_path}" "DB_SOCKET reaches mariadb.conf"
 so_cmds=$(socket_commands)
 assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --socket=${so_path}" "DB_SOCKET reaches the root command"
 for so_role in admin user backup; do
@@ -868,3 +868,5 @@ phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.
 python3 "${TOP}/tests/health-local.py"
+
+python3 "${TOP}/tests/database-config.py"

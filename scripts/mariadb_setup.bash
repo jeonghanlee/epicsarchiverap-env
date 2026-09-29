@@ -80,44 +80,20 @@ function drop_procedures
     local db_name="$1"; shift;
     local db_exist;
     local cmd;
-    local dropCmd;
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        cmd+="$SQL_DBUSER_CMD";
-        cmd+=" ";
-        cmd+="${db_name}";
-        cmd+=" ";
-        cmd+="-N";
-        cmd+=" ";
-        cmd+="--silent"
-        cmd+=" ";
-        cmd+="--execute=\"";
-        # The following cmd contains only mysql standard query
-        # It is ok to get all table and views, because we only use DROP TABEL query
-        cmd+="SHOW PROCEDURE STATUS"
-        cmd+=";\"";
-        commandPrn "$cmd"
-        outputs=$(eval "${cmd}" | awk '{print $2}' )
+        outputs=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}')
         # shellcheck disable=SC2086
 
         printf "\n";
         for output in $outputs
         do
-            dropCmd="$SQL_DBUSER_CMD";
-            dropCmd+=" ";
-            dropCmd+="${db_name}";
-            dropCmd+=" ";
-            dropCmd+="--execute=\"";
-            # Ignore all table orders, drop all
-            dropCmd+="DROP PROCEDURE IF EXISTS ${output}"
-            dropCmd+=";\"";
             printf ". %24s was found. Droping .... \n" "${output}"
-            commandPrn "$dropCmd"
-            eval "${dropCmd}"
+            "${SQL_DBUSER_CMD[@]}" "${db_name}" --execute="DROP PROCEDURE IF EXISTS $(sql_identifier "$output")"
         done
     fi
 
@@ -136,7 +112,7 @@ function generate_admin_local_password
     
     local adminWithLocalPassword;
 
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
 
 
     if [[ $db_exist -ne "$EXIST" ]]; then
@@ -220,7 +196,7 @@ function backup_db
     local db_exist;
     local backup_file;
 
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
@@ -233,7 +209,7 @@ function backup_db
 	backup_file="${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
 	# The backup fails when either the dump or gzip fails; the partial file is
 	# removed so it cannot be mistaken for a backup.
-	if ! ( set -o pipefail; ${SQL_BACKUP_CMD} "${db_name}" | gzip -9 > "${backup_file}" ); then
+	if ! ( set -o pipefail; "${SQL_BACKUP_CMD[@]}" "${db_name}" | gzip -9 > "${backup_file}" ); then
 	    rm -f "${backup_file}"
 	    printf "\nBacking up >> %s << into >> %s << failed.\n\n" "${db_name}" "${backup_file}" >&2
 	    exit 1;
@@ -285,11 +261,11 @@ function restore_db
 	printf "\nThere is no readable >> %s << backup file, please check the backup data file name.\n\n" "${db_backup_path}/${db_backup_file}" >&2
 	exit 1;
     fi
-    cmd="${SQL_ADMIN_CMD} ${DB_NAME}";
+
 
     # The restore fails when either gunzip or the client fails; the subshell
     # confines pipefail without requiring 'local -'.
-    if ! ( set -o pipefail; gunzip < "${db_backup_path}/${db_backup_file}" | ${cmd} ); then
+    if ! ( set -o pipefail; gunzip < "${db_backup_path}/${db_backup_file}" | "${SQL_ADMIN_CMD[@]}" "${DB_NAME}" ); then
 	printf "\nRestoring >> %s << into >> %s << failed.\n\n" "${db_backup_file}" "${DB_NAME}" >&2
 	exit 1;
     fi
@@ -299,7 +275,7 @@ function restore_db
 # 1 : Table name
 function show_archappl
 {
-    local db_name=archappl;
+    local db_name="${DB_NAME}";
     local table_name="$1"; shift;
     local db_exist;
     local tables;
@@ -307,24 +283,13 @@ function show_archappl
     local i;
     i=0;
 
-    db_exist=$(isDb "${db_name}" "" "${SQL_DBUSER_CMD}");
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
 
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        cmd+="$SQL_DBUSER_CMD";
-        cmd+=" ";
-        cmd+="${db_name}";
-        cmd+=" ";
-        cmd+="-N";
-        cmd+=" ";
-        cmd+="--execute=\"";
-        # The following cmd contains only mysql standard query
-        cmd+="SELECT * FROM ${table_name}"
-        cmd+=";\"";
-        commandPrn "$cmd"
-        tables=$(eval "${cmd}" | awk '{print $1}')
+        tables=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SELECT * FROM ${table_name}" | awk '{print $1}')
         printf "\n";
         # shellcheck disable=SC2206
         declare -a  table_array=( ${tables} )
@@ -358,10 +323,10 @@ case "$input" in
         add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
 	    ;;
     localAdminRemove)
-        remove_admin_account_local;
+        remove_admin_account_local "${DB_ADMIN}";
         ;;
     hostnameAdminRemove)
-        remove_admin_account_hostname "${DB_HOST_NAME}";
+        remove_admin_account_hostname "${DB_ADMIN}" "${DB_HOST_NAME}";
         ;;
     adminAdd)
         #shellcheck disable=SC2153
@@ -370,8 +335,8 @@ case "$input" in
         #add_admin_account_hostname "${DB_ADMIN}" "${DB_ADMIN_PASS}" "${DB_HOST_NAME}";
 	    ;;
     adminRemove)
-        remove_admin_account_local;
-        #remove_admin_account_hostname "${DB_HOST_NAME}";
+        remove_admin_account_local "${DB_ADMIN}";
+        #remove_admin_account_hostname "${DB_ADMIN}" "${DB_HOST_NAME}";
 	    ;;
     dbCreate)
         create_db "${DB_NAME}";

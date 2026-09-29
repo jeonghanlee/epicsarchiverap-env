@@ -11,8 +11,8 @@ Tests execute in strict order, from least to most privilege:
 | :--- | :--- | :--- |
 | 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; installed Java for PID cases; JDK compiler for unrelated-JVM negative |
 | 2. Build wrapper | Real `make -n build`: configuration, site-overlay copy, Maven package command and ordering | none; no source checkout, JDK or network required |
-| 3. Infrastructure | `make install` end-to-end inside a Debian 13 container | Docker daemon |
-| 4. System | full systemd stack inside a libvirt VM; HTTP probes | KVM, libvirt, cloud-init |
+| 3. Infrastructure (planned) | `make install` end-to-end inside a Debian 13 container | Docker daemon |
+| 4. System (planned) | full systemd stack inside a libvirt VM; HTTP probes | KVM, libvirt, cloud-init |
 
 Phase 3 and Phase 4 are stubs until their entrypoints are committed
 under `tests/docker/` and `tests/vm/`.
@@ -20,7 +20,7 @@ under `tests/docker/` and `tests/vm/`.
 ## Test Execution
 
 ```bash
-# Run all phases that are implemented.
+# Request all phases (exit 77 while system phases are unimplemented).
 tests/run-all-tests.bash
 
 # Local command-generation checks (no build, network or privilege required).
@@ -32,7 +32,7 @@ tests/run-all-tests.bash --phase=2
 
 ## Workspace and Logs
 
-Each shell phase creates an `archappl-test.*` workspace under
+Each implemented shell phase creates an `archappl-test.*` workspace under
 `${TMPDIR:-/dev/shm}`. Its `run.log` contains commands captured by that phase;
 it does not contain every test result and may be empty.
 
@@ -168,7 +168,7 @@ the console summary; a skipped check is not verification.
   when `archappl.conf` does not load; and the storage line with exit 2 when only
   the runtime paths are invalid.
 - `DB_SOCKET` selects the MariaDB transport: from an isolated copy, the real
-  `conf.context` and `db.conf` render the TCP URL and `DB_SOCKET=""` by
+  `conf.context` and `db.conf` render the TCP URL and `DB_SOCKET=''` by
   default, and with a socket path in `../CONFIG_SITE.local` the
   `jdbc:mariadb://localhost/<db>?localSocket=<path>` URL and that path in
   `mariadb.conf`. Sourcing the rendered `mariadb.conf` and the shipped
@@ -261,3 +261,56 @@ alone neither proves monitor interference nor violates a survivor promise.
 Unclear attribution or an unexecuted case remains Pending. Do not change the
 45-second criterion after a failure. Record actual command, timestamp, target,
 exit status and retained evidence in the canonical M23 verification rows.
+
+## Incomplete system test result
+
+The Phase 3 and Phase 4 entry points each return 77 and print `[SKIP]` without
+running integration checks. `--system` reports both missing phases and returns
+77; the default all-phase run also returns 77 after its local checks. Neither
+entry point emits `[PASS]`. Use `--local` for the implemented local checks.
+
+## Configuration and database regression checks
+
+`--local` also runs `database-config.py`: it renders the real templates,
+parses their XML, sources their shell assignments, compares the runtime DB
+name with both backend resources, and checks the system-phase exit contract.
+It also verifies that a failed `conf.archappl` substitution returns nonzero
+without creating or replacing the output, and that inline comments on
+`DB_SOCKET` leave JDBC and shell clients using the same transport and path.
+
+For actual MariaDB account, schema, query, backup and restore operations:
+
+```bash
+python3 tests/database-config.py --integration
+```
+
+This requires `mariadb-install-db`, `mariadbd`, `mysql`, `mysqldump`, and the
+source checkout's `archappl_mysql.sql`. It creates a private datadir, socket
+and loopback listener and stops that server at exit. The only substitute is
+a pass-through `sudo` at the privilege boundary; SQL runs through the shipped
+setup script and the real client/server. The socket setting comes from a local
+override with an inline comment. Both TCP and socket connections use
+a password containing shell, XML and SQL special characters. The test also
+checks that removing a configured admin preserves unrelated `admin` accounts.
+It does not verify host sudo policy or Tomcat runtime authentication.
+
+`install-payload.py` accepts two real Maven `target` directories and an
+`--old-log4j` directory containing real old log4j JARs. It runs the shipped
+`install.mgmt`, `install.engine`, `install.etl` and `install.retrieval` targets
+twice under a temporary prefix and compares every installed payload file with
+the second WAR and JAR set. It checks preservation of logs, external config,
+work/temp files, other webapps and a storage-file marker. It then verifies
+that missing, ambiguous and truncated WAR inputs and missing JARs fail without
+changing the installed mgmt payload. It exits nonzero on a mismatch and retains
+its workspace and log. No systemd unit or running appliance is changed. This
+checks installation contents, not runtime upgrade behavior or host privileges.
+
+Run the payload comparison from the aa-env checkout, using actual build paths:
+
+```bash
+python3 tests/install-payload.py /path/old/target /path/new/target --old-log4j /path/old/log4j
+```
+
+Exit 0 means all four payload comparisons, state-preservation checks, invalid
+artifact cases and destination-rejection cases passed. The printed workspace
+contains the installation log.
