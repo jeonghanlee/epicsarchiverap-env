@@ -8,17 +8,19 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: review and commit the four documentation updates,
-then repeat the committed-file version comparison and finalize the PR draft.
+Next session entry point: commit the Release Verification 4 result for
+`7670d39`, then create the PR from `modernize` to `maven` using the prepared
+draft. Record the PR and verify its final head before release publication.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
 line in this cycle. Its version and plan will be decided separately.
-The final verification record is committed at `b65fb61`. Release Verification 1-4
+The final verification record is committed at `b65fb61`. Release Verification 1-3
 passed on `e6f2bd5` on 2026-09-29: 263 local checks, a root reinstall on the
-existing Debian VM, real PV acquisition and retrieval, and version checks.
-The PR draft is prepared locally; PR creation and release execution remain
-pending. The VM result covers MariaDB over a Unix socket; the earlier bare
-installation and Rocky results retain their original commit scope.
+existing Debian VM, and real PV acquisition and retrieval. Release Verification
+4 passed against committed `7670d39`. The PR draft is prepared locally; PR
+creation and release execution remain pending. The VM result covers MariaDB
+over a Unix socket; the earlier bare installation and Rocky results retain
+their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
 the ansible-provision soak. Additional heap measurements have been requested
 for Backlog M41; they do not gate M8. Full backend consistency remains
@@ -1024,7 +1026,7 @@ remain in Release Verification History with their original commit and scope.
 | Release Verification 1 | 2026-09-29T07:24:41Z | Committed `e6f2bd5` | Pass | 263 checks; see history. The 2026-09-29 documentation scope comparison below confirms no change to tested executable inputs. |
 | Release Verification 2 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Root reinstall; see history for payload, database and health evidence. |
 | Release Verification 3 | 2026-09-29T07:34:53Z | Debian 13.4, `e6f2bd5` | Pass | Three connected PVs with changing post-start samples; see history. |
-| Release Verification 4 | Not yet observed for revised changelog | Documentation follow-up | Pending | Working-tree assertions passed at 2026-09-29T08:29:04Z for the dated heading, absence of Unreleased and unchanged source pin. Committed-file comparison remains Pending until the documentation commit; evidence: `work/release-docs-check.json`. |
+| Release Verification 4 | 2026-09-29T16:14:53Z | Committed `7670d39` | Pass | The committed `CHANGELOG.md` has exactly one dated `2.0.0` heading, no `Unreleased`, and SHA-256 `0de0100715e454634463d3fa5248afa299f18ad2ed5ebc127bf34fde2368d65f`. `configure/RELEASE` matches the committed file and pins aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Both files match the checkout. Evidence: `work/release-docs-check.json`. |
 | Release Verification 5 | Not yet observed | Released objects | Pending | Release has not been executed. |
 | Release Verification 6 | Not yet observed | Clean Debian 13 VM, released object | Pending | Post-release installation has not run. |
 | Release Verification 7 | Not yet observed | Canonical record and issue projections | Pending | Owner selected no next release line on 2026-09-29; post-release closure and issue-state observations remain outstanding. |
@@ -1045,10 +1047,11 @@ executed preparation harness. This is evidence comparison, not a fresh host
 installation. The clean released-object install remains Release Verification 6.
 
 The current verification plan and results each contain exactly one row for
-labels 1-7. Version assertions pass on the working tree; the revised changelog
-SHA-256 is `0de0100715e454634463d3fa5248afa299f18ad2ed5ebc127bf34fde2368d65f`.
-Release Verification 4 remains Pending until byte comparison against the
-resulting documentation commit. Evidence: `work/release-docs-check.json`.
+labels 1-7. Release Verification 4 passed at 2026-09-29T16:14:53Z against
+committed `7670d39`: the changelog heading and digest match, `Unreleased` is
+absent, and the source pin matches aa-maven commit
+`d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Both checked files match the
+committed versions byte-for-byte. Evidence: `work/release-docs-check.json`.
 
 ##### Release Verification History
 
