@@ -8,7 +8,7 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit and publish the publication checkpoint on
+Next session entry point: commit and publish the issue #24 closure evidence on
 `maven`, then prepare annotated tag `2.0.0` on the fixed release commit
 `386c91d74086313efe04e0b64eb5dacfd91f8389` with separate authorization.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
@@ -20,8 +20,8 @@ existing Debian VM, and real PV acquisition and retrieval. Release Verification
 4 passed against committed `7670d39`. The PR record is committed at
 `386c91d`; local checks and version checks were rerun on that candidate.
 `maven` was published at `386c91d74086313efe04e0b64eb5dacfd91f8389` and
-PR #54 is merged. The publication checkpoint commit, annotated tag and
-GitHub release remain pending.
+PR #54 is merged. The publication checkpoint is committed and published at `7b49a15`; annotated
+tag and GitHub release remain pending.
 The VM result covers MariaDB over a Unix socket; the earlier bare installation
 and Rocky results retain their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
@@ -60,9 +60,8 @@ M23 is Complete: implementation at `9ee6ac0`, VM checks passed 2026-09-28,
 #44 closed. No Milestone row is Ready: M8 is In
 progress. The five unfinished Backlog items
 M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
-Complete since 2026-09-28 (#25 does not reproduce and is closed), and the
-unresolved scope or operating conditions of the other four keep them Open and
-not Ready. The operator's 2026-09-22 heap report does not provide a
+Complete since 2026-09-28 (#25 does not reproduce and is closed). M18 is Complete on 2026-09-29 with bounded runtime non-reproduction; #24
+is closed with the results and limits recorded. M10, M13 and M27 remain Open and not Ready. The operator's 2026-09-22 heap report does not provide a
 quantified disk growth rate for M26. M8 was re-planned 2026-09-28: `SRC_TAG`
 pinned to aa-maven `d8a7813f`, the changelog rewritten and dated `[2.0.0]`,
 Release Verification 2 and 3 again on a Debian 13 VM from cloud-provision,
@@ -107,7 +106,7 @@ their separate authorizations. M2
 | Storage | M26 | Test-environment archive store | Milestone | Complete | No | D18, D21, D23, D26 | Implemented and verified (T1-T2); landed at `ea554ff` on origin/modernize 2026-09-27; [detail](#m26---test-environment-archive-store) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
-| Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Open | No | | Define a reproduction environment and scope for issue #24; [detail](#m18---investigate-retrieval-metadata-http-404) |
+| Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Complete | No | | Bounded runtime non-reproduction; #24 closed 2026-09-29 with results and limits; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Complete | No | | Every name shape transfers STS to MTS to LTS and stays retrievable; no change needed, #25 closed as not reproducible 2026-09-28; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
@@ -3715,74 +3714,72 @@ Last Compared: never
 Origin: 265f580 / M18
 Identity History: none
 GitHub Issue: [#24](https://github.com/jeonghanlee/epicsarchiverap-env/issues/24)
-Status: Open
+Status: Complete
 
 ##### Summary
 
-The reported quick-chart and live retrieval requests receive HTTP 404 from the
-engine metadata endpoint. The issue has no resolution comment or current
-reproduction result.
+The historical report describes repeated engine metadata HTTP 404 during quick-chart and Live retrieval. The current real browser test did not reproduce the failure for a connected, actively archived scalar PV. The original installed revisions and PV state remain unknown.
 
 ##### Scope
 
-- Reproduce the metadata request on an explicitly identified appliance source
-  and environment configuration; distinguish endpoint behavior from routing
-  or PV state.
-- Determine whether the fix belongs in aa-env or aa-maven before implementation.
+- Exercise quick-chart and Live on an identified test appliance through the real retrieval-to-engine path, with direct metadata controls and correlated current logs.
+- Identify the owning repository before any runtime correction. No defect requiring a correction was found in the tested configuration.
 
-Out of scope: assuming that a passing compile test fixes the issue, changing
-the source repository without its own authorization, and closing the issue
-without runtime evidence.
+Out of scope: treating compilation or the logging migration as a fix, changing production settings, implementing an unverified cause, or replacing internal request paths with mocks.
 
 ##### Completion Criteria
 
-- The original request is reproduced or an evidenced non-reproduction is
-  recorded with the source, environment, and PV setup.
-- Any required fix has a real request-path regression check and the issue has
-  an observed, authorized resolution.
+- Record reproduction or bounded non-reproduction with source, environment, PV state, actual HTTP responses, samples and current logs.
+- Verify any required fix through the real path, or record an authorized no-change closure with its limits; observe the linked issue closed.
 
 ##### Dependencies And Decisions
 
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The reproduction environment and investigation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
-- D14; recorded 2026-09-15 as unresolved work. Reproduction still needs a defined
-  environment and investigation plan after assignment.
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone; assignment did not authorize implementation. D14 retains the historical unresolved observation.
+- Decision Date: 2026-09-29. Accepted the issue's reproduction plan and separately authorized its runtime execution. The existing isolated Debian appliance uses e6f2bd5, whose executable code and configuration match candidate 386c91d; the four differing files are documentation only.
+- Decision Date: 2026-09-29. Close the historical report based on the observed bounded non-reproduction. No runtime correction is required for this closure. Unknown historical conditions and disconnected, reassigned and startup-race scenarios remain outside this test's conclusion.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-29; accepted reproduction procedure published in issue #24
+Implementation Authorization: 2026-09-29; runtime execution authorized separately from plan acceptance
+Superseded Plan Artifacts: original unaccepted outline requiring environment selection
 
-1. Define the reproduction environment and request sequence during planning.
-2. Reproduce the issue and select the owning repository from observed behavior.
-3. Plan the fix and regression check before changing runtime code.
+1. Use an isolated test appliance with the release environment at 386c91d74086313efe04e0b64eb5dacfd91f8389 or a recorded revision with identical executable code, and aa-maven source `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Record the actual installed revisions, OS, JDK, Tomcat, database backend, rendered appliance identity and component URLs, running process identities, effective logger levels and any site logging override. Verify that the installed WARs match the recorded build. Capture the browser version for the UI reproduction.
+2. Select a connected, actively archived scalar test PV. Record its exact name in the retained test evidence, its archive status, appliance assignment and retrieved samples before the test. Select a distinct unregistered PV as a negative control. Record all observations with timestamps; do not infer engine presence from a historical stored sample alone.
+3. From the appliance host, call the assigned engine's actual `/getMetadata` endpoint with the active PV using correct URL encoding. Save the request URL, HTTP status, content type and response body. Repeat with the unregistered control PV. Expect JSON metadata for the active PV and HTTP 404 for the absent control. A missing or empty parameter is a separate HTTP 400 case, not the reported symptom.
+4. Open quick-chart for the active PV, then switch to Live. Record the exact browser requests, query parameters, time ranges, HTTP statuses and response bodies. Check displayed and returned sample values and timestamps. Observe at least three Live refresh requests to determine whether the reported repeated failure occurs. Keep direct engine requests and UI requests distinguishable by timestamp and URL.
+5. Collect the complete retrieval and engine journals for the same bounded time interval, including WARN records and multiline exceptions, plus both HTTP access logs. Preserve timestamps, process identity and request paths to correlate the outer retrieval request with its internal engine request. Start at the effective normal logging level; do not use an ERROR-only filter. If INFO/WARN evidence cannot distinguish the cause, enable only the relevant engine metadata and retrieval loggers at DEBUG through a disposable site logging configuration, record the change, repeat the same requests and restore the original configuration afterward.
+6. Compare direct and UI results. Check whether the request reached the expected engine, whether the PV name and appliance assignment agree, and whether the engine had the channel at the failure time. Distinguish an absent channel response from a missing web context, incorrect component URL, encoding problem or timing condition. Determine whether any correction belongs to aa-env configuration or aa-maven request handling before proposing an implementation.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Runtime | Reproduce the issue's quick-chart/live request through retrieval and the engine metadata endpoint | To be agreed during planning | Observed HTTP result with the corresponding PV state and source revision |
+| T1 | Runtime | Direct metadata checks for active, unregistered and empty PV parameters; real Firefox management quick-chart followed by Live with at least three further refreshes after interval confirmation; compare payload and displayed samples and correlate current journals and access logs | Isolated Debian 13 appliance, environment e6f2bd59766e65e601ffe03db66b499e93387e13, source d8a7813f40083c1bf7148e6c3b7bffd368d70ee0, Firefox 140.16.0 ESR, connected 1 Hz scalar PV, normal INFO logging | Active metadata and retrieval return 200 with actual advancing samples; absent control returns 404 and empty parameter 400; classify any repeated active-PV metadata failure using correlated logs |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | Runtime environment not assigned | Pending | none |
+| T1 | 2026-09-29T18:51:32Z to 18:51:41Z | Recorded Debian appliance and pinned revisions above; seven-minute Live window, no site logger override or DEBUG change | Pass: bounded non-reproduction | Direct active metadata 200, unregistered control 404, empty parameter 400. Quick-chart 200 with 721 samples; four Live responses 200 with 422 / 421 / 421 / 421 samples and advancing timestamps/values; displayed final value matched payload. Six active-PV engine metadata requests all 200. Bounded journals: 61 records, zero WARN/ERROR; browser JavaScript errors zero. Installed engine metadata and retrieval servlet classes matched tested WARs; main PID unchanged and zero unplanned restarts. |
+
+Environment equivalence: `git diff --name-only e6f2bd5..386c91d` contains only `CHANGELOG.md`, `README.md`, `docs/README.install.md` and this canonical document. No executable code or configuration differs. This is a bounded runtime result, not evidence that the historical cause was fixed. One connected scalar PV and a short single-appliance test do not cover unknown historical conditions, disconnected PVs, reassignment or startup races.
 
 ##### Closure Evidence
 
-- None; issue remains open.
+- Decision Date: 2026-09-29. Retire the historical report on bounded non-reproduction in the tested current configuration; no runtime code change or fix regression is required because no defect was identified. No required reproduction check was waived; T1 ran through the installed path. Reconstructing the unknown historical environment and testing disconnected, reassigned or startup-race cases are not required for this accepted closure.
+- GitHub REST read-back on 2026-09-29 confirmed issue #24 closed with state reason `completed`, closed_at and updated_at `2026-09-29T19:02:37Z`. The body records the results and limits with all four acceptance checks satisfied; the [closure comment](https://github.com/jeonghanlee/epicsarchiverap-env/issues/24#issuecomment-5896739908) records bounded non-reproduction. No runtime change was made. The canonical evidence update is local and not yet committed.
 
 ##### GitHub Projection
 
 Title: Investigate retrieval metadata HTTP 404
 Labels: none
 GitHub Milestone: none
-Observed State: open
+Observed State: closed
 Observed Labels: none
 Observed Milestone: none
-Last Compared: 2026-09-15; GitHub REST issue #24 read, remote updated_at 2024-03-25T07:09:20Z
+Last Compared: 2026-09-29; GitHub REST issue #24 read after closure; state closed, reason completed, updated_at 2026-09-29T19:02:37Z, no labels or milestone, assignee jeonghanlee
 
 #### M19 - Investigate ETL for PV names containing underscores
 
