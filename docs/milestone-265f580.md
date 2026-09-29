@@ -8,19 +8,19 @@ Git upstream: origin/modernize
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit the Release Verification 4 result for
-`7670d39`, then create the PR from `modernize` to `maven` using the prepared
-draft. Record the PR and verify its final head before release publication.
+Next session entry point: commit and publish the PR #54 record, then compare
+the resulting `modernize` tip with the PR head before fixing the final release
+candidate.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
 line in this cycle. Its version and plan will be decided separately.
 The final verification record is committed at `b65fb61`. Release Verification 1-3
 passed on `e6f2bd5` on 2026-09-29: 263 local checks, a root reinstall on the
 existing Debian VM, and real PV acquisition and retrieval. Release Verification
-4 passed against committed `7670d39`. The PR draft is prepared locally; PR
-creation and release execution remain pending. The VM result covers MariaDB
-over a Unix socket; the earlier bare installation and Rocky results retain
-their original commit scope.
+4 passed against committed `7670d39`. PR #54 is open from `modernize` to
+`maven`; its canonical record commit and release execution remain pending.
+The VM result covers MariaDB over a Unix socket; the earlier bare installation
+and Rocky results retain their original commit scope.
 PV acquisition, storage, ETL, retrieval and long-duration testing belong to
 the ansible-provision soak. Additional heap measurements have been requested
 for Backlog M41; they do not gate M8. Full backend consistency remains
@@ -969,7 +969,7 @@ follow-up does not authorize another version change.
 
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
-| 1 | Create the PR from `modernize` to `maven` with committed readiness evidence | User-run PR creation under git-workflow | PR identifies the checked pre-PR commit and scope | Pending |
+| 1 | Create the PR from `modernize` to `maven` with committed readiness evidence | User-run PR creation under git-workflow | PR identifies the checked pre-PR commit and scope | Created; observed open at 2026-09-29T16:55:31Z: [PR #54](https://github.com/jeonghanlee/epicsarchiverap-env/pull/54), head `c94555d86f347b32b5cf3cbd847cba0c4ed6cff8`, base `4d85e7f5f8cac6ee2bcafa829a23892cb040d1fa` |
 | 2 | Record the observed PR URL and state in this document on `modernize`; commit and publish that record | Separate commit and push authorization | Remote PR head includes the PR record and readiness evidence | Pending; checkpoint commit and remote observation |
 | 3 | Verify the resulting commit, affected checks and remote PR head; fix its full ID as the final candidate | Read-only verification; publication authority obtained for this exact ID | Checked local tip, remote modernize tip and PR head are identical | Pending; comparison output and verification evidence |
 | 4 | Fast-forward `maven` to the fixed candidate and publish that branch | Separate previewed release authorization | Remote branch reaches the exact candidate | Pending; full commit and remote observation |
