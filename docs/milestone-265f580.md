@@ -8,9 +8,10 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: commit and publish the clean released-object
-installation evidence with separate authorization, then perform Release
-Verification 7 and prepare cycle closure. Release Verification 6 passed on a
+Next session entry point: commit and publish the four-item Backlog transfer
+with separate authorization, then complete Release Verification 7 and prepare
+cycle closure. Clean released-object installation evidence is committed and
+published at `cfe67a0`. Release Verification 6 passed on a
 clean Debian 13 VM. The published tag targets the fixed release commit
 `386c91d74086313efe04e0b64eb5dacfd91f8389`.
 M8's follow-up procedure is accepted and authorized on 2026-09-29.
@@ -63,10 +64,12 @@ at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidenc
 was verified on 2026-09-22.
 M23 is Complete: implementation at `9ee6ac0`, VM checks passed 2026-09-28,
 #44 closed. No Milestone row is Ready: M8 is In
-progress. The five unfinished Backlog items
-M10, M13, M18, M19 and M27 were assigned to Milestone on 2026-09-22; M19 is
-Complete since 2026-09-28 (#25 does not reproduce and is closed). M18 is Complete on 2026-09-29 with bounded runtime non-reproduction; #24
-is closed with the results and limits recorded. M10, M13 and M27 remain Open and not Ready. The operator's 2026-09-22 heap report does not provide a
+progress. M10, M13, M18, M19 and M27 were assigned to Milestone on
+2026-09-22; M19 is Complete since 2026-09-28 (#25 does not reproduce and is
+closed). M18 is Complete on 2026-09-29 with bounded runtime non-reproduction;
+#24 is closed with the results and limits recorded. Decision D30 transfers
+M10, M13, M27 and M14 to Backlog on 2026-09-29. M10, M13 and M27 remain
+Open and not Ready; M14 remains Deferred and not Ready. The operator's 2026-09-22 heap report does not provide a
 quantified disk growth rate for M26. M8 was re-planned 2026-09-28: `SRC_TAG`
 pinned to aa-maven `d8a7813f`, the changelog rewritten and dated `[2.0.0]`,
 Release Verification 2 and 3 again on a Debian 13 VM from cloud-provision,
@@ -99,7 +102,6 @@ their separate authorizations. M2
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
 | Release | M8 | Modernized baseline release to maven | Milestone | In progress | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Install-verified against aa-maven Phase 1, then PR to maven; M3 completes with this merge; [detail](#m8---modernized-baseline-release-to-maven) |
-| Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Deferred | No | G6, D9, D17 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package, build still passes; deferred 2026-09-20 (D17) with Ant removal out of Phase 1 on both sides, returning to Not started only by a new dated decision; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Complete | No | G7, D9 | Implemented and locally verified; landed at `d748d4f` on origin/modernize, verified 2026-09-22; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
@@ -109,11 +111,8 @@ their separate authorizations. M2
 | Cleanup | M24 | Remove the dead jsvc shutdown path | Milestone | Complete | No | D12, D18 | Implemented and locally verified; landed at `4b4cb41`; issue #45 closed 2026-09-22; [detail](#m24---remove-the-dead-jsvc-shutdown-path) |
 | Build seam | M25 | Correct the MAVEN_OPTS name and proxy guidance | Milestone | Complete | No | D10, D18 | Implemented and locally verified; landed at `84b38e5` on origin/modernize, verified 2026-09-22; [detail](#m25---correct-the-maven_opts-name-and-proxy-guidance) |
 | Storage | M26 | Test-environment archive store | Milestone | Complete | No | D18, D21, D23, D26 | Implemented and verified (T1-T2); landed at `ea554ff` on origin/modernize 2026-09-27; [detail](#m26---test-environment-archive-store) |
-| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
-| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Runtime | M18 | Investigate retrieval metadata HTTP 404 | Carry-forward | Complete | No | | Bounded runtime non-reproduction; #24 closed 2026-09-29 with results and limits; [detail](#m18---investigate-retrieval-metadata-http-404) |
 | Storage | M19 | Investigate ETL for PV names containing underscores | Carry-forward | Complete | No | | Every name shape transfers STS to MTS to LTS and stays retrievable; no change needed, #25 closed as not reproducible 2026-09-28; [detail](#m19---investigate-etl-for-pv-names-containing-underscores) |
-| Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | DB | M28 | Load the schema without an admin account and fail loudly | Milestone | Complete | No | D22 | Implemented and verified (T1-T4); landed at `1fc20a8` on origin/modernize; issue #47 closed 2026-09-23; [detail](#m28---load-the-schema-without-an-admin-account-and-fail-loudly) |
 | DB | M29 | Fail the backup listing and restore on error | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `9f22eac` on origin/modernize; issue #48 closed 2026-09-23; [detail](#m29---fail-the-backup-listing-and-restore-on-error) |
 | DB | M30 | Fail the backup when the dump fails | Milestone | Complete | No | | Implemented and verified (T1-T2); landed at `18356d1` on origin/modernize; issue #49 closed 2026-09-23; [detail](#m30---fail-the-backup-when-the-dump-fails) |
@@ -176,6 +175,7 @@ their separate authorizations. M2
 | D27 | aa-env drops macOS support; the supported hosts are Debian and Rocky Linux. The runtime model is a systemd unit whose output journald collects (D24), which macOS does not have, and the macOS environment target places the archive store under the invoking user's home (`ARCHAPPL_STORAGE_TOP:=${HOME}/arch`), the placement D26 warns about. The macOS presets, the launchd service file and its targets, the `darwin` branches of the scripts and the macOS guide are removed rather than kept unmaintained. | 2026-09-25 |
 | D28 | The DB-backend rollout order becomes MariaDB over TCP, then SQLite3, then MariaDB over Unix domain socket: SQLite moves ahead of UDS because aa-maven's SQLite check (its M13, jeonghanlee/epicsarchiverap-maven#5) needs an SQLite deploy path, while UDS has no waiting consumer. The SQLite database file is `ARCHAPPL_SQLITE_FILE`, default `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`, so the configuration database sits on the archive volume, is backed up with it and is writable by the service account. Its schema comes from `archappl_sqlite.sql` in the source tree aa-env builds, loaded with the `sqlite3` command-line tool, as the MariaDB schema comes from the same tree. Amends D16's order only. | 2026-09-25 |
 | D29 | Limit current DB changes to rejecting `sql.drop` and `sql.table.drop` for SQLite or an invalid backend before invoking any database client. Record full backend consistency as Backlog M42, deferred from current execution; SQLite deletion support and the remaining DB command behavior require a later accepted plan. | 2026-09-28 |
+| D30 | Move M10, M13, M27 and M14 from Milestone to Backlog for the 2.0.0 cycle close, preserving their existing statuses, plans and evidence. No next release line is opened or assigned. | 2026-09-29 |
 
 ### Assignment History
 
@@ -188,6 +188,7 @@ their separate authorizations. M2
 | M10, M13, M18, M19, M27 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-22) | this synchronization commit | this synchronization commit |
 | M38 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-25) | this synchronization commit | this synchronization commit |
 | M40 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-28) | this synchronization commit | this synchronization commit |
+| M10, M13, M27, M14 (`docs/milestone-265f580.md`) | Milestone section, branch maven | Backlog section, branch maven (transferred 2026-09-29, D30) | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1282,93 +1283,6 @@ boundary and runtime limitations described above still apply. Evidence:
 ##### GitHub Projection
 
 Title: Modernized baseline release to maven
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
-#### M14 - Remove Ant leftovers from aa-env
-
-Origin: 265f580 / M14
-Identity History: none
-GitHub Issue: none
-Status: Deferred
-
-##### Summary
-
-aa-env still carries Ant pieces from the pre-Maven build: an Ant build file
-in the site overlay and `ANT_HOME` / `ANT_PATH` / `ANT_OPTS` in the site
-configuration. M11 already removed Ant from the package lists. Once
-aa-maven removes Ant from the build (its M10) and states how the per-site
-build step is replaced, aa-env removes its half.
-
-##### Scope
-
-- `site-template/siteid/build.xml` (33 lines): remove, or replace per the
-  post-Ant sitespecific contract aa-maven reports.
-- `configure/CONFIG_SITE`: `ANT_HOME`, `ANT_PATH`, `ANT_OPTS` (lines 4, 9,
-  43–49) and any `.local` preset that sets them.
-- `configure/os/*.pkgs`: verify that no `ant` package remains. M11 already
-  removed the legacy package scripts and omitted Ant from the new lists.
-- `configure/RULES_SRC` `copy.sitespecific`: unchanged unless the contract
-  changes the overlay path.
-
-Out of scope: the aa-maven build itself; the overlay path
-`src/sitespecific/<ARCHAPPL_SITEID>` and the `classpathfiles` packaging,
-which aa-maven confirmed survive Ant removal.
-
-##### Completion Criteria
-
-- Phase 1 asserts: no `ANT_` variable in `configure/`, no
-  `site-template/siteid/build.xml`, no `ant` package in `configure/os/*.pkgs`.
-- `make build` against the post-Ant aa-maven source produces the four WARs
-  with the site overlay applied.
-
-##### Dependencies And Decisions
-
-- G6 (aa-maven M10 and the post-Ant sitespecific contract); still Open, and it
-  no longer blocks this row
-- D9
-- D17. 2026-09-20: Ant removal is deferred out of Phase 1 on both sides, so this
-  row moves to Deferred and leaves M8's dependency list. aa-maven moved its M10
-  to the backlog 2026-09-19; this row returns to Not started only by a new dated
-  decision.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Read the contract aa-maven reports with G6; decide remove-or-replace for
-   `site-template/siteid/build.xml`.
-2. Add the failing phase 1 assertions, then remove the Ant pieces.
-3. Run `make build` against the aa-maven commit named in G6.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass |
-| T2 | Build | `make build` with `SRC_TAG` at the G6 commit | This host | Four WARs; `archappl.properties`, `log4j2.xml`, `policies.py` from the overlay present in each WAR (`unzip -l`) |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Remove Ant leftovers from the environment configuration
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none
@@ -3660,138 +3574,6 @@ loggers do not follow it; they follow `log4j2-tomcat.xml`. Affects M36.
 
 - aa-maven reported `3070c518` on 2026-09-25; verified as above the same day.
 
-#### M10 - Phase 3 and 4 install tests (container, VM)
-
-Origin: 265f580 / M10
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-Implement the `tests/phase3-docker.bash` and `tests/phase4-vm.bash` stubs
-described in `tests/README.md`.
-
-##### Scope
-
-- Container entrypoint under `tests/docker/` running `make install`.
-- VM entrypoint under `tests/vm/` running the systemd stack and HTTP probes.
-
-Out of scope: CI wiring.
-
-##### Completion Criteria
-
-- `tests/run-all-tests.bash --system` passes on a host with Docker and
-  libvirt.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The test host and implementation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
-- none
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Define the implementation plan for the assigned work.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | System | `tests/run-all-tests.bash --system` | Host with Docker and libvirt | All assertions pass |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Host with Docker and libvirt | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Implement phase 3 and 4 install tests
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
-#### M13 - Site skin aligned with the rewritten mgmt UI
-
-Origin: 265f580 / M13
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The management web interface rewrite moved to the EPICS-Arche repository
-(the post-Phase-2 runtime, per D11). The aa-env repository carries only the
-site-specific skin (`site-template/siteid`: css, img, `template_changes.html`)
-copied into the WAR. While the appliance stays on WARs (Phase 2) the skin is
-unchanged; it is revisited only if EPICS-Arche replaces the mgmt UI.
-
-##### Scope
-
-- `site-template/siteid/{css,img,template_changes.html}` and the
-  `copy.sitespecific` step in `configure/RULES_SRC`.
-
-Out of scope: the interface itself (EPICS-Arche).
-
-##### Completion Criteria
-
-- After planning defines the EPICS-Arche interface and aa-env's role, the
-  resulting skin renders correctly on that interface. The current WAR skin
-  remains unchanged until that scope is defined.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The target interface and the role of the aa-env skin remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
-- EPICS-Arche repository (mgmt UI rewrite), post-Phase-2
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Define the implementation plan for the assigned work.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | UI | Define the actual interface and browser procedure during planning | Agreed target interface | Page renders with the site skin; no console errors |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Align the site skin with the rewritten mgmt UI
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
 #### M18 - Investigate retrieval metadata HTTP 404
 
 Origin: 265f580 / M18
@@ -3950,85 +3732,6 @@ Observed State: closed (2026-09-28T04:06:16Z, not planned)
 Observed Labels: none
 Observed Milestone: none
 Last Compared: 2026-09-28; `gh issue view 25` read after the close, state closed, no labels or milestone
-
-#### M27 - LTS retrieval pre-processing (`pp`)
-
-Origin: 265f580 / M27
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-`docs/README.policies.md` recommends `pp=mean_3600` on LTS, and the shipped
-`site-template/policies.py.in` sets no `pp` on any tier. The gap is real but the
-answer is not obvious from the documents, so it waits for operating experience
-rather than being settled now.
-
-Two facts shape the question. `pp` preserves the raw data and writes auxiliary
-pre-calculated files beside it, so it *increases* disk use, which runs against
-the open concern that the archive store sits on the root filesystem with an
-unknown fill rate. And `pp` is mutually exclusive with `reducedata`, which the
-shipped Fast, VeryFast, Medium and Slow policies already set on LTS; the
-recommendation can therefore only apply to the Default and VerySlow policies.
-
-##### Scope
-
-- Whether the Default and VerySlow policies gain `pp` on LTS, and with which
-  operator and interval.
-- `site-template/policies.py.in` and the policy guide, if the answer is yes.
-
-Out of scope: `reducedata` on the other policies; the retrieval API; the
-storage filesystem work, which M26 carries.
-
-##### Completion Criteria
-
-- After the appliance has run with real queries and a known disk growth rate,
-  a dated decision either adds `pp` to the named policies or records that the
-  retrieval gain does not justify the additional storage.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The operating measurements and pp selection remain unresolved. Status stays Open; assignment alone does not accept or authorize implementation.
-- Condition for taking this up: an operating installation with a measured disk
-  growth rate and real retrieval patterns to judge against. Owner decided
-  2026-09-21 to look at it during operation over the long term rather than now.
-- D21 (the storage work is scoped to the test environment first).
-- The disk growth figure comes from the load test requested of the
-  ansible-provision session.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Function | Compare retrieval time and disk use for a long span with and without `pp` on LTS | operating installation | The difference is large enough, or not, to settle the decision |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | operating installation | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: LTS retrieval pre-processing
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
 
 #### M28 - Load the schema without an admin account and fail loudly
 
@@ -5616,8 +5319,314 @@ Last Compared: 2026-09-28T07:38Z, `gh issue view 51` (title matches this project
 | Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
 | Runtime | M41 | Measure per-component heap needs by archiving load | Carry-forward | Not started | Yes | | A measured table of the live heap each instance keeps at several PV counts and sampling rates, from which a heap per load is recommended; [detail](#m41---measure-per-component-heap-needs-by-archiving-load) |
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M9, D29 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
+| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
+| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
+| Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
+| Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Deferred | No | G6, D9, D17 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package, build still passes; deferred 2026-09-20 (D17) with Ant removal out of Phase 1 on both sides, returning to Not started only by a new dated decision; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 
 ### Backlog Details
+
+#### M10 - Phase 3 and 4 install tests (container, VM)
+
+Origin: 265f580 / M10
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+Implement the `tests/phase3-docker.bash` and `tests/phase4-vm.bash` stubs
+described in `tests/README.md`.
+
+##### Scope
+
+- Container entrypoint under `tests/docker/` running `make install`.
+- VM entrypoint under `tests/vm/` running the systemd stack and HTTP probes.
+
+Out of scope: CI wiring.
+
+##### Completion Criteria
+
+- `tests/run-all-tests.bash --system` passes on a host with Docker and
+  libvirt.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The test host and implementation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
+- none
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Define the implementation plan for the assigned work.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | System | `tests/run-all-tests.bash --system` | Host with Docker and libvirt | All assertions pass |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Host with Docker and libvirt | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Implement phase 3 and 4 install tests
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M13 - Site skin aligned with the rewritten mgmt UI
+
+Origin: 265f580 / M13
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The management web interface rewrite moved to the EPICS-Arche repository
+(the post-Phase-2 runtime, per D11). The aa-env repository carries only the
+site-specific skin (`site-template/siteid`: css, img, `template_changes.html`)
+copied into the WAR. While the appliance stays on WARs (Phase 2) the skin is
+unchanged; it is revisited only if EPICS-Arche replaces the mgmt UI.
+
+##### Scope
+
+- `site-template/siteid/{css,img,template_changes.html}` and the
+  `copy.sitespecific` step in `configure/RULES_SRC`.
+
+Out of scope: the interface itself (EPICS-Arche).
+
+##### Completion Criteria
+
+- After planning defines the EPICS-Arche interface and aa-env's role, the
+  resulting skin renders correctly on that interface. The current WAR skin
+  remains unchanged until that scope is defined.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The target interface and the role of the aa-env skin remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
+- EPICS-Arche repository (mgmt UI rewrite), post-Phase-2
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Define the implementation plan for the assigned work.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | UI | Define the actual interface and browser procedure during planning | Agreed target interface | Page renders with the site skin; no console errors |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Align the site skin with the rewritten mgmt UI
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M27 - LTS retrieval pre-processing (`pp`)
+
+Origin: 265f580 / M27
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+`docs/README.policies.md` recommends `pp=mean_3600` on LTS, and the shipped
+`site-template/policies.py.in` sets no `pp` on any tier. The gap is real but the
+answer is not obvious from the documents, so it waits for operating experience
+rather than being settled now.
+
+Two facts shape the question. `pp` preserves the raw data and writes auxiliary
+pre-calculated files beside it, so it *increases* disk use, which runs against
+the open concern that the archive store sits on the root filesystem with an
+unknown fill rate. And `pp` is mutually exclusive with `reducedata`, which the
+shipped Fast, VeryFast, Medium and Slow policies already set on LTS; the
+recommendation can therefore only apply to the Default and VerySlow policies.
+
+##### Scope
+
+- Whether the Default and VerySlow policies gain `pp` on LTS, and with which
+  operator and interval.
+- `site-template/policies.py.in` and the policy guide, if the answer is yes.
+
+Out of scope: `reducedata` on the other policies; the retrieval API; the
+storage filesystem work, which M26 carries.
+
+##### Completion Criteria
+
+- After the appliance has run with real queries and a known disk growth rate,
+  a dated decision either adds `pp` to the named policies or records that the
+  retrieval gain does not justify the additional storage.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The operating measurements and pp selection remain unresolved. Status stays Open; assignment alone does not accept or authorize implementation.
+- Condition for taking this up: an operating installation with a measured disk
+  growth rate and real retrieval patterns to judge against. Owner decided
+  2026-09-21 to look at it during operation over the long term rather than now.
+- D21 (the storage work is scoped to the test environment first).
+- The disk growth figure comes from the load test requested of the
+  ansible-provision session.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Function | Compare retrieval time and disk use for a long span with and without `pp` on LTS | operating installation | The difference is large enough, or not, to settle the decision |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | operating installation | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: LTS retrieval pre-processing
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
+
+#### M14 - Remove Ant leftovers from aa-env
+
+Origin: 265f580 / M14
+Identity History: none
+GitHub Issue: none
+Status: Deferred
+
+##### Summary
+
+aa-env still carries Ant pieces from the pre-Maven build: an Ant build file
+in the site overlay and `ANT_HOME` / `ANT_PATH` / `ANT_OPTS` in the site
+configuration. M11 already removed Ant from the package lists. Once
+aa-maven removes Ant from the build (its M10) and states how the per-site
+build step is replaced, aa-env removes its half.
+
+##### Scope
+
+- `site-template/siteid/build.xml` (33 lines): remove, or replace per the
+  post-Ant sitespecific contract aa-maven reports.
+- `configure/CONFIG_SITE`: `ANT_HOME`, `ANT_PATH`, `ANT_OPTS` (lines 4, 9,
+  43–49) and any `.local` preset that sets them.
+- `configure/os/*.pkgs`: verify that no `ant` package remains. M11 already
+  removed the legacy package scripts and omitted Ant from the new lists.
+- `configure/RULES_SRC` `copy.sitespecific`: unchanged unless the contract
+  changes the overlay path.
+
+Out of scope: the aa-maven build itself; the overlay path
+`src/sitespecific/<ARCHAPPL_SITEID>` and the `classpathfiles` packaging,
+which aa-maven confirmed survive Ant removal.
+
+##### Completion Criteria
+
+- Phase 1 asserts: no `ANT_` variable in `configure/`, no
+  `site-template/siteid/build.xml`, no `ant` package in `configure/os/*.pkgs`.
+- `make build` against the post-Ant aa-maven source produces the four WARs
+  with the site overlay applied.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
+- G6 (aa-maven M10 and the post-Ant sitespecific contract); still Open, and it
+  no longer blocks this row
+- D9
+- D17. 2026-09-20: Ant removal is deferred out of Phase 1 on both sides, so this
+  row moves to Deferred and leaves M8's dependency list. aa-maven moved its M10
+  to the backlog 2026-09-19; this row returns to Not started only by a new dated
+  decision.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Read the contract aa-maven reports with G6; decide remove-or-replace for
+   `site-template/siteid/build.xml`.
+2. Add the failing phase 1 assertions, then remove the Ant pieces.
+3. Run `make build` against the aa-maven commit named in G6.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass |
+| T2 | Build | `make build` with `SRC_TAG` at the G6 commit | This host | Four WARs; `archappl.properties`, `log4j2.xml`, `policies.py` from the overlay present in each WAR (`unzip -l`) |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | This host | Pending | none |
+| T2 | Not run | This host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Remove Ant leftovers from the environment configuration
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none
+Observed Labels: none
+Observed Milestone: none
+Last Compared: never
 
 #### G5 - Baseline deployment reported by the ansible/cloud session
 
