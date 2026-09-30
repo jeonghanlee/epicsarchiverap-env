@@ -4,10 +4,10 @@ Release line: 2.0.1
 Milestone index: 2.0.1
 Canonical path: `docs/milestone-2.0.1.md`
 Canonical branch or ref: release-2.0.1
-Git upstream: none (local branch; no push authorized)
-Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone 2.0.1 planned, not created
+Git upstream: origin/release-2.0.1
+Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: review and accept the draft plans in this document, resolve G6 against the pinned aa-maven source, then prepare the planning commit. GitHub projection follows that commit. Implementation, source-pin changes, release actions and publication require separate authority.
+Next session entry point: review and accept the draft plans in this document and resolve G6 against the pinned aa-maven source. The planning commit `4c8af4d9b4812154b0dfe217f7128e4dbba805b7` is published on origin/release-2.0.1; issues #53, #55, #56 and #57 are assigned to GitHub milestone 2.0.1. Implementation, source-pin changes, release actions and publication require separate authority.
 
 ## Scope
 
@@ -60,7 +60,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 
 Origin: 2.0.1 / M43
 Identity History: none
-GitHub Issue: none
+GitHub Issue: [#55](https://github.com/jeonghanlee/epicsarchiverap-env/issues/55)
 Status: Not started
 
 ##### Summary
@@ -118,11 +118,11 @@ Superseded Plan Artifacts: none
 
 Title: Reject operations on an unselected database backend
 Labels: bug
-GitHub Milestone: 2.0.1 (planned)
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
+GitHub Milestone: 2.0.1
+Observed State: OPEN
+Observed Labels: bug
+Observed Milestone: 2.0.1 / #7
+Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 55 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:27:19Z
 
 #### G6 - aa-maven lands Ant removal with the per-site build contract
 
@@ -159,7 +159,7 @@ and moved to the aa-maven backlog 2026-09-19, their D7).
 
 Origin: 265f580 / M14
 Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved
-GitHub Issue: none
+GitHub Issue: [#57](https://github.com/jeonghanlee/epicsarchiverap-env/issues/57)
 Status: Blocked
 
 ##### Summary
@@ -238,17 +238,17 @@ Superseded Plan Artifacts: original draft at aa-env d68f66848e1edc174e76fe77326e
 
 Title: Remove Ant leftovers from the environment configuration
 Labels: enhancement
-GitHub Milestone: 2.0.1 (planned)
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
+GitHub Milestone: 2.0.1
+Observed State: OPEN
+Observed Labels: enhancement
+Observed Milestone: 2.0.1 / #7
+Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 57 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:33:31Z
 
 #### M10 - Phase 3 and 4 install tests (container, VM)
 
 Origin: 265f580 / M10
 Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved
-GitHub Issue: none
+GitHub Issue: [#56](https://github.com/jeonghanlee/epicsarchiverap-env/issues/56)
 Status: Not started
 
 ##### Summary
@@ -310,17 +310,17 @@ Ordering proposal: perform the final installation run after M43 and M14 so the i
 
 Title: Automate real container installation and VM runtime tests
 Labels: enhancement
-GitHub Milestone: 2.0.1 (planned)
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
+GitHub Milestone: 2.0.1
+Observed State: OPEN
+Observed Labels: enhancement
+Observed Milestone: 2.0.1 / #7
+Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 56 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:32:58Z
 
 #### M41 - Measure per-component heap needs by archiving load
 
 Origin: 265f580 / M41
 Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved
-GitHub Issue: #53
+GitHub Issue: [#53](https://github.com/jeonghanlee/epicsarchiverap-env/issues/53)
 Status: Not started
 
 ##### Summary
@@ -411,11 +411,11 @@ Superseded Plan Artifacts: original draft at aa-env d68f66848e1edc174e76fe77326e
 
 Title: Measure per-component heap needs by archiving load
 Labels: enhancement
-GitHub Milestone: 2.0.1 (planned)
+GitHub Milestone: 2.0.1
 Observed State: OPEN
 Observed Labels: enhancement
-Observed Milestone: none
-Last Compared: 2026-09-29, `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone none, assignee jeonghanlee, updatedAt 2026-09-29T18:33:45Z
+Observed Milestone: 2.0.1 / #7
+Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:33:58Z
 
 #### M44 - Verify and publish release 2.0.1
 
