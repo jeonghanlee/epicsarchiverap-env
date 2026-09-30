@@ -8,12 +8,13 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: review, commit and publish the checked 2.0.0
-closure candidate with separate authorization, then confirm the committed
-canonical file and remote branch. No next release line is opened; its version
-and plan remain undecided. The existing VMs and their evidence remain retained.
-Closure candidate: M3 and M8 are Complete in this prepared working tree;
-final closure commit and publication are not yet executed.
+Next session entry point: await the owner's selection of Backlog work or a
+future release plan. Read this canonical document before starting the selected
+work. The 2.0.0 cycle is closed; no next release line is opened or assigned.
+The existing VMs and their evidence remain retained.
+M3 and M8 are Complete. The checked closure record is committed and published
+at `0a50d1e2e9010f61e8a7df1501f1b2652344a233`; remote landing was
+confirmed at 2026-09-30T00:01:12Z.
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
 line in this cycle. D30 preserves M10, M13, M27 and M14 in Backlog.
 
@@ -64,8 +65,7 @@ updated and closed on 2026-09-22. M25 is Complete
 at `84b38e5`, and M15 is Complete at `d748d4f`; their repository landing evidence
 was verified on 2026-09-22.
 M23 is Complete: implementation at `9ee6ac0`, VM checks passed 2026-09-28,
-#44 closed. No Milestone work row remains unfinished in the closure
-candidate. G6 stays Open under D17 and affects only Deferred Backlog M14. M10, M13, M18, M19 and M27 were assigned to Milestone on
+#44 closed. No Milestone work row remains unfinished in the closed 2.0.0 cycle. G6 stays Open under D17 and affects only Deferred Backlog M14. M10, M13, M18, M19 and M27 were assigned to Milestone on
 2026-09-22; M19 is Complete since 2026-09-28 (#25 does not reproduce and is
 closed). M18 is Complete on 2026-09-29 with bounded runtime non-reproduction;
 #24 is closed with the results and limits recorded. Decision D30 transfers
@@ -75,7 +75,7 @@ quantified disk growth rate for M26. M8 was re-planned 2026-09-28: `SRC_TAG`
 pinned to aa-maven `d8a7813f`, the changelog rewritten and dated `[2.0.0]`,
 Release Verification 2 and 3 again on a Debian 13 VM from cloud-provision,
 then fast-forward, tag `2.0.0` and GitHub release; the plan was accepted
-and authorized 2026-09-28. M8 is Complete in the prepared closure candidate. The current pre-release
+and authorized 2026-09-28. M8 is Complete; the closure record is published at `0a50d1e`. The current pre-release
 verification is at `e6f2bd5`, recorded in `b65fb61`: 263 local checks and a
 Debian 13.4 root reinstall with real acquisition and retrieval of three PVs.
 Earlier bare-host and targeted Rocky observations retain their commit scope
@@ -102,7 +102,7 @@ under their recorded separate authorizations. M2
 | DB | M9 | Selectable persistence backend: MariaDB and SQLite | Milestone | Complete | No | G9, M11, D15, D28 | One PV archives and retrieves under each backend selected in `context.xml`, in the D28 order; landed at `bbe0968` and `90e4a04`, #43 closed 2026-09-28; [detail](#m9---selectable-persistence-backend-mariadb-and-sqlite) |
 | Runtime | M16 | Run the Tomcat 9 instances under systemd template units | Milestone | Complete | No | D12 | Retired 2026-09-12 by D12; the script under the existing service stays the launcher; [detail](#m16---run-the-tomcat-9-instances-under-systemd-template-units) |
 | Toolchain | M11 | Single distro toolchain: JDK, Maven Wrapper, package lists | Milestone | Complete | No | G8, D10 | Implemented and verified 2026-09-12 (`f24ec5c`); [detail](#m11---single-distro-toolchain-jdk-maven-wrapper-package-lists) |
-| Release | M8 | Modernized baseline release to maven | Milestone | Complete | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Published 2.0.0, released clean installation verified, Release Verification 1-7 Pass; closure candidate awaits its separate commit/publication; [detail](#m8---modernized-baseline-release-to-maven) |
+| Release | M8 | Modernized baseline release to maven | Milestone | Complete | No | M1, M4, M6, M9, M11, M15, M16, M17, G10, D17 | Published 2.0.0, released clean installation verified, Release Verification 1-7 Pass; closure record published at `0a50d1e`; [detail](#m8---modernized-baseline-release-to-maven) |
 | Tests | M15 | Reduce phase 2 to a build-wrapper check | Milestone | Complete | No | G7, D9 | Implemented and locally verified; landed at `d748d4f` on origin/modernize, verified 2026-09-22; [detail](#m15---reduce-phase-2-to-a-build-wrapper-check) |
 | Verification | M17 | Correct build verification and align documentation with code | Milestone | Complete | No | D14 | Implemented and locally verified 2026-09-15; landed at `a159b79` on origin/modernize 2026-09-19; T6 follow-up carried as M20; [detail](#m17---correct-build-verification-and-align-documentation-with-code) |
 | Cleanup | M21 | Remove the retired Sphinx docs build from aa-env | Milestone | Complete | No | G11 | Sphinx/Python/docs-build assumptions removed; phase 2 asserts the mgmt WAR `ui/api/index.html` (T1/T2 pass); landed at `a12516d`; [detail](#m21---remove-the-retired-sphinx-docs-build-from-aa-env) |
@@ -783,8 +783,8 @@ This is a reinstall result; the earlier bare-host installation remains
 scoped to `57021de`. PR #54 is merged, and tag/release `2.0.0` are published
 on fixed commit `386c91d74086313efe04e0b64eb5dacfd91f8389`. The separate
 released-object clean installation passed Release Verification 6 on
-2026-09-29. Release Verification 7 passes in this prepared closure
-candidate; its final commit and publication remain separately authorized.
+2026-09-29. Release Verification 7 passed, and its checked closure record is
+committed and published at `0a50d1e`.
 
 ##### Scope
 
@@ -998,7 +998,7 @@ follow-up does not authorize another version change.
 | 6 | Push only `refs/tags/2.0.0` to origin | Exact previewed command authorized 2026-09-29; requires the preceding canonical checkpoint | Remote tag object equals the local object | Published and read back 2026-09-29T19:21:04Z: remote tag object `8bd31845746b8850fe9ce4d0ba7216bdae18020b`, peeled commit `386c91d74086313efe04e0b64eb5dacfd91f8389`; both match the recorded local objects. The remote-tag checkpoint is committed and published at `e4de312`; origin/maven at `b20e4a2` contains it. |
 | 7 | Publish GitHub release `2.0.0` from that tag using the reviewed changelog notes | Exact previewed command authorized 2026-09-29; requires the preceding canonical checkpoint | Published release resolves to the recorded tag and notes | Published 2026-09-29T19:22:52Z: [release 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/releases/tag/2.0.0), release ID `399455855`. API read-back confirms title and tag `2.0.0`, draft=false, prerelease=false and latest stable release. Notes match the reviewed text after newline normalization. Existing tag remains unchanged and peels to the fixed candidate; `target_commitish=maven` is release metadata, not the tag target. |
 | 8 | Retain the current canonical path; open no next release line in this cycle | Decision Date: 2026-09-29, owner selected 2.0.0 only | Closure entry point records that the next release is undecided | Verified 2026-09-29; canonical path retained, no next release document opened, next version/plan undecided |
-| 9 | Record post-release checks and close M8 | Separate canonical checkpoint/closure commit authorization | Required results Pass; released objects unchanged | Closure candidate prepared; separate closure commit and publication remain unexecuted. |
+| 9 | Record post-release checks and close M8 | Separate canonical checkpoint/closure commit authorization | Required results Pass; released objects unchanged | Committed and published at `0a50d1e`; committed canonical bytes match the checked file, and origin/maven read-back confirms the same commit. See Cycle Closure Evidence. |
 
 Record the PR on `modernize` before finalizing the candidate. After the
 fast-forward publication, create canonical checkpoint and closure commits
@@ -1066,7 +1066,7 @@ remain in Release Verification History with their original commit and scope.
 | Release Verification 4 | 2026-09-29T16:14:53Z | Committed `7670d39` | Pass | The committed `CHANGELOG.md` has exactly one dated `2.0.0` heading, no `Unreleased`, and SHA-256 `0de0100715e454634463d3fa5248afa299f18ad2ed5ebc127bf34fde2368d65f`. `configure/RELEASE` matches the committed file and pins aa-maven `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Both files match the checkout. Evidence: `work/release-docs-check.json`. |
 | Release Verification 5 | 2026-09-29T19:22:56Z | Published annotated tag and GitHub release 2.0.0 | Pass | Local and remote tag objects equal `8bd31845746b8850fe9ce4d0ba7216bdae18020b` and peel to the authorized candidate `386c91d74086313efe04e0b64eb5dacfd91f8389`. Published release ID `399455855`, title/tag `2.0.0`, draft=false, prerelease=false; latest endpoint returns the same ID. Notes match the reviewed text after newline normalization; SHA-256 of the reviewed text is recorded above. Published maven checkpoint `a42aa41` descends from the candidate. Recheck with the origin tag refs and GitHub REST release-by-tag and latest endpoints. |
 | Release Verification 6 | 2026-09-29T20:26:36Z | Clean Debian 13.4 VM; released aa-env `386c91d`, source `d8a7813f`, MariaDB over loopback TCP | Pass | Documented host prerequisites and all eight ordered targets completed; four installed webapps match their newly built WARs; four JVMs and active/enabled service/timer verified; management HTTP 200; all three PVs connected and each returned two distinct post-start samples; scheduled health Result=success and ExecMainStatus=0. See Released Installation Evidence for exact IDs and private evidence digests. |
-| Release Verification 7 | 2026-09-29T22:32:41Z | Canonical closure candidate based on published `b20e4a2`; GitHub and origin observations | Pass | Work table/details and required issue states agree; M3 landing verified; D30 assignments published; next release intentionally unopened; released objects unchanged. See Cycle Closure Evidence. The closure candidate itself remains uncommitted. |
+| Release Verification 7 | 2026-09-29T22:32:41Z | Canonical closure candidate based on published `b20e4a2`; GitHub and origin observations | Pass | Work table/details and required issue states agree; M3 landing verified; D30 assignments published; next release intentionally unopened; released objects unchanged. See Cycle Closure Evidence. The checked closure record is committed and published at `0a50d1e`; remote landing confirmed at 2026-09-30T00:01:12Z. |
 
 ###### Cycle Closure Evidence
 
@@ -1097,7 +1097,7 @@ Observed 2026-09-29T22:32:41Z through the canonical origin and GitHub REST:
 - The owner selected 2.0.0 only on 2026-09-29. This canonical path remains;
   no next release version, document or plan is opened.
 
-All milestone work rows are Complete in this prepared closure candidate.
+All milestone work rows are Complete in the closed 2.0.0 cycle.
 The sole Open milestone-section row is G6, an external gate for transferred
 Backlog work. Backlog remains separate from the release tally and retains its
 unfinished work. Row/detail identity, status, dependencies and result labels
@@ -1108,10 +1108,14 @@ The unchanged executable tree passed the real local suite: 223 logic,
 in total), with no failures or skips. The document passes `git diff --check`.
 Private observations are in `work/rv7-2.0.0/remote.json`, SHA-256
 `3cb384c29b91818e144b34889159a3140aac6d1fc4a4160344f5d864344d00b8`;
-local check output is in the same directory. Final commit/publication of this
-closure candidate is not yet executed. After separate authorization, compare
-the committed canonical bytes with this checked file and read the remote
-maven ref back. Retain the published tag and release unchanged.
+local check output is in the same directory. The separately authorized
+closure commit is `0a50d1e2e9010f61e8a7df1501f1b2652344a233` and is
+published on maven. The committed canonical bytes matched the checked file,
+SHA-256 `5bf1a111f60bcf558ef68493c6e74c639d1b066737c4c4bdbcb25c2d505df563`.
+Remote read-back at 2026-09-30T00:01:12Z returned that exact maven commit;
+the annotated tag object and peeled release commit remained unchanged.
+The working tree matched the committed canonical file. This subsequent
+documentation update records those observations without moving released objects.
 
 ###### Released Installation Evidence
 
@@ -1334,7 +1338,8 @@ boundary and runtime limitations described above still apply. Evidence:
 ##### Closure Evidence
 
 - Accepted M8 plan: 2026-09-28; readiness follow-up: 2026-09-29.
-  Closure preparation authorized 2026-09-29; commit/publication remain separate.
+  Closure preparation and separate commit/publication authorized and completed
+  on 2026-09-29.
 - Candidate and release commit `386c91d74086313efe04e0b64eb5dacfd91f8389`;
   annotated tag `8bd31845746b8850fe9ce4d0ba7216bdae18020b`; published
   release `399455855` (`2.0.0`). All Release Verification 1-7 results Pass.
@@ -1344,8 +1349,9 @@ boundary and runtime limitations described above still apply. Evidence:
 - Final review checks work table/details, issue states, D30 transfers and
   next-line decision; see Cycle Closure Evidence. No M8 issue/milestone
   mutation is required. No next release line is opened.
-- Final closure commit and its observed remote landing are still pending
-  separate authorization; Complete is the prepared closure candidate state.
+- Final closure commit `0a50d1e2e9010f61e8a7df1501f1b2652344a233` is
+  published. Remote landing confirmed at 2026-09-30T00:01:12Z; committed
+  canonical bytes match the checked closure file. The 2.0.0 cycle is closed.
 
 ##### GitHub Projection
 
