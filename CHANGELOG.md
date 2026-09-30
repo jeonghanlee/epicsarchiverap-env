@@ -20,7 +20,7 @@ changes to the environment repository.
 - `ARCHAPPL_STS_GRANULARITY`, `ARCHAPPL_STS_HOLD`, `ARCHAPPL_MTS_GRANULARITY`, `ARCHAPPL_MTS_HOLD` and `ARCHAPPL_LTS_GRANULARITY` render the store chain, so a test host can shorten it without editing the template.
 - `archappl.bash loglevel <component> [logger] [level]` reads or sets an application log level at runtime through the mgmt BPL; `ARCHAPPL_ROOT_LOGGER_LEVEL` and `ARCHAPPL_LOG4J_SITE_FILE` set the start-up level and an optional site log4j2 file.
 - `archappl.bash status` prints the mgmt URLs with the configured port.
-- The work register `docs/milestone-265f580.md`, which tracks every work item, decision and verification.
+- [The original work register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md), which tracks every work item, decision and verification.
 
 ### Changed
 - Restructure CONFIG layout per the epics-makefile pattern: merge `configure/CONFIG_COMMON` into `configure/CONFIG_SITE`; load RELEASE first and CONFIG_VARS before the derived SQL, Tomcat, and source configuration.

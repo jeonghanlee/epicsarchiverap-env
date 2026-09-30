@@ -85,7 +85,7 @@ The [loaded heap report](reports/heap-soak-20260928.md) records operator-reporte
 100, 500 and 903 PV runs with 256 MiB heap overrides, including six hours of
 concurrent retrieval. A separate default-install check confirmed that all four
 JVMs receive the shipped 256 MiB setting. Together these satisfy the amended
-[heap verification criterion](milestone-265f580.md#m22---size-the-jvm-heap-default-to-the-host).
+[heap verification criterion](milestone-2.0.0.md#m22---size-the-jvm-heap-default-to-the-host).
 The measurements do not establish production capacity or an optimal heap size:
 post-GC retained heap and individual GC pauses were not measured. Validate the
 intended workload before using this value as an operating default.
@@ -330,7 +330,7 @@ MainPID handling and component dependencies still apply. See the
 for timing, skip results, operator recovery and monitor-only removal, and the
 [VM test procedure](../tests/README.md#process-monitoring-vm-verification)
 for runtime acceptance. Current verification evidence is maintained in
-[M23](milestone-265f580.md#m23---make-a-dead-instance-visible-to-systemd).
+[M23](milestone-2.0.0.md#m23---make-a-dead-instance-visible-to-systemd).
 
 ## Functional verification
 

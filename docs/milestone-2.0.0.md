@@ -1,20 +1,19 @@
 # Work Register
 
-Release line: master (`maven` branch)
+Release line: 2.0.0 (closed)
 Milestone index: 265f580
-Canonical path: `docs/milestone-265f580.md`
-Canonical branch or ref: maven
+Canonical path: `docs/milestone-2.0.0.md`
+Canonical branch or ref: release-2.0.1 (preserved 2.0.0 closure)
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: await the owner's selection of Backlog work or a
-future release plan. Read this canonical document before starting the selected
-work. The 2.0.0 cycle is closed; no next release line is opened or assigned.
-The existing VMs and their evidence remain retained.
-M3 and M8 are Complete. The checked closure record is committed and published
-at `0a50d1e2e9010f61e8a7df1501f1b2652344a233`; remote landing was
-confirmed at 2026-09-30T00:01:12Z.
+Next session entry point: read `docs/milestone-2.0.1.md` for current work.
+The 2.0.0 cycle remains closed. Surviving work and its authority transfer to
+the 2.0.1 canonical document in this synchronization change.
+The closure observations below retain their original dates and commit scope;
+references to transferred Backlog work describe the recorded 2.0.0 state.
+
 Decision Date: 2026-09-29. Finish 2.0.0 only; do not open the next release
 line in this cycle. D30 preserves M10, M13, M27 and M14 in Backlog.
 
@@ -131,7 +130,6 @@ under their recorded separate authorizations. M2
 | Gate | G2 | Legacy GitHub milestones and issues closed | External gate | Complete | No | | Milestones M0–M5 and issues #35–#42 closed, verified 2026-09-13; [detail](#g2---legacy-github-milestones-and-issues-closed) |
 | Gate | G3 | aa-maven lands canonical pom | External gate | Complete | No | | Canonical pom at `9be652c`, verified on origin 2026-09-12; [detail](#g3---aa-maven-lands-canonical-pom) |
 | Gate | G4 | aa-maven lands jakarta servlet migration | External gate | Complete | No | | Retired 2026-09-12: Tomcat 9 fixed, no jakarta migration (aa-maven D13); [detail](#g4---aa-maven-lands-jakarta-servlet-migration) |
-| Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Closes when aa-maven removes Ant and reports the commit with the post-Ant per-site contract; their M10 is deferred to backlog (2026-09-19) and Ant still drives the per-site build at `3c96141d`, so this blocks no row under D17; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Gate | G7 | aa-maven CI builds on Maven | External gate | Complete | No | | `maven.yml` runs `./mvnw -B -ntp clean verify` on JDK 21; passing run 35423900164 / `b0fcbb61`, re-derived at `3c96141d` 2026-09-20; [detail](#g7---aa-maven-ci-builds-on-maven) |
 | Gate | G8 | aa-maven Maven Wrapper build verified | External gate | Complete | No | | Fresh-clone `./mvnw` build passed at `c1dd0b1`, reported 2026-09-12; [detail](#g8---aa-maven-maven-wrapper-build-verified) |
 | Gate | G9 | aa-maven ships both DB drivers with dialect auto-detection | External gate | Complete | No | | Both `mariadb-java-client` and `sqlite-jdbc` ship; the source auto-detects the dialect from DataSource metadata (aa-maven `ab324afb`); [detail](#g9---aa-maven-ships-both-db-drivers-with-dialect-auto-detection) |
@@ -182,14 +180,21 @@ under their recorded separate authorizations. M2
 
 | Work Identity | From Canonical | To Canonical | Target Commit | Authority Moved At |
 | --- | --- | --- | --- | --- |
-| M2, G5 (`docs/milestone-265f580.md`) | Milestone section, branch modernize | Backlog section, branch modernize | `621312f` | `621312f` |
-| M9, M11 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retitled per D10/D11) | this synchronization commit | this synchronization commit |
-| M12 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retired per D11) | this synchronization commit | this synchronization commit |
-| M2 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize | this synchronization commit | this synchronization commit |
-| M10, M13, M18, M19, M27 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-22) | this synchronization commit | this synchronization commit |
-| M38 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-25) | this synchronization commit | this synchronization commit |
-| M40 (`docs/milestone-265f580.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-28) | this synchronization commit | this synchronization commit |
-| M10, M13, M27, M14 (`docs/milestone-265f580.md`) | Milestone section, branch maven | Backlog section, branch maven (transferred 2026-09-29, D30) | this synchronization commit | this synchronization commit |
+| M2, G5 (`docs/milestone-2.0.0.md`) | Milestone section, branch modernize | Backlog section, branch modernize | `621312f` | `621312f` |
+| M9, M11 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retitled per D10/D11) | this synchronization commit | this synchronization commit |
+| M12 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize (retired per D11) | this synchronization commit | this synchronization commit |
+| M2 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize | this synchronization commit | this synchronization commit |
+| M10, M13, M18, M19, M27 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-22) | this synchronization commit | this synchronization commit |
+| M38 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-25) | this synchronization commit | this synchronization commit |
+| M40 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-28) | this synchronization commit | this synchronization commit |
+| M10, M13, M27, M14 (`docs/milestone-2.0.0.md`) | Milestone section, branch maven | Backlog section, branch maven (transferred 2026-09-29, D30) | this synchronization commit | this synchronization commit |
+| 265f580 / M10 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M14 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M41 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M13 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M27 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M42 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / G6 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -334,7 +339,7 @@ Superseded Plan Artifacts: none
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Repository | Read `origin/maven:docs/milestone-265f580.md` and inspect its tracked paths after fetching | aa-env checkout | This register is present; `docs/MILESTONES.md` is absent |
+| T1 | Repository | Read `origin/maven:docs/milestone-2.0.0.md` and inspect its tracked paths after fetching | aa-env checkout | This register is present; `docs/MILESTONES.md` is absent |
 | T2 | Repository | `git merge-base --is-ancestor <register commit> origin/maven` | aa-env checkout | Exit 0 |
 | T3 | Tracker | Read issue and milestone states through the GitHub REST API | GitHub | Issues #35-#42 and milestones M0-M5 remain closed |
 
@@ -3245,38 +3250,6 @@ had served M7, which D11 also retired.
 - aa-maven reset register `docs/milestone-daff1b7.md` (D13) retires the
   migration; no aa-maven target remains.
 
-#### G6 - aa-maven lands Ant removal with the per-site build contract
-
-Origin: 265f580 / G6
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-aa-maven removes Ant from its build (its register row M10) and reports the
-commit together with the post-Ant contract for the per-site build step that
-`build.xml` target `sitespecificbuild` used to run inside
-`src/sitespecific/<site>`. Affected M14, which D17 deferred; this gate now
-blocks no row and stays Open until aa-maven takes the work up again.
-
-aa-maven register row: `docs/milestone-daff1b7.md` M10 (Ant removal, Deferred
-and moved to the aa-maven backlog 2026-09-19, their D7).
-
-##### Completion Criteria
-
-- A cross-session response names the aa-maven commit and states how (or
-  whether) the per-site `build.xml` step is executed after Ant removal.
-
-##### Verification Results
-
-| Observed At | Result | Evidence |
-| --- | --- | --- |
-| 2026-09-20 | Pending | aa-maven reports M10 (Ant removal) Deferred and moved to its backlog 2026-09-19 (their D7), with no landing commit. aa-env re-derived it at aa-maven modernize `3c96141d`: their register `docs/milestone-daff1b7.md` carries M10 as `Deferred` with an assignment-history row for the 2026-09-19 move, and the `maven-antrun-plugin` execution `sitespecificantscript` still runs `<ant antfile="${project.basedir}/build.xml" target="sitespecificbuild"/>`, so the per-site contract is still Ant-based. Recheck by reading that path and the pom at the then-current aa-maven `modernize` head. |
-
-##### Closure Evidence
-
-- none
-
 #### G7 - aa-maven CI builds on Maven
 
 Origin: 265f580 / G7
@@ -5390,316 +5363,8 @@ Last Compared: 2026-09-28T07:38Z, `gh issue view 51` (title matches this project
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Gate | G5 | Baseline deployment reported by the ansible/cloud session | External gate | Complete | No | D7 | mgmt probe returned 200 on three provisioned hosts, reported 2026-09-21; [detail](#g5---baseline-deployment-reported-by-the-ansiblecloud-session) |
 | Documentation | M20 | Align T6 ETL timeline placement with the time cutoff | Carry-forward | Complete | No | M17, D14 | Artwork and exports landed at `9fb3b29`, T6 prose at `e513267`, T1 Pass 2026-09-21; [detail](#m20---align-t6-etl-timeline-placement-with-the-time-cutoff) |
-| Runtime | M41 | Measure per-component heap needs by archiving load | Carry-forward | Not started | Yes | | A measured table of the live heap each instance keeps at several PV counts and sampling rates, from which a heap per load is recommended; [detail](#m41---measure-per-component-heap-needs-by-archiving-load) |
-| DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M9, D29 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
-| Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Open | No | | Define a host and the container/VM implementation plan; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
-| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required aa-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
-| Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
-| Build seam | M14 | Remove Ant leftovers from aa-env | Milestone | Deferred | No | G6, D9, D17 | No `ANT_*` in `configure/`, no `site-template/siteid/build.xml`, no `ant` package, build still passes; deferred 2026-09-20 (D17) with Ant removal out of Phase 1 on both sides, returning to Not started only by a new dated decision; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 
 ### Backlog Details
-
-#### M10 - Phase 3 and 4 install tests (container, VM)
-
-Origin: 265f580 / M10
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-Implement the `tests/phase3-docker.bash` and `tests/phase4-vm.bash` stubs
-described in `tests/README.md`.
-
-##### Scope
-
-- Container entrypoint under `tests/docker/` running `make install`.
-- VM entrypoint under `tests/vm/` running the systemd stack and HTTP probes.
-
-Out of scope: CI wiring.
-
-##### Completion Criteria
-
-- `tests/run-all-tests.bash --system` passes on a host with Docker and
-  libvirt.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The test host and implementation plan remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
-- none
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Define the implementation plan for the assigned work.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | System | `tests/run-all-tests.bash --system` | Host with Docker and libvirt | All assertions pass |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Host with Docker and libvirt | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Implement phase 3 and 4 install tests
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
-#### M13 - Site skin aligned with the rewritten mgmt UI
-
-Origin: 265f580 / M13
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The management web interface rewrite moved to the EPICS-Arche repository
-(the post-Phase-2 runtime, per D11). The aa-env repository carries only the
-site-specific skin (`site-template/siteid`: css, img, `template_changes.html`)
-copied into the WAR. While the appliance stays on WARs (Phase 2) the skin is
-unchanged; it is revisited only if EPICS-Arche replaces the mgmt UI.
-
-##### Scope
-
-- `site-template/siteid/{css,img,template_changes.html}` and the
-  `copy.sitespecific` step in `configure/RULES_SRC`.
-
-Out of scope: the interface itself (EPICS-Arche).
-
-##### Completion Criteria
-
-- After planning defines the EPICS-Arche interface and aa-env's role, the
-  resulting skin renders correctly on that interface. The current WAR skin
-  remains unchanged until that scope is defined.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The target interface and the role of the aa-env skin remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
-- EPICS-Arche repository (mgmt UI rewrite), post-Phase-2
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Define the implementation plan for the assigned work.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | UI | Define the actual interface and browser procedure during planning | Agreed target interface | Page renders with the site skin; no console errors |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Align the site skin with the rewritten mgmt UI
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
-#### M27 - LTS retrieval pre-processing (`pp`)
-
-Origin: 265f580 / M27
-Identity History: none
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-`docs/README.policies.md` recommends `pp=mean_3600` on LTS, and the shipped
-`site-template/policies.py.in` sets no `pp` on any tier. The gap is real but the
-answer is not obvious from the documents, so it waits for operating experience
-rather than being settled now.
-
-Two facts shape the question. `pp` preserves the raw data and writes auxiliary
-pre-calculated files beside it, so it *increases* disk use, which runs against
-the open concern that the archive store sits on the root filesystem with an
-unknown fill rate. And `pp` is mutually exclusive with `reducedata`, which the
-shipped Fast, VeryFast, Medium and Slow policies already set on LTS; the
-recommendation can therefore only apply to the Default and VerySlow policies.
-
-##### Scope
-
-- Whether the Default and VerySlow policies gain `pp` on LTS, and with which
-  operator and interval.
-- `site-template/policies.py.in` and the policy guide, if the answer is yes.
-
-Out of scope: `reducedata` on the other policies; the retrieval API; the
-storage filesystem work, which M26 carries.
-
-##### Completion Criteria
-
-- After the appliance has run with real queries and a known disk growth rate,
-  a dated decision either adds `pp` to the named policies or records that the
-  retrieval gain does not justify the additional storage.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The operating measurements and pp selection remain unresolved. Status stays Open; assignment alone does not accept or authorize implementation.
-- Condition for taking this up: an operating installation with a measured disk
-  growth rate and real retrieval patterns to judge against. Owner decided
-  2026-09-21 to look at it during operation over the long term rather than now.
-- D21 (the storage work is scoped to the test environment first).
-- The disk growth figure comes from the load test requested of the
-  ansible-provision session.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Function | Compare retrieval time and disk use for a long span with and without `pp` on LTS | operating installation | The difference is large enough, or not, to settle the decision |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | operating installation | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: LTS retrieval pre-processing
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
-
-#### M14 - Remove Ant leftovers from aa-env
-
-Origin: 265f580 / M14
-Identity History: none
-GitHub Issue: none
-Status: Deferred
-
-##### Summary
-
-aa-env still carries Ant pieces from the pre-Maven build: an Ant build file
-in the site overlay and `ANT_HOME` / `ANT_PATH` / `ANT_OPTS` in the site
-configuration. M11 already removed Ant from the package lists. Once
-aa-maven removes Ant from the build (its M10) and states how the per-site
-build step is replaced, aa-env removes its half.
-
-##### Scope
-
-- `site-template/siteid/build.xml` (33 lines): remove, or replace per the
-  post-Ant sitespecific contract aa-maven reports.
-- `configure/CONFIG_SITE`: `ANT_HOME`, `ANT_PATH`, `ANT_OPTS` (lines 4, 9,
-  43–49) and any `.local` preset that sets them.
-- `configure/os/*.pkgs`: verify that no `ant` package remains. M11 already
-  removed the legacy package scripts and omitted Ant from the new lists.
-- `configure/RULES_SRC` `copy.sitespecific`: unchanged unless the contract
-  changes the overlay path.
-
-Out of scope: the aa-maven build itself; the overlay path
-`src/sitespecific/<ARCHAPPL_SITEID>` and the `classpathfiles` packaging,
-which aa-maven confirmed survive Ant removal.
-
-##### Completion Criteria
-
-- Phase 1 asserts: no `ANT_` variable in `configure/`, no
-  `site-template/siteid/build.xml`, no `ant` package in `configure/os/*.pkgs`.
-- `make build` against the post-Ant aa-maven source produces the four WARs
-  with the site overlay applied.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
-- G6 (aa-maven M10 and the post-Ant sitespecific contract); still Open, and it
-  no longer blocks this row
-- D9
-- D17. 2026-09-20: Ant removal is deferred out of Phase 1 on both sides, so this
-  row moves to Deferred and leaves M8's dependency list. aa-maven moved its M10
-  to the backlog 2026-09-19; this row returns to Not started only by a new dated
-  decision.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Read the contract aa-maven reports with G6; decide remove-or-replace for
-   `site-template/siteid/build.xml`.
-2. Add the failing phase 1 assertions, then remove the Ant pieces.
-3. Run `make build` against the aa-maven commit named in G6.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Logic | `tests/run-all-tests.bash --phase=1` | This host | New assertions pass |
-| T2 | Build | `make build` with `SRC_TAG` at the G6 commit | This host | Four WARs; `archappl.properties`, `log4j2.xml`, `policies.py` from the overlay present in each WAR (`unzip -l`) |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-| T2 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Remove Ant leftovers from the environment configuration
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
 
 #### G5 - Baseline deployment reported by the ansible/cloud session
 
@@ -5836,225 +5501,3 @@ Superseded Plan Artifacts: none
   boundary that produces it, and landed at `e513267`. Both halves of the
   completion criterion are met and both carry landing evidence, so this row
   closes.
-
-#### M41 - Measure per-component heap needs by archiving load
-
-Origin: 265f580 / M41
-Identity History: none
-GitHub Issue: #53
-Status: Not started
-
-##### Summary
-
-The 256M heap default (M22) is a test default; the available measurements
-do not establish a heap recommendation by load. The ansible-provision soak
-on aa-env `9eed006`, aa-maven `3c96141d` and Ansible `dca2255` covers 100,
-500 and 903 PV stages. The 903 PV stage includes 110 PVs at 10 Hz and eight
-waveforms. With `-Xms256M -Xmx256M` on every JVM, the largest sampled ETL
-heap was 250.9 MiB. Its ten Full GCs cover the combined interval from the
-500 PV stage through the run's end, including fault tests; one occurred
-in the 500 PV stage. The other three components had no Full GC in that
-interval.
-
-The [heap observation report](reports/heap-soak-20260928.md), committed at
-`decff38`, records the supplied figures and their limits. Five-minute
-samples do not provide immediate post-GC heap or individual GC pauses,
-so this evidence does not meet this work item's completion criteria.
-The heap needed may depend on different workloads per component (PV count
-and rate for engine, partition size for etl, query span for retrieval);
-that relationship remains a hypothesis until measured.
-
-##### Scope
-
-- Measure, per instance, the live set (heap in use right after a GC, not the
-  peak), the GC counts and pause times, and the RSS on a disposable VM over a
-  load matrix: PV counts (for example 100, 500, 1000 and 2000) at 1 Hz and
-  10 Hz from a `softIoc` on the test host, archived in bulk through the mgmt
-  BPL, plus one step with a retrieval client. Each step runs long enough to
-  cover several ETL passes, with the M31 test store values
-  (`PARTITION_5MIN`) so STS, MTS and LTS are all reached within hours.
-- Measurement method, one or both, fixed during planning: G1 unified GC
-  logging (`-Xlog:gc*:file=<instance>/logs/gc.log:time,uptime`) on the four
-  JVMs, whose `Pause ... <before>-><after>(<max>)` lines give the live set
-  as the after-GC values; or, with the install unchanged, `jstat -gc <pid>`
-  sampled every minute as the service account (old-generation use `OU` and
-  full GC count `FGC`; `jstat` ships in the JDK devel package the Rocky 8
-  list installs). Whether aa-env has a path to add a JVM option for the GC
-  log is checked during planning.
-- From the measurements, write a heap recommendation per load into
-  `docs/README.install.md` beside the four-instance memory calculation, as
-  the live set times a headroom factor; the factor (2 to 3 is the usual rule
-  of thumb) is chosen from the measured GC counts and pause times.
-
-Out of scope: changing the shipped default (M22); per-instance heap
-variables, unless the measurements show one shared value cannot fit; GC
-tuning beyond sizing; production storage sizing.
-
-##### Completion Criteria
-
-- A recorded table of the after-GC heap, GC counts and pause times per
-  instance for each load in the matrix, with the aa-env and aa-maven refs and
-  the measurement method used.
-- The install guide gives a heap per load derived from that table.
-
-##### Dependencies And Decisions
-
-- Recorded 2026-09-28 from the owner's direction after the M22 review of the
-  `9eed006` soak figures; not assigned to current work.
-- Additional post-GC heap and individual GC pause measurements were requested
-  from the Ansible operator on 2026-09-28. Results have not been received;
-  no new measurement run is verified here. This Backlog item remains separate
-  from M8's release criteria.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Fix the load matrix, the run length and the measurement method (GC log,
-   `jstat`, or both) during planning.
-2. Run the matrix on a disposable VM and record the measurements.
-3. Derive and document the recommendation.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Runtime | Run each load of the matrix with the chosen method (GC log, `jstat`, or both) on all four instances; read the stable after-GC heap, the GC counts and pause times, and the RSS | Disposable VM | A complete table per instance and load, tied to the aa-env and aa-maven refs |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Disposable VM | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Measure per-component heap needs by archiving load
-Labels: enhancement
-GitHub Milestone: none
-Observed State: OPEN
-Observed Labels: enhancement
-Observed Milestone: none
-Last Compared: 2026-09-28, `gh issue view 53` after creation
-
-#### M42 - Apply backend selection to all database operations
-
-Origin: 265f580 / M42
-Identity History: none
-GitHub Issue: none
-Status: Deferred
-
-##### Summary
-
-`DB_BACKEND` selects the appliance JDBC resource and MariaDB service dependency,
-but does not consistently select aa-env's database commands. At `46faeb9`,
-`configure/RULES_SQL` switches schema generation, loading and table listing;
-table deletion and the four application-table queries still invoke
-`scripts/mariadb_setup.bash`. All `db.*` commands remain MariaDB-specific.
-An unrecognized backend falls through to MariaDB in the SQL rules, while
-`conf.context` and `conf.systemd0` reject it. At that earlier commit, the
-MariaDB application-table query also hardcoded
-`archappl` in `show_archappl`. The 2026-09-28 correction authorized after the
-whole-repository review makes it honor `DB_NAME`, exports `JDBC_DB_NAME` as
-`ARCHAPPL_DB_NAME` for the JNDI lookup, and makes admin removal honor
-`DB_ADMIN`. These identity corrections do not implement backend isolation.
-
-The current narrow correction rejects SQLite and invalid backend values at
-`sql.drop` and `sql.table.drop`. It does not implement SQLite deletion or
-complete backend isolation for the other commands.
-
-##### Scope
-
-- Inventory every public database operation, including `sql.*`, `db.*`,
-  `PVRequests.show`, `DataServers.show`, `PVAliases.show`, `PVTypeInfo.show`,
-  and the setup script's query, backup and restore entrypoints.
-- Make generic operations consistently select MariaDB over TCP or a Unix
-  domain socket, or the SQLite file at `ARCHAPPL_SQLITE_FILE`. Validate the
-  backend before any configuration write, database connection or deletion;
-  an unknown value must never fall through to MariaDB.
-- Implement SQLite table deletion and application-table queries against the
-  source repository's shipped schema. Specify handling of associated triggers,
-  missing databases, file ownership, WAL files and active appliance connections.
-- Define backend-specific behavior for database creation, removal, inspection,
-  backup and restore. MariaDB account and server administration have no SQLite
-  equivalent: make the command boundary explicit and return a clear error for
-  unsupported operations without contacting MariaDB under SQLite selection.
-- Keep database identity consistent across Make, generated configuration,
-  helper scripts and JDBC. Honor `DB_NAME` on MariaDB and the configured file
-  on SQLite; define how stale generated configuration is detected or refreshed.
-- Align the install procedure, command documentation and tests with that
-  behavior, including when MariaDB configuration generation is unnecessary.
-
-Out of scope: automatic data migration or replication between engines,
-application schema redesign, PV archive-file deletion, and DB performance
-tuning. The current deletion guard is a partial safeguard, not completion of
-this work.
-
-##### Completion Criteria
-
-- Every inventoried entrypoint has documented behavior for both supported
-  backends and for invalid selection; no generic command contacts the
-  unselected backend.
-- SQLite supports schema load, table listing, all four application-table
-  queries, table deletion and reload using the shipped schema. MariaDB retains
-  those operations over both TCP and its Unix domain socket.
-- Database lifecycle, backup and restore follow the documented backend policy;
-  unsupported operations and client failures return nonzero status.
-- Disposable-database tests verify the selected database's result and that the
-  other database's schema and rows remain unchanged, including deletion tests.
-- The install and operator documentation describes the same behavior as the
-  commands, with no unconditional MariaDB step in the SQLite procedure.
-
-##### Dependencies And Decisions
-
-- M9 supplies the installed backend selection and source schemas.
-- D29, Decision Date: 2026-09-28. Full work remains deferred. The initial
-  authorization covered the `sql.drop` / `sql.table.drop` safeguard.
-- Decision Date: 2026-09-28. The subsequent whole-repository review correction
-  additionally covers password preservation, runtime DB-name propagation,
-  application-table DB selection and configured admin removal. It does not
-  authorize the full backend matrix; M42 remains Deferred. A new dated
-  decision is required to return it to Not started.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Define the operation matrix and database lifecycle policy, including the
-   MariaDB-only administration boundary and standalone script invocation.
-2. Apply shared backend validation and route generic operations to the matching
-   client and database identity. Implement missing SQLite operations.
-3. Align documentation and exercise the complete matrix on disposable databases
-   using the shipped rules, scripts and source schemas.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Command routing | Run every entrypoint with both backends, both local configuration locations, command-line overrides and invalid values | Isolated aa-env checkout and disposable databases | Selected client and identity agree; invalid or unsupported operations fail before side effects |
-| T2 | Database integration | Load the shipped schemas, insert records, query all four tables, drop tables and reload through real targets | SQLite and MariaDB over TCP and Unix domain socket | Expected schema and rows in the selected database; unselected database unchanged |
-| T3 | Database lifecycle | Exercise creation, removal, backup and restore, including a non-default name or file, WAL mode and defined active-connection handling | Disposable databases under the service account | Documented lifecycle and ownership; backup restores the expected rows; failures propagate |
-| T4 | Deployment | Follow the documented sequence for each backend and exercise the appliance configuration database | Debian 13 and Rocky Linux 8 disposable VMs | JDBC, helpers and service dependencies use the selected backend consistently |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Isolated aa-env checkout and disposable databases | Pending | none |
-| T2 | Not run | SQLite and MariaDB over TCP and Unix domain socket | Pending | none |
-| T3 | Not run | Disposable databases under the service account | Pending | none |
-| T4 | Not run | Debian 13 and Rocky Linux 8 disposable VMs | Pending | none |
-
-##### Closure Evidence
-
-- none

@@ -159,7 +159,7 @@ state and never restarts anything. Monitoring provides no survivor guarantee.
 
 This section describes the shipped contract. Runtime acceptance evidence,
 including target systemd compatibility, is tracked in
-[M23](../milestone-265f580.md#m23---make-a-dead-instance-visible-to-systemd).
+[M23](../milestone-2.0.0.md#m23---make-a-dead-instance-visible-to-systemd).
 HTTP readiness, sample continuity and retrieval correctness require separate
 application checks.
 
