@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: review and commit the verified M43 backend isolation changes, then reconcile landing and issue closure; the remaining plans are draft. Resolve G6 against the pinned aa-maven source before M14. The planning commit `4c8af4d9b4812154b0dfe217f7128e4dbba805b7` is published on origin/release-2.0.1; issues #53, #55, #56 and #57 are assigned to GitHub milestone 2.0.1. Implementation, source-pin changes, release actions and publication require separate authority.
+Next session entry point: commit the M43 landing and #55 closure records, then resolve G6 against the pinned aa-maven source before M14. Backend isolation commit `3560216c5315088a05bb2e9dea263eac075c52bf` is published on origin/release-2.0.1 and #55 is CLOSED. The remaining plans are draft. Issues #53, #55, #56 and #57 are assigned to GitHub milestone 2.0.1. Further implementation, source-pin changes, release actions and publication require separate authority.
 
 ## Scope
 
@@ -15,7 +15,7 @@ The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete A
 
 Out of scope: adding SQLite deletion, table-query, backup or restore support; changing the shipped heap default; UI skin changes; LTS pre-processing; data migration. Existing 2.0.0 release objects remain immutable. No next release after 2.0.1 is assigned.
 
-Baseline: aa-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag commit `386c91d74086313efe04e0b64eb5dacfd91f8389`, aa-maven pin `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Prior release results are historical evidence and do not satisfy 2.0.1 checks. Backend isolation work is In progress; the remaining implementation and runtime checks have not started.
+Baseline: aa-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag commit `386c91d74086313efe04e0b64eb5dacfd91f8389`, aa-maven pin `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Prior release results are historical evidence and do not satisfy 2.0.1 checks. Backend isolation work is Complete; the remaining implementation and runtime checks have not started.
 
 ## Milestone
 
@@ -23,7 +23,7 @@ Baseline: aa-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| DB | M43 | Reject operations on an unselected database backend | Milestone | In progress | No | D31, D32 | SQLite db.* skips; unsupported and invalid selections stop before configuration writes or DB contact; [detail](#m43---reject-operations-on-an-unselected-database-backend) |
+| DB | M43 | Reject operations on an unselected database backend | Milestone | Complete | No | D31, D32 | SQLite db.* skips; unsupported and invalid selections stop before configuration writes or DB contact; [detail](#m43---reject-operations-on-an-unselected-database-backend) |
 | Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D31 | No Ant integration remains; four real WARs retain the site overlay; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Not started | Yes | D31 | Real container install and VM runtime checks pass; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
@@ -62,11 +62,11 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 Origin: 2.0.1 / M43
 Identity History: none
 GitHub Issue: [#55](https://github.com/jeonghanlee/epicsarchiverap-env/issues/55)
-Status: In progress
+Status: Complete
 
 ##### Summary
 
-At the cycle baseline, `configure/RULES_SQL` guards `sql.drop` and `sql.table.drop`, but `db.*` and the four application-table query targets remain MariaDB-specific and invalid selections fall into the MariaDB schema branch. The working tree branches before prerequisites, skips SQLite db.* targets, and rejects unsupported or invalid operations. Regression execution against the actual f5037ab rules/helper fails; the current real paths pass the checks below.
+At the cycle baseline, `configure/RULES_SQL` guards `sql.drop` and `sql.table.drop`, but `db.*` and the four application-table query targets remain MariaDB-specific and invalid selections fall into the MariaDB schema branch. Commit `3560216c5315088a05bb2e9dea263eac075c52bf` branches before prerequisites, skips SQLite db.* targets, and rejects unsupported or invalid operations. Regression execution against the actual f5037ab rules/helper fails; the committed real paths pass the checks below.
 
 ##### Scope
 
@@ -117,17 +117,19 @@ Superseded Plan Artifacts: none
 
 - Local verification: `EXPECTED_BRANCH=release-2.0.1 bash tests/run-all-tests.bash --local` passes Logic 224, payload 20, database configuration 10 and build wrapper 13 checks. `bash -n scripts/mariadb_setup.bash`, `shellcheck scripts/mariadb_setup.bash` and `git diff --check` pass. The build wrapper checks command generation; no appliance build or VM runtime check is claimed here.
 - Pinned source schema Git blobs: MariaDB `948a38d87765b0e8e6076c76c597996c7765945d`; SQLite `bfe76e0bf87ee2faad942208886828553ad015b0`. Retrieved from the source commit above and validated against their Git blob hashes before execution.
-- Commit, remote landing evidence and issue closure remain pending; status remains In progress.
+- Implementation commit: `3560216c5315088a05bb2e9dea263eac075c52bf`, carrying the rules, helper, regression tests and operator documentation.
+- Landing observed 2026-09-30 at 05:48 UTC: after `git fetch origin`, local HEAD and origin/release-2.0.1 both resolve to the implementation commit. `git diff 3560216c5315088a05bb2e9dea263eac075c52bf origin/release-2.0.1 -- configure/RULES_SQL scripts/mariadb_setup.bash tests/database-config.py docs/README.install.md tests/README.md docs/milestone-2.0.1.md` is empty.
+- Issue closure observed 2026-09-30 at 05:54 UTC: #55 is CLOSED, closedAt and updatedAt `2026-09-30T05:54:00Z`. Readback confirms the implemented body, all five completed acceptance criteria and [closure comment](https://github.com/jeonghanlee/epicsarchiverap-env/issues/55#issuecomment-5905030281). No external build gate applies to this work.
 
 ##### GitHub Projection
 
 Title: Reject operations on an unselected database backend
 Labels: bug
 GitHub Milestone: 2.0.1
-Observed State: OPEN
+Observed State: CLOSED
 Observed Labels: bug
 Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-09-30 at 05:09 UTC, `gh issue view 55 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T05:09:37Z
+Last Compared: 2026-09-30 at 05:54 UTC, `gh issue view 55 --repo jeonghanlee/epicsarchiverap-env`; CLOSED, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T05:54:00Z
 
 #### G6 - aa-maven lands Ant removal with the per-site build contract
 
@@ -574,7 +576,7 @@ whole-repository review makes it honor `DB_NAME`, exports `JDBC_DB_NAME` as
 
 The 2.0.0 correction rejects SQLite and invalid backend values at
 `sql.drop` and `sql.table.drop`. M43 now verifies the broader isolation guards
-in the working tree: SQLite db.* skips, while unsupported SQL/query/helper
+in commit 3560216: SQLite db.* skips, while unsupported SQL/query/helper
 operations and invalid selectors reject before side effects. SQLite deletion,
 application-table queries, lifecycle, backup and restore remain this row's
 deferred scope.
