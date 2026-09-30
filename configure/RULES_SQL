@@ -2,6 +2,14 @@
 sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show
 sql_db_RULES:=$(addprefix db., $(sql_db_RULES_NAMES))
 
+# Helpers receive the same backend selection as the invoking Make target.
+export DB_BACKEND
+.PHONY: $(sql_db_RULES)
+
+ifeq "$(DB_BACKEND)" "sqlite"
+$(sql_db_RULES):
+	$(QUIET)printf '[SKIP] %s: MariaDB setup is not needed for DB_BACKEND=sqlite.\n' "$@"
+else ifeq "$(DB_BACKEND)" "mariadb"
 db.conf: export RENDER_DB_ADMIN_HOST = $(DB_ADMIN_HOST)
 db.conf: export RENDER_DB_ADMIN = $(DB_ADMIN)
 db.conf: export RENDER_DB_ADMIN_PASS = $(DB_ADMIN_PASS)
@@ -41,10 +49,16 @@ db.drop: mariadb_setup.bash db.conf
 db.show: mariadb_setup.bash db.conf
 	$(QUIET)bash $< dbShow
 
+else
+$(sql_db_RULES):
+	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))
+endif
+
 #sed "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" ${aa_deploy_db_tables} > ${aa_deploy_db_tables_new};
 
-sql_sql_RULES_NAMES:=fill show update update.show table.fill table.show table.drop
-sql_sql_RULES:=$(addprefix sql., $(sql_db_RULES_NAMES))
+sql_sql_RULES_NAMES:=fill show update update.show table.fill table.show drop table.drop
+sql_sql_RULES:=$(addprefix sql., $(sql_sql_RULES_NAMES))
+.PHONY: $(sql_sql_RULES)
 
 sql.fill: sql.update sql.table.fill
 
@@ -76,7 +90,7 @@ sql.table.fill: src_preinst
 sql.table.show:
 	$(QUIET)echo "\n>>> $(ARCHAPPL_SQLITE_FILE) Tables"
 	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) .tables
-else
+else ifeq "$(DB_BACKEND)" "mariadb"
 sql.update:
 	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
 	            -e "s/) ENGINE=InnoDB;/) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/g" \
@@ -92,15 +106,18 @@ sql.table.fill: mariadb_setup.bash
 sql.table.show: mariadb_setup.bash
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables"
 	$(QUIET)bash $< tableShow
+else
+sql.update sql.update.show sql.table.fill sql.table.show:
+	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))
 endif
 
+aa_tables_RULES:=PVRequests.show DataServers.show PVAliases.show PVTypeInfo.show
+.PHONY: $(aa_tables_RULES)
+
+ifeq "$(DB_BACKEND)" "mariadb"
 sql.table.drop: mariadb_setup.bash
-	$(call check_db_backend)
-	$(if $(filter mariadb,$(DB_BACKEND)),,$(error sql.drop/sql.table.drop is not supported for DB_BACKEND=sqlite; no database was changed))
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables Drop"
 	$(QUIET)bash $< tableDrop
-
-aa_tables_RULES:=PVRequests.show DataServers.show PVAliases.show PVTypeInfo.show
 
 PVRequests.show: mariadb_setup.bash
 	$(QUIET)bash $< "aaShow" "ArchivePVRequests"
@@ -113,4 +130,11 @@ PVAliases.show: mariadb_setup.bash
 
 PVTypeInfo.show: mariadb_setup.bash
 	$(QUIET)bash $< "aaShow" "PVTypeInfo"
+else ifeq "$(DB_BACKEND)" "sqlite"
+sql.table.drop $(aa_tables_RULES):
+	$(error $@ is not supported for DB_BACKEND=sqlite; no database was changed)
+else
+sql.table.drop $(aa_tables_RULES):
+	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))
+endif
 # end-of-line

@@ -127,9 +127,13 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   `sql.update`, `sql.update.show`, `sql.fill` and `sql.show`, including their
   `sql.table.fill` and `sql.table.show` targets. `sql.drop` and
   `sql.table.drop` reject SQLite without changing either database.
-  `db.*` and the four application-table query targets (`PVRequests.show`,
-  `DataServers.show`, `PVAliases.show`, `PVTypeInfo.show`) remain MariaDB-specific;
-  do not use them to manage SQLite.
+  Every `db.*` target prints `[SKIP]` and succeeds without reading or writing
+  MariaDB configuration or running prerequisites. This keeps the common install
+  sequence usable with SQLite. The four application-table query targets
+  (`PVRequests.show`, `DataServers.show`, `PVAliases.show`, `PVTypeInfo.show`)
+  and direct `scripts/mariadb_setup.bash` operations reject SQLite before any
+  MariaDB access. Every DB/SQL/query target rejects an invalid backend before
+  configuration writes or database contact.
 - MariaDB transport: `DB_SOCKET` is empty by default, which connects over TCP to
   `DB_HOST_NAME:DB_HOST_PORT`. Set it in `../CONFIG_SITE.local` to the server's
   Unix domain socket (`/var/lib/mysql/mysql.sock` on Rocky Linux 8,
@@ -231,7 +235,7 @@ already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 | # | Target | Priv | Inputs | Writes | Check |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `make init` | U | `SRC_TAG`, `SRC_URL` | source clone `epicsarchiverap-maven-src` | source `HEAD` at `SRC_TAG` |
-| 2 | `make db.conf` | U | `DB_*` | `site-template/mariadb.conf` | file exists (`make db.conf.show`) |
+| 2 | `make db.conf` | U | `DB_BACKEND`, `DB_*` | MariaDB: `site-template/mariadb.conf`; SQLite: none | MariaDB: file exists (`make db.conf.show`); SQLite: `[SKIP]` |
 | 3 | `make conf.archapplproperties` | U | `ARCHAPPL_*` (incl. `ARCHAPPL_*_PORT`, default 17665-17668) | `site-template/*` and source `classpathfiles` | files exist (`make conf.archapplproperties.show`) |
 | 4 | `make build.mvn` | U | source clone, `JAVA_HOME` | four WARs and the Tomcat log4j jar set in `epicsarchiverap-maven-src/target` | four `*-{mgmt,engine,etl,retrieval}.war`; `target/tomcat-log4j` holds `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` |
 | 5 | `make sql.fill` | U (R for SQLite) | `DB_BACKEND`; `DB_USER`/`DB_USER_PASS` or `ARCHAPPL_SQLITE_FILE`; source SQL | schema loaded over TCP or `DB_SOCKET`, or into the SQLite file | `make sql.show` lists the tables |
@@ -268,8 +272,8 @@ Notes:
   appliance. Loading again is harmless and restores a missing table. Check the
   tables with `make sql.show`, which runs `sqlite3` the same way; another user
   cannot read the file once the appliance has opened it. Step 2
-  (`make db.conf`) writes the MariaDB client settings only; SQLite does not
-  use them, and running it is harmless.
+  (`make db.conf`) prints `[SKIP]` and succeeds without generating MariaDB
+  client settings. The same behavior applies to every other `db.*` target.
 
 ## Ownership boundary
 

@@ -7,15 +7,15 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: review and accept the draft plans in this document and resolve G6 against the pinned aa-maven source. The planning commit `4c8af4d9b4812154b0dfe217f7128e4dbba805b7` is published on origin/release-2.0.1; issues #53, #55, #56 and #57 are assigned to GitHub milestone 2.0.1. Implementation, source-pin changes, release actions and publication require separate authority.
+Next session entry point: review and commit the verified M43 backend isolation changes, then reconcile landing and issue closure; the remaining plans are draft. Resolve G6 against the pinned aa-maven source before M14. The planning commit `4c8af4d9b4812154b0dfe217f7128e4dbba805b7` is published on origin/release-2.0.1; issues #53, #55, #56 and #57 are assigned to GitHub milestone 2.0.1. Implementation, source-pin changes, release actions and publication require separate authority.
 
 ## Scope
 
-The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration after the source contract is confirmed, real installation test automation and measured heap guidance. The owner assigned these four candidates on 2026-09-29. The proposed order is M43, M14, M10, M41, then M44. G6 may be investigated while M43 is planned; its completion gates M14 and release readiness. The sequence and detailed plans await acceptance.
+The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration after the source contract is confirmed, real installation test automation and measured heap guidance. The owner assigned these four candidates on 2026-09-29. The proposed order is M43, M14, M10, M41, then M44. G6 may be investigated while M43 is planned; its completion gates M14 and release readiness. The release sequence and remaining detailed plans await acceptance; M43 is accepted under D32.
 
 Out of scope: adding SQLite deletion, table-query, backup or restore support; changing the shipped heap default; UI skin changes; LTS pre-processing; data migration. Existing 2.0.0 release objects remain immutable. No next release after 2.0.1 is assigned.
 
-Baseline: aa-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag commit `386c91d74086313efe04e0b64eb5dacfd91f8389`, aa-maven pin `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Prior release results are historical evidence and do not satisfy 2.0.1 checks. No implementation or runtime verification has started.
+Baseline: aa-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag commit `386c91d74086313efe04e0b64eb5dacfd91f8389`, aa-maven pin `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Prior release results are historical evidence and do not satisfy 2.0.1 checks. Backend isolation work is In progress; the remaining implementation and runtime checks have not started.
 
 ## Milestone
 
@@ -23,7 +23,7 @@ Baseline: aa-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| DB | M43 | Reject operations on an unselected database backend | Milestone | Not started | Yes | D31 | Unsupported and invalid selections stop before configuration writes or DB contact; [detail](#m43---reject-operations-on-an-unselected-database-backend) |
+| DB | M43 | Reject operations on an unselected database backend | Milestone | In progress | No | D31, D32 | SQLite db.* skips; unsupported and invalid selections stop before configuration writes or DB contact; [detail](#m43---reject-operations-on-an-unselected-database-backend) |
 | Gate | G6 | aa-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---aa-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from aa-env | Milestone | Blocked | No | G6, D31 | No Ant integration remains; four real WARs retain the site overlay; [detail](#m14---remove-ant-leftovers-from-aa-env) |
 | Tests | M10 | Phase 3 and 4 install tests (container, VM) | Milestone | Not started | Yes | D31 | Real container install and VM runtime checks pass; [detail](#m10---phase-3-and-4-install-tests-container-vm) |
@@ -41,6 +41,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D21 | The archive store's filesystem and the ETL timing become aa-env work (M26), scoped to the test environment first rather than to production storage architecture. Two facts drive it. On the provisioned hosts the archive store resolves to the root volume, nothing in the install path mounts a dedicated one, and `ARCHAPPL_STORAGE_TOP` only names a directory, so an archiver that fills its store fills `/` and takes the whole host; no quota or threshold exists anywhere in the chain. Separately, the shipped store configuration puts MTS at `PARTITION_MONTH` with `hold=2`, so samples do not leave MTS for roughly two months and the second ETL hop cannot be observed in any realistic test run. Production storage sizing, per-tier media selection and retention for real data stay outside this row. | 2026-09-21 |
 | D29 | Limit current DB changes to rejecting `sql.drop` and `sql.table.drop` for SQLite or an invalid backend before invoking any database client. Record full backend consistency as Backlog M42, deferred from current execution; SQLite deletion support and the remaining DB command behavior require a later accepted plan. | 2026-09-28 |
 | D31 | Assign the four 2.0.1 candidates: M41, M10, M14 and the backend isolation safeguard split from M42 as M43. Preserve M42 expansion, M13 and M27 as Backlog. M14 resumes as Not started after G6 completes and is Blocked until then. Plans and the proposed order remain draft; assignment authorizes documentation and issue preparation only. | 2026-09-29 |
+| D32 | For SQLite, all db.* targets print a skip message and return success without prerequisites or MariaDB configuration reads/writes. Invalid backend values and unsupported SQL/query/helper operations fail before side effects. | 2026-09-29 |
 
 ### Assignment History
 
@@ -61,16 +62,16 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 Origin: 2.0.1 / M43
 Identity History: none
 GitHub Issue: [#55](https://github.com/jeonghanlee/epicsarchiverap-env/issues/55)
-Status: Not started
+Status: In progress
 
 ##### Summary
 
-At the cycle baseline, `configure/RULES_SQL` guards `sql.drop` and `sql.table.drop`, but `db.*` and the four application-table query targets remain MariaDB-specific and invalid selections fall into the MariaDB schema branch. These are code observations; no new reproduction has run.
+At the cycle baseline, `configure/RULES_SQL` guards `sql.drop` and `sql.table.drop`, but `db.*` and the four application-table query targets remain MariaDB-specific and invalid selections fall into the MariaDB schema branch. The working tree branches before prerequisites, skips SQLite db.* targets, and rejects unsupported or invalid operations. Regression execution against the actual f5037ab rules/helper fails; the current real paths pass the checks below.
 
 ##### Scope
 
 - Inventory the Make DB entrypoints, configuration generation and standalone helper dispatch. Validate backend values before side effects.
-- Preserve existing MariaDB behavior over TCP and Unix sockets and existing SQLite schema load/list behavior. Reject unsupported SQLite operations clearly before MariaDB is contacted.
+- Preserve existing MariaDB behavior over TCP and Unix sockets and existing SQLite schema load/list behavior. Skip every `db.*` target for SQLite with an explanatory success result and no prerequisites; reject unsupported SQL/query/helper operations before MariaDB is contacted.
 - Update operator documentation and real-path regression checks.
 
 Out of scope: implementing new SQLite table deletion, application-table queries, lifecycle, backup or restore; schema changes; data migration. Those remain M42.
@@ -78,41 +79,45 @@ Out of scope: implementing new SQLite table deletion, application-table queries,
 ##### Completion Criteria
 
 - All inventoried generic entrypoints validate the selector before writes or DB contact.
-- SQLite and invalid values cannot invoke a MariaDB-only operation, including prerequisites and standalone helpers; rejection returns nonzero.
+- SQLite `db.*` targets return zero with a skip message without reading or writing MariaDB configuration or running prerequisites.
+- Unsupported SQLite SQL/query/helper operations and invalid backend values return nonzero before configuration writes or database contact.
 - Supported MariaDB and SQLite behavior remains verified with the shipped rules, scripts and schemas.
 
 ##### Dependencies And Decisions
 
+- D32 sets SQLite db.* to an explanatory skip; standalone MariaDB helpers and unsupported SQL/query operations still reject.
 - D31 splits the safeguard from M42; M42 remains Deferred. Existing selection and schema support is historical 2.0.0 work, not an unfinished dependency.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-09-29; SQLite db.* skip, invalid selections and unsupported SQL/query/helper rejection accepted
+Implementation Authorization: 2026-09-29; implement and verify the accepted backend isolation plan
 Superseded Plan Artifacts: none
 
-1. Define the supported/rejected matrix for every entrypoint in `configure/RULES_SQL` and the DB helpers; distinguish explicit MariaDB administration from generic operations.
-2. Add backend validation before prerequisites can generate configuration or contact another backend; extend the existing deletion guard without adding SQLite functionality.
-3. Document rejected operations and execute routing negatives plus supported operations on disposable databases.
+1. Branch `configure/RULES_SQL` before prerequisites: all eight `db.*` targets skip for SQLite; MariaDB retains its current operations. Invalid values fail for every DB/SQL/query target.
+2. Validate standalone `scripts/mariadb_setup.bash` dispatch before reading configuration; reject SQLite and invalid values. Keep supported SQLite schema load/list paths and reject SQLite deletion and application-table queries.
+3. Update install and test documentation and `tests/database-config.py`. Run actual Make targets and helper dispatch for skip/rejection and supported MariaDB TCP/socket and SQLite paths using the source schemas and disposable databases.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Integration | Execute every unsupported/invalid operation through shipped Make targets and standalone helpers; inspect exit status and pre/post configuration and database state | Isolated checkout and disposable DBs | Nonzero rejection before writes or MariaDB contact |
+| T1 | Integration | Execute every unsupported/invalid operation through shipped Make targets and standalone helpers; inspect exit status and pre/post configuration and database state | Isolated checkout and disposable DBs | SQLite db.* skips with zero; unsupported/invalid operations reject before writes or MariaDB contact |
 | T2 | Database | Execute supported schema load/list and MariaDB operations through real commands with shipped source schemas | SQLite; MariaDB TCP and Unix socket | Selected database has expected results; other database remains unchanged |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | Isolated checkout and disposable DBs | Pending | none |
-| T2 | Not run | SQLite; MariaDB TCP and Unix socket | Pending | none |
+| T1 | 2026-09-30 05:09 UTC | Isolated copies; private MariaDB 11.8.6 over TCP/socket | Pass | `tests/database-config.py`: all 8 SQLite db.* skip, 20 DB/SQL/query targets reject invalid selectors, 22 helper actions reject SQLite/invalid values before reading config. Config and MariaDB general log remain unchanged; application marker persists. Actual f5037ab comparison fails 16 skip, 80 invalid-selector and 89 helper assertions. |
+| T2 | 2026-09-30 05:09 UTC | Private MariaDB 11.8.6 TCP/socket; SQLite 3.46.1 as current OS user | Pass | `python3 tests/database-config.py --integration`: 2 tests pass against aa-maven d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 original schemas selected through `AA_TEST_SOURCE_PATH`. MariaDB account/schema/query/backup/restore and SQLite repeated load/list/missing-table restoration pass; unrelated admin accounts and MariaDB configuration are preserved. |
 
 ##### Closure Evidence
 
-- none
+- Local verification: `EXPECTED_BRANCH=release-2.0.1 bash tests/run-all-tests.bash --local` passes Logic 224, payload 20, database configuration 10 and build wrapper 13 checks. `bash -n scripts/mariadb_setup.bash`, `shellcheck scripts/mariadb_setup.bash` and `git diff --check` pass. The build wrapper checks command generation; no appliance build or VM runtime check is claimed here.
+- Pinned source schema Git blobs: MariaDB `948a38d87765b0e8e6076c76c597996c7765945d`; SQLite `bfe76e0bf87ee2faad942208886828553ad015b0`. Retrieved from the source commit above and validated against their Git blob hashes before execution.
+- Commit, remote landing evidence and issue closure remain pending; status remains In progress.
 
 ##### GitHub Projection
 
@@ -122,7 +127,7 @@ GitHub Milestone: 2.0.1
 Observed State: OPEN
 Observed Labels: bug
 Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 55 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:27:19Z
+Last Compared: 2026-09-30 at 05:09 UTC, `gh issue view 55 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T05:09:37Z
 
 #### G6 - aa-maven lands Ant removal with the per-site build contract
 
@@ -567,9 +572,12 @@ whole-repository review makes it honor `DB_NAME`, exports `JDBC_DB_NAME` as
 `ARCHAPPL_DB_NAME` for the JNDI lookup, and makes admin removal honor
 `DB_ADMIN`. These identity corrections do not implement backend isolation.
 
-The current narrow correction rejects SQLite and invalid backend values at
-`sql.drop` and `sql.table.drop`. It does not implement SQLite deletion or
-complete backend isolation for the other commands.
+The 2.0.0 correction rejects SQLite and invalid backend values at
+`sql.drop` and `sql.table.drop`. M43 now verifies the broader isolation guards
+in the working tree: SQLite db.* skips, while unsupported SQL/query/helper
+operations and invalid selectors reject before side effects. SQLite deletion,
+application-table queries, lifecycle, backup and restore remain this row's
+deferred scope.
 
 ##### Scope
 

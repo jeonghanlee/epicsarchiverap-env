@@ -14,6 +14,18 @@ import xml.etree.ElementTree as ET
 
 
 TOP = Path(__file__).resolve().parents[1]
+SOURCE_TOP = Path(os.environ.get("AA_TEST_SOURCE_PATH", str(TOP / "epicsarchiverap-maven-src")))
+SCHEMA_TOP = SOURCE_TOP / "src/main/org/epics/archiverappliance/config/persistence"
+DB_TARGETS = ("db.conf", "db.conf.show", "db.secure", "db.addAdmin",
+              "db.rmAdmin", "db.create", "db.drop", "db.show")
+SQL_TARGETS = ("sql.fill", "sql.show", "sql.update", "sql.update.show",
+               "sql.table.fill", "sql.table.show", "sql.drop", "sql.table.drop")
+QUERY_TARGETS = ("PVRequests.show", "DataServers.show", "PVAliases.show", "PVTypeInfo.show")
+HELPER_ACTIONS = ("secureSetup", "localAdminAdd", "hostnameAdminAdd", "localAdminRemove",
+                  "hostnameAdminRemove", "adminAdd", "adminRemove", "dbCreate",
+                  "dbUserCreate", "dbShow", "dbUserDrop", "userDrop", "dbDrop", "isDb",
+                  "dbBackup", "dbBackupList", "dbRestore", "tableShow", "tableDrop",
+                  "aaShow", "query", "queryFile")
 
 
 class DatabaseConfigTests(unittest.TestCase):
@@ -122,6 +134,73 @@ class DatabaseConfigTests(unittest.TestCase):
                     self.assertIn("Phase 3", run.stderr)
                     self.assertIn("Phase 4", run.stderr)
 
+    def test_sqlite_database_targets_skip_without_prerequisites(self):
+        self.make("db.conf", "DB_BACKEND=mariadb")
+        template = self.root / "site-template"
+        config = template / "mariadb.conf"
+        original = config.read_bytes()
+        (template / "mariadb.conf.in").unlink()
+        (self.root / "scripts/mariadb_setup.bash").unlink()
+        for target in DB_TARGETS:
+            (self.root / target).touch()
+        for existing in (True, False):
+            if not existing:
+                config.unlink()
+            for target in DB_TARGETS:
+                with self.subTest(target=target, existing=existing):
+                    out = self.make(target, "DB_BACKEND=sqlite")
+                    self.assertIn(f"[SKIP] {target}".encode(), out)
+                    self.assertEqual(config.read_bytes() if config.exists() else None,
+                                     original if existing else None)
+
+    def test_invalid_backends_fail_before_database_prerequisites(self):
+        self.make("db.conf", "DB_BACKEND=mariadb")
+        config = self.root / "site-template/mariadb.conf"
+        original = config.read_bytes()
+        (self.root / "scripts/mariadb_setup.bash").unlink()
+        for target in DB_TARGETS + SQL_TARGETS + QUERY_TARGETS:
+            (self.root / target).touch()
+            for backend in ("postgres", "", "mariadb sqlite", "mariadb "):
+                with self.subTest(target=target, backend=backend):
+                    run = subprocess.run(["make", "-s", target, f"DB_BACKEND={backend}"],
+                                         cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0, run.stdout + run.stderr)
+                    self.assertIn(b"DB_BACKEND must be one of", run.stderr)
+                    self.assertEqual(config.read_bytes(), original)
+                    self.assertFalse((self.root / "site-template/sql/archappl_sqlite_updated.sql").exists())
+
+    def test_sqlite_queries_and_deletion_reject_without_helper(self):
+        (self.root / "scripts/mariadb_setup.bash").unlink()
+        for target in QUERY_TARGETS + ("sql.drop", "sql.table.drop"):
+            with self.subTest(target=target):
+                (self.root / target).touch()
+                run = subprocess.run(["make", "-s", target, "DB_BACKEND=sqlite"],
+                                     cwd=self.root, capture_output=True, timeout=30)
+                self.assertNotEqual(run.returncode, 0)
+                self.assertIn(b"not supported for DB_BACKEND=sqlite", run.stderr)
+
+    def test_standalone_helper_rejects_before_reading_configuration(self):
+        config = self.root / "site-template/mariadb.conf"
+        config.write_text("touch CONFIG_READ\nexit 99\n")
+        for backend in ("sqlite", "postgres", "", "mariadb sqlite"):
+            for action in HELPER_ACTIONS:
+                with self.subTest(backend=backend, action=action):
+                    env = dict(os.environ, DB_BACKEND=backend)
+                    run = subprocess.run(["bash", "scripts/mariadb_setup.bash", action],
+                                         cwd=self.root, env=env, capture_output=True, timeout=30)
+                    self.assertEqual(run.returncode, 2, run.stdout + run.stderr)
+                    self.assertIn(b"DB_BACKEND", run.stderr)
+                    self.assertFalse((self.root / "CONFIG_READ").exists())
+        config.unlink()
+        (self.root.parent / "CONFIG_SITE.local").write_text("DB_BACKEND:=sqlite\n")
+        env = dict(os.environ)
+        env.pop("DB_BACKEND", None)
+        run = subprocess.run(["bash", "scripts/mariadb_setup.bash", "dbShow"],
+                             cwd=self.root, env=env, capture_output=True, timeout=30)
+        self.assertEqual(run.returncode, 2)
+        self.assertIn(b"not supported for DB_BACKEND=sqlite", run.stderr)
+        self.assertNotIn(b"No such file", run.stderr)
+
 
 class DatabaseIntegrationTests(unittest.TestCase):
     """Run only on explicit request; use a private real MariaDB server."""
@@ -130,11 +209,34 @@ class DatabaseIntegrationTests(unittest.TestCase):
     run_command = DatabaseConfigTests.run_command
     make = DatabaseConfigTests.make
 
+    def test_real_sqlite_schema_load_and_list(self):
+        schema = SCHEMA_TOP / "archappl_sqlite.sql"
+        self.assertTrue(schema.is_file(), "Real SQLite source schema is required")
+        db = Path(self.temp.name) / "sqlite/archappl.sqlite"
+        options = ["DB_BACKEND=sqlite", "SUDO=", "SQLITE_RUN_AS=",
+                   "AA_USERID=" + self.run_command(["id", "-un"]).decode().strip(),
+                   "AA_GROUPID=" + self.run_command(["id", "-gn"]).decode().strip(),
+                   f"ARCHAPPL_SQLITE_FILE={db}", f"SQL_AA_ORIG_SQLITE={schema}"]
+        self.make("db.conf", "DB_BACKEND=mariadb")
+        config = self.root / "site-template/mariadb.conf"
+        before = config.read_bytes()
+        self.make(*DB_TARGETS, *options)
+        self.make("sql.fill", *options)
+        self.make("sql.fill", *options)
+        tables = self.make("sql.show", *options)
+        for table in (b"ArchivePVRequests", b"ExternalDataServers", b"PVAliases", b"PVTypeInfo"):
+            self.assertIn(table, tables)
+        self.run_command(["sqlite3", str(db), "DROP TABLE PVAliases;"])
+        self.make("sql.fill", *options)
+        self.assertIn(b"PVAliases", self.make("sql.show", *options))
+        self.assertEqual(config.read_bytes(), before)
+
     def test_real_database_credentials_and_account_identity(self):
         server = shutil.which("mariadbd") or "/usr/sbin/mariadbd"
         self.assertTrue(Path(server).is_file(), "mariadbd is required")
         datadir = Path(self.temp.name) / "data"
         sock = Path(self.temp.name) / "db.sock"
+        general_log = Path(self.temp.name) / "general.log"
         with socket.socket() as probe:
             probe.bind(("127.0.0.1", 0))
             port = probe.getsockname()[1]
@@ -143,7 +245,8 @@ class DatabaseIntegrationTests(unittest.TestCase):
         process = subprocess.Popen(
             [server, "--no-defaults", f"--datadir={datadir}", f"--socket={sock}",
              f"--pid-file={datadir}/server.pid", f"--port={port}", "--bind-address=127.0.0.1",
-             f"--log-error={datadir}/server.log", "--skip-log-bin"],
+             f"--log-error={datadir}/server.log", "--skip-log-bin",
+             "--general-log", f"--general-log-file={general_log}"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         def stop():
             process.terminate()
@@ -179,7 +282,7 @@ class DatabaseIntegrationTests(unittest.TestCase):
         helper = ["bash", "scripts/mariadb_setup.bash"]
         self.run_command(helper + ["adminAdd"])
         self.run_command(helper + ["hostnameAdminAdd"])
-        schema = TOP / "epicsarchiverap-maven-src/src/main/org/epics/archiverappliance/config/persistence/archappl_mysql.sql"
+        schema = SCHEMA_TOP / "archappl_mysql.sql"
         self.assertTrue(schema.is_file(), "Real source schema is required")
         (self.root.parent / "CONFIG_SITE.local").write_text(f"DB_SOCKET := {sock} # local socket\n")
         for transport in ([], ["DB_SOCKET="]):
@@ -192,6 +295,25 @@ class DatabaseIntegrationTests(unittest.TestCase):
                 sql.write_text("SELECT 'file-ok';\n")
                 self.assertIn(b"file-ok", self.run_command(helper + ["queryFile", str(sql), "-N"]))
                 self.run_command(helper + ["query", "INSERT INTO ExternalDataServers (serverid, serverinfo) VALUES ('review-marker', 'http://localhost');"])
+                self.assertIn(b"review-marker", self.make("DataServers.show"))
+                config = self.root / "site-template/mariadb.conf"
+                before_config = config.read_bytes()
+                before_log = general_log.read_bytes()
+                for backend in ("sqlite", "postgres", "", "mariadb sqlite"):
+                    for target in DB_TARGETS + SQL_TARGETS + QUERY_TARGETS:
+                        if backend == "sqlite" and target in SQL_TARGETS[:-2]:
+                            continue
+                        args = ["make", "-s", target, *common, f"DB_BACKEND={backend}"]
+                        if backend == "sqlite" and target in DB_TARGETS:
+                            self.assertIn(b"[SKIP]", self.run_command(args))
+                        else:
+                            self.run_command(args, expected=2)
+                    for action in HELPER_ACTIONS:
+                        self.run_command(helper + [action], expected=2,
+                                         env=dict(os.environ, DB_BACKEND=backend))
+                self.assertEqual(general_log.read_bytes(), before_log,
+                                 "Skip/rejection must not connect to MariaDB")
+                self.assertEqual(config.read_bytes(), before_config)
                 self.assertIn(b"review-marker", self.make("DataServers.show"))
                 backup = Path(self.temp.name) / "backup path"
                 self.run_command(helper + ["dbBackup", str(backup)])

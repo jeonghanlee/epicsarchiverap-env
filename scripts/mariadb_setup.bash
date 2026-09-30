@@ -16,6 +16,22 @@ SC_TOP="${SC_SCRIPT%/*}"
 LOGDATE="$(date +%y%m%d%H%M)"
 ENV_TOP="${SC_TOP}/.."
 
+# Reject an unselected backend before reading MariaDB configuration or clients.
+if [[ ! ${DB_BACKEND+x} ]]; then
+    DB_BACKEND=$(make -C "${ENV_TOP}" --no-print-directory -s print-DB_BACKEND) || exit 2
+fi
+case "$DB_BACKEND" in
+    mariadb) ;;
+    sqlite)
+        printf '%s\n' 'mariadb_setup.bash is not supported for DB_BACKEND=sqlite; no database was changed.' >&2
+        exit 2
+        ;;
+    *)
+        printf "DB_BACKEND must be one of: mariadb sqlite (got '%s')\n" "$DB_BACKEND" >&2
+        exit 2
+        ;;
+esac
+
 AA_SITE_TEMPLATE_PATH=$(make -C "${ENV_TOP}" -s print-AA_SITE_TEMPLATE_PATH)
 
 # shellcheck disable=SC1090,SC1091

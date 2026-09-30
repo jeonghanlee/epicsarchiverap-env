@@ -274,24 +274,43 @@ entry point emits `[PASS]`. Use `--local` for the implemented local checks.
 `--local` also runs `database-config.py`: it renders the real templates,
 parses their XML, sources their shell assignments, compares the runtime DB
 name with both backend resources, and checks the system-phase exit contract.
+It executes all eight SQLite `db.*` targets with missing prerequisites and
+both present and absent MariaDB configuration, checking explanatory success
+and unchanged configuration. Invalid backend values reject every DB/SQL/query
+target; unsupported SQLite deletion/query operations reject even when files
+matching target names exist. Standalone helper operations reject SQLite and
+invalid selectors before reading configuration.
 It also verifies that a failed `conf.archappl` substitution returns nonzero
 without creating or replacing the output, and that inline comments on
 `DB_SOCKET` leave JDBC and shell clients using the same transport and path.
 
-For actual MariaDB account, schema, query, backup and restore operations:
+For actual MariaDB account, schema, query, backup and restore operations, and
+SQLite schema load/list operations:
 
 ```bash
 python3 tests/database-config.py --integration
 ```
 
-This requires `mariadb-install-db`, `mariadbd`, `mysql`, `mysqldump`, and the
-source checkout's `archappl_mysql.sql`. It creates a private datadir, socket
+`AA_TEST_SOURCE_PATH` selects an alternate source checkout or a tree containing
+the exact source schema files at their original paths; the default is
+`epicsarchiverap-maven-src`.
+
+This requires `mariadb-install-db`, `mariadbd`, `mysql`, `mysqldump`,
+`sqlite3`, and the source checkout's `archappl_mysql.sql` and
+`archappl_sqlite.sql`. It creates a private datadir, socket
 and loopback listener and stops that server at exit. The only substitute is
 a pass-through `sudo` at the privilege boundary; SQL runs through the shipped
 setup script and the real client/server. The socket setting comes from a local
 override with an inline comment. Both TCP and socket connections use
 a password containing shell, XML and SQL special characters. The test also
 checks that removing a configured admin preserves unrelated `admin` accounts.
+The private server's general log must remain unchanged while SQLite `db.*`
+skips and unsupported/invalid targets and helper actions reject; the generated
+MariaDB configuration and application data remain unchanged. SQLite uses the
+shipped schema and real Make targets, checks repeated loading and missing-table
+restoration, and preserves MariaDB configuration. Account/privilege selection
+uses the current OS user for SQLite; host account provisioning is outside this
+check.
 It does not verify host sudo policy or Tomcat runtime authentication.
 
 `install-payload.py` accepts two real Maven `target` directories and an
