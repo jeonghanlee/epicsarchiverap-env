@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
@@ -23,6 +24,30 @@ def load_driver():
 
 
 class EntrypointTests(unittest.TestCase):
+    def test_separate_stderr_preserves_json_and_failure_evidence(self):
+        driver = load_driver()
+        command = [sys.executable, '-c',
+                   'import sys; print("{\\"ready\\": true}"); '
+                   'print("diagnostic warning", file=sys.stderr); '
+                   'sys.exit(int(sys.argv[1]))']
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / 'command.json'
+            for status in (0, 3):
+                rc, output = driver.run(command + [str(status)], log=log,
+                                        check=False, separate_stderr=True)
+                self.assertEqual(rc, status)
+                self.assertEqual(json.loads(output), {'ready': True})
+                evidence = json.loads(log.read_text())
+                self.assertEqual(evidence['output'], output)
+                self.assertEqual(evidence['stderr'], 'diagnostic warning\n')
+                self.assertEqual(evidence['exit'], status)
+            with self.assertRaises(driver.Failed):
+                driver.run(command + ['3'], log=log, separate_stderr=True)
+            self.assertEqual(json.loads(log.read_text())['stderr'], 'diagnostic warning\n')
+            rc, output = driver.run(command + ['0'])
+            self.assertEqual(rc, 0)
+            self.assertIn('diagnostic warning', output)
+
     def test_dhcp_ownership_accepts_unnamed_and_legacy_named_entries(self):
         driver = load_driver()
         mac, address, name = '02:00:00:00:00:01', '192.0.2.10', 'owned-domain'

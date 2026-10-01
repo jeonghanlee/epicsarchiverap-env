@@ -204,7 +204,9 @@ is retained across retries; an inspection error never establishes absence.
 `run.json` binds inputs, the immutable run-start preservation baseline,
 cumulative resource ownership, per-case results, build invocation identities,
 guest artifact hashes and the candidate-bound full local-suite proof. Command files retain actual subprocess output and
-exit codes. The candidate environment's source path links to the verified
+exit codes. SSH command evidence stores stdout in `output` and stderr separately
+in `stderr`; only stdout is returned to JSON and metadata consumers. Other
+commands retain their combined output contract. The candidate environment's source path links to the verified
 candidate source checkout for the local schema checks. Any shell `[SKIP]` or
 nonzero unittest `skipped=N` count in the local-suite output prevents preflight
 and final acceptance; both operations use the same completeness check.

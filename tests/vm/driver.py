@@ -138,29 +138,32 @@ def load(path):
         raise Invalid(f"Unreadable JSON input: {error}") from error
 
 
-def run(command, timeout=120, env=None, log=None, check=True, input_data=None, cwd=None):
+def run(command, timeout=120, env=None, log=None, check=True, input_data=None, cwd=None,
+        separate_stderr=False):
     """Run the actual command with bounded lifetime and retained raw evidence."""
     started = time.monotonic()
     process = subprocess.Popen(command, stdin=subprocess.PIPE if input_data is not None
                                else subprocess.DEVNULL, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, text=True, env=env,
+                               stderr=subprocess.PIPE if separate_stderr else subprocess.STDOUT,
+                               text=True, env=env,
                                start_new_session=True, cwd=cwd)
     try:
-        output, _ = process.communicate(input_data, timeout=timeout)
+        output, errors = process.communicate(input_data, timeout=timeout)
     except (subprocess.TimeoutExpired, KeyboardInterrupt):
         os.killpg(process.pid, signal.SIGTERM)
         try:
-            output, _ = process.communicate(timeout=5)
+            output, errors = process.communicate(timeout=5)
         except subprocess.TimeoutExpired:
             os.killpg(process.pid, signal.SIGKILL)
-            output, _ = process.communicate()
+            output, errors = process.communicate()
         if log:
             save(log, {"command": command, "at": utc(), "elapsed": time.monotonic() - started,
-                       "exit": process.returncode, "output": output, "interrupted": True})
+                       "exit": process.returncode, "output": output, "stderr": errors,
+                       "interrupted": True})
         raise
     if log:
         save(log, {"command": command, "at": utc(), "elapsed": time.monotonic() - started,
-                   "exit": process.returncode, "output": output})
+                   "exit": process.returncode, "output": output, "stderr": errors})
     if check and process.returncode:
         raise Failed(f"Command exited {process.returncode}; retained command evidence")
     return process.returncode, output
@@ -335,7 +338,7 @@ class Driver:
                    "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=accept-new",
                    "-o", f"UserKnownHostsFile={self.root / 'known_hosts'}"]
         return self.command(["ssh", *options, f"{config['user']}@{case['address']}",
-                             shlex.join(command)], **kwargs)
+                             shlex.join(command)], separate_stderr=True, **kwargs)
 
     def cloud(self, case, action, **kwargs):
         self.case_identity(case)
