@@ -9,12 +9,79 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 
 TOP = Path(__file__).resolve().parents[2]
 DRIVER = TOP / 'tests/vm/driver.py'
 
 
+def load_driver():
+    spec = importlib.util.spec_from_file_location('vm_driver', DRIVER)
+    driver = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(driver)
+    return driver
+
+
 class EntrypointTests(unittest.TestCase):
+    def test_dhcp_ownership_accepts_unnamed_and_legacy_named_entries(self):
+        driver = load_driver()
+        mac, address, name = '02:00:00:00:00:01', '192.0.2.10', 'owned-domain'
+        for label in (None, name):
+            entry = {'mac': mac, 'ip': address}
+            if label is not None:
+                entry['name'] = label
+            reservations = {'live': [entry.copy()], 'persistent': [entry.copy()]}
+            self.assertEqual(driver.owned_reservation(reservations, mac, name), entry)
+            for kind in ('live', 'persistent'):
+                invalid = json.loads(json.dumps(reservations))
+                invalid[kind][0]['name'] = 'foreign-domain'
+                with self.assertRaises(driver.Invalid):
+                    driver.owned_reservation(invalid, mac, name)
+                invalid = json.loads(json.dumps(reservations))
+                invalid[kind].append({'mac': '02:00:00:00:00:02', 'ip': address})
+                with self.assertRaises(driver.Invalid):
+                    driver.owned_reservation(invalid, mac, name)
+                invalid = json.loads(json.dumps(reservations))
+                invalid[kind].append(entry.copy())
+                with self.assertRaises(driver.Invalid):
+                    driver.owned_reservation(invalid, mac, name)
+                invalid = json.loads(json.dumps(reservations))
+                invalid[kind][0]['ip'] = '192.0.2.11'
+                with self.assertRaises(driver.Invalid):
+                    driver.owned_reservation(invalid, mac, name)
+
+    def test_domain_ownership_requires_uuid_and_one_network_interface(self):
+        driver = load_driver()
+        tree = ET.fromstring('<domain><uuid>owned-uuid</uuid><name>owned-domain</name>'
+                             '<devices><interface type="network"><source network="lab"/>'
+                             '<mac address="02:00:00:00:00:01"/></interface></devices></domain>')
+        self.assertEqual(driver.domain_mac(tree, 'lab', 'owned-uuid', 'owned-domain'),
+                         '02:00:00:00:00:01')
+        for network, uuid, name in (('foreign', 'owned-uuid', 'owned-domain'),
+                                    ('lab', 'foreign-uuid', 'owned-domain'),
+                                    ('lab', 'owned-uuid', 'foreign-domain')):
+            with self.assertRaises(driver.Invalid):
+                driver.domain_mac(tree, network, uuid, name)
+        tree.find('devices').append(ET.fromstring(ET.tostring(tree.find('./devices/interface'))))
+        with self.assertRaises(driver.Invalid):
+            driver.domain_mac(tree, 'lab', 'owned-uuid', 'owned-domain')
+
+    def test_cleanup_cannot_accept_a_changed_owned_reservation(self):
+        driver = load_driver()
+        instance = object.__new__(driver.Driver)
+        with tempfile.TemporaryDirectory() as temporary:
+            case = {'uuid': 'owned-uuid', 'vm_name': 'owned-domain',
+                    'reservation': {'mac': '02:00:00:00:00:01', 'ip': '192.0.2.10'},
+                    **{name: str(Path(temporary) / name) for name in ('disk', 'seed', 'record')}}
+            snapshot = {'domains': {}, 'reservations': {'live': [], 'persistent': []}}
+            self.assertTrue(instance.resources_absent(case, snapshot))
+            for kind in ('live', 'persistent'):
+                for entry in ({'mac': case['reservation']['mac'], 'ip': '192.0.2.11'},
+                              {'mac': '02:00:00:00:00:02', 'ip': case['reservation']['ip']}):
+                    changed = json.loads(json.dumps(snapshot))
+                    changed['reservations'][kind].append(entry)
+                    self.assertFalse(instance.resources_absent(case, changed))
+
     def test_real_unittest_skip_cannot_pass_local_suite(self):
         java = shutil.which('java')
         if not java:

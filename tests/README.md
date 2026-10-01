@@ -102,6 +102,15 @@ alone is insufficient; failed inspection or a remaining owned resource
 prevents cleanup acceptance. Retain the baseline, ownership and inspection
 evidence with the original test results.
 
+The domain UUID/name and its single interface on the selected network identify
+the owned VM. DHCP ownership uses that actual interface MAC and reserved IPv4
+address in both live and persistent configuration. New reservations may omit
+`name`; a legacy name must match the owned domain. Duplicate MAC/IP entries or
+changed ownership refuse further operations. Guest readiness additionally checks
+the actual interface IP against that reservation and the actual hostname against
+`sudo -n cloud-init query ds.meta_data.local-hostname`, with a 63-character limit.
+Cleanup requires both the owned MAC and IP to be absent from DHCP configuration.
+
 ## Execution Inputs
 
 Copy `tests/vm/config.example.json` into an ignored private working location

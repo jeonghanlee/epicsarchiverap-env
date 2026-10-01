@@ -37,6 +37,7 @@ REQUIRED = {"cloud", "ansible", "candidate", "fixture", "images", "guest", "ssh"
 FIXTURE_REF = "5e6c12668c9c55f71ae1ba1c3a4384d86049b806"
 FIXTURE_SHA256 = "85778e0ed007ef196ab963a582c9ba7ddbff96bf68e91edab118d1e9ff497e32"
 UNITTEST_SKIPS = re.compile(r"\bskipped=[1-9][0-9]*\b")
+GUEST_HOSTNAME_LIMIT = 63
 
 
 class Invalid(Exception):
@@ -59,6 +60,40 @@ def local_suite_complete(output):
     """Require shell and unittest checks to run without skipped assertions."""
     return (isinstance(output, str) and "[SKIP]" not in output
             and not UNITTEST_SKIPS.search(output))
+
+
+def domain_mac(tree, network, uuid, name):
+    """Require one interface on the owned domain's selected network."""
+    if tree.findtext("uuid") != uuid or tree.findtext("name") != name:
+        raise Invalid("Domain UUID/name identity mismatch")
+    matches = [node.find("mac").get("address", "").lower()
+               for node in tree.findall("./devices/interface")
+               if node.find("source") is not None and node.find("mac") is not None
+               and node.find("source").get("network") == network]
+    if len(matches) != 1 or not re.fullmatch(r"(?:[0-9a-f]{2}:){5}[0-9a-f]{2}", matches[0]):
+        raise Invalid("Cannot identify one owned network interface MAC")
+    return matches[0]
+
+
+def owned_reservation(reservations, mac, name):
+    """Bind live and persistent DHCP entries to the actual interface MAC."""
+    selected = []
+    for kind in ("live", "persistent"):
+        entries = reservations[kind]
+        matches = [entry for entry in entries if entry.get("mac", "").lower() == mac]
+        if len(matches) != 1 or matches[0].get("name") not in (None, "", name):
+            raise Invalid("Missing, ambiguous or foreign DHCP MAC ownership")
+        entry = matches[0]
+        try:
+            ipaddress.IPv4Address(entry["ip"])
+        except (KeyError, ValueError) as error:
+            raise Invalid("Owned DHCP entry requires an IPv4 address") from error
+        if any(other is not entry and other.get("ip") == entry["ip"] for other in entries):
+            raise Invalid("Owned DHCP address overlaps another reservation")
+        selected.append(entry)
+    if selected[0] != selected[1]:
+        raise Invalid("Live/persistent DHCP ownership mismatch")
+    return selected[0]
 
 
 def digest(path):
@@ -505,17 +540,13 @@ class Driver:
         if record.get("image_id") != case["creation_id"] or record.get("image_name") != case["vm_name"] + ".qcow2":
             raise Invalid("Live creation record mismatch")
         tree = ET.fromstring(self.virsh("dumpxml", case["uuid"]))
-        interfaces = tree.findall("./devices/interface")
-        if tree.findtext("name") != case["vm_name"] or not any(
-                node.find("mac").get("address") == case["reservation"]["mac"] and
-                node.find("source").get("network") == self.config["cloud"]["network"]
-                for node in interfaces if node.find("mac") is not None and node.find("source") is not None):
+        mac = domain_mac(tree, self.config["cloud"]["network"], case["uuid"], case["vm_name"])
+        if mac != case["reservation"]["mac"].lower():
             raise Invalid("Recorded live VM identity has changed")
-        if case["address"] != case["reservation"]["ip"] or case["reservation"]["name"] != case["vm_name"]:
+        if case["address"] != case["reservation"]["ip"]:
             raise Invalid("Recorded SSH/DHCP identity mismatch")
         snapshot = self.snapshot()
-        if any(case["reservation"] not in snapshot["reservations"][kind]
-               for kind in ("live", "persistent")):
+        if owned_reservation(snapshot["reservations"], mac, case["vm_name"]) != case["reservation"]:
             raise Invalid("Recorded live DHCP ownership has changed")
         if self.virsh("domstate", case["uuid"]).strip() != "running":
             raise Invalid("Runtime requires the recorded live installation VM")
@@ -593,11 +624,26 @@ class Driver:
         if set(hosts) != {vm_name} or len(groups) != 2:
             raise Failed("Generated inventory does not limit execution to the owned VM")
         _, facts = self.ssh(case, ["python3", "-c",
-            "import json,os,pathlib; p=pathlib.Path('/etc/os-release').read_text(); "
+            "import json,os,pathlib,socket,subprocess; p=pathlib.Path('/etc/os-release').read_text(); "
             "v=os.statvfs('/'); print(json.dumps({'os':p,'cpus':os.cpu_count(),"
+            "'hostname':socket.gethostname(),'interfaces':json.loads(subprocess.check_output("
+            "['ip','-j','address'],text=True)),"
             "'memory':pathlib.Path('/proc/meminfo').read_text(),"
             "'root_bytes':v.f_blocks*v.f_frsize,'free_bytes':v.f_bavail*v.f_frsize}))"])
         case["guest_resources"] = json.loads(facts)
+        _, metadata = self.ssh(case, ["sudo", "-n", "cloud-init", "query",
+                                      "ds.meta_data.local-hostname"])
+        hostname = metadata.strip()
+        interfaces = [entry for entry in case["guest_resources"]["interfaces"]
+                      if entry.get("address", "").lower() == case["reservation"]["mac"].lower()]
+        addresses = [item["local"] for entry in interfaces for item in entry.get("addr_info", [])
+                     if item.get("family") == "inet"]
+        if (not re.fullmatch(r"[A-Za-z0-9-]+", hostname) or
+                len(hostname) > GUEST_HOSTNAME_LIMIT or
+                case["guest_resources"]["hostname"] != hostname):
+            raise Failed("Actual guest hostname differs from the cloud-init seed")
+        if len(interfaces) != 1 or addresses != [case["address"]]:
+            raise Failed("Actual guest interface IP differs from its owned DHCP reservation")
         release = dict(line.split("=", 1) for line in case["guest_resources"]["os"].splitlines()
                        if "=" in line)
         expected = ("debian", "13") if os_name == "debian13" else ("rocky", "8.10")
@@ -640,11 +686,9 @@ class Driver:
         if record.get("image_id") != case["creation_id"] or record.get("image_name") != Path(case["disk"]).name:
             raise Failed("VM creation record identity mismatch")
         reservations = self.snapshot()["reservations"]
-        matches = [entry for entry in reservations["live"] if entry.get("name") == case["vm_name"]]
-        if len(matches) != 1 or matches[0] not in reservations["persistent"]:
-            raise Failed("Cannot establish owned live/persistent DHCP identity")
-        case["reservation"] = matches[0]
-        case["address"] = str(ipaddress.IPv4Address(matches[0]["ip"]))
+        mac = domain_mac(xml, self.config["cloud"]["network"], case["uuid"], case["vm_name"])
+        case["reservation"] = owned_reservation(reservations, mac, case["vm_name"])
+        case["address"] = str(ipaddress.IPv4Address(case["reservation"]["ip"]))
         case["lifecycle"] = "created"
         self.persist()
 
@@ -810,6 +854,9 @@ class Driver:
             if case["seed"] != str(expected.with_name(case["vm_name"] + "-seed.iso")):
                 raise Invalid("Seed ownership mismatch")
             xml = ET.fromstring(self.virsh("dumpxml", case["uuid"]))
+            mac = domain_mac(xml, self.config["cloud"]["network"], case["uuid"], case["vm_name"])
+            if owned_reservation(snapshot["reservations"], mac, case["vm_name"]) != case["reservation"]:
+                raise Invalid("Domain interface/DHCP ownership mismatch; cleanup refused")
             disks = {node.get("file") for node in xml.findall("./devices/disk/source")}
             if str(expected) not in disks or case["seed"] not in disks:
                 raise Invalid("Domain disk/seed ownership mismatch")
@@ -857,7 +904,9 @@ class Driver:
         return (case["uuid"] not in snapshot["domains"] and
                 case["vm_name"] not in snapshot["domains"].values() and
                 not any(os.path.lexists(case[name]) for name in ("disk", "seed", "record")) and
-                all(case["reservation"] not in snapshot["reservations"][kind]
+                all(not any(entry.get("mac", "").lower() == case["reservation"]["mac"].lower()
+                            or entry.get("ip") == case["reservation"]["ip"]
+                            for entry in snapshot["reservations"][kind])
                     for kind in ("live", "persistent")))
 
     def removal_proof(self, case, snapshot):
