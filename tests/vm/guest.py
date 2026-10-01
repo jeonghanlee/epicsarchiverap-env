@@ -124,7 +124,7 @@ class Observer:
         self.sample_once()
         env = dict(os.environ, TZ="UTC", EPICS_CA_ADDR_LIST="127.0.0.1",
                    EPICS_CA_AUTO_ADDR_LIST="NO")
-        self.process = subprocess.Popen([self.guest.binary("camonitor"), "-t", "i", "-f", "3",
+        self.process = subprocess.Popen([self.guest.binary("camonitor"), "-t", "s", "-f", "3",
                                           self.guest.pv], stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT, text=True, env=env)
         self.threads = [threading.Thread(target=self.read_ca, daemon=True),
