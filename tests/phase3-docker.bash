@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-# Phase 3 has no executable integration checks yet.
+# Phase entrypoint for real VM installation verification.
 set -euo pipefail
-printf '%s\n' '[SKIP] Phase 3: Infrastructure (Docker) is not implemented; no system verification ran.' >&2
-exit 77
+TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly TOP
+printf '%s\n' 'Phase 3: Installation (systemd VM)'
+if [[ $# -eq 0 ]]; then
+    printf '%s\n' 'INCOMPLETE: explicit VM inputs are required; no system action ran.' >&2
+    exit 77
+fi
+exec python3 "${TOP}/tests/vm/driver.py" --installation "$@"

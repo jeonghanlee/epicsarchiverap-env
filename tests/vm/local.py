@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+"""Exercise shipped VM entrypoint refusal paths without virtualization or network."""
+import json
+import hashlib
+import importlib.util
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+TOP = Path(__file__).resolve().parents[2]
+DRIVER = TOP / 'tests/vm/driver.py'
+
+
+class EntrypointTests(unittest.TestCase):
+    def test_real_unittest_skip_cannot_pass_local_suite(self):
+        java = shutil.which('java')
+        if not java:
+            self.skipTest('A real Java executable is required for the unittest skip regression')
+        java = Path(java).resolve()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            binary = root / 'bin'
+            binary.mkdir()
+            shutil.copy2(java, binary / 'java')
+            for name in ('lib', 'conf', 'release'):
+                original = java.parent.parent / name
+                if original.exists():
+                    (root / name).symlink_to(original, target_is_directory=original.is_dir())
+            version = subprocess.run([str(binary / 'java'), '--version'],
+                                     capture_output=True, text=True, timeout=10)
+            self.assertEqual(version.returncode, 0, version.stderr)
+            self.assertFalse((binary / 'javac').exists())
+            result = subprocess.run(
+                ['python3', str(TOP / 'tests/health-local.py'),
+                 'HealthTests.test_unrelated_java_with_tomcat_application_arguments'],
+                env=dict(os.environ, PATH=str(binary) + ':' + os.environ['PATH']),
+                capture_output=True, text=True, timeout=20)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            output = result.stdout + result.stderr
+            self.assertIn('OK (skipped=1)', output)
+            self.assertNotIn('[SKIP]', output)
+            spec = importlib.util.spec_from_file_location('vm_driver', DRIVER)
+            driver = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(driver)
+            self.assertFalse(driver.local_suite_complete(output))
+
+    def config(self):
+        config = json.loads((DRIVER.parent / 'config.example.json').read_text())
+        for image in config['images'].values():
+            image['minimum_build_free_bytes'] = 1
+        return config
+
+    def invoke(self, *arguments):
+        return subprocess.run(['python3', str(DRIVER), *map(str, arguments)],
+                              capture_output=True, text=True, timeout=10)
+
+    def test_missing_execution_inputs(self):
+        for mode in ('--system', '--installation'):
+            with self.subTest(mode=mode):
+                result = self.invoke(mode)
+                self.assertEqual(result.returncode, 77, result.stderr)
+                self.assertIn('no system action ran', result.stderr)
+
+    def test_unknown_and_conflicting_operations(self):
+        for arguments in (('--system', '--unknown'), ('--system', '--installation'),
+                          ('--system', '--case', 'unknown')):
+            with self.subTest(arguments=arguments):
+                self.assertEqual(self.invoke(*arguments).returncode, 2)
+
+    def test_original_fixture_identity_is_required(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config, evidence = root / 'input.json', root / 'evidence'
+            for field, value in (('ref', 'a' * 40), ('sha256', 'b' * 64)):
+                spec = self.config()
+                spec['fixture'][field] = value
+                config.write_text(json.dumps(spec))
+                result = self.invoke('--system', '--config', config, '--evidence', evidence)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn('accepted original', result.stderr)
+                self.assertFalse(evidence.exists())
+
+    def test_lifecycle_selectors_are_refused_before_external_commands(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            root.chmod(0o700)
+            spec = self.config()
+            creation, node = '20260930T120000Z-123456789abc', 'test-original'
+            name = spec['cloud']['prefix'] + '-debian13-archiver-dev-' + node + '-' + creation
+            disk = str(Path(spec['images']['debian13']['directory']) / (name + '.qcow2'))
+            case = {'name': 'debian13-sqlite', 'os': 'debian13', 'backend': 'sqlite',
+                    'negative': False, 'node': node, 'creation_id': creation, 'vm_name': name,
+                    'disk': disk, 'record': disk + '.creation-record',
+                    'seed': str(Path(disk).with_name(name + '-seed.iso')), 'results': {}}
+            state = {'schema': 1, 'config': spec, 'mode': 'installation', 'cases': [case],
+                     'driver_sha256': hashlib.sha256(DRIVER.read_bytes()).hexdigest(),
+                     'guest_sha256': hashlib.sha256((DRIVER.parent / 'guest.py').read_bytes()).hexdigest()}
+            for field, value in (('node', 'test-other'), ('os', 'rocky8'), ('backend', 'tcp'),
+                                 ('creation_id', '20260930T120000Z-aaaaaaaaaaaa'),
+                                 ('vm_name', 'unowned'), ('disk', '/unowned.qcow2'),
+                                 ('record', '/unowned.creation-record'), ('seed', '/unowned.iso')):
+                modified = json.loads(json.dumps(state))
+                modified['cases'][0][field] = value
+                (root / 'run.json').write_text(json.dumps(modified))
+                for mode in ('--cleanup', '--runtime', '--verdict'):
+                    result = self.invoke(mode, root)
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertFalse((root / 'lock').exists())
+                    self.assertFalse(list(root.glob('command-*.json')))
+
+    def test_invalid_configuration_creates_no_context(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config, evidence = root / 'input.json', root / 'evidence'
+            for value in (None, [], {}, {'cloud': None}):
+                config.write_text(json.dumps(value))
+                result = self.invoke('--system', '--config', config, '--evidence', evidence)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertFalse(evidence.exists())
+
+    def test_normal_refs_and_field_types_are_rejected_before_context_creation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config, evidence = root / 'input.json', root / 'evidence'
+            for section, field, value in (('candidate', 'env_ref', 'release-2.0.1'),
+                                         ('candidate', 'source_ref', 'missing'),
+                                         ('candidate', 'source_ref', None),
+                                         ('cloud', 'ref', 'HEAD'),
+                                         ('ssh', 'user', 'root'),
+                                         ('guest', 'epics_bin', '/unresolved'),
+                                         ('guest', 'store_top', '/unsafe/$(command)'),
+                                         ('candidate', 'env_url', 'https://example.com/$(command)'),
+                                         ('images', 'debian13', None)):
+                spec = self.config()
+                spec[section][field] = value
+                config.write_text(json.dumps(spec))
+                result = self.invoke('--system', '--config', config, '--evidence', evidence)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertFalse(evidence.exists())
+
+    def test_verdict_is_read_only_and_keeps_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            root.chmod(0o700)
+            state = {'schema': 1, 'config': self.config(), 'mode': 'system', 'cases': [],
+                     'driver_sha256': hashlib.sha256(DRIVER.read_bytes()).hexdigest(),
+                     'guest_sha256': hashlib.sha256((DRIVER.parent / 'guest.py').read_bytes()).hexdigest()}
+            for failure, expected in ((None, 77), ({'category': 'Failed'}, 1)):
+                if failure:
+                    state['failure'] = failure
+                (root / 'run.json').write_text(json.dumps(state))
+                before = {str(path): path.read_bytes() for path in root.iterdir()}
+                result = self.invoke('--verdict', root)
+                self.assertEqual(result.returncode, expected, result.stderr)
+                self.assertEqual(before, {str(path): path.read_bytes() for path in root.iterdir()})
+            state['driver_sha256'] = '0' * 64
+            (root / 'run.json').write_text(json.dumps(state))
+            self.assertEqual(self.invoke('--verdict', root).returncode, 2)
+
+    def test_missing_unowned_and_symlink_contexts_are_refused(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            absent = root / 'absent'
+            linked = root / 'linked'
+            linked.symlink_to(root, target_is_directory=True)
+            for context in (root, absent, linked):
+                for mode in ('--cleanup', '--runtime', '--verdict'):
+                    with self.subTest(context=context, mode=mode):
+                        result = self.invoke(mode, context)
+                        self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertFalse((root / 'lock').exists())
+            self.assertFalse((root / 'run.json').exists())
+
+    def test_local_runner_rejects_vm_inputs_before_tests(self):
+        result = subprocess.run(['bash', str(TOP / 'tests/run-all-tests.bash'),
+                                 '--local', '--config', '/unowned'],
+                                capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn('local modes accept no VM inputs', result.stderr)
+
+    def test_compatibility_entrypoints_require_explicit_inputs(self):
+        for name in ('phase3-docker.bash', 'phase4-vm.bash'):
+            result = subprocess.run(['bash', str(TOP / 'tests' / name)],
+                                    capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 77, result.stderr)
+            self.assertIn('no system action ran', result.stderr)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

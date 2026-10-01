@@ -870,3 +870,6 @@ phase_pass "Phase 1: Logic"
 python3 "${TOP}/tests/health-local.py"
 
 python3 "${TOP}/tests/database-config.py"
+
+# VM CLI validation runs without virtualization or network.
+python3 "${TOP}/tests/vm/local.py"

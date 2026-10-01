@@ -1,0 +1,57 @@
+{
+  "cloud": {
+    "path": "/replace/cloud-provision",
+    "ref": "0000000000000000000000000000000000000000",
+    "uri": "qemu:///system",
+    "network": "lab",
+    "prefix": "archiver-vm-test"
+  },
+  "ansible": {
+    "path": "/replace/ansible-provision",
+    "ref": "0000000000000000000000000000000000000000",
+    "inventory": "/replace/ansible-provision/inventory/lab.ini"
+  },
+  "candidate": {
+    "env_ref": "0000000000000000000000000000000000000000",
+    "source_ref": "0000000000000000000000000000000000000000",
+    "env_url": "https://github.com/jeonghanlee/epicsarchiverap-env",
+    "source_url": "https://github.com/jeonghanlee/epicsarchiverap-maven"
+  },
+  "fixture": {
+    "repository": "/replace/epicsarchiverap-maven",
+    "ref": "5e6c12668c9c55f71ae1ba1c3a4384d86049b806",
+    "path": "src/resources/test/UnitTestPVs.db",
+    "sha256": "85778e0ed007ef196ab963a582c9ba7ddbff96bf68e91edab118d1e9ff497e32"
+  },
+  "images": {
+    "debian13": {
+      "directory": "/replace/images",
+      "filename": "debian-13-genericcloud-amd64-daily.qcow2",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "disk_size": "20G",
+      "minimum_build_free_bytes": 0
+    },
+    "rocky8": {
+      "directory": "/replace/images",
+      "filename": "Rocky-8-GenericCloud-Base.latest.x86_64.qcow2",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "disk_size": "20G",
+      "minimum_build_free_bytes": 0
+    }
+  },
+  "guest": {
+    "source_parent": "/opt/epicsarchiverap-env-src",
+    "install_parent": "/opt",
+    "store_top": "/arch",
+    "user": "mid-srv",
+    "group": "mid",
+    "epics_bin": {
+      "debian13": "/replace/debian13/base/bin/linux-x86_64:/replace/debian13/pvxs/bin/linux-x86_64",
+      "rocky8": "/replace/rocky8/base/bin/linux-x86_64:/replace/rocky8/pvxs/bin/linux-x86_64"
+    }
+  },
+  "ssh": {
+    "user": "vmadmin",
+    "key": "/replace/user/.ssh/id_ed25519"
+  }
+}

@@ -1,7 +1,7 @@
 # EPICS Archiver Appliance Environment — Automated Tests
 
 Phased install test suite that validates the Makefile system and build-wrapper
-command generation, with container deployment and VM integration planned.
+command generation and explicit VM installation/runtime acceptance.
 
 ## Phased SOP
 
@@ -11,24 +11,208 @@ Tests execute in strict order, from least to most privilege:
 | :--- | :--- | :--- |
 | 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; installed Java for PID cases; JDK compiler for unrelated-JVM negative |
 | 2. Build wrapper | Real `make -n build`: configuration, site-overlay copy, Maven package command and ordering | none; no source checkout, JDK or network required |
-| 3. Infrastructure (planned) | `make install` end-to-end inside a Debian 13 container | Docker daemon |
-| 4. System (planned) | full systemd stack inside a libvirt VM; HTTP probes | KVM, libvirt, cloud-init |
+| 3. Installation | Fresh VM, actual Ansible/Make/Maven install and payload checks | Pinned cloud-provision and ansible-provision checkouts; KVM, libvirt, cloud-init, SSH |
+| 4. Runtime acceptance | Same VM: genuine JVMs, scheduled health, HTTP identity, CA acquisition/retrieval and persistence | Completed Phase 3 context; real systemd, EPICS IOC and selected database |
 
-Phase 3 and Phase 4 are stubs until their entrypoints are committed
-under `tests/docker/` and `tests/vm/`.
+Phase 3 and Phase 4 call the driver in `tests/vm/driver.py`. The compatibility
+filename `phase3-docker.bash` now selects VM installation; Docker is not a
+prerequisite. Phase 4 consumes the recorded installation context. Local modes
+never create or contact a VM. A system request without explicit inputs returns
+77 before provisioning.
+
+## System Workflow
+
+The canonical [VM installation and runtime plan](../docs/milestone-2.0.1.md#m10---automate-vm-installation-and-runtime-tests)
+owns acceptance criteria and observed results. The driver composes the real
+provisioners; `guest.py` checks the installed application and its CA/HTTP paths.
+Implementation is authorized. Full-matrix VM acceptance is pending; local
+checks cannot establish installation or runtime acceptance.
+
+| Owner | Required Responsibility |
+| --- | --- |
+| cloud-provision | Create a fresh VM, confirm SSH/cloud-init readiness, generate its runtime inventory, and perform explicit owned-resource cleanup |
+| ansible-provision | Provision EPICS/JDK/Tomcat/the selected DB and call this repository's real ordered Make targets with explicit appliance commits |
+| epicsarchiverap-env | Coordinate the pinned tools and independently verify installed payloads, database persistence, process identity, scheduled health, HTTP identity and real CA-to-retrieval data |
+
+The acceptance matrix is Debian 13 and Rocky 8.10, each with MariaDB socket,
+MariaDB TCP and SQLite: six fresh installations. Run cases sequentially.
+External checkout paths, full published candidate/tool commits, fixture
+identity, case selection and private evidence location are explicit inputs.
+Installed guest HEADs must equal the requested commits; role defaults and
+build sentinels cannot establish identity.
+
+Phase 4 consumes the exact Phase 3 VM context. An Ansible recap, active
+systemd unit, health startup skip, HTTP 200 or stored old sample alone is
+insufficient. Acceptance requires matching WAR/JAR/configuration bytes, four
+genuine JVM identities, three eligible scheduled health successes, and at
+least ten distinct retrieved timestamps inside the requested window with
+changing values matching actual CA observations. The candidate's raw API
+boundary behavior must be observed: a permitted value preceding `from` is
+recorded separately and never counts as fresh acquisition. Restart and
+explicit repeat-install checks verify persistent PV configuration and
+historical data, followed by fresh acquisition.
+
+The complete original `UnitTestPVs.db` at fixture commit
+5e6c12668c9c55f71ae1ba1c3a4384d86049b806 contains 10,018 records,
+including 9,997 with `.1 second` SCAN. Loading it runs the whole IOC even
+when only `test_0` is archived. Keep the fixture unchanged and verify its
+loaded record inventory before starting IOC processing. The per-run
+prefix uses twelve SHA256 hexadecimal characters from the creation ID;
+every original record must appear in the real IOC's `dbl` output, and any
+database loading error fails startup.
+Record its actual counts/identity, IOC CPU/RSS, appliance JVM RSS, guest CPU/memory/swap
+and elapsed startup/acquisition/restart times on the accepted two-vCPU,
+4-GiB VM. The fixed deadlines require confirmation through these real
+measurements; exceeding a bound fails the check. Resource or deadline
+changes require a revised accepted plan and a new run. Measurements are
+pending and do not yet establish capacity or a resource failure.
+
+The runtime negatives use real wrong PID identity, IOC loss and a failed
+source checkout. Normal preflight first validates all candidate/tool refs.
+Only the named build-negative case passes a separate, confirmed absent source
+ref through Ansible's actual build input; invalid normal inputs remain refused.
+Internal Make, Maven, systemd and application paths must run unchanged.
+Record expected/actual results, timestamps, exit codes and sanitized
+diagnostics. Missing prerequisites or an unimplemented required check return
+77 and leave the run INCOMPLETE; observed failures return nonzero. Local
+checks cannot provision or contact a VM. Failed/interrupted guests and evidence
+are retained; explicit cleanup must prove exact resource ownership.
+
+The full `--system` execution retains its run context and returns
+INCOMPLETE/77 while required cleanup is pending. A separately requested driver
+`--cleanup=<run-context>` operation records removal of owned resources. Its
+success alone does not establish acceptance. The read-only
+`--verdict=<run-context>` operation returns 0 only when the same context has
+complete matrix, assertion and cleanup evidence; existing failures remain
+failures after cleanup. These operations are available through the runner and the driver. A diagnostic
+installation/runtime success never satisfies the full-matrix verdict.
+
+Before the first guest creation, record one immutable run-start baseline of
+existing domain identities and live/persistent DHCP reservations. Keep a
+separate cumulative list of exact owned domain, disk, seed ISO,
+`.creation-record` and DHCP identities for all cases. Later observations check
+for collisions; retained resources from earlier cases remain owned cleanup
+targets and never enter the preservation baseline. T15 runs at least two real
+cases sequentially with the first case's resources retained before the second.
+After the real cloud-provision cleanup, independently confirm removal of all
+owned resources, including each reservation in both live and persistent
+libvirt network configuration, and preservation of the run-start baseline.
+Resources outside the ownership list remain untouched. The tool's exit 0
+alone is insufficient; failed inspection or a remaining owned resource
+prevents cleanup acceptance. Retain the baseline, ownership and inspection
+evidence with the original test results.
+
+## Execution Inputs
+
+Copy `tests/vm/config.example.json` into an ignored private working location
+and replace every placeholder. Zero candidate/tool refs, image digests, free-space thresholds and `/replace/` paths are
+examples only. Do not put credentials in clone URLs or commit private input
+files. The driver requires HTTPS origins, full 40-character commits, SHA256
+image/fixture identities, and a new evidence directory whose parent exists.
+It creates that directory with mode 0700 and refuses reuse or symlink contexts.
+Guest source/install/store roots must be literal absolute shell-safe paths.
+Select the cold-build free-space threshold explicitly for each image; zero is
+invalid. The driver records actual capacity/free space and refuses installation
+below that selected threshold. Full matrix execution must confirm sizing.
+
+| Section | Required inputs |
+| --- | --- |
+| `cloud` | Clean initialized checkout and published commit; existing `qemu:///system` connection and `lab` network; unique VM prefix |
+| `ansible` | Clean initialized checkout and published commit; its maintained inventory path |
+| `candidate` | Published environment/source commits and credential-free HTTPS clone URLs |
+| `fixture` | Original committed `UnitTestPVs.db`: local repository and tracked path; preserve the fixed original commit and SHA256 in the example |
+| `images` | Both cached base image directories, exact filenames, SHA256 values, disk sizes and positive `minimum_build_free_bytes` thresholds for the cold build |
+| `guest` | Explicit source/install/store roots and service user/group; OS-specific colon-separated EPICS binary directories containing `softIocPVX`, `camonitor` and `caget` |
+| `ssh` | `vmadmin` and the private key corresponding to cloud-provision's first default public key (`id_ed25519.pub`, then `id_rsa.pub`) |
+
+Preflight clones both appliance candidates and confirms both tool commits are
+published before VM creation. The published environment candidate must contain
+exactly the executing driver, guest verifier, local regression and phase
+entrypoint bytes. An old remote commit cannot verify unpublished local code.
+The Ansible command uses its own configuration and maintained inventory plus
+the generated single-VM inventory, with `--limit` fixed to the created VM.
+All installation/system modes run the published environment candidate's full
+`--local` suite once during preflight, before any VM is created. Its actual
+command, exit status, output digest and candidate commit are retained in
+`local_suite`; the final verdict checks that evidence. The CLI-only regression
+result cannot replace this full-suite evidence.
 
 ## Test Execution
 
-```bash
-# Request all phases (exit 77 while system phases are unimplemented).
-tests/run-all-tests.bash
+Run these commands from the repository root after preparing inputs. System
+commands create disposable VMs and retain them for an explicit cleanup request.
+The evidence directory must not already exist.
 
-# Local command-generation checks (no build, network or privilege required).
+```bash
+# Local phases only; no virtualization or network provisioning.
 tests/run-all-tests.bash --local
 
-# Targeted phase (cumulative: --phase=N runs phases 1..N).
-tests/run-all-tests.bash --phase=2
+# Complete sequential matrix; expected exit 77 until explicit cleanup.
+tests/run-all-tests.bash --system --config work/vm-config.json --evidence work/vm-run
+
+# Cumulative local checks followed by the same complete matrix.
+tests/run-all-tests.bash --phase=4 --config work/vm-config.json --evidence work/vm-run
+
+# Diagnostic installation of one selected positive case.
+tests/phase3-docker.bash --config work/vm-config.json --evidence work/vm-case --case debian13-sqlite
+
+# Diagnostic runtime on that same live installation context.
+tests/phase4-vm.bash work/vm-case --case debian13-sqlite
+
+# Explicit cleanup, then read-only full-matrix verdict.
+tests/run-all-tests.bash --cleanup work/vm-run
+tests/run-all-tests.bash --verdict work/vm-run
 ```
+
+`--phase=3` runs local phases before the selected installation diagnosis.
+`--phase=4` and `all` run local phases once before the complete matrix.
+`--system` executes installation and runtime sequentially for each case,
+shuts down each successful guest, then advances. Two additional fresh guests
+exercise the real absent-source-ref checkout failure. Unexpected failures stop
+the matrix and preserve ownership/evidence. No implicit deletion occurs.
+
+Exit 0 means the selected operation passed; only `--verdict` can establish
+full-matrix acceptance. Exit 1 is an observed failure, 2 is invalid input or
+unsafe context, and 77 is missing prerequisites or incomplete acceptance.
+A failed run remains failed after successful cleanup. Changed verifier bytes
+invalidate an old context. Missing or mismatched ownership refuses cleanup;
+cleanup inspection errors and remaining resources prevent acceptance.
+Lifecycle selectors (OS, node, creation ID and prefix) must derive exactly the
+recorded VM and file names before an external command can run. Cleanup checks
+the creation record's ID and image name as well as actual domain/disk/DHCP
+ownership.
+
+Cleanup saves each VM's confirmed removal before proceeding to the next VM.
+A retry independently rechecks completed cases and processes the remaining
+owned cases, preserving the original failure. If an interrupted cleanup left
+all of a recorded case's resources absent, the retry confirms that absence.
+Incomplete ownership or a partially removed case with unverifiable remaining
+resources still refuses deletion. The first cleanup's preservation snapshot
+is retained across retries; an inspection error never establishes absence.
+
+## VM Evidence
+
+`run.json` binds inputs, the immutable run-start preservation baseline,
+cumulative resource ownership, per-case results, build invocation identities,
+guest artifact hashes and the candidate-bound full local-suite proof. Command files retain actual subprocess output and
+exit codes. The candidate environment's source path links to the verified
+candidate source checkout for the local schema checks. Any shell `[SKIP]` or
+nonzero unittest `skipped=N` count in the local-suite output prevents preflight
+and final acceptance; both operations use the same completeness check.
+Guest result files retain WAR hashes, CA timestamps/values, raw API
+responses, eligible health invocation results, and resource/timing observations.
+`cleanup.json` retains independent pre/post-cleanup observations. `report.json`
+contains a reduced summary with candidate commits, case results and verdict.
+Raw context, inventory, variables and diagnostics remain private; review and
+sanitize any excerpt before publishing it.
+
+The interruption check signals an actual driver child while it waits on an
+owned guest's diagnostic systemd helper, stops that helper, and checks that the
+VM/DHCP identities remain. It records an expected negative independently of an
+unexpected run failure. Cleanup refusal checks invoke the actual driver with
+missing and mismatched ownership contexts and verify preservation. Those
+assertions require live guests; local CLI tests cover refusal and read-only
+verdict behavior only. Neither class simulates internal installation paths.
 
 ## Workspace and Logs
 
@@ -193,26 +377,31 @@ the console summary; a skipped check is not verification.
 - Only simple unquoted environment assignments may precede the wrapper; another command such as `echo` does not pass the invocation check.
 - The six configuration-generation commands precede the site-overlay copy, which precedes the Maven package command.
 - `MAVEN_FLAGS` is empty for this check; Phase 1 separately verifies nonempty flags across all six Maven targets.
-- The check does not clone sources, execute Java or Maven, generate configuration, provision storage, or inspect WARs and release artifacts. Compilation and artifact verification belong to [aa-maven CI](https://github.com/jeonghanlee/epicsarchiverap-maven/actions).
+- The check does not clone sources, execute Java or Maven, generate configuration, provision storage, or inspect WARs and release artifacts. Source compilation tests belong to [epicsarchiverap-maven CI](https://github.com/jeonghanlee/epicsarchiverap-maven/actions); VM acceptance verifies the actual installed candidate independently.
 - The script remains `tests/phase2-compile.bash` for direct callers. Both `--local` and `--phase=2` still run Phase 1 followed by Phase 2.
 
-### Phase 3 — Infrastructure (planned)
-- `make install` populates `${AA_INSTALL_LOCATION}/{mgmt,engine,etl,retrieval}/webapps` with the four exploded WAR trees.
-- `make tomcat.exist` reports the install location populated.
+### Phase 3 - Installation assertions (VM execution pending)
 
-### Phase 4 — System Integration (planned)
-- `systemctl is-active archappl.service` returns active.
-- `curl http://localhost:17665/mgmt/bpl/getApplianceInfo` returns 200.
-- The `archappl` MariaDB database contains `ArchivePVRequests`, `ExternalDataServers`, `PVAliases`, and `PVTypeInfo`.
+- The actual cloud-provision and ansible-provision paths prepare and install only the recorded fresh VM at the requested appliance commits.
+- All four exploded WAR trees, Tomcat logging JARs, generated inputs, effective units and ownership match the real guest build and selected backend/site.
+- The selected configuration database has the four application tables and is usable through the same account and transport as the appliance.
+
+### Phase 4 - Runtime assertions (VM execution pending)
+
+- The real installed appliance service and health pair operate with four verified JVM identities; three eligible scheduled health executions succeed.
+- `getApplianceInfo` returns valid matching JSON, independently of process-presence checks.
+- Original tracked IOC fixture values pass through real CA, engine, archive stores and raw `getData.json`; in-window timestamps and values match CA observations. A permitted preceding value cannot pass acquisition or IOC-loss checks.
+- PV configuration/history survive restart and explicit same-candidate reinstall; new data is collected afterwards.
+- Actual runtime/build faults produce non-success; stale data and skips cannot pass. The build fault uses a separate absent source ref after normal candidate preflight. Full acceptance also requires explicit cleanup and final evaluation of retained evidence. These are implemented assertions; their real VM results remain pending.
 
 The source repository owns the documentation build. Planned changes to that
-build are tracked in its own work register rather than as aa-env test work.
+build are tracked in its own work register rather than as epicsarchiverap-env test work.
 
 ## Process-monitoring VM verification
 
 This procedure is for a selected disposable systemd VM with four real Tomcat
-instances. It is separate from the unimplemented general Phase 4 entry point;
-running that stub does not verify monitoring. Obtain the VM owner and an
+instances. It provides a focused monitoring check separately from the full
+Phase 4 driver. Obtain the VM owner and an
 interruption window outside any uninterrupted heap-load observation before
 running faults, reboots or lifecycle changes. The operator records each case's
 exact action and expected outcome before execution. Default names below must
@@ -264,10 +453,11 @@ exit status and retained evidence in the canonical M23 verification rows.
 
 ## Incomplete system test result
 
-The Phase 3 and Phase 4 entry points each return 77 and print `[SKIP]` without
-running integration checks. `--system` reports both missing phases and returns
-77; the default all-phase run also returns 77 after its local checks. Neither
-entry point emits `[PASS]`. Use `--local` for the implemented local checks.
+The Phase 3 and Phase 4 entrypoints return 77 without provisioning when their
+explicit inputs are missing. Local CLI regressions cover malformed normal
+refs, unknown/conflicting operations, missing/symlink contexts, read-only
+verdicts and retained failures. These checks invoke the shipped entrypoints;
+they do not establish VM installation, runtime or cleanup acceptance.
 
 ## Configuration and database regression checks
 
@@ -324,7 +514,7 @@ changing the installed mgmt payload. It exits nonzero on a mismatch and retains
 its workspace and log. No systemd unit or running appliance is changed. This
 checks installation contents, not runtime upgrade behavior or host privileges.
 
-Run the payload comparison from the aa-env checkout, using actual build paths:
+Run the payload comparison from the epicsarchiverap-env checkout, using actual build paths:
 
 ```bash
 python3 tests/install-payload.py /path/old/target /path/new/target --old-log4j /path/old/log4j

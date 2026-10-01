@@ -129,10 +129,10 @@ class DatabaseConfigTests(unittest.TestCase):
                 run = subprocess.run(args, capture_output=True, text=True, timeout=10)
                 self.assertEqual(run.returncode, 77)
                 self.assertNotIn("[PASS]", run.stdout + run.stderr)
-                self.assertIn("[SKIP]", run.stderr)
+                self.assertIn("INCOMPLETE", run.stderr)
                 if args[-1] == "--system":
-                    self.assertIn("Phase 3", run.stderr)
-                    self.assertIn("Phase 4", run.stderr)
+                    self.assertIn("Phase 3", run.stdout)
+                    self.assertIn("Phase 4", run.stdout)
 
     def test_sqlite_database_targets_skip_without_prerequisites(self):
         self.make("db.conf", "DB_BACKEND=mariadb")
