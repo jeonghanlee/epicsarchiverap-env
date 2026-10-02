@@ -146,6 +146,19 @@ command, exit status, output digest and candidate commit are retained in
 `local_suite`; the final verdict checks that evidence. The CLI-only regression
 result cannot replace this full-suite evidence.
 
+### SQLite Service Inventory
+
+The guest verifier reads the complete real service unit-file inventory and
+requires a successful command plus the installed appliance unit. It rejects
+MariaDB, MySQL and mysqld service names, including masked units and aliases.
+An empty inventory or failed query cannot establish database-service absence.
+The raw command result and parsed inventory are retained independently of the
+service-account schema and effective dependency checks.
+
+Local regressions use the shipped helper, real `systemctl --root` and isolated
+unit-file fixtures. They verify filesystem inventory behavior only; full SQLite
+installation and runtime acceptance require the published-candidate VM matrix.
+
 ## Test Execution
 
 Run these commands from the repository root after preparing inputs. System

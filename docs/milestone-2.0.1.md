@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: check whether the source correction tracked by jeonghanlee/epicsarchiverap-maven#21 has a corrected published commit before resuming M10 / #56 verification. Preserve the exact `[from, to]` acquisition checks. The fresh `52d90166f5995acc332dbeb14945ed26ae32d408` Debian socket run passed T3-T10 and failed post-restart acquisition; real live retrieval subsequently returned a sample even when `to` was 1 ns before its exact timestamp, while independent stored-history controls honored the 1 ns boundary rule. Evidence is retained in `work/m10-vm-run-52d9016` and `work/m10-validation/retrieval-live-upper-bound-3.json`. The full matrix remains unverified; failed VMs remain preserved. M41 / #53 is in Backlog under D37, awaiting sufficient dedicated test disk capacity; retain its accepted plan, source evidence and local input-inspection tool without starting further implementation or measurement. Original installed configuration and evidence storage placement remain unresolved. M14 / #57 waits for Maven stabilization under D33; G6 remains Open and M14 Blocked.
+Next session entry point: prepare and publish the reviewed M10 verifier under separate commit/push authority, then execute the authorized full VM matrix with a new context and the corrected source commit. With environment `8f3bbfe96b7d1ee60cfd11ee0c72b2c422e8d12c` and corrected source `dca485fd28d14cf91e988fae9ade13729a55c7ee`, Debian 13 MariaDB socket and TCP cases passed T3-T12, including exact retrieval bounds, restart and repeat installation. The SQLite case stopped in T6 because the verifier treated an absent MariaDB unit query exit 1 as a command failure. Evidence is retained in `work/m10-vm-run-8f3bbfe-dca485f-2`; no Rocky or build-failure case ran. Preserve all previous contexts and VM resources. The service inventory check and its filesystem regressions passed the plan reviews; they do not replace full VM acceptance. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -309,9 +309,31 @@ Out of scope: implementing VM images or cloud-init internals, duplicating Ansibl
 ##### Implementation Plan
 
 Plan Status: accepted
-Plan Acceptance: 2026-09-30; owner accepted the current VM workflow, six-case matrix, deadlines, ownership/cleanup contract and T1-T15 after review
-Implementation Authorization: 2026-09-30; owner authorized implementation of the accepted plan
+Plan Acceptance: 2026-10-01; owner accepted the revised service-inventory plan after two third-person and two second-person passes and application of both required findings; prior workflow, six-case matrix, deadlines and ownership/cleanup contract preserved
+Implementation Authorization: 2026-10-01; owner authorized continuation with the revised verifier and a new full published-candidate VM run; commit, push and resource cleanup require separate authority
 Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc174e76fe77326e941baf58f850, docs/milestone-265f580.md, M10; container-install draft carried by dcfa39b3f1a6a457ffd6803cb6c618d601768c30, docs/milestone-2.0.1.md, M10
+
+###### Service Inventory Revision For Review
+
+The SQLite absence check must distinguish an absent database service from an unavailable or unreadable service inventory. The selected-unit query can exit 1 when no unit matches; that result alone cannot establish either a provisioning failure or successful absence verification.
+
+1. In `tests/vm/guest.py`, enumerate all installed service unit files with real `systemctl list-unit-files --type=service --full --no-legend --no-pager`. Require command exit 0, structurally valid rows and the installed appliance unit in the inventory. An empty or incomplete inventory cannot prove absence.
+2. Reject any installed `mariadb.service`, `mysql.service` or `mysqld.service`, including disabled, static, masked and alias entries. Keep the independent effective dependency check and service-account SQLite schema query. Retain the exact command, status, stdout, stderr and parsed inventory.
+3. In `tests/vm/local.py`, exercise the shipped inventory helper using the real systemctl binary against isolated unit-file roots. Cover normal absence, each forbidden name/state, missing appliance inventory and a real invalid-root command failure. These are filesystem-level regressions; they do not verify guest provisioning, SQL or runtime integration.
+4. Review the revised plan and draft code. Do not start a new VM matrix or alter retained run contexts before the review and revised execution authorization. Commit/push remain separate operations.
+5. After approval and candidate publication, use a new evidence directory and the published revised environment commit with the exact corrected source commit. Run the full six positive cases and both real build-failure cases through the existing driver, preserving accepted resources, deadlines, original IOC fixture and raw inclusive retrieval bounds. Prior partial passes cannot complete this new combined candidate.
+6. Request cleanup separately only after evidence review. Confirm real owned-resource removal and preservation of the run-start baseline before the read-only final verdict. Preserve earlier failures permanently.
+
+###### Revised Inventory Test Plan
+
+| Check | Real Path And Environment | Expected Result |
+| --- | --- | --- |
+| T2 / database service absent | Shipped `sqlite_service_units`; real `systemctl --root`; isolated root containing the appliance unit | Exit 0 inventory, appliance present, forbidden names absent; helper passes |
+| T2 / database service present | Same helper and binary; each forbidden name as static, disabled, masked and alias unit-file fixtures | Helper rejects every name/state; presence cannot pass because the service is inactive |
+| T2 / incomplete inventory | Same path; root containing a different valid service but no appliance; also a completely empty service root | Both rejected; command failure and missing appliance remain distinguishable |
+| T2 / query failure | Same path; a nonexistent root passed to the real systemctl binary | Nonzero command status rejected; actual stderr and exit status retained |
+| T6 / real guest backend | New published-candidate Debian 13 and Rocky 8.10 SQLite installs through the unchanged driver/species | Actual service-account SQL and effective dependencies pass; real complete service inventory confirms appliance presence and MariaDB-family absence |
+| T1, T3-T15 / combined candidate | All six positive and two negative real VM cases, original fixture, fixed bounds, new context, separately requested cleanup | Complete retained matrix and independent cleanup evidence; no previous partial result or filesystem regression substitutes for VM acceptance |
 
 ###### Repository Responsibilities And Handoffs
 
@@ -368,14 +390,14 @@ At the inspected fixture commit, the original file contains 10,018 records, incl
 
 ##### Test Plan
 
-T1 retains the cumulative system-run identity; T2-T15 make its required observations explicit. T3-T12 run for every matrix case. T13 and T14 cover the actual negative paths on dedicated disposable guests for each OS; T15 covers every resource lifecycle. No acceptance row can be marked Pass from code inspection alone.
+T1 retains the cumulative system-run identity; T2-T15 make its required observations explicit. The six positive installation cases require T3-T12. The two SQLite positive cases additionally require T13 runtime-negative checks. The two dedicated build-failure cases require T3 and T14; they do not require successful installation or T4-T12. T15 covers resource preservation and cleanup for every case. No acceptance row can be marked Pass from code inspection alone.
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | System | Run shipped `tests/run-all-tests.bash --system`; retain its context; separately request driver cleanup, then evaluate the final verdict | All six accepted positive cases and both OS negative cases | Before cleanup: INCOMPLETE/77 with retained results; after actual cleanup: T2-T15 evidence complete, no required skip/failure and final verdict exit 0 |
 | T2 | Local preflight | Execute real entrypoints with missing tool paths, invalid normal candidate refs, invalid case/context and unsupported arguments; check distinct normal/fault-ref inputs; run `--local` | Isolated local checkout; no VM credentials/resources | Invalid/missing normal inputs exit 2 or 77 before external action; a fault ref cannot bypass normal preflight or enter a positive case; valid local suite preserves its verdict without guest contact/provisioning |
 | T3 | VM lifecycle | Call actual cloud creation/readiness and inventory generator; inspect guest OS, cloud-init and identity | Fresh per-case VM | New recorded domain/disks; SSH and cloud-init ready; exact target limit; existing resources unchanged |
-| T4 | Real installation | Apply pinned species with explicit appliance refs; observe build unit, source HEADs, Maven log and actual installation | Every matrix case | Eight real Make steps succeed; both HEADs equal requested commits; no stale sentinel/ref/default can pass |
+| T4 | Real installation | Apply pinned species with explicit appliance refs; observe build unit, source HEADs, Maven log and actual installation | Six positive installation cases only | Eight real Make steps succeed; both HEADs equal requested commits; no stale sentinel/ref/default can pass; dedicated build-failure cases use T14 instead |
 | T5 | Installed payload | Compare real WAR/JAR/configuration bytes, site assets, ports, effective units and ownership | Actual guest build/installed trees | Four intended payloads and required logging JARs match; site/configuration and permissions match the case |
 | T6 | Backend contract | Use actual clients as the service account; inspect schema, JNDI and unit dependencies; confirm effective connection transport | Socket, TCP and SQLite cases | Four named application tables; matching resource/runtime DB; selected transport usable; SQLite has no MariaDB dependency/contact |
 | T7 | Process identity | Inspect installed launcher health and PID/executable/start-time/CATALINA_BASE under service account | Real four-JVM appliance | Four distinct genuine appliance identities; direct health exit 0; no PID file or `pgrep` match alone accepted |
@@ -391,6 +413,7 @@ T1 retains the cumulative system-run identity; T2-T15 make its required observat
 ###### Assertion Details
 
 - T5 reads WAR entries and logging JAR digests from the actual Maven target directory and compares installed counterparts. Generated classpath files are checked inside each WAR as well as the installed application; site images/shared CSS and mgmt template sections are checked independently. Timestamped artifact names alone are not identity evidence.
+- For SQLite cases only, T6 service inventory requires exit 0 from the full real service listing, the installed appliance unit and no `mariadb.service`, `mysql.service` or `mysqld.service` entries in any install state. MariaDB socket and TCP cases use their selected database service and are not subject to this absence check. Missing-unit filtered-query exit 1 is not used as an absence verdict. Command failure or incomplete inventory fails the check; retain raw evidence.
 - T6 requires `ArchivePVRequests`, `ExternalDataServers`, `PVAliases` and `PVTypeInfo`. MariaDB clients use the same socket/TCP transport and application account as Tomcat. SQLite clients run as the actual service account; inspect that there is no MariaDB unit dependency and no accidental MariaDB installation/contact in the SQLite-only species. Confirm the newly registered test PV is persisted in `PVTypeInfo`.
 - T8 records health invocation identity, exit status and output. A unit's most recent successful result cannot represent three executions. An enabled timer or a startup skip cannot replace a completed health check.
 - T10 records the full fixture's identity and record/SCAN counts, IOC startup duration and timestamped resource observations before IOC startup and throughout acquisition. Record the sampling interval, IOC PID/CPU/RSS, four appliance JVM identities/RSS, and guest CPU, available memory and swap use. Retain elapsed acquisition and post-restart readiness times through T11/T12 with the IOC running. Missing measurements leave the resource/deadline confirmation incomplete; exceeding a fixed readiness/acquisition bound or observing a process loss fails its check. This is functional-test environment verification, not a capacity or long-duration soak result.
@@ -431,6 +454,29 @@ T1 retains the cumulative system-run identity; T2-T15 make its required observat
 | T13 | Not run | Planned environment above | Pending | none |
 | T14 | Not run | Planned environment above | Pending | none |
 | T15 | Not run | Planned environment above | Pending | none |
+
+###### Latest Published-Candidate Run
+
+Observed on 2026-10-02 at 06:04 UTC, using published environment `8f3bbfe96b7d1ee60cfd11ee0c72b2c422e8d12c`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee`, pinned cloud/Ansible tools, unchanged images and original IOC fixture. The preceding table preserves earlier candidate observations; this run supersedes their current execution status without clearing their failures.
+
+| Check | Observed Result | Evidence And Remaining Work |
+| --- | --- | --- |
+| T1 | Fail | Full system run exited 1 and stopped on SQLite installation verification; `work/m10-vm-run-8f3bbfe-dca485f-2/report.json` |
+| T2 | Partial | Published candidate full local suite and preflight passed; this does not verify the revised draft code |
+| T3-T12 | Partial | Debian 13 MariaDB socket and TCP cases passed all installation, runtime, exact-window, restart and repeat-install assertions; per-case results in `run.json` and guest JSON files. Both guests are shut down and retained |
+| T5-T6 SQLite | Fail at T6 | Payload comparison and service-account schema query passed; effective appliance dependencies contain no MariaDB unit. The selected MariaDB unit query returned empty stdout and exit 1, which `execute` rejected before the absence assertion. Actual guest evidence in `command-01583.json`; database absence is not a failed SQLite schema result |
+| T13-T14 | Not run | SQLite runtime negatives, Rocky cases and both real build-failure cases remain unexecuted |
+| T15 | Partial | Real interruption and cleanup-refusal checks passed on the first owned guest; earlier ownership remained recorded when later cases began. Explicit resource cleanup has not run; no full acceptance |
+
+The failed SQLite VM and all original contexts remain preserved. The revised draft verifier requires its own local checks, review and a new full published-candidate run. No revised VM result or successful cleanup is claimed.
+
+###### Revised Draft Local Verification
+
+Observed on 2026-10-02 at 06:31 UTC. `PYTHONDONTWRITEBYTECODE=1 python3 tests/vm/local.py` exited 0: 16 tests, including real systemctl filesystem inventory regressions. The initial regression draft failed because an empty service root returned command exit 1; the final test distinguishes that command failure from a nonempty inventory missing the appliance. No VM result is inferred from either local execution.
+
+The real `tests/run-all-tests.bash --local` run outside the sandbox exited 0 without skips: Phase 1 logic 223 passed, health 20 tests, database 10 tests, VM local 16 tests, Phase 2 build wrapper 13 passed. Evidence: `work/m10-validation/sqlite-inventory-revision-local.log`, SHA256 `d6ddaba233302bf305e0c2fc6482b41062b22c288c7d8c56a9b6bc9936d5fd16`. Verified draft `tests/vm/guest.py` SHA256: `c152e9342505cbee9fa3b541b2360358efdf61439f5ad88c1c70dbd4d823a680`; `tests/vm/local.py` SHA256: `1ab7c5ccabdb978b7a3d4642ca787b12da9668bd4c5f1f9ab0798b913faaa8c5`.
+
+Revised plan acceptance and execution authorization are recorded above. Publication under separate commit/push authority, the new full VM execution and explicit cleanup remain pending. Retained failed contexts have not been changed.
 
 ##### Closure Evidence
 

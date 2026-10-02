@@ -23,6 +23,61 @@ def load_driver():
     return driver
 
 
+def load_guest():
+    spec = importlib.util.spec_from_file_location('vm_guest', TOP / 'tests/vm/guest.py')
+    guest = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guest)
+    return guest
+
+
+class ServiceInventoryTests(unittest.TestCase):
+    """Exercise the shipped check with real systemctl and isolated unit-file roots."""
+
+    def test_sqlite_service_inventory(self):
+        guest = load_guest()
+        self.assertIsNotNone(shutil.which('systemctl'))
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            units = root / 'etc/systemd/system'
+            units.mkdir(parents=True)
+            service = '[Unit]\nDescription=Test service\n[Service]\nExecStart=/bin/true\n'
+            (units / guest.UNIT).write_text(service)
+            command = ('systemctl', '--root', str(root))
+            result = guest.sqlite_service_units(command)
+            self.assertIn(guest.UNIT, result['listed_units'])
+            self.assertFalse(set(guest.MARIADB_UNITS) & set(result['listed_units']))
+            for name in guest.MARIADB_UNITS:
+                for kind in ('static', 'disabled', 'masked', 'alias'):
+                    with self.subTest(name=name, kind=kind):
+                        path = units / name
+                        if kind == 'masked':
+                            path.symlink_to('/dev/null')
+                        elif kind == 'alias':
+                            path.symlink_to(guest.UNIT)
+                        else:
+                            content = service
+                            if kind == 'disabled':
+                                content += '[Install]\nWantedBy=multi-user.target\n'
+                            path.write_text(content)
+                        try:
+                            with self.assertRaisesRegex(guest.CheckError, 'MariaDB service'):
+                                guest.sqlite_service_units(command)
+                        finally:
+                            path.unlink()
+            (units / guest.UNIT).unlink()
+            other = units / 'inventory-control.service'
+            other.write_text(service)
+            with self.assertRaisesRegex(guest.CheckError, 'installed appliance'):
+                guest.sqlite_service_units(command)
+            other.unlink()
+            with self.assertRaises(guest.CheckError):
+                guest.sqlite_service_units(command)
+            with self.assertRaisesRegex(guest.CheckError, 'Command failed: systemctl'):
+                guest.sqlite_service_units(('systemctl', '--root', str(root / 'missing')))
+            self.assertNotEqual(guest.COMMANDS[-1]['exit'], 0)
+            self.assertTrue(guest.COMMANDS[-1]['stderr'])
+
+
 class EntrypointTests(unittest.TestCase):
     def test_separate_stderr_preserves_json_and_failure_evidence(self):
         driver = load_driver()

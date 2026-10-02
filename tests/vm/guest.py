@@ -26,6 +26,7 @@ import zipfile
 
 SERVICES = ("mgmt", "engine", "etl", "retrieval")
 TABLES = ("ArchivePVRequests", "ExternalDataServers", "PVAliases", "PVTypeInfo")
+MARIADB_UNITS = ("mariadb.service", "mysql.service", "mysqld.service")
 UNIT = "epicsarchiverap-maven.service"
 HEALTH_UNIT = "epicsarchiverap-maven-health.service"
 HEALTH_TIMER = "epicsarchiverap-maven-health.timer"
@@ -60,6 +61,21 @@ def hash_file(path):
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             value.update(block)
     return value.hexdigest()
+
+
+def sqlite_service_units(systemctl=("systemctl",)):
+    """Require a readable service inventory containing the appliance and no MariaDB units."""
+    _, output, _ = execute([*systemctl, "list-unit-files", "--type=service",
+                            "--full", "--no-legend", "--no-pager"])
+    rows = [line.split() for line in output.splitlines() if line.strip()]
+    check(all(len(row) >= 2 and row[0].endswith(".service") for row in rows),
+          "Malformed installed service inventory")
+    installed = {row[0] for row in rows}
+    check(UNIT in installed, "Service inventory does not contain the installed appliance")
+    check(not installed.intersection(MARIADB_UNITS),
+          "SQLite species installed a MariaDB service")
+    return {"required_unit": UNIT, "forbidden_units": list(MARIADB_UNITS),
+            "listed_units": sorted(installed)}
 
 
 def timestamp():
@@ -440,10 +456,9 @@ class Guest:
                 dependencies = execute(["systemctl", "show", unit, "-p", "After", "-p", "Requires",
                                         "-p", "Wants", "-p", "BindsTo", "-p", "Requisite", "-p", "PartOf"])[1]
                 check(not any(name in dependencies.lower() for name in
-                              ("mariadb.service", "mysql.service", "mysqld.service")),
+                              MARIADB_UNITS),
                       "SQLite has a MariaDB unit dependency")
-            rc, installed, _ = execute(["systemctl", "list-unit-files", "mariadb.service", "--no-legend"])
-            check("mariadb.service" not in installed, "SQLite species installed a MariaDB service")
+            self.evidence["sqlite_service_units"] = sqlite_service_units()
         self.result("T6")
 
     def scheduled(self):
