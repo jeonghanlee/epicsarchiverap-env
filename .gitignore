@@ -79,3 +79,5 @@ apache-tomcat*
 # updated.sql was generated through RULES_SQL
 archappl_mysql_updated.sql
 archappl_sqlite_updated.sql
+# Python bytecode cache
+__pycache__/
