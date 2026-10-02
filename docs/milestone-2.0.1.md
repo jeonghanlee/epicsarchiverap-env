@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: prepare and publish the reviewed M10 verifier under separate commit/push authority, then execute the authorized full VM matrix with a new context and the corrected source commit. With environment `8f3bbfe96b7d1ee60cfd11ee0c72b2c422e8d12c` and corrected source `dca485fd28d14cf91e988fae9ade13729a55c7ee`, Debian 13 MariaDB socket and TCP cases passed T3-T12, including exact retrieval bounds, restart and repeat installation. The SQLite case stopped in T6 because the verifier treated an absent MariaDB unit query exit 1 as a command failure. Evidence is retained in `work/m10-vm-run-8f3bbfe-dca485f-2`; no Rocky or build-failure case ran. Preserve all previous contexts and VM resources. The service inventory check and its filesystem regressions passed the plan reviews; they do not replace full VM acceptance. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: continue M10 with a fresh Debian 13 MariaDB TCP case using published environment `607092b962afd9cbac31ce9f62efba0e7c62b471`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and pinned Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`. Confirm the private handoff and actual ownership, limit the real `archiver_dev.yml` play to that guest, set an empty database socket and `mariadb_skip_networking=false`, and run shipped installation/runtime/repeat-install checks. Independent Debian MariaDB socket T5-T12 and SQLite T5-T13 diagnostics passed for this candidate; evidence is retained in `work/m10-ansible-handoff-607092b` and `work/m10-ansible-sqlite-607092b`. The full driver attempt stopped before installation on DHCP collision and remains failed in `work/m10-vm-run-607092b-dca485f`; both handed-off guests are outside that context. Remaining TCP/Rocky cases, dedicated build failures and the full driver execution/cleanup path still require verification before matrix acceptance. Preserve every previous context and VM resource; cleanup requires separate authorization. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -455,7 +455,7 @@ T1 retains the cumulative system-run identity; T2-T15 make its required observat
 | T14 | Not run | Planned environment above | Pending | none |
 | T15 | Not run | Planned environment above | Pending | none |
 
-###### Latest Published-Candidate Run
+###### Published-Candidate Run Before Inventory Revision
 
 Observed on 2026-10-02 at 06:04 UTC, using published environment `8f3bbfe96b7d1ee60cfd11ee0c72b2c422e8d12c`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee`, pinned cloud/Ansible tools, unchanged images and original IOC fixture. The preceding table preserves earlier candidate observations; this run supersedes their current execution status without clearing their failures.
 
@@ -476,7 +476,54 @@ Observed on 2026-10-02 at 06:31 UTC. `PYTHONDONTWRITEBYTECODE=1 python3 tests/vm
 
 The real `tests/run-all-tests.bash --local` run outside the sandbox exited 0 without skips: Phase 1 logic 223 passed, health 20 tests, database 10 tests, VM local 16 tests, Phase 2 build wrapper 13 passed. Evidence: `work/m10-validation/sqlite-inventory-revision-local.log`, SHA256 `d6ddaba233302bf305e0c2fc6482b41062b22c288c7d8c56a9b6bc9936d5fd16`. Verified draft `tests/vm/guest.py` SHA256: `c152e9342505cbee9fa3b541b2360358efdf61439f5ad88c1c70dbd4d823a680`; `tests/vm/local.py` SHA256: `1ab7c5ccabdb978b7a3d4642ca787b12da9668bd4c5f1f9ab0798b913faaa8c5`.
 
-Revised plan acceptance and execution authorization are recorded above. Publication under separate commit/push authority, the new full VM execution and explicit cleanup remain pending. Retained failed contexts have not been changed.
+Revised plan acceptance and execution authorization are recorded above. The revised verifier was published as `607092b962afd9cbac31ce9f62efba0e7c62b471`; subsequent observations are recorded below. Full matrix acceptance and explicit cleanup remain pending. Retained failed contexts have not been changed.
+
+###### Published Revision And Single-VM Verification
+
+Observed on 2026-10-02, with environment `607092b962afd9cbac31ce9f62efba0e7c62b471` and source `dca485fd28d14cf91e988fae9ade13729a55c7ee`. The full driver preflight passed the published candidate's actual complete local suite without skips at 07:30 UTC. Its first VM creation then exited 1 because the selected address already belonged to another MAC in an unnamed DHCP reservation. Disk and seed creation preceded that refusal; no domain was found afterward. Installation did not start. Preserve `work/m10-vm-run-607092b-dca485f`, including `command-00116.json`, and the original failure; do not treat a retry or later diagnostic success as clearing it.
+
+Cloud-provision subsequently created a separate basic Debian 13 VM using tool `e468393242000f627f626fffbb2f5b7277f344e3`. Actual domain UUID and MAC/IP ownership matched the private handoff and both live/persistent reservations before guest verification. SSH, two vCPUs, 4 GiB RAM and cloud-init done with no errors were independently observed; a password-unspecified warning remains. Installation used the unchanged pinned Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`, its maintained inventory plus a generated single-host inventory, and an exact host limit. The real `archiver_dev.yml` run exited 0 with failed=0 and unreachable=0. This is a direct Ansible installation, outside a full driver run context.
+
+| Check | Observed Time UTC | Actual Environment And Method | Result And Evidence |
+| --- | --- | --- | --- |
+| T5-T6 | 2026-10-02 08:29 | Debian 13 MariaDB socket; shipped `guest.py installation` through a real systemd helper | Pass for this VM: exact candidate HEADs, installed payload/configuration and service-account schema/transport verified; `work/m10-ansible-handoff-607092b/installation.json` |
+| T7-T9 | 2026-10-02 08:29-08:31 | Same VM; shipped `guest.py runtime`, actual launcher, timer and HTTP APIs | Pass for this VM: four genuine JVM identities, three distinct eligible health invocations and HTTP appliance identity |
+| T10 | 2026-10-02 08:32 | Same runtime path; unchanged original fixture, real IOC/CA and retrieval | Pass for this VM: all 10,018 records loaded; ten distinct retrieved timestamps/values matched CA observations and raw window checks passed; IOC startup 1.306 s, first acquisition 109.625 s, each within its unchanged 180 s bound |
+| T11 | 2026-10-02 08:34 | Same runtime path; real `sd_restart` with IOC running | Pass for this VM: all JVM identities replaced, earlier history preserved and fresh acquisition passed; restart/readiness 53.689 s within 300 s, fresh acquisition 10.332 s within 180 s |
+| T12 / unchanged reapply | 2026-10-02 08:47 | Same VM and pinned Ansible inputs; actual playbook followed by shipped `guest.py unchanged` | Pass for this VM: Ansible exit 0, changed=0 and failed=0; actual build invocation remained identical, all four JVM PID/start identities and stored history/readiness preserved; `work/m10-ansible-handoff-607092b/reapply-result.json` |
+| T12 / forced reinstall | 2026-10-02 08:58 | Same VM; explicit force variable through actual Ansible, real build journal and shipped `guest.py reinstalled` | Pass for this VM: new build invocation, expected eight Make targets, actual completion sentinel, replaced JVM identities, matching payload/schema, three eligible health successes, stored history and fresh acquisition; acquisition 10.296 s within 180 s; `work/m10-ansible-handoff-607092b/reinstall-result.json` |
+| T13-T15 | Not run in this diagnostic | Planned SQLite negative, build-failure and lifecycle methods | Pending for this candidate; no full matrix or cleanup result inferred |
+
+Installation verifier and runtime verifier both exited 0. Runtime evidence: `work/m10-ansible-handoff-607092b/runtime.json`, SHA256 `d46370b880c451102bebf500b290376e8fdc7afafe70f3f7661106802c2d6db1`. Installation evidence SHA256: `a5b2d4f93c3b779895bbeeb31a8e0aaf37495b7fbedcb3c858e1c19b13bc2604`. Private inputs, ownership observations and Ansible output remain in the same evidence directory. The published guest verifier ran without internal substitutions and used the original fixture and unchanged deadlines. The current driver has no external-VM adoption operation; these results remain independent diagnostic evidence. No synthetic full-run context, full acceptance, VM shutdown or cleanup is claimed. M10 remains In progress.
+
+Repeat-install evidence was observed through the actual pinned playbook and shipped verifier, without substituting internal build or application paths. Unchanged-reapply evidence SHA256: `0f711ce4748792017f7ad98363022c2e01eaf51ad36fc2be9ef796de16ada00d`; forced-reinstall evidence SHA256: `0edba2c04c578b67b0794562a0c32611f02e04d27b80bce97ef75a1d867210d9`. The full build journals, Ansible command results and raw guest output are retained beside these files. Separate SQLite observations follow below.
+
+###### Published Revision And Debian SQLite Verification
+
+Observed on 2026-10-02 with the same published environment/source commits and pinned Ansible. A separate fresh Debian 13 VM was prepared by cloud-provision `a52bb79687f0ba260123de362f5ade77d136ceb9`. Actual UUID, interface MAC, attached disk/seed and live/persistent DHCP ownership matched the private handoff; the initial guest had no appliance or MariaDB installation. The real single-host `archiver_dev_sqlite.yml` install exited 0 with ok=27, changed=9, failed=0 and unreachable=0. The unchanged published `guest.py` and original IOC fixture digests were confirmed on the guest before runtime verification. These are independent diagnostics outside the failed full driver context.
+
+| Check | Observed Time UTC | Actual Environment And Method | Result And Evidence |
+| --- | --- | --- | --- |
+| T5-T6 | 2026-10-02 15:54 | Debian 13 SQLite; shipped `guest.py installation`, service-account SQL and complete real service inventory | Pass for this VM: requested source HEADs and installed payload/configuration match; application schema and WAL connection verified; appliance unit present, MariaDB-family units and dependencies absent; `work/m10-ansible-sqlite-607092b/installation.json` |
+| T7-T9 | 2026-10-02 16:26-16:27 | Shipped `guest.py runtime`; genuine processes, launcher health, scheduled timer and HTTP APIs | Pass for this VM: four appliance JVM identities, three distinct eligible health successes and matching HTTP appliance identity |
+| T10 | 2026-10-02 16:29 | Same runtime path; complete original IOC, real CA and raw retrieval | Pass for this VM: all 10,018 records loaded; eleven distinct in-window timestamps with eleven different values match CA observations; the between-events boundary query records one preceding value separately. IOC startup 1.300 s and acquisition 101.561 s are within unchanged 180 s bounds |
+| T11 | 2026-10-02 16:30 | Real `sd_restart` with IOC running | Pass for this VM: all JVM identities replaced, stored PV/history preserved and new acquisition observed. Restart/readiness 52.706 s within 300 s; fresh acquisition 10.230 s within 180 s |
+| T12 / unchanged reapply | 2026-10-02 16:31 | Same pinned Ansible inputs followed by shipped `guest.py unchanged` | Pass for this VM: Ansible exit 0, changed=0 and failed=0; build invocation and four JVM PID/start identities unchanged; stored history and readiness preserved; `work/m10-ansible-sqlite-607092b/reapply-result.json` |
+| T12 / forced reinstall | 2026-10-02 16:38 | Explicit force variable through real Ansible, actual build journal/script/sentinel and shipped `guest.py reinstalled` | Pass for this VM: Ansible exit 0, changed=1 and failed=0; new build invocation and expected eight Make targets; payload/schema and MariaDB absence rechecked; replaced JVMs, three eligible health successes, preserved history and fresh acquisition in 10.304 s; `work/m10-ansible-sqlite-607092b/reinstall-result.json` |
+| T13 | 2026-10-02 16:39 | Shipped `guest.py negative`; genuine other-instance PID, real IOC stop and restoration | Pass for this VM: wrong PID gives health exit 1 with `wrong-instance-base`, despite HTTP readiness; genuine process identities and PID-file ownership restored. Stopped-IOC query has zero fresh samples and one preceding value. Restored IOC resumes acquisition in 12.342 s and stored history remains unchanged; `work/m10-ansible-sqlite-607092b/negative.json` |
+| T1, T3-T4, T14-T15 / full context | Not established by these diagnostics | Accepted full driver, dedicated build-failure and lifecycle/cleanup paths | Pending; the original full-run failure and all retained resources remain preserved |
+
+The runtime verifier exited 0 and retained 165 CA events and 164 one-second resource observations without observer errors. Its original IOC, raw window checks, restart and recovery ran through the published code without internal substitutes or relaxed deadlines. Runtime evidence is `work/m10-ansible-sqlite-607092b/runtime.json`.
+
+| Retained Artifact | SHA256 |
+| --- | --- |
+| `installation.json` | `b4dc4d509e0ec21a74a45af3c8a7c1ea5ebe5d9d90e7c464bb2bcd21981145c3` |
+| `runtime.json` | `6b2716a6461c3f30eee503a1dd70c172c6986021c3b33a1be272879097557f02` |
+| `reapply-result.json` | `d99ed56cec4dfa3b3970e533845038ebbe7de330d86932ca19fd1833cdc384bf` |
+| `reinstall-result.json` | `d73d487cad39eb190b2033b31c62632e35222e95abb97c86429fd316cbc21352` |
+| `negative.json` | `c7895fa7770763fd815c5d755d1e66f4665bebc0785f1851d90a14b62b08d4bb` |
+
+Private command results, full build journals, Ansible output, actual guest `history.json` and pre-action PID/start records are retained in `work/m10-ansible-sqlite-607092b`. Its `evidence-manifest.json` records 43 retained files and their digests; manifest SHA256: `404d2d2fee79b5bcba5c228bf1b902f604649dca19c47768344ee12c6f17ccd8`. Final observed appliance/IOC services and health timer are active. No shutdown, cleanup, full matrix acceptance or issue closure has been performed. M10 remains In progress.
 
 ##### Closure Evidence
 
