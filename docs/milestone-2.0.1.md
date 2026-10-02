@@ -7,11 +7,11 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: coordinate a source correction for the reproduced live-engine retrieval upper-bound bug before rerunning M10 / #56 with a corrected published source. Preserve the exact `[from, to]` acquisition checks. The fresh `52d90166f5995acc332dbeb14945ed26ae32d408` Debian socket run passed T3-T10 and failed post-restart acquisition; real live retrieval subsequently returned a sample even when `to` was 1 ns before its exact timestamp, while independent stored-history controls honored the 1 ns boundary rule. Evidence is retained in `work/m10-vm-run-52d9016` and `work/m10-validation/retrieval-live-upper-bound-3.json`. The full matrix remains unverified; failed VMs remain preserved. M14 / #57 waits for Maven stabilization under D33; G6 remains Open and M14 Blocked.
+Next session entry point: check whether the source correction tracked by jeonghanlee/epicsarchiverap-maven#21 has a corrected published commit before resuming M10 / #56 verification. Preserve the exact `[from, to]` acquisition checks. The fresh `52d90166f5995acc332dbeb14945ed26ae32d408` Debian socket run passed T3-T10 and failed post-restart acquisition; real live retrieval subsequently returned a sample even when `to` was 1 ns before its exact timestamp, while independent stored-history controls honored the 1 ns boundary rule. Evidence is retained in `work/m10-vm-run-52d9016` and `work/m10-validation/retrieval-live-upper-bound-3.json`. The full matrix remains unverified; failed VMs remain preserved. M41 / #53 is in Backlog under D37, awaiting sufficient dedicated test disk capacity; retain its accepted plan, source evidence and local input-inspection tool without starting further implementation or measurement. Original installed configuration and evidence storage placement remain unresolved. M14 / #57 waits for Maven stabilization under D33; G6 remains Open and M14 Blocked.
 
 ## Scope
 
-The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration after the source contract is confirmed, real installation test automation and measured heap guidance. The owner assigned these four candidates on 2026-09-29. The proposed order is M43, M14, M10, M41, then M44. G6 may be investigated while M43 is planned; its completion gates M14 and release readiness. The release sequence and remaining detailed plans await acceptance; M43 is accepted under D32.
+The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration after the source contract is confirmed, real installation test automation. Heap measurement and guidance are excluded under D37 and retained in Backlog. The owner assigned these four candidates on 2026-09-29. The current proposed order is M43, M14, M10, then M44. G6 may be investigated while M43 is planned; its completion gates M14 and release readiness. The release sequence and remaining detailed plans await acceptance; M43 is accepted under D32.
 
 Out of scope: adding SQLite deletion, table-query, backup or restore support; changing the shipped heap default; UI skin changes; LTS pre-processing; data migration. Existing 2.0.0 release objects remain immutable. No next release after 2.0.1 is assigned.
 
@@ -27,8 +27,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G6 | epicsarchiverap-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---epicsarchiverap-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | Blocked | No | G6, D31, D33 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
 | Tests | M10 | Automate VM installation and runtime tests | Milestone | In progress | No | D31, D34 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
-| Runtime | M41 | Measure per-component heap needs by archiving load | Carry-forward | Not started | Yes | D31 | Event-based GC observations justify the documented heap guidance; [detail](#m41---measure-per-component-heap-needs-by-archiving-load) |
-| Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | No | M43, M14, M10, M41, D31 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
+| Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | No | M43, M14, M10, D31, D37 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
 
@@ -44,6 +43,9 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D32 | For SQLite, all db.* targets print a skip message and return success without prerequisites or MariaDB configuration reads/writes. Invalid backend values and unsupported SQL/query/helper operations fail before side effects. | 2026-09-29 |
 | D33 | Record the site-build migration plan, procedure and real-path tests in the canonical detail and #57. Wait for Maven stabilization before implementation. epicsarchiverap-env generates and copies its site inputs before Maven runs; epicsarchiverap-maven owns template application and WAR packaging. | 2026-09-29 |
 | D34 | Plan a combined cloud-provision VM lifecycle, ansible-provision installation and epicsarchiverap-env final acceptance workflow. Preserve the tool ownership boundaries and use disposable systemd VMs for installation/runtime tests. Detailed plan, test matrix and implementation authority remain separate. | 2026-09-30 |
+| D35 | Limit heap measurement to the existing 100, 500 and 903 PV workloads, adding event-based post-GC heap and individual pause measurements. Preserve the reported workload and query conditions for comparison. At scope selection, the revised detailed plan remained draft and implementation was not authorized; subsequent plan acceptance is recorded in the detail. | 2026-10-01 |
+| D36 | Defer M41 implementation and measurement. Preserve the accepted plan, recovered source evidence and local input-inspection tool. Resumption requires a new dated decision; release assignment and M44 dependencies remain pending a separate scope decision. | 2026-10-01 |
+| D37 | Move M41 to Backlog, excluding heap measurement and new heap guidance from 2.0.1 completion requirements. Preserve its accepted plan and evidence. Reassignment requires an environment with sufficient dedicated disk capacity for the complete archive, response and measurement evidence plus shutdown reserves; existing resource stop rules remain applicable. | 2026-10-01 |
 
 ### Assignment History
 
@@ -56,6 +58,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | 265f580 / M27 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
 | 265f580 / M42 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
 | 265f580 / G6 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M41 | docs/milestone-2.0.1.md, Milestone | docs/milestone-2.0.1.md, Backlog | this synchronization commit | this synchronization commit; D37, 2026-10-01 |
 
 ### Milestone Details
 
@@ -444,107 +447,6 @@ Observed Milestone: 2.0.1 / #7
 Last Compared: 2026-09-30, `gh issue view 56 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee. The live title/body still describe container installation; the revised VM plan is local and has not been projected.
 
 
-#### M41 - Measure per-component heap needs by archiving load
-
-Origin: 265f580 / M41
-Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved
-GitHub Issue: [#53](https://github.com/jeonghanlee/epicsarchiverap-env/issues/53)
-Status: Not started
-
-##### Summary
-
-The 256M heap default ([M22 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md)) is a test default; the available measurements
-do not establish a heap recommendation by load. The ansible-provision soak
-on epicsarchiverap-env `9eed006`, epicsarchiverap-maven `3c96141d` and Ansible `dca2255` covers 100,
-500 and 903 PV stages. The 903 PV stage includes 110 PVs at 10 Hz and eight
-waveforms. With `-Xms256M -Xmx256M` on every JVM, the largest sampled ETL
-heap was 250.9 MiB. Its ten Full GCs cover the combined interval from the
-500 PV stage through the run's end, including fault tests; one occurred
-in the 500 PV stage. The other three components had no Full GC in that
-interval.
-
-The [heap observation report](reports/heap-soak-20260928.md), committed at
-`decff38`, records the supplied figures and their limits. Five-minute
-samples do not provide immediate post-GC heap or individual GC pauses,
-so this evidence does not meet this work item's completion criteria.
-The heap needed may depend on different workloads per component (PV count
-and rate for engine, partition size for etl, query span for retrieval);
-that relationship remains a hypothesis until measured.
-
-##### Scope
-
-- Measure, per instance, the live set (heap in use right after a GC, not the
-  peak), the GC counts and pause times, and the RSS on a disposable VM over a
-  load matrix: PV counts (for example 100, 500, 1000 and 2000) at 1 Hz and
-  10 Hz from a `softIoc` on the test host, archived in bulk through the mgmt
-  BPL, plus one step with a retrieval client. Each step runs long enough to
-  cover several ETL passes, with the [M31 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md) test store values
-  (`PARTITION_5MIN`) so STS, MTS and LTS are all reached within hours.
-- Capture identified GC events using G1 unified GC logging on all four JVMs, including post-GC heap and individual pause durations. Check the shipped JVM-option path before running. Periodic `jstat` may supplement counters but cannot establish immediate post-GC heap or individual pauses.
-- From the measurements, write a heap recommendation per load into
-  `docs/README.install.md` beside the four-instance memory calculation, as
-  the live set times a headroom factor; the factor (2 to 3 is the usual rule
-  of thumb) is chosen from the measured GC counts and pause times.
-
-Out of scope: changing the shipped default ([M22 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md)); per-instance heap
-variables, unless the measurements show one shared value cannot fit; GC
-tuning beyond sizing; production storage sizing.
-
-##### Completion Criteria
-
-- A recorded table of the after-GC heap, GC counts and pause times per
-  instance for each load in the matrix, with the epicsarchiverap-env and epicsarchiverap-maven refs and
-  the measurement method used.
-- The install guide gives a heap per load derived from that table.
-
-##### Dependencies And Decisions
-
-- D31, Decision Date: 2026-09-29. Assigned to 2.0.1; detailed plan remains draft and implementation is not authorized. Earlier assignment decisions below retain their original dates.
-
-- Recorded 2026-09-28 from the owner's direction after the [M22 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md) review of the
-  `9eed006` soak figures; not assigned to current work.
-- Additional post-GC heap and individual GC pause measurements were requested
-  from the Ansible operator on 2026-09-28. Results have not been received;
-  no new measurement run is verified here. This historical request remained separate
-  from [M8 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md)'s release criteria.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc174e76fe77326e941baf58f850, docs/milestone-265f580.md, M41
-
-1. Fix the load matrix, stage durations and concurrent queries during plan acceptance. Capture identified GC events using G1 unified GC logging on every component; periodic `jstat` may supplement RSS and counters but cannot replace event measurements.
-2. Run the matrix on a disposable VM and record the measurements.
-3. Derive and document the recommendation.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Runtime | Run each load of the matrix with the G1 event logs with optional `jstat` supplements on all four instances; read the stable after-GC heap, the GC counts and pause times, and the RSS | Disposable VM | A complete table per instance and load, tied to the epicsarchiverap-env and epicsarchiverap-maven refs |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | Disposable VM | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Measure per-component heap needs by archiving load
-Labels: enhancement
-GitHub Milestone: 2.0.1
-Observed State: OPEN
-Observed Labels: enhancement
-Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:33:58Z
-
 #### M44 - Verify and publish release 2.0.1
 
 Origin: 2.0.1 / M44
@@ -564,13 +466,13 @@ Out of scope: another release line, automatic security fixes, changing or deleti
 
 ##### Completion Criteria
 
-- M43, M14, M10 and M41 complete, G6 resolved, and all required final checks Pass.
+- M43, M14 and M10 complete, G6 resolved, and all required final checks Pass. Heap measurement is Backlog work under D37 and is not required for 2.0.1.
 - The annotated 2.0.1 tag and GitHub release resolve to the authorized candidate.
 - Required issue states and canonical closure agree after publication.
 
 ##### Dependencies And Decisions
 
-- M43, M14, M10, M41 and D31. Ant work is release-blocking under the current proposed scope; any deferral or source-contract change requires an explicit decision.
+- M43, M14, M10, D31 and D37. Ant work is release-blocking under the current proposed scope; any deferral or source-contract change requires an explicit decision.
 - No source pin is changed during planning. A new epicsarchiverap-maven commit is selected only after G6 is satisfied and the source change is accepted.
 
 ##### Implementation Plan
@@ -605,7 +507,6 @@ Final observations are owned by Release Verification Results below.
 | M43 / T1, M43 / T2 | Later Make, install, source schema or DB-helper changes | Backend command routing | Release Verification 2 | Rejections and supported behavior hold on final tree | Pending |
 | M14 / T1, M14 / T2 | Later source-pin or overlay changes | Build and installed WARs | Release Verification 2 | Real build retains overlay with no Ant integration | Pending |
 | M10 / T1 | Later install, build or configuration changes | Documented installation | Release Verification 3 | Real container/VM installation checks pass | Pending |
-| M41 / T1 | Later source pin, JVM options, workload or store changes | Heap recommendation applicability | Release Verification 4 | Repeat affected loads or narrow recommendation to its measured configuration | Pending |
 
 ##### Production Environment Tests
 
@@ -644,7 +545,7 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 | Release Verification 1 | Baseline | pre-change | Record current epicsarchiverap-env commit, effective source pin, changelog and existing released refs before candidate version changes | Checkout and origin | Reproducible pre-change baseline | Private evidence with public hashes |
 | Release Verification 2 | Integrated | post-change | Execute shipped local suite, M43 routing/DB checks and real M14 build on combined candidate | Supported local toolchain and disposable DBs | No failed or required skipped check | Suite/build logs and payload hashes |
 | Release Verification 3 | Deployment | post-change | Run real M10 installation and runtime entrypoints on accepted matrix | Debian 13 and Rocky 8.10 | Actual installed system, acquisition and retrieval succeed | Install/runtime evidence |
-| Release Verification 4 | Candidate | post-change | Resolve changelog/source versions and verify M41 measurements apply to final refs; rerun invalidated measurements | Candidate and measured workload | Consistent 2.0.1 candidate and bounded heap guidance | Version and measurement evidence |
+| Release Verification 4 | Candidate | post-change | Resolve changelog/source versions and confirm the shipped heap default is unchanged; no new heap recommendation is included | Combined candidate | Consistent 2.0.1 candidate within the assigned scope | Version and configuration evidence |
 | Release Verification 5 | Published objects | post-release | Read origin tag object/peeled commit and GitHub release flags/notes | origin and GitHub | Objects match recorded authorized candidate | Remote observations with time |
 | Release Verification 6 | Released installation | post-release | Execute documented clean installation and runtime checks from immutable tag | Clean Debian 13 and Rocky 8.10 hosts | Actual released system succeeds on accepted matrix | Private install/runtime evidence and hashes |
 | Release Verification 7 | Closure | post-release | Compare canonical rows/details, GitHub issues/milestone, published closure and next entry | Canonical document, origin and GitHub | Scope complete, evidence coherent, 2.0.0 unchanged, next release unassigned | Dated closure observations |
@@ -667,11 +568,164 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Runtime | M41 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D31, D35, D36, D37 | Event-based GC observations justify the documented heap guidance; deferred 2026-10-01 until a sufficient dedicated test disk is available; [detail](#m41---measure-per-component-heap-needs-by-archiving-load) |
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M43, D29, D31 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required epicsarchiverap-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 
 ### Backlog Details
+
+#### M41 - Measure per-component heap needs by archiving load
+
+Origin: 265f580 / M41
+Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved; moved from Milestone to Backlog on 2026-10-01 under D37
+GitHub Issue: [#53](https://github.com/jeonghanlee/epicsarchiverap-env/issues/53)
+Status: Deferred
+
+##### Summary
+
+The 256M heap default ([M22 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md)) is a test default; the available measurements
+do not establish a heap recommendation by load. The ansible-provision soak
+on epicsarchiverap-env `9eed006`, epicsarchiverap-maven `3c96141d` and Ansible `dca2255` covers 100,
+500 and 903 PV stages. The 903 PV stage includes 110 PVs at 10 Hz and eight
+waveforms. With `-Xms256M -Xmx256M` on every JVM, the largest sampled ETL
+heap was 250.9 MiB. Its ten Full GCs cover the combined interval from the
+500 PV stage through the run's end, including fault tests; one occurred
+in the 500 PV stage. The other three components had no Full GC in that
+interval.
+
+The [heap observation report](reports/heap-soak-20260928.md), committed at
+`decff38`, records the supplied figures and their limits. Five-minute
+samples do not provide immediate post-GC heap or individual GC pauses,
+so this evidence does not meet this work item's completion criteria.
+The heap needed may depend on different workloads per component (PV count
+and rate for engine, partition size for etl, query span for retrieval);
+that relationship remains a hypothesis until measured.
+
+##### Scope
+
+- Measure post-GC heap, event counts, individual pauses and RSS for mgmt, engine, etl and retrieval under the existing 100, 500 and 903 PV workloads. Recover the original IOC definitions, PV list and query selection before execution; the summary counts alone cannot reproduce MONITOR/SCAN settings, deadbands or waveform values.
+- Capture G1 unified GC logs from JVM startup through every stage. Keep Young, Mixed and Full collections separate. Post-Young-GC heap is an observed occupancy, not proof of the complete live set; do not combine different collection types into one sizing value. Periodic `jstat` and process sampling supplement the event record.
+- Derive a candidate heap and validate it against the same workloads before adding guidance beside the four-instance memory calculation in `docs/README.install.md`. State its measured configuration and limits. A multiplier alone does not establish a safe setting.
+
+Out of scope: changing the shipped default ([M22 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md)); per-instance heap
+variables, unless the measurements show one shared value cannot fit; GC
+tuning beyond sizing; production storage sizing.
+
+##### Completion Criteria
+
+- A recorded table of the after-GC heap, GC counts and pause times per
+  instance for each load in the matrix, with the epicsarchiverap-env and epicsarchiverap-maven refs and
+  the measurement method used.
+- Raw GC logs, workload definitions, stage boundaries, process samples, retrieval responses and ETL observations reproduce the table; missing measurements remain explicit.
+- The install guide gives heap guidance supported by both the measurement table and a repeat of the relevant workloads at the proposed setting. Inconclusive data keeps this work unfinished and does not produce a numeric recommendation.
+
+##### Dependencies And Decisions
+
+- D31, Decision Date: 2026-09-29. Assigned to 2.0.1; assignment alone did not accept the detailed plan or authorize implementation. Earlier assignment decisions below retain their original dates.
+- D35, Decision Date: 2026-10-01. The owner selected the existing three workloads rather than a larger PV/rate matrix. The accepted run schedule below preserves the reported observation durations; plan acceptance and separate implementation authorization are recorded below.
+- D36, Decision Date: 2026-10-01. Implementation and measurement are deferred. The accepted plan, recovered source evidence and local preparation tool are preserved. No VM measurement started, and T1-T5 remain Pending. A new dated decision is required to resume; the earlier implementation authorization does not permit continued work during this deferral. Release assignment and M44 dependencies are unchanged.
+- D37, Decision Date: 2026-10-01. Move this work to Backlog and exclude it from the 2.0.1 completion requirements. Resume only by a new dated assignment decision in an environment where the test can use sufficient dedicated disk capacity to retain archive data, complete retrieval responses and GC/collection evidence for the accepted schedule, including orderly-shutdown reserves. Confirm actual usable capacity and filesystem/inode limits before resource-limit acceptance. Existing stop thresholds remain applicable; this condition does not authorize filling a filesystem to exhaustion. The accepted full measurement plan is preserved; no reduced-load replacement experiment is assigned.
+
+- Recorded 2026-09-28 from the owner's direction after the [M22 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md) review of the
+  `9eed006` soak figures; not assigned to current work.
+- Additional post-GC heap and individual GC pause measurements were requested
+  from the Ansible operator on 2026-09-28. Results have not been received;
+  no new measurement run is verified here. This historical request remained separate
+  from [M8 in 2.0.0](https://github.com/jeonghanlee/epicsarchiverap-env/blob/d68f66848e1edc174e76fe77326e941baf58f850/docs/milestone-265f580.md)'s release criteria.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-10-01; Implementation Plan and Test Plan accepted. Run-specific resource limits and analysis settings retain their stated acceptance requirements.
+Implementation Authorization: 2026-10-01; implement the accepted plan. Original-input verification and the stated run-specific acceptance requirements remain prerequisites for the corresponding measurement stages.
+Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc174e76fe77326e941baf58f850, docs/milestone-265f580.md, M41
+
+1. Recover the operator's original PV CSV, IOC definitions, installed store policy/properties and retrieval request selection. Record their hashes and verify each stage's total, periods, waveform type/length, MONITOR/SCAN settings and deadbands. Recover the complete per-PV store URLs, partition granularities, STS/MTS hold values, ETL scheduling settings and any post-processing. Missing inputs stop workload acceptance; do not manufacture a replacement from the summary table.
+2. Record immutable environment, Maven, Ansible and cloud-provision refs and the installed Java, database and EPICS versions. Use a disposable Rocky 8.10 VM with the reported topology: 2 vCPU, 4 GiB assigned RAM, no swap, MariaDB and IOC on the same VM. Record actual guest RAM and disk capacity. Preflight archive/log space and host memory; retain evidence and stop if either cannot support the run.
+3. Install through the shipped Ansible/Make/service path. Start with all four JVMs at `-Xms256M -Xmx256M -XX:MaxMetaspaceSize=256M` and G1. Render `ARCHAPPL_STS_GRANULARITY`, `ARCHAPPL_STS_HOLD`, `ARCHAPPL_MTS_GRANULARITY`, `ARCHAPPL_MTS_HOLD` and `ARCHAPPL_LTS_GRANULARITY` from the recovered policy, preserving the corresponding ETL schedule and post-processing. The reported STS 5 minutes, MTS 1 hour and LTS 1 day alone do not determine exact handoff times. Do not inherit the default hold values of 2 without confirming the original values. Read back the installed policy and each archived PV's effective stores. Historical results are a comparison reference, not validation of the new source revisions.
+4. Supply test-only logging through `AA_JAVA_OPTS` in `CONFIG_SITE.local`, rendered by `configure/RULES_PROPERTIES` into `archappl.conf` and exported by `scripts/archappl.bash`. Log `gc*` and `safepoint` events with UTC time, uptime, level and tags. Use a private run directory and distinct PID/startup-time filenames; disable rotation for this bounded run and monitor disk usage. Verify the effective options and writable log output of all four real JVMs. Do not change shipped defaults or enable asynchronous logging that could discard events.
+5. Begin the baseline on a newly provisioned VM with an empty test database and archive. Verify that no earlier registered PVs or store files exist. Execute all three stages below in order on that appliance to preserve the defined accumulated history. Record UTC and monotonic stage boundaries and the point at which newly registered PVs actually archive. Each duration starts after stage readiness. Record preparation time separately; planned observation time totals 57 hours before any validation repeat.
+6. Sample per-component RSS, CPU, process identity, host memory and filesystem usage every 5 seconds. Collect GC events continuously and retain actual HTTP requests/responses and durations using the bounded collection and stop rules below. Record actual CA/sample rates and individual ETL pass/store-transition observations. Archive the complete evidence before any VM cleanup; cleanup requires separate owner direction.
+7. Produce tables by component, load, GC type and query interval. Report event count, post-GC heap distribution, maximum and p99 individual pause, Full GC count, RSS distribution and concurrent total RSS from matching timestamps. Separate GC pause durations from concurrent phases and safepoints; never use cumulative GCT or ETL metrics as individual-event durations. A zero-event class has count zero and no pause percentile; no observed old-generation reclamation is a sizing limitation, not a reason to force a GC.
+8. From valid observations, derive a candidate shared heap and explain the margin, measured post-GC occupancy trend and host memory budget. Repeat the complete 100/500/903 PV sequence, 24/6/27-hour durations and final six-hour query interval on a separate newly provisioned VM with an empty test database and archive. Freeze identical source refs, workload hashes, database version, JVM non-heap options, store/ETL settings, VM resources, collector limits and client placement; change only the candidate heap. Record the initial empty-state checks for both runs and preserve the first VM and its evidence. A complete baseline plus one complete candidate repeat requires 114 observation hours, excluding provisioning and preflight. A reduced rerun requires a separate scope decision and cannot establish the original three-stage recommendation. An OOM, unexpected restart, incomplete logs, unvalidated query payload or continuing post-GC growth prevents a sizing conclusion. Record failed or inconclusive workloads rather than changing heap or resources silently. Per-component settings and further GC tuning require a separate decision.
+9. Update `docs/README.install.md` only with the validated setting, applicability and limits. Keep the existing observation report unchanged; add the new run's evidence and actual results here. Project the accepted plan/results to #53 under separate issue authority.
+
+###### Workload And Observation Schedule
+
+| Stage | Registered PVs at 1 s / 0.1 s / 10 s | Waveforms included in total | Observation | Concurrent retrieval |
+| --- | --- | --- | --- | --- |
+| 100 PV | 80 / 10 / 10 | 5 x 1,000 doubles, 1 s | 24 hours | none |
+| 500 PV | 480 / 10 / 10 | 5 x 1,000 doubles, 1 s | 6 hours | none |
+| 903 PV | 783 / 110 / 10 | 8 x 1,000 doubles, 1 s | 27 hours | final 6 hours |
+
+The 903 PV query interval uses four clients, a two-second wait between requests and one-hour or one-day ranges selected from the recovered original workload. Record the range mix and selected PVs. Keep client resource usage separate from appliance RSS and collect kernel OOM evidence. HTTP 200 alone is insufficient: verify decoded data, timestamps and values against actual IOC observations and retained history. The reproduced live upper-bound defect in jeonghanlee/epicsarchiverap-maven#21 must not be hidden by weakening query validation; any affected query interval remains invalid until verified with a corrected published source.
+
+Registration periods are workload inputs. Record actual archived rates; do not equate configured periods with delivered rates. Require observed complete STS-to-MTS and MTS-to-LTS transitions for each stage's data. If the planned duration lacks the required evidence, report the stage as insufficient and obtain direction before extending it.
+
+###### Bounded Collection And Stop Rules
+
+After detailed plan acceptance and implementation authorization, name the sampler, CA observer, query clients and GC analysis tools. Before any preflight workload or history collection starts, record and obtain acceptance of a provisional resource-limit set: client placement, each collector/client's numeric `MemoryMax`, minimum host `MemAvailable`, minimum free space/inodes and a maximum preflight duration. Reserve memory for the OS, MariaDB, IOC and four JVMs before allocating collector budgets. Use actual guest capacity and conservative estimates of archive, response and GC-log growth plus an orderly-shutdown allowance to set the initial disk reserve; this first limit set does not depend on measurements from the preflight it protects. Missing values, an infeasible budget or a duration insufficient for the required history prevents preflight from starting. Enforce these provisional limits throughout history preparation and concurrent queries.
+
+Conduct the separate preflight with the original IOC waveform definitions and longest original query selection. Measure simultaneous resource use and write rates within the provisional limits, then propose the final resource-limit set for the long observation runs, retaining the provisional values, measurements and reasons for each change. Obtain acceptance of the final numeric limits before the 57-hour baseline starts; missing values, failed or incomplete preflight evidence or a budget that exceeds available RAM prevents that run from starting. Identify both limit sets and their acceptance times in the run description. Use the final limits unchanged in the baseline and candidate repeat. The preflight has its own evidence and must not populate the baseline database/archive. Reaching a provisional limit invokes the same stop and evidence-preservation rules; do not relax it or continue under the same run identity. Any revised preflight limits require separate acceptance and a new preflight run identity.
+
+Prepare the retrieval preflight on a separate disposable VM through the same real installation, IOC, CA acquisition, archive and ETL paths. Use the recovered 903 PV workload and store policy. Collect actual history covering the longest original query range for every PV selected by those requests, including any selected waveforms; a one-day range requires at least one day of real collection plus readiness and store-transition preparation. Do not substitute generated archive files, fabricated timestamps or empty responses. Retain CA observations and store evidence, then verify response timestamps, sample counts, values, waveform lengths and response bytes against that history and the recovered post-processing rules. Run all four clients concurrently with the original range mix and waits while the other collectors operate. An incomplete history, unexpectedly sparse response or invalid payload makes the resource preflight insufficient. Record collection time, complete request/response volumes, simultaneous memory peaks and disk write rates separately from the 57-hour baseline and 57-hour candidate observations; the 114-hour total excludes this additional preparation. Apply the bounded collection and stop rules during preflight as well.
+
+Write process samples and CA events incrementally to append-only files. Stream each HTTP response to disk and decode it incrementally; retain only the current parsing state and bounded timestamp/value comparison buffers. Analyze long GC logs and compute statistics from disk. Do not accumulate all CA events or a full day of waveform responses in memory. Each collector/client must run in an identified cgroup with the applicable accepted `MemoryMax`: provisional during preflight, final during baseline and candidate observations. Monitor memory usage and cgroup limit/OOM events alongside appliance resources. A collector reaching its limit is a measurement failure, not evidence that the appliance heap is too small.
+
+Stop owned IOC/query workload producers, end the observation interval, flush collection evidence and stop the appliance through its shipped service on the first resource or collection failure: memory at the applicable recorded collector limit, a new cgroup max/OOM event, host `MemAvailable` below the applicable accepted minimum, disk usage at or above the installed `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85), free space/inodes below the applicable recorded minimum, expiration of the provisional preflight duration, write failure, lost collector, missing observation interval, unexpected JVM restart or any JVM/client/kernel OOM. Monitor every filesystem holding archive, GC logs or collected responses. The provisional free-space reserve uses the accepted conservative estimates and shutdown allowance; the final reserve must cover the measured write rate through orderly shutdown. A 5-second check is not a hard disk cap. Preserve the VM and classify the affected interval as failed or incomplete. Do not delete archive files, extend capacity or continue with reduced collection under the same run identity.
+
+###### Evidence And Analysis Contract
+
+Retain one run description with source refs, workload hashes, actual JVM flags, installed policy, guest resources and start/end times. Preserve per-JVM GC logs with process identity, a process/host sample CSV, stage boundary CSV, retrieval request/response records and ETL observations. Identify every parsed GC event by JVM identity and GC ID; pair each completed pause with its own before/after heap values and event type. Calculate p99 with a documented method and report the contributing count and log-reported heap precision. Do not interpolate a periodic heap sample into a missing event measurement.
+
+Warm-up and query intervals remain separately identifiable in the raw record. Analyze steady operation and transitions separately. Distinguish an observed JVM OOM from a client or host OOM, and report both. Hash the retained raw files and show which files and timestamps produce each result; keep private runtime identifiers out of public guidance.
+
+Before the baseline begins, record and obtain acceptance of the analysis settings: warm-up duration after each stage's readiness and after concurrent retrieval begins, comparison interval boundaries, required GC types per component, minimum event counts, heap-change tolerance in MiB and growth-rate tolerance in MiB/hour. Derive the proposed tolerances from log precision and preflight variability, with their rationale; do not choose them from the completed baseline or candidate results. Use the same accepted settings for both runs. Missing settings prevent either long run from starting.
+
+Evaluate each component and GC type separately within a constant workload and query condition. Exclude only the previously specified warm-up intervals from trend calculations and retain their raw events. Divide each remaining comparison interval into four equal-duration bins. Report event counts and median post-GC heap for every bin, the ordinary least-squares slope of those four medians at their bin midpoints, and the last-bin minus first-bin median. Continuing growth is present when both the positive slope and the median increase exceed their accepted tolerances. A bin below the accepted minimum count, an incomplete interval or an unavailable comparable GC type makes that comparison inconclusive; do not borrow events from another load, query condition or GC type. A zero-event class still reports count zero without a percentile; its absence blocks a recommendation only when that class is required by the accepted analysis settings. Report Young occupancy separately, and do not infer a complete live set when old-generation reclamation has not been observed. Absence of continuing growth is necessary but does not replace the candidate repeat, heap margin, host memory budget, payload checks or failure exclusions. If either run is inconclusive or any required comparison shows continuing growth, withhold the recommendation; retain evidence and obtain separate direction before extending a run or revising the analysis settings.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Installation | Render test overrides through the shipped Make configuration, install via Ansible and start through the real launcher/service; inspect all four JVM command lines, GC files, effective per-PV stores, hold values and ETL properties; verify initial empty database/archive | Disposable Rocky 8.10 VM | Recovered policy reproduced completely; correct refs, 256M heaps, G1 and logging; every component writes identifiable logs |
+| T2 | Measurement | Verify accepted provisional limits before preflight history collection; prepare full-range real history on a separate VM; run all four original query clients with the collectors; validate sample coverage, values and response bytes; use measured resources to propose final limits and verify acceptance before baseline; parse complete GC logs and compare with original lines | Preflight with actual one-day history where requested, plus all four components over the three stages | Provisional limits enforced from preflight start; complete responses and simultaneous resource measurements retained; sparse, invalid or failed preflight blocks baseline; both limit sets and acceptance times recorded; final limits enforced unchanged in both long runs; actual boundary failure stops collection and preserves evidence; reproducible statistics with explicit unavailable fields |
+| T3 | Runtime | Run the original 100/500/903 PV workloads through real CA acquisition, archive queries and ETL; measure process and host resources throughout | 24/6/27-hour schedule; final six hours with four query clients | Original workload/settings verified; actual archived rates and both ETL transitions observed; query data validated; all failures and resource constraints recorded |
+| T4 | Sizing | Repeat the complete three-stage 57-hour sequence through the shipped path with the candidate heap; verify matching refs, workload/policy hashes, collector budgets and resources plus initial empty database/archive; apply the previously accepted warm-up intervals, event counts and four-bin trend method to both runs; compare GC, resources and payload validity | Separate newly provisioned VM; otherwise identical recorded conditions and analysis settings | Only heap differs; complete comparable evidence without JVM/client/host OOM or unexpected restart; every required trend comparison has sufficient events and does not trigger the fixed continuing-growth criterion; growth, insufficient evidence or analysis changes prevent recommendation |
+| T5 | Documentation | Recalculate each public table from retained raw evidence and match guide settings and limits to the validated repeat | Canonical results and install guide | Recommended heap, source/configuration applicability, margin and measurement limits agree with real results |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Disposable VM | Pending | none |
+| T2 | Not run | Disposable VM | Pending | none |
+| T3 | Not run | Disposable VM | Pending | none |
+| T4 | Not run | Disposable VM | Pending | none |
+| T5 | Not run | Canonical results and install guide | Pending | none |
+
+Input recovery observed on 2026-10-01: the clean ansible-provision checkout at `13608fea2b65758f9999c8d462e82a50570146bd` contains the preserved original tools and fixtures under `tests/archiver-soak/`, last changed at `1827046eaa216c1d27c0c22ca57ab729154b50e1`. The real `sha256sum --check SHA256SUMS` in that directory passed all 30 entries. Direct CSV inspection confirmed incremental populations of 100, 400 and 403 PVs; their ordered concatenation equals the 903-PV list, with 903 unique PV names and store keys, 880 MONITOR and 23 SCAN requests. Cumulative periods and waveform counts match all three planned stages. The combined fixture SHA256 is `037a92691bc23a6dcac37ec3613ad19c9f80b93b689209ec8dc403b519eaf594`.
+
+The preserved `baseline/store-test.yml` specifies STS `PARTITION_5MIN`, hold 2; MTS `PARTITION_HOUR`, hold 2; and LTS `PARTITION_DAY`. `baseline/register.py` and `baseline/load_retrieval.py` preserve the registration and four-client query selection: one-hour windows for all selected PVs, with one-day windows allowed only for eligible one-second scalars, and a two-second wait. The original installed policy/properties and effective per-PV stores have not yet been recovered; the separate pilot policy is not evidence for that run. The retained query client counts streamed samples but does not validate or retain full response payloads, so it cannot satisfy the new measurement contract unchanged. These local input checks do not pass T1-T5.
+
+Evidence storage placement remains undecided. The original operator record at ansible-provision `13608fea2b65758f9999c8d462e82a50570146bd`, `docs/milestone-38560eb.md`, M14 / T21, reports approximately 156 GB served in six hours. This is a reported response volume, not a new disk measurement. Retaining complete responses therefore requires a separately accepted evidence-storage budget and placement; the 20 GiB appliance disk alone cannot hold that reported volume. No provisional resource limits or VM measurement start have been accepted yet.
+
+Local preparation tool: `tests/heap/inspect-inputs.py` reads the preserved source inputs without VM contact or mutation and emits their hashes, populations and outstanding execution prerequisites. On 2026-10-01, its real CLI returned 0 against the original files at Ansible `13608fea2b65758f9999c8d462e82a50570146bd`, with the expected three stages and `execution_ready: false`. Supplying a different requested commit returned 77. These are local input-inspection results; T1-T5 remain Pending.
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Measure per-component heap needs by archiving load
+Labels: enhancement
+GitHub Milestone: 2.0.1
+Observed State: OPEN
+Observed Labels: enhancement
+Observed Milestone: 2.0.1 / #7
+Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:33:58Z
 
 #### M42 - Apply backend selection to all database operations
 
