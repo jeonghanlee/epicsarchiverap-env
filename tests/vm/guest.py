@@ -82,6 +82,13 @@ def timestamp():
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
 
+def journal_since(nanoseconds):
+    """Return a journalctl bound in whole epoch seconds at or after the instant."""
+    # Integer ceiling (IEEE 754 roundToIntegralTowardPositive) is exact and
+    # accepted by systemd 239, which rejects ISO 8601 offsets.
+    return "@" + str(-(-nanoseconds // 1_000_000_000))
+
+
 def ioc_prefix(creation_id):
     return "VMTEST_" + hashlib.sha256(creation_id.encode()).hexdigest()[:12] + "_"
 
@@ -467,7 +474,7 @@ class Guest:
         interval = int(self.make_value("SYSTEMD_HEALTH_INTERVAL_SECONDS"))
         startup = int(self.make_value("SYSTEMD_HEALTH_STARTUP_SECONDS"))
         timeout = int(self.make_value("SYSTEMD_HEALTH_TIMEOUT_SECONDS"))
-        since = timestamp()
+        since = journal_since(time.time_ns())
         deadline = time.monotonic() + startup + 3 * (interval + timeout) + 30
         invocations = set()
         evidence = {}

@@ -5,10 +5,13 @@ import hashlib
 import importlib.util
 import os
 from pathlib import Path
+import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -76,6 +79,71 @@ class ServiceInventoryTests(unittest.TestCase):
                 guest.sqlite_service_units(('systemctl', '--root', str(root / 'missing')))
             self.assertNotEqual(guest.COMMANDS[-1]['exit'], 0)
             self.assertTrue(guest.COMMANDS[-1]['stderr'])
+
+
+class GuestFactsTests(unittest.TestCase):
+    """Execute the shipped pre-installation facts command with shell tools only."""
+
+    TOOLS = ('sh', 'cat', 'getconf', 'hostname', 'ip', 'stat')
+
+    def run_facts(self):
+        driver = load_driver()
+        bash = shutil.which('bash')
+        self.assertIsNotNone(bash)
+        with tempfile.TemporaryDirectory() as temporary:
+            binary = Path(temporary)
+            for name in self.TOOLS:
+                tool = shutil.which(name)
+                self.assertIsNotNone(tool, name)
+                (binary / name).symlink_to(Path(tool).resolve())
+            # The remote shell runs the joined command, as Driver.ssh sends it.
+            result = subprocess.run([bash, '-c', shlex.join(driver.guest_facts_command())],
+                                    env={'PATH': str(binary)}, capture_output=True,
+                                    text=True, timeout=20)
+        return driver, result
+
+    def test_facts_need_no_python_interpreter(self):
+        driver, result = self.run_facts()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        facts = driver.parse_guest_facts(result.stdout)
+        system = os.statvfs('/')
+        self.assertEqual(facts['cpus'], os.cpu_count())
+        self.assertEqual(facts['hostname'], socket.gethostname())
+        self.assertEqual(facts['root_bytes'], system.f_blocks * system.f_frsize)
+        self.assertEqual(facts['os'], Path('/etc/os-release').read_text())
+        self.assertTrue(facts['interfaces'])
+        self.assertIn('MemTotal:', facts['memory'])
+        self.assertGreater(facts['free_bytes'], 0)
+        lines = result.stdout.splitlines()
+        markers = [index for index, line in enumerate(lines) if line.startswith('@@')]
+        self.assertTrue(markers)
+        for position, start in enumerate(markers):
+            end = markers[position + 1] if position + 1 < len(markers) else len(lines)
+            with self.subTest(section=lines[start]):
+                remaining = '\n'.join(lines[:start] + lines[end:]) + '\n'
+                with self.assertRaises(driver.Failed):
+                    driver.parse_guest_facts(remaining)
+
+
+class JournalBoundTests(unittest.TestCase):
+    """Check the shipped journal bound against the real local journalctl."""
+
+    def test_bound_rounds_toward_positive_whole_seconds(self):
+        guest = load_guest()
+        second = 1_790_990_249
+        self.assertEqual(guest.journal_since(second * 1_000_000_000), '@%d' % second)
+        for fraction in (1, 500_000_000, 999_999_999):
+            with self.subTest(fraction=fraction):
+                self.assertEqual(guest.journal_since(second * 1_000_000_000 + fraction),
+                                 '@%d' % (second + 1))
+        journalctl = shutil.which('journalctl')
+        self.assertIsNotNone(journalctl)
+        # Local systemd also accepts the earlier ISO form; systemd 239 is not reproduced.
+        result = subprocess.run([journalctl, '--since', guest.journal_since(time.time_ns()),
+                                 '-n', '0', '--no-pager'],
+                                capture_output=True, text=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn('Failed to parse', result.stderr)
 
 
 class EntrypointTests(unittest.TestCase):

@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: review the draft M10 Rocky 8.10 compatibility revision for the two failures observed at published environment `607092b962afd9cbac31ce9f62efba0e7c62b471`: the driver's pre-installation facts command requires the absent `python3`, and `guest.py` passes a `journalctl --since` timestamp that systemd 239 rejects. Obtain plan acceptance and implementation authorization before changing code. A published correction is a new candidate; Debian 13 socket, TCP and SQLite diagnostics passed only for `607092b` with source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and pinned Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`, and the Rocky socket diagnostic stopped at T8. Evidence is retained in `work/m10-ansible-handoff-607092b`, `work/m10-ansible-sqlite-607092b`, `work/m10-ansible-tcp-607092b` and `work/m10-ansible-rocky8-socket-607092b`. The full driver attempt remains failed in `work/m10-vm-run-607092b-dca485f`. Remaining Rocky cases, dedicated build failures and the full driver execution/cleanup path still require verification before matrix acceptance; recheck the origin URL of the pinned Ansible checkout `work/m10-ansible-provision` (named in `work/m10-vm-config-607092b-dca485f.json`) before a full run. Preserve every previous context and VM resource; cleanup requires separate authorization. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: confirm that the implemented M10 Rocky 8.10 compatibility revision (shell-only pre-installation facts in `tests/vm/driver.py`, IEEE 754 ceiling journal bound in `tests/vm/guest.py`, regressions in `tests/vm/local.py`) has landed on `origin/release-2.0.1`; its local verification passed, and commit and push require separate authority. Then obtain the owner's VM re-verification scope and run it on the new candidate with fresh guests. The published correction is a new candidate; Debian 13 socket, TCP and SQLite diagnostics passed only for `607092b` with source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and pinned Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`, and the Rocky socket diagnostic stopped at T8. Evidence is retained in `work/m10-ansible-handoff-607092b`, `work/m10-ansible-sqlite-607092b`, `work/m10-ansible-tcp-607092b` and `work/m10-ansible-rocky8-socket-607092b`. The full driver attempt remains failed in `work/m10-vm-run-607092b-dca485f`. Remaining Rocky cases, dedicated build failures and the full driver execution/cleanup path still require verification before matrix acceptance; recheck the origin URL of the pinned Ansible checkout `work/m10-ansible-provision` (named in `work/m10-vm-config-607092b-dca485f.json`) before a full run. Preserve every previous context and VM resource; cleanup requires separate authorization. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -308,9 +308,9 @@ Out of scope: implementing VM images or cloud-init internals, duplicating Ansibl
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-10-02; owner accepted the Rocky 8.10 compatibility revision carried by 6751c098eddcca75188418b84de366ed179c5b94 after two third-person and five second-person passes with all findings applied; the unchanged prior plan is re-accepted with its four items added
+Implementation Authorization: 2026-10-02; owner authorized implementation of the accepted revision and its local verification; commit, push, publication and the VM re-verification scope require separate authority
 Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc174e76fe77326e941baf58f850, docs/milestone-265f580.md, M10; container-install draft carried by dcfa39b3f1a6a457ffd6803cb6c618d601768c30, docs/milestone-2.0.1.md, M10; prior accepted plan state, including the still-current service-inventory revision, accepted and authorized on 2026-10-01 and carried by e799b094b0c20a89664a2fae4901e07954a74a9c, docs/milestone-2.0.1.md, M10
 
 ###### Rocky 8.10 Compatibility Revision For Review
@@ -586,6 +586,20 @@ Observed on 2026-10-02 with the same published environment/source commits, pinne
 | T10-T12 | Not run | Same VM | Not run after the T8 failure; the test IOC was not started |
 
 The Debian 13 cases accepted the same timestamp form, so both failures are specific to the Rocky 8.10 base environment. Correcting them changes the shipped driver and verifier and therefore requires a revised plan, publication and a new candidate run; earlier diagnostics do not verify that candidate. The original failures, private inputs, harness, command results and diagnostic state are retained in `work/m10-ansible-rocky8-socket-607092b`. At 22:50 PDT, `systemctl is-active` over SSH reported the appliance, health timer and MariaDB active and the never-started test IOC inactive; no shutdown or cleanup has been performed.
+
+###### Rocky 8.10 Compatibility Local Verification
+
+Observed on 2026-10-02 on the local Debian 13 host (systemd 257, Python 3.13) with the accepted revision implemented on top of 6751c098eddcca75188418b84de366ed179c5b94. The source SHA256 values below identify the verified bytes: `tests/vm/driver.py` `ddf92f98a71fd292e83c6ff82e4a50e1e9d1483128a3dc0947663390e940c24f`, `tests/vm/guest.py` `755745bf1b5ab19ebbf6b7fcd4ae16d8130afa07e59cda720965bf0d287f2116`, `tests/vm/local.py` `921ac8dcd6a906b14a69057d8b696651f8832b7d5edaad303274ad37bf58da21`.
+
+| Check | Observed Time PDT | Actual Environment And Method | Result And Evidence |
+| --- | --- | --- | --- |
+| T2 / earlier facts command | 2026-10-02 23:09 | New shell-facts regression against the earlier Python command, factored into a module function without other change (driver SHA256 `b077eaa730650fa3d01b2b7a0ca479ffc7a3ec1a20e51bf7458bb38546700776`); real `bash -c` with a `PATH` of real `sh`, `cat`, `getconf`, `hostname`, `ip` and `stat` only | Fail as required: exit 127 with `python3: command not found`, the same failure as the Rocky 8.10 guest. Evidence: `work/m10-validation/rocky-compat-earlier-facts.log` |
+| T2 / shell facts | 2026-10-02 23:10 | Same regression against the shipped shell command and parser | Pass: parsed CPU count, hostname, root size and `/etc/os-release` content equal the local observations; removing each of the six sections in turn is rejected |
+| T2 / journal bound | 2026-10-02 23:10 | Shipped `journal_since`; real local `journalctl --since` | Pass: a whole second is unchanged and 1 ns, 0.5 s and 0.999999999 s past it convert to the next second; the real command exits 0. systemd 239 behavior is not reproduced locally |
+| T2 / full local suite | 2026-10-02 23:10 | `tests/run-all-tests.bash --local` | Pass: exit 0 without skips; Phase 1 223/0, health 20, database 10 and VM local 18 tests, Phase 2 13/0. Evidence: `work/m10-validation/rocky-compat-local.log`, SHA256 `8a6ace3da4459fe3d376e5fd813f2b325b20e32b72203b65e04427ff305fedb8` |
+| Guest facts preview | 2026-10-02 23:10 | Shipped facts command over SSH on the retained Rocky 8.10 socket and Debian 13 TCP guests | Exit 0 on both; parsed OS release, two CPUs, 63-character hostnames and root/free bytes. Both guests were already installed, so this is not T3 evidence. Evidence: `work/m10-validation/rocky-compat-guest-facts.log` |
+
+Rocky 8.10 T3 and T8 and the regression scope remain pending a published candidate and an owner-selected VM re-verification.
 
 ##### Closure Evidence
 

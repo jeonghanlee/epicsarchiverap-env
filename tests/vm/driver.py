@@ -96,6 +96,50 @@ def owned_reservation(reservations, mac, name):
     return selected[0]
 
 
+def guest_facts_command():
+    """Return the pre-installation guest facts command; it needs no interpreter."""
+    # A fresh base image may lack python3 before Ansible installs it.
+    return ["sh", "-c",
+            "set -e; echo @@os; cat /etc/os-release; "
+            "echo @@cpus; getconf _NPROCESSORS_ONLN; "
+            "echo @@hostname; hostname; "
+            "echo @@interfaces; ip -j address; "
+            "echo @@memory; cat /proc/meminfo; "
+            "echo @@filesystem; stat -f -c '%S %b %a' /"]
+
+
+def parse_guest_facts(output):
+    """Parse the delimited guest facts output into guest resource fields."""
+    sections, name = {}, None
+    for line in output.splitlines():
+        if line.startswith("@@"):
+            name = line[2:]
+            if name in sections:
+                raise Failed("Duplicated guest facts section")
+            sections[name] = []
+        elif name is None:
+            raise Failed("Guest facts output precedes its first section")
+        else:
+            sections[name].append(line)
+    if set(sections) != {"os", "cpus", "hostname", "interfaces", "memory", "filesystem"}:
+        raise Failed("Missing or unexpected guest facts section")
+    try:
+        cpus, = sections["cpus"]
+        hostname, = sections["hostname"]
+        block, total, available = (int(field) for field in sections["filesystem"][0].split())
+        if len(sections["filesystem"]) != 1:
+            raise ValueError("filesystem")
+        interfaces = json.loads("\n".join(sections["interfaces"]))
+        if not isinstance(interfaces, list) or not sections["os"] or not sections["memory"]:
+            raise ValueError("content")
+        return {"os": "\n".join(sections["os"]) + "\n", "cpus": int(cpus),
+                "hostname": hostname, "interfaces": interfaces,
+                "memory": "\n".join(sections["memory"]) + "\n",
+                "root_bytes": block * total, "free_bytes": block * available}
+    except (ValueError, IndexError) as error:
+        raise Failed("Malformed guest facts section") from error
+
+
 def digest(path):
     checksum = hashlib.sha256()
     with Path(path).open("rb") as stream:
@@ -626,14 +670,8 @@ class Driver:
                  if line and not line.startswith(("[", "#"))]
         if set(hosts) != {vm_name} or len(groups) != 2:
             raise Failed("Generated inventory does not limit execution to the owned VM")
-        _, facts = self.ssh(case, ["python3", "-c",
-            "import json,os,pathlib,socket,subprocess; p=pathlib.Path('/etc/os-release').read_text(); "
-            "v=os.statvfs('/'); print(json.dumps({'os':p,'cpus':os.cpu_count(),"
-            "'hostname':socket.gethostname(),'interfaces':json.loads(subprocess.check_output("
-            "['ip','-j','address'],text=True)),"
-            "'memory':pathlib.Path('/proc/meminfo').read_text(),"
-            "'root_bytes':v.f_blocks*v.f_frsize,'free_bytes':v.f_bavail*v.f_frsize}))"])
-        case["guest_resources"] = json.loads(facts)
+        _, facts = self.ssh(case, guest_facts_command())
+        case["guest_resources"] = parse_guest_facts(facts)
         _, metadata = self.ssh(case, ["sudo", "-n", "cloud-init", "query",
                                       "ds.meta_data.local-hostname"])
         hostname = metadata.strip()
