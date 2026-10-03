@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: continue M10 with a fresh Debian 13 MariaDB TCP case using published environment `607092b962afd9cbac31ce9f62efba0e7c62b471`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and pinned Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`. Confirm the private handoff and actual ownership, limit the real `archiver_dev.yml` play to that guest, set an empty database socket and `mariadb_skip_networking=false`, and run shipped installation/runtime/repeat-install checks. Independent Debian MariaDB socket T5-T12 and SQLite T5-T13 diagnostics passed for this candidate; evidence is retained in `work/m10-ansible-handoff-607092b` and `work/m10-ansible-sqlite-607092b`. The full driver attempt stopped before installation on DHCP collision and remains failed in `work/m10-vm-run-607092b-dca485f`; both handed-off guests are outside that context. Remaining TCP/Rocky cases, dedicated build failures and the full driver execution/cleanup path still require verification before matrix acceptance. Preserve every previous context and VM resource; cleanup requires separate authorization. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: review the draft M10 Rocky 8.10 compatibility revision for the two failures observed at published environment `607092b962afd9cbac31ce9f62efba0e7c62b471`: the driver's pre-installation facts command requires the absent `python3`, and `guest.py` passes a `journalctl --since` timestamp that systemd 239 rejects. Obtain plan acceptance and implementation authorization before changing code. A published correction is a new candidate; Debian 13 socket, TCP and SQLite diagnostics passed only for `607092b` with source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and pinned Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`, and the Rocky socket diagnostic stopped at T8. Evidence is retained in `work/m10-ansible-handoff-607092b`, `work/m10-ansible-sqlite-607092b`, `work/m10-ansible-tcp-607092b` and `work/m10-ansible-rocky8-socket-607092b`. The full driver attempt remains failed in `work/m10-vm-run-607092b-dca485f`. Remaining Rocky cases, dedicated build failures and the full driver execution/cleanup path still require verification before matrix acceptance; recheck the origin URL of the pinned Ansible checkout `work/m10-ansible-provision` (named in `work/m10-vm-config-607092b-dca485f.json`) before a full run. Preserve every previous context and VM resource; cleanup requires separate authorization. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -308,10 +308,29 @@ Out of scope: implementing VM images or cloud-init internals, duplicating Ansibl
 
 ##### Implementation Plan
 
-Plan Status: accepted
-Plan Acceptance: 2026-10-01; owner accepted the revised service-inventory plan after two third-person and two second-person passes and application of both required findings; prior workflow, six-case matrix, deadlines and ownership/cleanup contract preserved
-Implementation Authorization: 2026-10-01; owner authorized continuation with the revised verifier and a new full published-candidate VM run; commit, push and resource cleanup require separate authority
-Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc174e76fe77326e941baf58f850, docs/milestone-265f580.md, M10; container-install draft carried by dcfa39b3f1a6a457ffd6803cb6c618d601768c30, docs/milestone-2.0.1.md, M10
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc174e76fe77326e941baf58f850, docs/milestone-265f580.md, M10; container-install draft carried by dcfa39b3f1a6a457ffd6803cb6c618d601768c30, docs/milestone-2.0.1.md, M10; prior accepted plan state, including the still-current service-inventory revision, accepted and authorized on 2026-10-01 and carried by e799b094b0c20a89664a2fae4901e07954a74a9c, docs/milestone-2.0.1.md, M10
+
+###### Rocky 8.10 Compatibility Revision For Review
+
+Dates in this revision and its diagnostics are Pacific local dates; clock times are PDT (UTC-7). Two shipped harness defects stop every fresh Rocky 8.10 case at published environment `607092b962afd9cbac31ce9f62efba0e7c62b471`, including the build-failure case, because the facts command runs before installation; evidence is in the Rocky 8.10 socket diagnostic below. The fresh base image provides no `python3`, so the driver's pre-installation facts command exits 127; the interpreter available before installation, `/usr/libexec/platform-python`, is Python 3.6.8 and rejects the command's `text=` argument. The verifier passes `journalctl --since` an ISO 8601 timestamp with an offset, which systemd 239 rejects. On 2026-10-02 at 18:17 PDT, read-only queries accepted `@<epoch seconds>` and `YYYY-MM-DD HH:MM:SS UTC` on both the Rocky 8.10 guest (systemd 239) and a Debian 13 guest (systemd 257). Owner direction, Decision Date: 2026-10-02: replace the Python facts command with shell-only collection, and convert the journal bound to whole epoch seconds with the IEEE 754 `roundToIntegralTowardPositive` operation. T10-T13 have not yet run on Rocky 8.10; a further incompatibility found there requires its own revision. Accepting this revision re-accepts the unchanged prior plan with these four items added; nothing else in the plan changes.
+
+1. In `tests/vm/driver.py`, replace the pre-installation Python facts command with one shell command that prints delimited sections from `/etc/os-release`, `getconf _NPROCESSORS_ONLN`, `hostname`, `ip -j address`, `/proc/meminfo` and `stat -f -c '%S %b %a' /` (fundamental block size, total data blocks, free blocks available to non-superuser). `getconf _NPROCESSORS_ONLN` reports the same online-processor count as the current `os.cpu_count()`, whereas `nproc` follows CPU affinity and `OMP_NUM_THREADS`. Parse the sections on the host into the existing `guest_resources` fields, with root bytes as `%S × %b` and free bytes as `%S × %a`. Keep the hostname, interface, OS release, CPU and free-space checks unchanged, and reject a missing or malformed section. Factor the command and parser into module functions so the local regression executes the shipped text.
+2. In `tests/vm/guest.py`, derive the scheduled-health journal bound as `@` followed by the current epoch time in whole seconds, converted with the IEEE 754 `roundToIntegralTowardPositive` operation (ceiling). Compute it from integer nanoseconds from `time.time_ns()` rather than the binary64 `time.time()` value, so the conversion is exact. The bound is therefore at or after the original instant, and no earlier journal entry can count; the eligibility rules and the timer interval are unchanged. Factor the conversion into a module function.
+3. In `tests/vm/local.py`, run the shipped facts command through the real local shell with a `PATH` containing only the real tools it names and no Python interpreter; parse the real output and compare CPU count, hostname and root size with the local system. The earlier command, which resolves `python3` through `PATH`, fails this test; before replacing the command, run the new test against the earlier command and record its failure. Remove one section from the real output and confirm that the shipped parser rejects it. Run the shipped journal-bound function against the real local `journalctl` and check the conversion at whole and fractional seconds. Local systemd accepts the earlier ISO form, so this test cannot reproduce the systemd 239 rejection; only a real Rocky 8.10 run verifies the journal-bound correction.
+4. Run the full `tests/run-all-tests.bash --local` without skips. Review this revision before code changes; commit, push and publication require separate authority. The published correction is a new candidate: no earlier diagnostic verifies it, and the re-verification scope across Debian, Rocky and the full driver remains an owner decision before execution.
+
+###### Rocky 8.10 Compatibility Test Plan
+
+| Check | Real Path And Environment | Expected Result |
+| --- | --- | --- |
+| T2 / shell facts | Shipped facts command and parser; real local shell and tools; `PATH` without any Python interpreter | Exit 0; parsed CPU count, hostname and root size equal the local observations; a missing section is rejected |
+| T2 / journal bound | Shipped conversion; real local `journalctl --since` | Whole seconds stay unchanged, any fractional second converts toward positive and the real command exits 0; systemd 239 behavior is not claimed |
+| T3 / Rocky 8.10 | New published candidate; fresh Rocky 8.10 base guest before Ansible | Shipped facts collection passes without `python3` and the existing identity, OS and resource checks pass |
+| T8 / Rocky 8.10 | Same candidate; shipped `guest.py runtime` on systemd 239 | Journal query exits 0 and three distinct eligible health invocations are observed |
+| T3-T12 / regression | Same candidate on Debian 13 and the remaining Rocky 8.10 cases, scope selected by the owner | Previously passing assertions still pass with unchanged bounds and fixture |
 
 ###### Service Inventory Revision For Review
 
@@ -524,6 +543,49 @@ The runtime verifier exited 0 and retained 165 CA events and 164 one-second reso
 | `negative.json` | `c7895fa7770763fd815c5d755d1e66f4665bebc0785f1851d90a14b62b08d4bb` |
 
 Private command results, full build journals, Ansible output, actual guest `history.json` and pre-action PID/start records are retained in `work/m10-ansible-sqlite-607092b`. Its `evidence-manifest.json` records 43 retained files and their digests; manifest SHA256: `404d2d2fee79b5bcba5c228bf1b902f604649dca19c47768344ee12c6f17ccd8`. Final observed appliance/IOC services and health timer are active. No shutdown, cleanup, full matrix acceptance or issue closure has been performed. M10 remains In progress.
+
+###### Published Revision And Debian TCP Verification
+
+Observed on 2026-10-02 with the same published environment/source commits, pinned Ansible and original fixture. A separate fresh Debian 13 VM was prepared by cloud-provision `9da0436bf6fbd780015156ea04c2b535fe5507ec`; actual UUID, interface MAC, attached disk/seed, lease and live/persistent DHCP ownership matched the private handoff, and the guest had no install paths or appliance/database units. The shipped `Driver` methods `capture_ownership`, `verify_live_case`, `install`, `build_proof`, `transfer`, `guest` and `runtime` ran unchanged against that guest through a private harness that binds them to the external VM and writes no `run.json`. The real `archiver_dev.yml` play used an empty `archiver_db_socket` and `mariadb_skip_networking=false`. These are independent diagnostics outside a full driver context.
+
+| Check | Observed Time PDT | Actual Environment And Method | Result And Evidence |
+| --- | --- | --- | --- |
+| T3 | 2026-10-02 13:29 | Debian 13; ownership, generated single-host inventory and the driver's guest facts, hostname, interface, OS and resource checks | Pass for this VM: 2 vCPUs, 18652266496 free root bytes, cloud-init done with no errors (extended status degraded by the template's password-unspecified warning) |
+| T4 | 2026-10-02 13:40 | Real Ansible installation, build journal, build script and sentinel | Pass for this VM: Ansible exit 0, ok=31, changed=11, failed=0 in 630.0 s; the eight accepted Make targets ran in order |
+| T5-T6 | 2026-10-02 13:40 | Shipped `guest.py installation` | Pass for this VM: guest HEADs equal the requested environment/source commits; payload/configuration match; the service account reads the four application tables over TCP to the local MariaDB port |
+| T7-T9 | 2026-10-02 13:40-13:42 | Shipped `guest.py runtime` | Pass for this VM: four genuine JVM identities, three distinct eligible health successes and matching HTTP appliance identity; readiness 4.363 s |
+| T10 | 2026-10-02 13:43 | Same runtime path; complete original IOC, real CA and raw retrieval | Pass for this VM: all 10,018 records loaded; ten distinct in-window timestamps with ten values match CA observations; the between-events boundary query records one preceding value separately. IOC startup 1.306 s and acquisition 103.432 s within unchanged 180 s bounds |
+| T11 | 2026-10-02 13:45 | Real `sd_restart` with IOC running | Pass for this VM: all JVM identities replaced, stored PV/history preserved and new acquisition observed. Restart/readiness 60.312 s within 300 s; fresh acquisition 10.349 s within 180 s |
+| T12 / unchanged reapply | 2026-10-02 13:45 | Same pinned Ansible inputs followed by shipped `guest.py unchanged` | Pass for this VM: Ansible exit 0, changed=0 and failed=0; build invocation and four JVM PID/start identities unchanged; stored history and readiness preserved |
+| T12 / forced reinstall | 2026-10-02 13:48-13:50 | Explicit force variable through real Ansible, actual build journal/script/sentinel and shipped `guest.py reinstalled` | Pass for this VM: Ansible exit 0, changed=1 and failed=0 in 168.0 s; new build invocation and expected eight Make targets; payload/schema rechecked; replaced JVMs, three eligible health successes, preserved history and fresh acquisition in 10.338 s |
+| T1, T13-T15 / full context | Not established by these diagnostics | Accepted full driver, SQLite negative, build-failure and lifecycle/cleanup paths | Pending; T13 is not required for a MariaDB case |
+
+The runtime observer retained 175 CA events and 173 one-second resource observations without errors. At 13:50 PDT, `systemctl is-active` over SSH reported the appliance, health timer, test IOC and MariaDB units active. The pinned Ansible checkout reported an SSH-form origin URL at 13:29 PDT; the driver's full preflight requires an HTTPS origin, so that input must be rechecked before a full driver run.
+
+| Retained Artifact | SHA256 |
+| --- | --- |
+| `debian13-tcp-installation.json` | `8f92dd30bef2694e88285c314fcce592e2f6eb04b7282972782a38683ae67a73` |
+| `debian13-tcp-runtime.json` | `e13d7ec58888c428d9a86eed1b96fb980cbf0bec3631b8d18bea671b12b27a33` |
+| `debian13-tcp-unchanged.json` | `28c13147ead2aa6d790870254f1030c2c73b0a737a6853b990719c2f1391e8af` |
+| `debian13-tcp-reinstalled.json` | `e397be8c571319a34d75c37c9339c14b8f34b4c106dba6f7cb66540700417e6b` |
+
+Private inputs, ownership observations, the harness, 547 command results and the diagnostic state are retained in `work/m10-ansible-tcp-607092b`. No shutdown, cleanup, full matrix acceptance or issue closure has been performed.
+
+###### Published Revision And Rocky 8.10 Socket Diagnostic
+
+Observed on 2026-10-02 with the same published environment/source commits, pinned Ansible, original fixture and harness method. A separate fresh Rocky 8.10 VM was prepared by cloud-provision `6ae1dbf3dd0d115185f7eee29f657ab318f94393`, whose uncommitted paths were documentation and tests only; actual ownership matched the private handoff and the guest was fresh. By owner direction, Decision Date: 2026-10-02, the diagnostic continued after the recorded T3 failure using the adjusted observation only. The case stopped at its first unexpected runtime failure; deadlines, window checks and verifier code were not relaxed.
+
+| Check | Observed Time PDT | Actual Environment And Method | Result And Evidence |
+| --- | --- | --- | --- |
+| T3 / shipped facts command | 2026-10-02 18:00 | Rocky 8.10 base guest; the driver's pre-installation facts command over SSH | Fail: `python3` is absent before Ansible installs its Python packages, so the command exits 127 with `python3: command not found`. The shipped `Driver.create` sequence would stop at this point on every fresh Rocky case. Evidence: `command-00117.json` |
+| T3 / diagnostic continuation | 2026-10-02 18:00 | Same checks with `/usr/libexec/platform-python` and `text=True` replaced by `universal_newlines=True` for Python 3.6 | Pass for this VM only: 2 vCPUs, 18407264256 free root bytes, cloud-init done with no errors or warnings. This adjusted observation does not verify the shipped command |
+| T4 | 2026-10-02 18:08 | Real Ansible installation, build journal, build script and sentinel | Pass for this VM: Ansible exit 0, ok=33, changed=14, failed=0; the eight accepted Make targets ran in order |
+| T5-T6 | 2026-10-02 18:08 | Shipped `guest.py installation` | Pass for this VM: guest HEADs equal the requested commits; payload/configuration match; JDK 21; the service account reads the four application tables through the MariaDB socket. SHA256 `dee5556c3459b4305bb6f0b5d5984fd41132f2750503f4a028d48b23c595c515` |
+| T7, T9 | 2026-10-02 18:08 | Shipped `guest.py runtime` | Pass within the failed runtime attempt: readiness and appliance identity completed in 17.176 s |
+| T8 | 2026-10-02 18:08 | Same runtime path; scheduled health journal query | Fail: `guest.py` passes an ISO 8601 timestamp with fractional seconds and a `+00:00` offset to `journalctl --since`; systemd 239 rejects it with `Failed to parse timestamp`. A read-only repeat on the guest also rejected the form without fractional seconds and accepted `YYYY-MM-DD HH:MM:SS UTC`. The verifier exited 1. Evidence: `command-00404.json` |
+| T10-T12 | Not run | Same VM | Not run after the T8 failure; the test IOC was not started |
+
+The Debian 13 cases accepted the same timestamp form, so both failures are specific to the Rocky 8.10 base environment. Correcting them changes the shipped driver and verifier and therefore requires a revised plan, publication and a new candidate run; earlier diagnostics do not verify that candidate. The original failures, private inputs, harness, command results and diagnostic state are retained in `work/m10-ansible-rocky8-socket-607092b`. At 22:50 PDT, `systemctl is-active` over SSH reported the appliance, health timer and MariaDB active and the never-started test IOC inactive; no shutdown or cleanup has been performed.
 
 ##### Closure Evidence
 
