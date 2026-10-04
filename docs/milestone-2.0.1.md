@@ -7,11 +7,11 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: review the draft M10 VM supply and run structure revision together with the design draft, a local private file in this checkout at `work/m10-design/README.vmtests.md` that becomes `docs/README.vmtests.md` with the implementation: cloud-provision creates every guest and the driver adopts it from a JSON handoff, each case runs as a separate invocation appending to one run context, cleanup is requested from cloud-provision and verified by the driver, and the origin check reads the stored URL. Obtain plan acceptance and implementation authorization before changing code. All six positive cases passed as independent diagnostics on published environment `65cf077b1230f61efdba817aa697483a79a3a5d5` with source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and pinned Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5` (evidence in `work/m10-<case>-65cf077`, harness in `work/m10-harness`); they do not establish T1, T14 or T15. The full driver runs at `65cf077` and `607092b` remain failed in `work/m10-vm-run-65cf077-dca485f` and `work/m10-vm-run-607092b-dca485f`. Project the VM scope and results to #56 under separate issue authority. Preserve every previous context and VM resource, including all shut-off guests; cleanup requires separate authorization. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: commit and publish the implemented M10 VM supply and run structure revision (driver operations `--init`, `--case`, `--verify-cleanup` and `--verdict`, handoff adoption, stored-origin check, runner and regressions, `docs/README.vmtests.md` and the reduced `tests/README.md`); its local verification passed, and commit and push require separate authority. Then, under separate authority, open a run on the published candidate with `--init`, run the eight cases on fresh cloud-provision guests one at a time from a shell that outlives each case, request cleanup from cloud-provision, and finish with `--verify-cleanup` and `--verdict`. Write each handoff as `docs/README.vmtests.md` describes. Earlier contexts in `work/m10-vm-run-65cf077-dca485f` and `work/m10-vm-run-607092b-dca485f` remain failed and bound to their driver digests; their guests, the diagnostic guests and one leftover file set were removed and inspected on 2026-10-04. Project the VM scope and results to #56 under separate issue authority. M45 (#58) is Blocked on G7 under D38; G8 is Complete. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
-The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration after the source contract is confirmed, real installation test automation. Heap measurement and guidance are excluded under D37 and retained in Backlog. The owner assigned these four candidates on 2026-09-29. The current proposed order is M43, M14, M10, then M44. G6 may be investigated while M43 is planned; its completion gates M14 and release readiness. The release sequence and remaining detailed plans await acceptance; M43 is accepted under D32.
+The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration after the source contract is confirmed, real installation test automation. Heap measurement and guidance are excluded under D37 and retained in Backlog. The owner assigned these four candidates on 2026-09-29. D38 adds M45 on 2026-10-04. The current proposed order is M43, M14, M10, then M44. G6 may be investigated while M43 is planned; its completion gates M14 and release readiness. The release sequence and remaining detailed plans await acceptance; M43 is accepted under D32.
 
 Out of scope: adding SQLite deletion, table-query, backup or restore support; changing the shipped heap default; UI skin changes; LTS pre-processing; data migration. Existing 2.0.0 release objects remain immutable. No next release after 2.0.1 is assigned.
 
@@ -27,6 +27,9 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G6 | epicsarchiverap-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---epicsarchiverap-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | Blocked | No | G6, D31, D33 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
 | Tests | M10 | Automate VM installation and runtime tests | Milestone | In progress | No | D31, D34 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
+| Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Open | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
+| Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
+| Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Blocked | No | G7, G8, D38 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and a correct installation does not fail on a hidden entry; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
 | Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | No | M43, M14, M10, D31, D37 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
@@ -46,6 +49,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D35 | Limit heap measurement to the existing 100, 500 and 903 PV workloads, adding event-based post-GC heap and individual pause measurements. Preserve the reported workload and query conditions for comparison. At scope selection, the revised detailed plan remained draft and implementation was not authorized; subsequent plan acceptance is recorded in the detail. | 2026-10-01 |
 | D36 | Defer M41 implementation and measurement. Preserve the accepted plan, recovered source evidence and local input-inspection tool. Resumption requires a new dated decision; release assignment and M44 dependencies remain pending a separate scope decision. | 2026-10-01 |
 | D37 | Move M41 to Backlog, excluding heap measurement and new heap guidance from 2.0.1 completion requirements. Preserve its accepted plan and evidence. Reassignment requires an environment with sufficient dedicated disk capacity for the complete archive, response and measurement evidence plus shutdown reserves; existing resource stop rules remain applicable. | 2026-10-01 |
+| D38 | Split the two independent Rocky 8.10 defects by owner. epicsarchiverap-maven owns the CAJ search-port defect (its #26), ansible-provision owns the systemd 239 journald unlinked-entry gap, and epicsarchiverap-env owns how both reach its VM acceptance checks (M45). Each owner proves the exact cause first, then fixes its own side. Patches stay local; publication and upstream reports are decided after the problem is resolved. A session that needs a VM requests it from cloud-provision directly. | 2026-10-04 |
 
 ### Assignment History
 
@@ -275,7 +279,7 @@ Status: In progress
 
 Compose the existing cloud-provision VM lifecycle and ansible-provision installation with independent acceptance checks owned by epicsarchiverap-env. The actual path is fresh VM -> SSH/cloud-init readiness -> generated Ansible inventory -> prerequisite provisioning -> real Make/Maven build and installation -> installed payload and runtime verification -> retained evidence -> explicit VM cleanup.
 
-The Phase 3 and Phase 4 entrypoints call the VM driver; real matrix acceptance remains pending. The earlier systemd-free container premise is incompatible with the shipped `make install`: `sd_health_stop`, `sd_install` and `sd_enable` invoke real `systemctl`. Both installation and runtime verification therefore use the same disposable systemd VM. No second VM provisioner or installation implementation is needed here.
+The Phase 3 and Phase 4 entrypoints call the VM driver; real matrix acceptance remains pending. The earlier systemd-free container premise is incompatible with the shipped `make install`: `sd_health_stop`, `sd_install` and `sd_enable` invoke real `systemctl`. Both installation and runtime verification therefore use the same disposable systemd VM. No second VM provisioner or installation implementation is needed here. The test design is in [`docs/README.vmtests.md`](README.vmtests.md).
 
 ##### Scope
 
@@ -308,9 +312,9 @@ Out of scope: implementing VM images or cloud-init internals, duplicating Ansibl
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-10-04; owner accepted the VM supply and run structure revision carried by fdbf1eccc6aa0c68553ecb17b9f68d3ece8a3d29, with its design draft in the ignored `work/m10-design/README.vmtests.md`, after four third-person and five second-person passes with all findings applied; the prior plan is re-accepted with the replacements the revision names
+Implementation Authorization: 2026-10-04; owner authorized implementation of the accepted revision and its local verification; commit, push, publication, the VM run and every cleanup request require separate authority
 Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc174e76fe77326e941baf58f850, docs/milestone-265f580.md, M10; container-install draft carried by dcfa39b3f1a6a457ffd6803cb6c618d601768c30, docs/milestone-2.0.1.md, M10; prior accepted plan state, including the still-current service-inventory revision, accepted and authorized on 2026-10-01 and carried by e799b094b0c20a89664a2fae4901e07954a74a9c, docs/milestone-2.0.1.md, M10; prior accepted plan state, including the still-current Rocky 8.10 compatibility revision, accepted and authorized on 2026-10-02 and carried by f58c3da517d45cd580c8aab82471439ff65b40ab, docs/milestone-2.0.1.md, M10; address selection draft, not accepted, carried by 4a97ae408403ba8c76d6fbc84a6e4794c977a146, docs/milestone-2.0.1.md, M10
 
 ###### VM Supply And Run Structure Revision For Review
@@ -318,10 +322,10 @@ Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc1
 Dates in this revision are Pacific local dates. The diagnostics and runs recorded below expose five design defects. Apart from the first case of the interrupted full run, every passing VM case at `65cf077b1230f61efdba817aa697483a79a3a5d5` came from guests that cloud-provision created, checked through a private harness that binds the driver's methods to an external guest; the shipped driver can only verify guests it creates itself. Driver-created guests collide with occupied addresses (31 of 95 hashed addresses held by a reservation or lease on 2026-10-03 at 21:30 PDT, recorded in the address selection draft carried by `4a97ae408403ba8c76d6fbc84a6e4794c977a146`) and with stale stored host keys. One driver process runs all eight cases for hours, so an interruption fails the whole run and its completed cases cannot count toward acceptance; the first full run at that candidate failed this way. The tool origin check reads `git remote get-url`, which a common `insteadOf` rule rewrites to SSH form. The design is split between this growing register and `tests/README.md`. Owner direction, Decision Date: 2026-10-03: cloud-provision creates every guest and the driver adopts it from a handoff; each case runs as a separate invocation that appends to one run context; the origin check reads the stored URL; and the design is consolidated into one document. This revision supersedes the unaccepted address selection draft. T5-T14 checks, the fixture, the deadlines and the guest verifier are unchanged. Accepting this revision re-accepts the prior plan with these items and the replacement rows below. It also replaces Implementation Plan items 2, 3 and 9 where they create, shut down or clean up guests through the driver, and the `--system` and `--cleanup` statements of the Phase And Result Contract. In the T15 Assertion Details, "leaving the first case's shut-down VM and DHCP reservation present when the second begins" becomes "leaving the first case's VM and DHCP reservation owned and present, running or shut off, when the second begins". The rest of the plan is unchanged.
 
 1. In `tests/vm/driver.py`, replace `--system`, `--installation`, `--runtime` and `--cleanup` with four operations: `--init --config <file> --evidence <new-dir>`, `--case <case> --handoff <file> <run>`, `--verify-cleanup <run>` and the unchanged read-only `--verdict <run>`. Remove every `create_vm.bash` call (`-F`, `-s`, `-S`, `-c`) from the driver and keep the cloud-provision inventory generator. `--init` keeps the existing preflight, candidate local-suite proof and baseline of domains and live and persistent reservations.
-2. Define the guest handoff as a JSON file with `schema`, `os_selector`, `prefix`, `node`, `creation_id`, `uuid`, `vm_name`, `mac`, `address`, `disk`, `seed`, `record` and `tool_ref`. The operator writes it from cloud-provision's private markdown handoff, whose lines carry every field; a JSON handoff emitted by cloud-provision itself is a separate peer request. `--case` derives the VM, disk, seed and record names from the selectors and requires equality with the handoff; requires the UUID to be absent from the baseline and from earlier cases; matches the live domain, single interface, attached disk and seed, creation record, both reservations and the lease; collects shell-only facts; and requires a fresh guest through one `sudo -n sh -c` probe: cloud-init done without errors, none of the configured source, install and store roots or `/usr/local/sbin/archiver-build.sh` and `/var/tmp/archiver-build.done` present, a successful service unit-file listing and no unit name starting with `epicsarchiverap`, `archiver-build`, `mariadb` or `mysql`. It then runs the existing installation, build proof, transfer and guest verifier sequence, or the build-failure path, and stops its own helpers. It records whether earlier cases' guests remain owned and present when it starts. Each invocation locks the run; a recorded case failure is permanent and a case name cannot be run twice. Case order does not matter; the verdict requires each `MATRIX` case exactly once instead of the current exact-order comparison.
-3. Keep the interruption and cleanup-refusal checks on the first positive case. The refusal checks invoke `--verify-cleanup` on missing and mismatched ownership contexts and require refusal with unchanged state. `--verify-cleanup` keeps the existing removal and baseline-preservation inspection; the cleanup itself is a separate request to cloud-provision.
+2. Define the guest handoff as a JSON file with `schema`, `os_selector`, `prefix`, `node`, `creation_id`, `uuid`, `vm_name`, `mac`, `address`, `disk`, `seed`, `record` and `tool_ref`. The operator writes it from cloud-provision's private markdown handoff, whose lines carry every field; a JSON handoff emitted by cloud-provision itself is a separate peer request. `--case` derives the VM, disk, seed and record names from the selectors and requires equality with the handoff; requires the UUID to be absent from the baseline and from earlier cases; matches the live domain, single interface, attached disk and seed, creation record, both reservations and the lease; collects shell-only facts; and requires a fresh guest through one `sudo -n sh -c` probe: cloud-init done without errors, none of the configured source, install and store roots or `/usr/local/sbin/archiver-build.sh` and `/var/tmp/archiver-build.done` present, a successful service unit-file listing and no unit name starting with `epicsarchiverap`, `archiver-build`, `mariadb` or `mysql`. It then runs the existing installation, build proof, transfer and guest verifier sequence, or the build-failure path, and stops its own helpers. It records whether earlier cases' guests remain owned and present when it starts. Each invocation locks the run; a recorded case failure is permanent and a case name cannot be run twice. Case order does not matter; the verdict requires each `MATRIX` case exactly once instead of the current exact-order comparison. By owner direction, Decision Date: 2026-10-04, `--case` copies the host key that cloud-provision stored for the guest address in `~/.ssh/known_hosts` into a per-guest known-hosts file before the first guest connection, refuses the handoff when no key is stored, and runs SSH and Ansible with strict host key checking against that file, as ansible-provision does for its guests.
+3. Keep the interruption and cleanup-refusal checks on the first positive case. The refusal checks invoke `--verify-cleanup` on missing and mismatched ownership contexts and require refusal with unchanged state. `--verify-cleanup` keeps the existing removal and baseline-preservation inspection; the cleanup itself is a separate request to cloud-provision. By owner direction, Decision Date: 2026-10-04, an inspection error during `--verify-cleanup` returns 77 without recording a failure, so the verification can run again.
 4. Read each tool checkout's stored `remote.origin.url` and require HTTPS without credentials; keep the published-commit proof through the HTTPS clone.
-5. In `tests/run-all-tests.bash`, forward `--init`, `--case`, `--verify-cleanup` and `--verdict` to the driver. `--system`, `--phase=3`, `--phase=4` and `all` run the local phases, perform no VM operation, name the four operations and exit 77. `tests/phase3-docker.bash` and `tests/phase4-vm.bash` keep exit 77 without arguments and forward arguments to `--case`. Local modes stay unchanged and contact no VM; update the existing entry point regressions to this behavior. Add `tests/vm/local.py` regressions for each operation's input refusals, handoff validation with real files, the origin check with real `git` under an isolated global configuration that contains an `insteadOf` rule, refusal to rerun or replace a case, and read-only verdict rules.
+5. In `tests/run-all-tests.bash`, forward `--init`, `--case`, `--verify-cleanup` and `--verdict` to the driver. `--system`, `--phase=3`, `--phase=4` and `all` perform no VM operation and no local phase, name the four operations and exit 77; by owner direction, Decision Date: 2026-10-04, they do not run the local phases, because the local suite's `database-config.py` contract test invokes `--system` and must observe an immediate 77 without a pass. `tests/phase3-docker.bash` and `tests/phase4-vm.bash` keep exit 77 without arguments and forward arguments to `--case`. Local modes stay unchanged and contact no VM; update the existing entry point regressions to this behavior. Add `tests/vm/local.py` regressions for each operation's input refusals, handoff validation with real files, the origin check with real `git` under an isolated global configuration that contains an `insteadOf` rule, refusal to rerun or replace a case, and read-only verdict rules.
 6. Add the design document `docs/README.vmtests.md`; its draft, kept in the ignored `work/m10-design/README.vmtests.md`, is reviewed with this revision and moved and committed with the implementation so that it matches the code. Reduce `tests/README.md` to execution and evidence procedures that link to it, and link this detail to it.
 7. Run the full `tests/run-all-tests.bash --local` without skips. After separately authorized publication, run `--init`, the eight cases on cloud-provision guests one at a time, cloud-provision cleanup on request, `--verify-cleanup` and `--verdict` on one run context. Existing run contexts stay bound to their driver digests and are not resumed. Their owned resources and the diagnostic guests are removed by cloud-provision on a separate request and inspected with the driver commit that created each context, or by a recorded manual inspection for guests outside any context; none of them enters a run of the revised driver.
 
@@ -672,6 +676,32 @@ Observed on 2026-10-03 (times PDT) with the shipped `tests/run-all-tests.bash --
 
 At 20:01, coinciding with the tooling stopping the launching background task at its 30-minute limit, the driver's child processes were terminated and the driver recorded `ProcessLookupError` as its failure. This is an execution-environment termination, not an appliance or harness assertion failure; it remains a failure of this run. The context `work/m10-vm-run-65cf077-dca485f` and console log are retained unchanged. The driver shut down the Debian 13 socket guest after its case; the interrupted TCP guest was shut down through cloud-provision; both are retained. The remaining cases did not run.
 
+###### VM Supply And Run Structure Local Verification
+
+Observed on 2026-10-04 (times PDT) on the local Debian 13 host with the accepted revision implemented on top of fdbf1eccc6aa0c68553ecb17b9f68d3ece8a3d29. The driver offers `--init`, `--case`, `--verify-cleanup` and `--verdict`, calls no `create_vm.bash` action, adopts a guest from a JSON handoff, records a case only after its read-only identity, ownership and freshness checks pass, records any later error of that case as a run failure, checks the handed-off disk capacity against the configured `disk_size`, pins each guest's host key from the key cloud-provision stored at creation and connects through SSH and Ansible with strict host key checking, returns 77 without recording a failure when cleanup inspection fails, checks the digest of every guest verifier evidence file in the verdict, reads the stored tool origin URL, and clones for the publication proof without global or system git configuration. The later-error path and the refusal of an absent-source-commit, `OSError` or `TypeError` error before recording are verified by code reading only; reproducing them needs a live ownership change or a fault inside libvirt or the guest. The design document is `docs/README.vmtests.md`; `tests/README.md` keeps the execution and evidence procedures. Verified source SHA256: `tests/vm/driver.py` `454345b16a3cb873398f50447c0451ab1e79b9ea684632dbd4a29c91cf86fa11`, `tests/vm/guest.py` `755745bf1b5ab19ebbf6b7fcd4ae16d8130afa07e59cda720965bf0d287f2116`, `tests/vm/local.py` `db18b6bdf22926f986e2f0fb845e97209556037e960fa46e99ad454386a2f9f1`, `tests/run-all-tests.bash` `5c9e21a0b77afe7e9287da958763548273ac44a12e1f68af525746cf0598b9fb`.
+
+| Check | Observed Time PDT | Actual Environment And Method | Result And Evidence |
+| --- | --- | --- | --- |
+| T2 / full local suite, first run | 2026-10-04 00:47 | `tests/run-all-tests.bash --local` with the runner modes running the local phases as planned | Fail: `database-config.py` `test_system_entrypoints_cannot_report_success` timed out, because its `--system` call reran the local suite. Evidence: `work/m10-validation/vm-supply-local-20261004T074748Z.log`. The runner change recorded in item 5 followed |
+| T2 / full local suite | 2026-10-04 03:09 | Same command after the runner modes stop without running checks | Pass: exit 0 without skips; Phase 1 223/0, health 20, database 10 and VM local 26 tests, Phase 2 13/0. Evidence: `work/m10-validation/vm-supply-local-20261004T100904Z.log`, SHA256 `bf8929aa43102b3e0d6b1f077433ea255f737cb7f21ca53022b936271f323007` |
+| T2 / operations, handoff, origin, run rules | 2026-10-04 03:09 | The VM local tests within that suite: shipped CLI refusals, handoff validation with real files, case refusals, real `git` under an isolated `insteadOf` rule for the stored origin and the publication clone environment, the real fresh-guest probe script with real `systemctl`, real `ssh-keygen` lookup of a hashed stored host key, cleanup verification against a failing `virsh` executable, and order-independent read-only verdicts that refuse changed guest evidence | Pass |
+| T2 / regression strength | 2026-10-04 03:09 | Scratch copies of the verified driver with the earlier exact-order verdict, the earlier `remote get-url` origin read, no case-rerun refusal, the inherited git configuration for publication clones, the earlier three-action evidence check, `accept-new` host key checking, a recorded cleanup inspection failure, no Ansible host key checking variable, or a schema check that accepts `true` | Each targeted regression fails on its mutant and the original passes. Evidence: `work/m10-validation/vm-supply-mutation-20261004T100920Z.log`, SHA256 `65170f5c488d3e7bd08335b91b713d228647c77eb89e631e31f46f9fdcdbaf09` |
+| T2 / real `--init` path | 2026-10-04 02:20 | Shipped `--init` of driver `db57f754853f63d82a1752e3b854995e3f1d8c200a59a3b2bcbfef7a6be1fce8`, before the disk capacity check, under the user's real git configuration with a global `insteadOf` rule, the pinned tool clones and published candidate `fdbf1eccc6aa0c68553ecb17b9f68d3ece8a3d29` in a scratch evidence path; git tracing to a file | Stored HTTPS origins pass; all four publication clones use `git-remote-https` with no SSH URL; the run is refused with status 2 because the published candidate lacks these driver bytes, and no failure is recorded. No guest is contacted. Evidence: `work/m10-validation/vm-supply-init-trace-20261004T092207Z.log` |
+| T3 / disk capacity | 2026-10-04 02:32 | Shipped `capture_ownership` of driver `58858f74c0c78f87ce393c94a0b035a8a523041530c14358abc1ef112f7bdec0`, whose method is unchanged in the verified bytes, with read-only `virsh` on the retained shut-off Rocky 8.10 SQLite diagnostic guest, configured `disk_size` 20G and a wrong 30G | 20G passes the capacity check and stops at the absent lease of the shut-off guest; 30G is refused at the capacity check. Evidence: `work/m10-validation/vm-supply-capacity-20261004T093238Z.log` |
+| T3 / stored host key | 2026-10-04 02:56 | Shipped `pin_host_key` of driver `69452348cb2b7b798da61e414bf40900f9037de289159b132f98effe1a8d547a`, whose method is unchanged in the verified bytes, in a scratch run context against the user's real `~/.ssh/known_hosts`, for the retained Rocky 8.10 SQLite diagnostic guest's address and for an unused documentation address | The guest's three stored keys are copied into a mode 0600 file; the unused address is refused with no file written. No guest is contacted. Evidence: `work/m10-validation/vm-supply-hostkey-20261004T095641Z.log` |
+| T3 / Ansible host key checking | 2026-10-04 03:08 | Real `ansible -m ping -vvvv` of ansible-core 2.19.11 under the pinned ansible-provision `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5` configuration, which sets `host_key_checking = False`, toward an unused documentation address, with the shipped `ansible_connection_variables` and with its host key checking variable removed | With the shipped variables, Ansible's SSH command carries only `StrictHostKeyChecking=yes`; without the variable it carries `StrictHostKeyChecking=no` before `yes`, so SSH would use `no`. No guest is contacted. Evidence: `work/m10-validation/vm-supply-ansible-hostkey-20261004T100839Z.log`, SHA256 `5888d59c54f2c8cb67e1b6dcc840698e152150b1c17366b4cf9d0feb05e8dac5` |
+
+No guest was created or changed for these checks; only the disk capacity check read a retained guest's libvirt state, and the host key check read its stored key. The VM run on a published candidate remains pending under separate authority.
+
+###### Earlier Guest Cleanup Inspection
+
+By owner decision on 2026-10-04, cloud-provision removed all 19 shut-off `archiver-vm-test` guests of earlier M10 runs and diagnostics with `create_vm.bash -c` and each guest's own selectors, and reported every removal with exit 0. Their run contexts in `work/` stay as private evidence and are not resumed. epicsarchiverap-env then inspected the result independently and read-only, as revision item 7 requires.
+
+| Check | Observed Time PDT | Actual Environment And Method | Result And Evidence |
+| --- | --- | --- | --- |
+| Removal of the 19 guests | 2026-10-04 15:08 | `virsh list --all`, the image directory, live and persistent `lab` network XML and `net-dhcp-leases`, matched against the 19 node selectors and the interface MACs recovered from retained run contexts and cloud-provision handoffs | Pass: no domain or image file names any of the nodes, and no reservation or lease carries any of the 17 recovered MACs or reuses their addresses. The two guests without a recorded MAC (the first two `607092b` diagnostics) rest on the absence of any `archiver-vm-test` reservation and on the cloud-provision report. Evidence: `work/m10-validation/earlier-guests-cleanup-inspection-20261004T220829Z.log`, SHA256 `85ae6a8f367e2a4c1be7e8f97fe35dc7686c98a10bb9dfc4d63b3757a74c28b6` |
+| Removal of the leftover file set | 2026-10-04 15:13 | The same inspection found a disk, seed and creation record without a domain for one Debian 13 node of the failed `607092b` context, whose creation stopped at an address collision. By owner decision on 2026-10-04, cloud-provision removed them with `create_vm.bash -c` and its selectors, exit 0; no reservation existed. Re-inspected with `virsh list --all`, the image directory and both `lab` network XML forms | Pass: no domain, image file or `archiver-vm-test` reservation remains. Evidence: `work/m10-validation/leftover-cleanup-inspection-20261004T221307Z.log`, SHA256 `62d2b5e665b9a0a891fb3907ff9f6e160baf8cc57542ab89eb9266233022d2a1` |
+
 ##### Closure Evidence
 
 - Not a closure record: the Rocky 8.10 compatibility revision commit `65cf077b1230f61efdba817aa697483a79a3a5d5` landed on `origin/release-2.0.1`; on 2026-10-02 at 23:52 PDT, `git fetch` followed by `git rev-parse HEAD origin/release-2.0.1` returned that commit for both.
@@ -686,6 +716,134 @@ Observed Labels: enhancement
 Observed Milestone: 2.0.1 / #7
 Last Compared: 2026-09-30, `gh issue view 56 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee. The live title/body still describe container installation; the revised VM plan is local and has not been projected.
 
+
+#### G7 - ansible-provision reports the exact cause of the Rocky 8.10 journald gap
+
+Origin: 2.0.1 / G7
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+ansible-provision observed journal entries missing from `journalctl` output on Rocky 8.10 in its M22 soak and owns the cause under D38. Two measures exist: sequence numbers with no readable entry across all journal files of a boot, and lines missing in a concurrent burst test. Debian 13 with systemd 257 showed neither. The stage-1 report below establishes the cause as a reader defect, not lost writes. This gate blocks M45 until the reproducer and scanner reach epicsarchiverap-env for M45 / T1.
+
+##### Completion Criteria
+
+- A minimal reproducer without the appliance runs concurrent `systemd-cat` writers on fresh Rocky 8.10 and Debian 13 guests and compares emitted with read-back lines.
+- The report gives, per guest, the systemd and kernel versions, writer count and rate, emitted and read-back counts, `__SEQNUM` holes, the `journalctl --verify` result and the rate-limit exclusion.
+- The report states the loss threshold, or that loss occurs without concurrency, and shares the reproducer and sequence scanner for M45 / T1.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-10-04 14:11 PDT | Pending | ansible-provision replies by session message received before this time: its M22 record row "Rocky 8 journald unlinked entries" (2026-10-04T08:26:26Z) holds 9 and 39 missing sequence numbers by passive scan, 16 on a third guest, and 65-137 lines lost per run in a 903-request two-worker burst test with one worker losing none; Debian 13 lost none in four runs. It proposes stage 1 alone first; its owner has not yet authorized execution. Recheck by asking ansible-provision for its stage-1 report. |
+| 2026-10-04 15:35 PDT | Pending | Stage-1 report and follow-up by ansible-provision session message. On systemd 239-82.el8 (kernel 4.18.0-553.el8_10), `journalctl` hides an entry whose boot ID, realtime timestamp and content hash equal those of the entry it just returned, without comparing the sequence number (`sd-journal.c` `compare_with_location()` and `journal-file.c` `journal_file_compare_locations()` of v239). journald stamps the lines of one stdout read with one timestamp, so identical lines in a burst collapse to one visible entry per timestamp. The entries are stored: `journalctl --verify` passes and systemd 257 reading a copy returns all of them. One writer of 5,000 identical lines: 295 visible on Rocky 8.10, 5,000 when the same file is read with systemd 257, 5,000 on Debian 13 (257.9). Distinct lines, 1 to 16 writers, widths up to 2000, rate limiting disabled with no Suppressed record: none hidden in 18 runs. The earlier 65-137 burst figure and 9/39/16 sequence holes are this reader defect. Upstream fix: systemd commit b17f651a17cd6ec0ceac7835f2f8607fbd9ddb95, "journalctl: don't skip the entries that have the same seqnum" (2020-12-10, read back through the GitHub API), first released in v248; the latest Rocky 8.10 update `systemd-239-82.el8_10.19` still shows 295 of 5,000. The reproducer and scanner are private to ansible-provision and are sent when M45 / T1 starts. |
+
+##### Closure Evidence
+
+- none
+
+#### G8 - epicsarchiverap-maven reports the exact cause of the CAJ search-port defect
+
+Origin: 2.0.1 / G8
+GitHub Issue: none; tracked in [epicsarchiverap-maven#26](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/26)
+Status: Complete
+
+##### Summary
+
+The engine creates one CAJ context per CA command thread, ten by default. On one fresh Rocky 8.10 engine, two contexts shared one UDP search port, and the 95 PVs of one context never connected. It was observed once in about ten deployments. The working hypothesis is that the kernel gives two `SO_REUSEADDR` sockets bound to port 0 the same port. epicsarchiverap-maven owns the cause under D38. The defect affects only CA channel connection, not logging. This gate blocks M45.
+
+##### Completion Criteria
+
+- A standalone reproducer opens ten datagram channels as CAJ does, repeats about 10,000 rounds with and without `SO_REUSEADDR`, and counts duplicate ports on a Rocky 8.10 guest and on Debian 13.
+- Repeated engine starts on a Rocky 8.10 guest with the default ten command threads record `ss -uanp` of the engine JVM and connected PV counts per thread; at least 30 starts, or fewer once three occurrences are recorded.
+- The report gives the reproducer source or commit, kernel and JDK versions, round and start counts, and the location of the raw `ss` outputs, as a #26 comment and register M43 of epicsarchiverap-maven.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-10-04 14:11 PDT | Pending | `gh issue view 26 -R jeonghanlee/epicsarchiverap-maven` returns OPEN, updatedAt 2026-10-04T20:32:40Z. epicsarchiverap-maven proposes stage 1 alone first and awaits its owner's authorization; the stage-1 method, stopping rule and record above were agreed by session message. |
+| 2026-10-04 14:24 PDT | Pending | Interim report by epicsarchiverap-maven session message, Debian 13 half only (kernel 6.12.111, OpenJDK 21.0.12, jca 2.4.12; probe not yet committed). Ten real CAJ contexts per round shared a search port in 11 of 10,000 rounds. Raw channels bound as CAJ binds them shared a port in 16 of 10,000 rounds with `SO_REUSEADDR` and 0 of 10,000 without it. In 3 of 3 shared-port trials, all 100 unicast datagrams reached the later-bound socket and none the earlier one. The mechanism is therefore not specific to kernel 4.18. The Rocky 8.10 probe and the engine-start correlation await a guest. |
+| 2026-10-04 15:19 PDT | Complete | Stage-1 report in the [#26 comment](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/26#issuecomment-5985074826) (created 22:19:30 UTC, read back by `gh api`), probe at epicsarchiverap-maven `b6ff8704`, their register M43 T1 in `20e9a133`. Probe, 10,000 rounds of ten sockets each: on Rocky 8.10 (kernel 4.18.0-553.el8_10, OpenJDK 21.0.12.1), real CAJ contexts shared a port in 17 rounds, raw channels in 18 with `SO_REUSEADDR` and 0 without; Debian 13 gave 11, 16 and 0. On both, unicast to a shared port reached only the later-bound socket. Engine on the epicsarchiverap-env deploy path (903 PVs, default ten command threads) on the same Rocky guest: 30 restarts, all 903 PVs connected in each, no shared port. Zero in 30 bounds the per-start rate at about 10% (95%), so the field rate of about one in ten deployments is neither reproduced nor excluded. |
+
+##### Closure Evidence
+
+- The completion criteria hold: the mechanism is confirmed outside the appliance on Rocky 8.10 and Debian 13, the engine correlation ran 30 starts, and the report with counts and identifiers is the #26 comment above. Why the field rate exceeds the probe rate stays open in epicsarchiverap-maven #26.
+
+#### M45 - Contain the journalctl reader and CAJ search-port defects in VM acceptance
+
+Origin: 2.0.1 / M45
+Identity History: none
+GitHub Issue: [#58](https://github.com/jeonghanlee/epicsarchiverap-env/issues/58)
+Status: Blocked
+
+##### Summary
+
+Two independent defects can change an M10 acceptance result. The journalctl reader defect (G7) is observed on Rocky 8.10 only; the CAJ search-port defect (G8) occurs on both Rocky 8.10 and Debian 13 kernels. T8 counts three scheduled health runs from journal success lines in `tests/vm/guest.py`, and systemd 239 `journalctl` hides an entry whose realtime timestamp and content equal those of the entry it just returned. Whether a health success line meets that condition is not yet measured. T10 and T11 check CA data from the archived PV, so the CAJ defect can fail them on either OS. A CAJ failure is a real appliance defect, not a harness error. M45 measures this exposure, records evidence that tells the causes apart, and, if the measurement shows exposure, changes the epicsarchiverap-env side so a correct installation does not fail on a hidden journal entry.
+
+##### Scope
+
+- Measure T8 exposure on a fresh Rocky 8.10 guest with the health timer alone, using the reproducer and sequence scanner that G7 shares.
+- On a T8 failure, retain the health unit entries as read and the journal file for a newer reader; a sequence hole alone does not prove a lost entry on systemd 239. On a T10 or T11 failure on either OS, retain `ss -uanp` of the engine JVM and the connection status of the archived PVs.
+- If T1 shows exposure, change how the verifier establishes T8 so that a hidden identical entry cannot fail a correct installation, and verify it on Rocky 8.10.
+
+Out of scope: fixing journalctl, CAJ or jca, which their owners do under D38; publishing a patch or reporting upstream, which D38 defers until the problem is resolved; changing the M10 acceptance matrix.
+
+##### Completion Criteria
+
+- M45 / T1 records the T8 exposure on Rocky 8.10 with the shared yardstick.
+- M45 / T2 shows the verifier retaining the classifying evidence on real failures of each class, including CAJ failures on Debian 13.
+- M45 / T3 shows T8 passing a correct installation on Rocky 8.10 while identical entries are hidden, and still failing when health runs fail.
+
+##### Dependencies And Decisions
+
+- D38 assigns this work and keeps every fix local.
+- G7 and G8 blocked M45 when it was created; resume as Not started. G8 is Complete; G7 remains Open, so M45 stays Blocked.
+- M10's Rocky 8.10 cases are exposed to both defects and its Debian 13 cases to the CAJ defect. The owner has not set an order between M10, M44 and M45; M44's dependencies are unchanged.
+- Guests come from cloud-provision on a request under separate owner authorization; the retained M10 diagnostic guests are not used.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Request one fresh Rocky 8.10 guest from cloud-provision and run the health timer alone after an installation, comparing the systemd 239 reader with a newer reader of the same journal file using the G7 tools.
+2. Add evidence retention to the verifier for T8 and for T10 and T11 failures.
+3. If T1 shows exposure, select the T8 revision from the G7 mechanism, implement it, and verify it on Rocky 8.10.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | System | Installed appliance with the health timer alone; G7 tools comparing the systemd 239 reader with a newer reader of the same journal file | Fresh Rocky 8.10 guest | Count of hidden health-unit entries and runs over a stated window |
+| T2 | System | Real T8 failures on Rocky 8.10 and T10/T11 failures on either OS, or the reproducer conditions G7 and G8 establish | Fresh Rocky 8.10 and Debian 13 guests | Retained evidence names the journal holes or the shared search port and unconnected PVs |
+| T3 | System | T8 with identical entries hidden under the G7 reproducer, and with a failing health run | Fresh Rocky 8.10 guest | Correct installation passes; a failing health run still fails T8 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Fresh Rocky 8.10 guest | Pending | none |
+| T2 | Pending | Fresh Rocky 8.10 and Debian 13 guests | Pending | none |
+| T3 | Pending | Fresh Rocky 8.10 guest | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Contain the journalctl reader and CAJ search-port defects in VM acceptance
+Labels: bug
+GitHub Milestone: 2.0.1
+Observed State: OPEN
+Observed Labels: bug
+Observed Milestone: 2.0.1 / #7
+Last Compared: 2026-10-04 at 22:32 UTC, `gh issue view 58 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-10-04T22:32:46Z; title and body equal to the revised draft
 
 #### M44 - Verify and publish release 2.0.1
 
