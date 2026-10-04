@@ -140,6 +140,126 @@ def parse_guest_facts(output):
         raise Failed("Malformed guest facts section") from error
 
 
+HANDOFF_FIELDS = {"schema", "os_selector", "prefix", "node", "creation_id", "uuid", "vm_name",
+                  "mac", "address", "disk", "seed", "record", "tool_ref"}
+CREATION_ID = re.compile(r"\d{8}T\d{6}Z-[0-9a-f]{12}")
+DOMAIN_UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+MAC_ADDRESS = re.compile(r"(?:[0-9a-f]{2}:){5}[0-9a-f]{2}")
+FRESH_UNIT_PREFIXES = ("epicsarchiverap", "archiver-build", "mariadb", "mysql")
+FRESH_SCRIPT = (
+    'for p in "$@"; do if [ -e "$p" ] || [ -L "$p" ]; then echo "present $p"; '
+    'else echo "absent $p"; fi; done; echo @@opt; ls -A /opt; echo @@units; '
+    "systemctl list-unit-files --type=service --full --no-legend --no-pager; "
+    'echo "@@units_exit $?"')
+
+
+def case_from_handoff(name, handoff, config):
+    """Validate a cloud-provision guest handoff and derive the owned case selectors."""
+    if name not in MATRIX:
+        raise Invalid("Unknown case")
+    if (not isinstance(handoff, dict) or set(handoff) != HANDOFF_FIELDS
+            or type(handoff["schema"]) is not int or handoff["schema"] != 1):
+        raise Invalid("Handoff requires exactly the schema 1 fields")
+    if any(not isinstance(handoff[field], str) for field in HANDOFF_FIELDS - {"schema"}):
+        raise Invalid("Handoff values must be strings")
+    os_name, backend = name.split("-", 1)
+    if (handoff["os_selector"] != os_name + "-archiver-dev" or
+            handoff["prefix"] != config["cloud"]["prefix"]):
+        raise Invalid("Handoff OS selector or prefix differs from the case and configuration")
+    if (not SAFE_NAME.fullmatch(handoff["node"]) or not CREATION_ID.fullmatch(handoff["creation_id"])
+            or not DOMAIN_UUID.fullmatch(handoff["uuid"]) or not MAC_ADDRESS.fullmatch(handoff["mac"])
+            or not FULL_REF.fullmatch(handoff["tool_ref"])):
+        raise Invalid("Malformed handoff identity")
+    try:
+        address = str(ipaddress.IPv4Address(handoff["address"]))
+    except ValueError as error:
+        raise Invalid("Handoff address must be an IPv4 address") from error
+    vm_name = "-".join((handoff["prefix"], handoff["os_selector"], handoff["node"],
+                        handoff["creation_id"]))
+    disk = Path(config["images"][os_name]["directory"]) / (vm_name + ".qcow2")
+    derived = {"vm_name": vm_name, "disk": str(disk), "record": str(disk) + ".creation-record",
+               "seed": str(disk.with_name(vm_name + "-seed.iso"))}
+    if address != handoff["address"] or any(handoff[field] != value for field, value in derived.items()):
+        raise Invalid("Handoff names differ from the names derived from its selectors")
+    return {"name": name, "os": os_name, "backend": "sqlite" if backend == "build-failure" else backend,
+            "negative": backend == "build-failure", "node": handoff["node"],
+            "creation_id": handoff["creation_id"], "uuid": handoff["uuid"], "results": {},
+            "lifecycle": "adopted", "tool_ref": handoff["tool_ref"],
+            "handoff": {"mac": handoff["mac"], "address": address}, **derived}
+
+
+def disk_bytes(size):
+    """Convert a configured disk size such as 20G to bytes."""
+    return int(size[:-1]) * 1024 ** 3
+
+
+def tool_origin_command(path):
+    """Return the command reading a tool checkout's stored origin URL."""
+    # "git remote get-url" would apply the user's insteadOf rewrite rules.
+    return ["git", "-C", str(path), "config", "--get", "remote.origin.url"]
+
+
+def publication_env():
+    """Return an environment that clones over anonymous HTTPS, ignoring user rewrite rules."""
+    return dict(os.environ, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1",
+                GIT_TERMINAL_PROMPT="0")
+
+
+def stored_host_key_command(address):
+    """Return the lookup of the host key cloud-provision stored for a guest address."""
+    return ["ssh-keygen", "-F", address, "-f", str(Path.home() / ".ssh" / "known_hosts")]
+
+
+def host_key_lines(output):
+    """Keep the known-hosts entries of an ssh-keygen -F lookup, without its comments."""
+    return [line for line in output.splitlines() if line.strip() and not line.startswith("#")]
+
+
+def ssh_options(known_hosts):
+    """Return SSH options that accept only the pinned guest host key."""
+    return ["-o", "StrictHostKeyChecking=yes", "-o", f"UserKnownHostsFile={known_hosts}"]
+
+
+def ansible_connection_variables(known_hosts, key):
+    """Return Ansible SSH variables that keep the pinned host key in force."""
+    # A tool configuration with host_key_checking disabled would otherwise prepend
+    # StrictHostKeyChecking=no, and SSH uses the first value of an option.
+    return {"ansible_host_key_checking": True, "ansible_ssh_private_key_file": key,
+            "ansible_ssh_common_args": shlex.join(ssh_options(known_hosts))}
+
+
+def published_origin(url):
+    """Accept only a credential-free HTTPS origin."""
+    return url.startswith("https://") and "@" not in url
+
+
+def fresh_probe_command(paths):
+    """Return the shell-only probe of installation paths and service unit files."""
+    return ["sudo", "-n", "sh", "-c", FRESH_SCRIPT, "sh", *paths]
+
+
+def parse_fresh_probe(output, count):
+    """Parse the fresh-guest probe into path presence, /opt entries and service units."""
+    paths, opt, units, exit_status, section = {}, [], [], None, "paths"
+    for line in output.splitlines():
+        if line in ("@@opt", "@@units"):
+            section = line[2:]
+        elif line.startswith("@@units_exit "):
+            exit_status = int(line.split()[1])
+        elif section == "paths":
+            state, _, path = line.partition(" ")
+            if state not in ("present", "absent") or not path:
+                raise Failed("Malformed fresh-guest path line")
+            paths[path] = state == "present"
+        elif section == "opt":
+            opt.append(line)
+        elif line.strip():
+            units.append(line.split()[0])
+    if exit_status is None or len(paths) != count:
+        raise Failed("Fresh-guest probe output is incomplete")
+    return {"paths": paths, "opt": sorted(opt), "units_exit": exit_status, "units": units}
+
+
 def digest(path):
     checksum = hashlib.sha256()
     with Path(path).open("rb") as stream:
@@ -322,6 +442,7 @@ class Driver:
         if self.state.get("guest_sha256") != digest(HERE / "guest.py"):
             raise Invalid("Context belongs to another guest verifier version")
         self.log_number = len(list(self.root.glob("command-*.json")))
+        self.recorded = False
 
     def case_identity(self, case):
         """Bind lifecycle command selectors to the recorded resource names."""
@@ -379,28 +500,37 @@ class Driver:
     def ssh(self, case, command, **kwargs):
         config = self.config["ssh"]
         options = ["-F", "/dev/null", "-i", config["key"], "-o", "BatchMode=yes",
-                   "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=accept-new",
-                   "-o", f"UserKnownHostsFile={self.root / 'known_hosts'}"]
+                   "-o", "ConnectTimeout=10", *ssh_options(self.known_hosts(case))]
         return self.command(["ssh", *options, f"{config['user']}@{case['address']}",
                              shlex.join(command)], separate_stderr=True, **kwargs)
 
-    def cloud(self, case, action, **kwargs):
-        self.case_identity(case)
-        path = Path(self.config["cloud"]["path"])
-        if self.command(["git", "-C", str(path), "rev-parse", "HEAD"])[1].strip() != self.config[
-                "cloud"]["ref"] or self.command(["git", "-C", str(path), "status", "--porcelain",
-                                                  "--untracked-files=no"])[1]:
-            raise Invalid("Cloud checkout changed; lifecycle operation refused")
-        image = self.config["images"][case["os"]]
-        env = dict(os.environ, IMAGE_WORKFLOW_RUN_ID=case["creation_id"], VM_VCPUS="2")
-        return self.command(["bash", str(Path(self.config["cloud"]["path"]) / "bin/create_vm.bash"),
-                             action, "-o", case["os"] + "-archiver-dev",
-                             "-n", case["node"], "-p", self.config["cloud"]["prefix"],
-                             "-d", image["directory"], "-m", "4096",
-                             "-z", image["disk_size"]], env=env, **kwargs)
+    def known_hosts(self, case):
+        return self.root / (case["creation_id"] + ".known_hosts")
+
+    def pin_host_key(self, case):
+        """Copy the host key cloud-provision stored at creation into the guest's own file."""
+        rc, output = self.command(stored_host_key_command(case["address"]), check=False)
+        lines = host_key_lines(output) if rc == 0 else []
+        if not lines:
+            raise Invalid("cloud-provision stored no host key for the handed-off address")
+        path = self.known_hosts(case)
+        if path.is_symlink():
+            raise Invalid("Known-hosts target is a symlink")
+        fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as stream:
+            stream.write("\n".join(lines) + "\n")
+
+    def leases(self):
+        """Return the configured network's active DHCP leases as (MAC, IPv4) pairs."""
+        result = []
+        for line in self.virsh("net-dhcp-leases", self.config["cloud"]["network"]).splitlines():
+            fields = line.split()
+            if len(fields) >= 5 and MAC_ADDRESS.fullmatch(fields[2].lower()) and "/" in fields[4]:
+                result.append((fields[2].lower(), fields[4].split("/", 1)[0]))
+        return result
 
     def prepare(self):
-        for executable in ("git", "virsh", "ssh", "scp", "ansible-playbook"):
+        for executable in ("git", "virsh", "ssh", "ssh-keygen", "scp", "ansible-playbook"):
             if not shutil.which(executable):
                 raise Incomplete(f"Required executable unavailable: {executable}")
         if not Path(self.config["ssh"]["key"]).is_file():
@@ -410,8 +540,7 @@ class Driver:
         if selected is None or Path(str(selected)[:-4]).resolve() != Path(
                 self.config["ssh"]["key"]).resolve():
             raise Invalid("SSH key must match the existing cloud tool's first default key")
-        for tool, files in (("cloud", ("bin/create_vm.bash", "bin/generate_ansible_inventory.bash",
-                                     "bin/image_workflow.bash")),
+        for tool, files in (("cloud", ("bin/generate_ansible_inventory.bash",)),
                             ("ansible", ("playbooks/species/archiver_dev.yml",
                                          "playbooks/species/archiver_dev_sqlite.yml"))):
             path = self.config[tool]["path"]
@@ -422,12 +551,12 @@ class Driver:
                 raise Invalid("Tool checkout has tracked modifications")
             if any(not (Path(path) / name).is_file() for name in files):
                 raise Incomplete("Pinned tool does not provide the required public entrypoints")
-            url = self.command(["git", "-C", path, "remote", "get-url", "origin"])[1].strip()
-            if not url.startswith("https://") or "@" in url:
+            url = self.command(tool_origin_command(path))[1].strip()
+            if not published_origin(url):
                 raise Invalid("Tool origin must be HTTPS without credentials")
             clone = self.root / ("tool-" + tool)
             self.command(["git", "clone", "--no-checkout", url, str(clone)],
-                         timeout=DEFAULT_BOUNDS["build"])
+                         timeout=DEFAULT_BOUNDS["build"], env=publication_env())
             rc, _ = self.command(["git", "-C", str(clone), "cat-file", "-e",
                                   head + "^{commit}"], check=False)
             if rc:
@@ -441,7 +570,7 @@ class Driver:
         for kind in ("env", "source"):
             checkout = self.root / ("candidate-" + kind)
             self.command(["git", "clone", "--no-checkout", self.config["candidate"][kind + "_url"],
-                          str(checkout)], timeout=DEFAULT_BOUNDS["build"])
+                          str(checkout)], timeout=DEFAULT_BOUNDS["build"], env=publication_env())
             ref = self.config["candidate"][kind + "_ref"]
             rc, _ = self.command(["git", "-C", str(checkout), "checkout", "--detach", ref], check=False)
             if rc:
@@ -500,10 +629,7 @@ class Driver:
             "archiver_db_socket": "auto" if case["backend"] == "socket" else "",
             "mariadb_skip_networking": case["backend"] == "socket",
             "archiver_force_reinstall": force,
-            "ansible_ssh_private_key_file": cfg["ssh"]["key"],
-            "ansible_ssh_common_args": shlex.join(
-                ["-o", "StrictHostKeyChecking=accept-new", "-o",
-                 f"UserKnownHostsFile={self.root / 'known_hosts'}"]),
+            **ansible_connection_variables(self.known_hosts(case), cfg["ssh"]["key"]),
         }
         path = self.root / (case["name"] + "-variables.json")
         save(path, variables)
@@ -545,7 +671,7 @@ class Driver:
     def stop_helpers(self):
         errors = []
         for case in self.state["cases"]:
-            if not case.get("helper_units") or case.get("lifecycle") == "retained":
+            if not case.get("helper_units") or case.get("lifecycle") == "verified":
                 continue
             try:
                 self.verify_live_case(case)
@@ -598,102 +724,39 @@ class Driver:
         if self.virsh("domstate", case["uuid"]).strip() != "running":
             raise Invalid("Runtime requires the recorded live installation VM")
 
-    def create(self, name):
-        os_name, backend = name.split("-", 1)
-        creation = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + secrets.token_hex(6)
-        node = "test-" + secrets.token_hex(8)
-        vm_name = f"{self.config['cloud']['prefix']}-{os_name}-archiver-dev-{node}-{creation}"
-        disk = Path(self.config["images"][os_name]["directory"]) / (vm_name + ".qcow2")
-        case = {"name": name, "os": os_name, "backend": "sqlite" if backend == "build-failure" else backend,
-                "negative": backend == "build-failure", "node": node, "vm_name": vm_name,
-                "creation_id": creation, "disk": str(disk), "record": str(disk) + ".creation-record",
-                "seed": str(disk.with_name(vm_name + "-seed.iso")), "results": {}, "lifecycle": "intent"}
-        if case["negative"]:
-            while True:
-                fault = secrets.token_hex(20)
-                rc, output = self.command(["git", "-C", str(self.root / "candidate-source"),
-                                      "cat-file", "-e", fault + "^{commit}"], check=False)
-                if rc in (1, 128) and "Not a valid object name" in output:
-                    case["fault_ref"] = fault
-                    break
-                if rc:
-                    raise Failed("Cannot establish fault-ref absence")
-        snapshot = self.snapshot()
-        retained = [item for item in self.state["cases"] if item.get("lifecycle") == "retained"]
-        for earlier in retained:
-            if snapshot["domains"].get(earlier["uuid"]) != earlier["vm_name"] or any(
-                    earlier["reservation"] not in snapshot["reservations"][kind]
-                    for kind in ("live", "persistent")):
-                raise Failed("Earlier owned case was not retained before the next creation")
-        case["previous_owned"] = [item["uuid"] for item in retained]
-        case["precreate_snapshot"] = snapshot
-        if vm_name in snapshot["domains"].values():
-            raise Invalid("VM name already exists")
-        for path in (case["disk"], case["seed"], case["record"],
-                     str(disk.with_name(vm_name + ".seed_staging"))):
-            if os.path.lexists(path):
-                raise Invalid("Refusing an existing resource path")
-        self.state["cases"].append(case)
-        self.persist()
-        creation_started = time.monotonic()
+    def adopt(self, name, handoff):
+        """Verify a handed-off fresh guest without changing the run, then run one case on it."""
+        if self.state.get("failure"):
+            raise Invalid("The run already holds a failure; start a separate run")
+        if self.state.get("preflight", {}).get("result") != "Pass":
+            raise Invalid("A case requires an initialized run")
+        if any(item["name"] == name for item in self.state["cases"]):
+            raise Invalid("The case is already recorded in this run")
+        case = case_from_handoff(name, handoff, self.config)
+        if case["uuid"] in self.state["baseline"]["domains"] or any(
+                case["uuid"] == item.get("uuid") for item in self.state["cases"]):
+            raise Invalid("The handed-off guest overlaps the baseline or an earlier case")
+        # Every check before the case is recorded refuses the handoff without failing the run.
         try:
-            self.cloud(case, "-F", timeout=DEFAULT_BOUNDS["vm"])
-        except (Failed, KeyboardInterrupt, OSError, subprocess.TimeoutExpired):
-            try:
-                self.capture_ownership(case)
-            except (Exception, KeyboardInterrupt) as observation:
-                case["ownership_observation_error"] = type(observation).__name__
-                self.persist()
-            raise
-        self.capture_ownership(case)
-        deadline = creation_started + DEFAULT_BOUNDS["vm"]
-        while time.monotonic() < deadline:
-            remaining = deadline - time.monotonic()
-            rc, output = self.cloud(case, "-s", timeout=min(DEFAULT_BOUNDS["command"], remaining),
-                                    check=False)
-            if rc == 0 and re.search(r"^SSH\s*: ready$", output, re.M) and re.search(
-                    r"^cloud-init\s*: done$", output, re.M):
-                if time.monotonic() > deadline:
-                    raise Failed("VM readiness completed after its deadline")
-                break
-            time.sleep(5)
-        else:
-            raise Failed("VM readiness deadline exceeded")
-        generator = Path(self.config["cloud"]["path"]) / "bin/generate_ansible_inventory.bash"
-        _, inventory = self.command(["bash", str(generator), "--os-type", os_name + "-archiver-dev",
-                                      "--species", "archiver-dev-sqlite" if case["backend"] == "sqlite"
-                                      else "archiver-dev", "--vm-name", vm_name, "--address", case["address"],
-                                      "--ansible-user", self.config["ssh"]["user"]])
-        (self.root / (name + ".ini")).write_text(inventory)
-        groups = re.findall(r"^\[([^]]+)\]$", inventory, re.M)
-        hosts = [line.split()[0] for line in inventory.splitlines()
-                 if line and not line.startswith(("[", "#"))]
-        if set(hosts) != {vm_name} or len(groups) != 2:
-            raise Failed("Generated inventory does not limit execution to the owned VM")
-        _, facts = self.ssh(case, guest_facts_command())
-        case["guest_resources"] = parse_guest_facts(facts)
-        _, metadata = self.ssh(case, ["sudo", "-n", "cloud-init", "query",
-                                      "ds.meta_data.local-hostname"])
-        hostname = metadata.strip()
-        interfaces = [entry for entry in case["guest_resources"]["interfaces"]
-                      if entry.get("address", "").lower() == case["reservation"]["mac"].lower()]
-        addresses = [item["local"] for entry in interfaces for item in entry.get("addr_info", [])
-                     if item.get("family") == "inet"]
-        if (not re.fullmatch(r"[A-Za-z0-9-]+", hostname) or
-                len(hostname) > GUEST_HOSTNAME_LIMIT or
-                case["guest_resources"]["hostname"] != hostname):
-            raise Failed("Actual guest hostname differs from the cloud-init seed")
-        if len(interfaces) != 1 or addresses != [case["address"]]:
-            raise Failed("Actual guest interface IP differs from its owned DHCP reservation")
-        release = dict(line.split("=", 1) for line in case["guest_resources"]["os"].splitlines()
-                       if "=" in line)
-        expected = ("debian", "13") if os_name == "debian13" else ("rocky", "8.10")
-        if tuple(release.get(key, "").strip('"') for key in ("ID", "VERSION_ID")) != expected:
-            raise Failed("Actual guest OS differs from the selected matrix case")
-        minimum_free = self.config["images"][os_name]["minimum_build_free_bytes"]
-        if case["guest_resources"]["cpus"] != 2 or case["guest_resources"]["free_bytes"] < minimum_free:
-            raise Failed("Actual guest resource observation failed")
+            snapshot = self.snapshot()
+            self.capture_ownership(case, snapshot)
+            self.observe_fresh(case)
+            if case["negative"]:
+                self.absent_source_ref(case)
+        except (Failed, OSError, ValueError, KeyError, TypeError, ET.ParseError,
+                subprocess.SubprocessError) as error:
+            raise Invalid("Handed-off guest refused before any change: " + str(error)) from error
+        # Earlier guests still owned and present prove the cumulative ownership of T15.
+        case["previous_owned"] = [
+            item["uuid"] for item in self.state["cases"]
+            if snapshot["domains"].get(item.get("uuid")) == item["vm_name"] and all(
+                item.get("reservation") in snapshot["reservations"][kind]
+                for kind in ("live", "persistent"))]
+        case["adoption_snapshot"] = snapshot
         case["results"]["T3"] = {"result": "Pass", "at": utc()}
+        save(self.root / (name + "-handoff.json"), handoff)
+        self.state["cases"].append(case)
+        self.recorded = True
         self.persist()
         if case["negative"]:
             rc, output = self.install(case, fault=True)
@@ -716,21 +779,111 @@ class Driver:
         self.persist()
         return case
 
-    def capture_ownership(self, case):
-        """Read actual creation records, domain identity and both DHCP configurations."""
-        case["uuid"] = self.virsh("domuuid", case["vm_name"]).strip()
+    def absent_source_ref(self, case):
+        """Select a source commit that the published candidate repository does not contain."""
+        while True:
+            fault = secrets.token_hex(20)
+            rc, output = self.command(["git", "-C", str(self.root / "candidate-source"),
+                                       "cat-file", "-e", fault + "^{commit}"], check=False)
+            if rc in (1, 128) and "Not a valid object name" in output:
+                case["fault_ref"] = fault
+                return
+            if rc:
+                raise Failed("Cannot establish fault-ref absence")
+
+    def capture_ownership(self, case, snapshot):
+        """Match the handed-off guest against its domain, files, reservations and lease."""
+        if snapshot["domains"].get(case["uuid"]) != case["vm_name"]:
+            raise Invalid("The handed-off domain UUID and name are not defined together")
         xml = ET.fromstring(self.virsh("dumpxml", case["uuid"]))
         if xml.findtext("vcpu") != "2" or int(xml.findtext("memory")) != 4096 * 1024:
-            raise Failed("Created VM resources differ from the accepted matrix")
+            raise Invalid("Handed-off VM resources differ from the accepted matrix")
+        mac = domain_mac(xml, self.config["cloud"]["network"], case["uuid"], case["vm_name"])
+        if mac != case["handoff"]["mac"]:
+            raise Invalid("The handed-off MAC differs from the domain interface")
+        disks = {node.get("file") for node in xml.findall("./devices/disk/source")}
+        if disks != {case["disk"], case["seed"]}:
+            raise Invalid("Attached disk and seed differ from the handoff")
+        capacity = re.search(r"^Capacity:\s+(\d+)\s*$", self.virsh("domblkinfo", case["uuid"], case["disk"]), re.M)
+        if not capacity or int(capacity.group(1)) != disk_bytes(self.config["images"][case["os"]]["disk_size"]):
+            raise Invalid("Handed-off disk capacity differs from the accepted matrix")
+        for name in ("disk", "seed", "record"):
+            if Path(case[name]).is_symlink() or not Path(case[name]).is_file():
+                raise Invalid("A handed-off resource file is missing or a symlink")
         record = dict(line.split("=", 1) for line in Path(case["record"]).read_text().splitlines()
                       if "=" in line)
         if record.get("image_id") != case["creation_id"] or record.get("image_name") != Path(case["disk"]).name:
-            raise Failed("VM creation record identity mismatch")
-        reservations = self.snapshot()["reservations"]
-        mac = domain_mac(xml, self.config["cloud"]["network"], case["uuid"], case["vm_name"])
-        case["reservation"] = owned_reservation(reservations, mac, case["vm_name"])
+            raise Invalid("VM creation record identity mismatch")
+        case["reservation"] = owned_reservation(snapshot["reservations"], mac, case["vm_name"])
         case["address"] = str(ipaddress.IPv4Address(case["reservation"]["ip"]))
-        case["lifecycle"] = "created"
+        if case["address"] != case["handoff"]["address"]:
+            raise Invalid("The owned reservation differs from the handed-off address")
+        leases = [lease for lease in self.leases() if lease[0] == mac or lease[1] == case["address"]]
+        if leases != [(mac, case["address"])]:
+            raise Invalid("The handed-off lease is missing or ambiguous")
+        if self.virsh("domstate", case["uuid"]).strip() != "running":
+            raise Invalid("The handed-off guest is not running")
+
+    def observe_fresh(self, case):
+        """Check identity, resources and freshness of the handed-off guest before any change."""
+        os_name = case["os"]
+        generator = Path(self.config["cloud"]["path"]) / "bin/generate_ansible_inventory.bash"
+        _, inventory = self.command(["bash", str(generator), "--os-type", os_name + "-archiver-dev",
+                                      "--species", "archiver-dev-sqlite" if case["backend"] == "sqlite"
+                                      else "archiver-dev", "--vm-name", case["vm_name"],
+                                      "--address", case["address"],
+                                      "--ansible-user", self.config["ssh"]["user"]])
+        (self.root / (case["name"] + ".ini")).write_text(inventory)
+        groups = re.findall(r"^\[([^]]+)\]$", inventory, re.M)
+        hosts = [line.split()[0] for line in inventory.splitlines()
+                 if line and not line.startswith(("[", "#"))]
+        if set(hosts) != {case["vm_name"]} or len(groups) != 2:
+            raise Invalid("Generated inventory does not limit execution to the handed-off VM")
+        self.pin_host_key(case)
+        _, facts = self.ssh(case, guest_facts_command())
+        case["guest_resources"] = parse_guest_facts(facts)
+        _, metadata = self.ssh(case, ["sudo", "-n", "cloud-init", "query",
+                                      "ds.meta_data.local-hostname"])
+        hostname = metadata.strip()
+        interfaces = [entry for entry in case["guest_resources"]["interfaces"]
+                      if entry.get("address", "").lower() == case["reservation"]["mac"].lower()]
+        addresses = [item["local"] for entry in interfaces for item in entry.get("addr_info", [])
+                     if item.get("family") == "inet"]
+        if (not re.fullmatch(r"[A-Za-z0-9-]+", hostname) or
+                len(hostname) > GUEST_HOSTNAME_LIMIT or
+                case["guest_resources"]["hostname"] != hostname):
+            raise Invalid("Actual guest hostname differs from the cloud-init seed")
+        if len(interfaces) != 1 or addresses != [case["address"]]:
+            raise Invalid("Actual guest interface IP differs from its owned DHCP reservation")
+        release = dict(line.split("=", 1) for line in case["guest_resources"]["os"].splitlines()
+                       if "=" in line)
+        expected = ("debian", "13") if os_name == "debian13" else ("rocky", "8.10")
+        if tuple(release.get(key, "").strip('"') for key in ("ID", "VERSION_ID")) != expected:
+            raise Invalid("Actual guest OS differs from the selected matrix case")
+        minimum_free = self.config["images"][os_name]["minimum_build_free_bytes"]
+        if case["guest_resources"]["cpus"] != 2 or case["guest_resources"]["free_bytes"] < minimum_free:
+            raise Invalid("Actual guest resources differ from the accepted matrix")
+        rc, raw = self.ssh(case, ["sudo", "-n", "cloud-init", "status", "--long", "--format", "json"],
+                           check=False)
+        status = json.loads(raw)
+        if status.get("status") != "done" or status.get("errors"):
+            raise Invalid("cloud-init did not finish without errors")
+        guest = self.config["guest"]
+        paths = [guest["source_parent"], guest["install_parent"] + "/epicsarchiverap-maven",
+                 guest["store_top"], "/usr/local/sbin/archiver-build.sh", "/var/tmp/archiver-build.done"]
+        _, probe = self.ssh(case, fresh_probe_command(paths))
+        fresh = parse_fresh_probe(probe, len(paths))
+        present = [path for path, exists in fresh["paths"].items() if exists]
+        installed = [unit for unit in fresh["units"] if unit.startswith(FRESH_UNIT_PREFIXES)]
+        if fresh["units_exit"] != 0 or present or installed:
+            raise Invalid(f"Handed-off guest is not fresh: paths {present}, units {installed}")
+        case["fresh_guest"] = {"cloud_init": {"exit": rc, "status": status}, "observation": fresh}
+
+    def finish(self, case):
+        """Stop the case's owned test IOC and mark the case verified."""
+        if case.get("remote"):
+            self.guest(case, "stop")
+        case["lifecycle"] = "verified"
         self.persist()
 
     def transfer(self, case):
@@ -804,7 +957,7 @@ class Driver:
         case.setdefault("helper_units", []).append("archiver-interrupt-" + case["creation_id"] + ".service")
         self.persist()
         child = subprocess.Popen([sys.executable, str(HERE / "driver.py"),
-                                  "--interruption-probe", str(self.root), "--case", case["name"]],
+                                  "--interruption-probe", str(self.root), "--probe-case", case["name"]],
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         try:
             deadline = time.monotonic() + DEFAULT_BOUNDS["command"]
@@ -840,10 +993,10 @@ class Driver:
             else:
                 modified["cases"][0]["uuid"] = "00000000-0000-0000-0000-000000000000"
             save(context / "run.json", modified)
-            rc, _ = self.command([sys.executable, str(HERE / "driver.py"), "--cleanup", str(context)],
+            rc, _ = self.command([sys.executable, str(HERE / "driver.py"), "--verify-cleanup", str(context)],
                                  check=False)
             if rc != 2 or self.snapshot() != before:
-                raise Failed("Actual cleanup did not safely refuse invalid ownership")
+                raise Failed("Cleanup verification did not refuse invalid ownership")
         save(self.root / "lifecycle.json", {"at": utc(), "result": "Pass", "before": before,
                                             "after": self.snapshot()})
         self.state["interruption_verified"] = True
@@ -852,93 +1005,41 @@ class Driver:
         self.state["interruption_sha256"] = digest(self.root / "interruption.json")
         self.persist()
 
-    def shutdown(self, case):
-        self.guest(case, "stop") if case.get("remote") else None
-        self.cloud(case, "-S", timeout=DEFAULT_BOUNDS["shutdown"])
-        if self.virsh("domstate", case["uuid"]).strip() != "shut off":
-            raise Failed("Owned successful guest did not shut down")
-        case["lifecycle"] = "retained"
-        self.persist()
-
-    def cleanup(self):
+    def verify_cleanup(self):
+        """Confirm independently that owned resources are gone and the baseline is preserved."""
         baseline = self.state.get("baseline")
         if not baseline or not self.state["cases"]:
             raise Invalid("Missing run-start baseline or owned resources")
-        snapshot = self.snapshot()
-        owned_reservations = {"live": [], "persistent": []}
+        # An inspection error is not an observed cleanup failure; the check can run again.
+        try:
+            snapshot = self.snapshot()
+        except (Failed, OSError, ET.ParseError, subprocess.SubprocessError) as error:
+            raise Incomplete("Cleanup inspection failed; nothing recorded: " + str(error)) from error
         for case in self.state["cases"]:
             self.case_identity(case)
-            if not case.get("uuid") or not case.get("reservation") or not case.get("creation_id"):
-                raise Invalid("Incomplete ownership: cleanup refused")
-            if case["uuid"] in baseline["domains"]:
-                raise Invalid("Owned UUID overlaps the preservation baseline")
-            for kind in owned_reservations:
-                if case["reservation"] in baseline["reservations"][kind]:
-                    raise Invalid("Owned DHCP identity overlaps the preservation baseline")
-                owned_reservations[kind].append(case["reservation"])
-            if case.get("cleanup", {}).get("result") == "Pass":
-                self.removal_proof(case, snapshot)
-                continue
-            if case.get("cleanup", {}).get("started"):
-                if self.resources_absent(case, snapshot):
-                    case["cleanup"] = {"at": utc(), "result": "Pass"}
-                    self.persist()
-                    continue
-            if snapshot["domains"].get(case["uuid"]) != case["vm_name"]:
-                raise Invalid("Missing or changed domain ownership; cleanup refused")
-            if any(case["reservation"] not in snapshot["reservations"][kind]
-                   for kind in ("live", "persistent")):
-                raise Invalid("Missing or changed DHCP ownership; cleanup refused")
-            expected = Path(self.config["images"][case["os"]]["directory"]) / (case["vm_name"] + ".qcow2")
-            if case["disk"] != str(expected) or case["record"] != str(expected) + ".creation-record":
-                raise Invalid("Disk ownership mismatch")
-            if case["seed"] != str(expected.with_name(case["vm_name"] + "-seed.iso")):
-                raise Invalid("Seed ownership mismatch")
-            xml = ET.fromstring(self.virsh("dumpxml", case["uuid"]))
-            mac = domain_mac(xml, self.config["cloud"]["network"], case["uuid"], case["vm_name"])
-            if owned_reservation(snapshot["reservations"], mac, case["vm_name"]) != case["reservation"]:
-                raise Invalid("Domain interface/DHCP ownership mismatch; cleanup refused")
-            disks = {node.get("file") for node in xml.findall("./devices/disk/source")}
-            if str(expected) not in disks or case["seed"] not in disks:
-                raise Invalid("Domain disk/seed ownership mismatch")
-            for name in ("disk", "seed", "record"):
-                if Path(case[name]).is_symlink():
-                    raise Invalid("Owned resource is a symlink")
-            record = dict(line.split("=", 1) for line in Path(case["record"]).read_text().splitlines()
-                          if "=" in line)
-            if record.get("image_id") != case["creation_id"] or record.get(
-                    "image_name") != Path(case["disk"]).name:
-                raise Invalid("Creation identity mismatch")
-        for case in self.state["cases"]:
-            if case.get("cleanup", {}).get("result") != "Pass":
-                self.state.setdefault("cleanup_baseline", snapshot)
-                case["cleanup"] = {"at": utc(), "result": "Pending", "started": True}
-                self.persist()
-                self.cloud(case, "-c", timeout=DEFAULT_BOUNDS["shutdown"])
-                observed = self.snapshot()
-                self.removal_proof(case, observed)
-                case["cleanup"] = {"at": utc(), "result": "Pass"}
-                self.persist()
-        after = self.snapshot()
+            if not case.get("uuid") or not case.get("reservation"):
+                raise Invalid("Incomplete ownership: cleanup verification refused")
+            if case["uuid"] in baseline["domains"] or any(
+                    case["reservation"] in baseline["reservations"][kind] for kind in ("live", "persistent")):
+                raise Invalid("Owned identity overlaps the preservation baseline")
+            named = [uuid for uuid, name in snapshot["domains"].items() if name == case["vm_name"]]
+            if named and named != [case["uuid"]]:
+                raise Invalid("A domain with an owned name has another UUID; verification refused")
         for uuid, name in baseline["domains"].items():
-            if after["domains"].get(uuid) != name:
+            if snapshot["domains"].get(uuid) != name:
                 raise Failed("A baseline domain identity was not preserved")
         for kind, entries in baseline["reservations"].items():
-            if any(entry not in after["reservations"][kind] for entry in entries):
+            if any(entry not in snapshot["reservations"][kind] for entry in entries):
                 raise Failed("A baseline DHCP reservation was not preserved")
-        preservation = self.state.get("cleanup_baseline", snapshot)
-        for uuid, name in preservation["domains"].items():
-            if uuid not in {case["uuid"] for case in self.state["cases"]}:
-                if after["domains"].get(uuid) != name:
-                    raise Failed("An unowned domain was not preserved")
-        for kind, entries in preservation["reservations"].items():
-            for entry in entries:
-                if entry not in owned_reservations[kind] and entry not in after["reservations"][kind]:
-                    raise Failed("An unowned DHCP reservation was not preserved")
-        for case in self.state["cases"]:
-            self.removal_proof(case, after)
-        save(self.root / "cleanup.json", {"before": preservation, "after": after, "at": utc()})
+        remaining = [case["name"] for case in self.state["cases"] if not self.resources_absent(case, snapshot)]
+        save(self.root / "cleanup.json", {"at": utc(), "baseline": baseline, "after": snapshot,
+                                          "remaining": remaining})
         self.state["cleanup_sha256"] = digest(self.root / "cleanup.json")
+        if remaining:
+            self.persist()
+            raise Incomplete("Owned resources remain: " + ", ".join(remaining))
+        for case in self.state["cases"]:
+            case["cleanup"] = {"at": utc(), "result": "Pass"}
         self.persist()
 
     def resources_absent(self, case, snapshot):
@@ -950,15 +1051,14 @@ class Driver:
                             for entry in snapshot["reservations"][kind])
                     for kind in ("live", "persistent")))
 
-    def removal_proof(self, case, snapshot):
-        if not self.resources_absent(case, snapshot):
-            raise Failed("Owned resource remains or was recreated after cleanup")
-
     def verdict(self):
         if self.state.get("failure"):
             return 1
-        if self.state.get("mode") != "system" or tuple(
-                case["name"] for case in self.state["cases"]) != MATRIX:
+        names = [case["name"] for case in self.state["cases"]]
+        # Cases run as separate invocations, so the matrix is a set, not a sequence.
+        if self.state.get("mode") != "system" or sorted(names) != sorted(MATRIX):
+            return 77
+        if any(case.get("lifecycle") != "verified" for case in self.state["cases"]):
             return 77
         if self.state.get("preflight", {}).get("result") != "Pass":
             return 77
@@ -986,7 +1086,7 @@ class Driver:
             if case.get("cleanup", {}).get("result") != "Pass":
                 return 77
             if not case["negative"]:
-                actions = ("installation", "runtime", "reinstalled")
+                actions = ("installation", "runtime", "snapshot", "unchanged", "reinstalled", "stop")
                 if case["backend"] == "sqlite":
                     actions += ("negative",)
                 for action in actions:
@@ -1008,28 +1108,51 @@ class Driver:
 def parser():
     result = argparse.ArgumentParser(description=__doc__)
     mode = result.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--system", action="store_true")
-    mode.add_argument("--installation", action="store_true")
-    mode.add_argument("--runtime", type=Path, metavar="CONTEXT")
-    mode.add_argument("--cleanup", type=Path, metavar="CONTEXT")
-    mode.add_argument("--verdict", type=Path, metavar="CONTEXT")
-    mode.add_argument("--interruption-probe", type=Path, metavar="CONTEXT", help=argparse.SUPPRESS)
+    mode.add_argument("--init", action="store_true")
+    mode.add_argument("--case", choices=MATRIX)
+    mode.add_argument("--verify-cleanup", type=Path, metavar="RUN")
+    mode.add_argument("--verdict", type=Path, metavar="RUN")
+    mode.add_argument("--interruption-probe", type=Path, metavar="RUN", help=argparse.SUPPRESS)
+    result.add_argument("run", type=Path, nargs="?")
     result.add_argument("--config", type=Path)
     result.add_argument("--evidence", type=Path)
-    result.add_argument("--case", choices=POSITIVE)
+    result.add_argument("--handoff", type=Path)
+    result.add_argument("--probe-case", choices=POSITIVE, help=argparse.SUPPRESS)
     return result
 
 
 def main(argv=None):
     args = parser().parse_args(argv)
-    root = args.runtime or args.cleanup or args.verdict or args.interruption_probe
-    if root:
-        if args.config or args.evidence or (args.case and not (args.runtime or args.interruption_probe)):
+    if args.init:
+        if args.run or args.handoff or args.probe_case:
+            raise Invalid("--init accepts only --config and --evidence")
+        if not args.config or not args.evidence:
+            raise Incomplete("Explicit --config and --evidence are required; no system action ran")
+        config = validate(load(args.config))
+        root = args.evidence
+        if root.exists() or root.is_symlink():
+            raise Invalid("Evidence directory already exists; refusing reuse")
+        root.mkdir(mode=0o700, parents=False)
+        save(root / "run.json", {"schema": SCHEMA, "at": utc(), "config": config, "mode": "system",
+                                "cases": [], "driver_sha256": digest(HERE / "driver.py"),
+                                "guest_sha256": digest(HERE / "guest.py")})
+        driver = Driver(root)
+    elif args.case:
+        if args.config or args.evidence or args.probe_case:
+            raise Invalid("--case accepts only --handoff and the run directory")
+        if not args.handoff or not args.run:
+            raise Incomplete("Explicit --handoff and run directory are required; no system action ran")
+        handoff = load(args.handoff)
+        driver = Driver(args.run)
+    else:
+        root = args.verify_cleanup or args.verdict or args.interruption_probe
+        if (args.config or args.evidence or args.handoff or args.run or
+                bool(args.probe_case) != bool(args.interruption_probe)):
             raise Invalid("Context operations cannot replace configuration or evidence")
         driver = Driver(root)
         if args.interruption_probe:
             driver.log_prefix = "interruption-command"
-            matches = [case for case in driver.state["cases"] if case["name"] == args.case]
+            matches = [case for case in driver.state["cases"] if case["name"] == args.probe_case]
             if len(matches) != 1 or not matches[0].get("remote"):
                 raise Invalid("Interruption probe requires an owned installation context")
             try:
@@ -1045,23 +1168,6 @@ def main(argv=None):
             code = driver.verdict()
             print("PASS" if code == 0 else "FAIL" if code == 1 else "INCOMPLETE")
             return code
-    else:
-        if not args.config or not args.evidence:
-            raise Incomplete("Explicit --config and --evidence are required; no system action ran")
-        if args.installation and not args.case:
-            raise Invalid("Installation diagnosis requires one --case")
-        if args.system and args.case:
-            raise Invalid("A full system run cannot select one case")
-        config = validate(load(args.config))
-        root = args.evidence
-        if root.exists() or root.is_symlink():
-            raise Invalid("Evidence directory already exists; refusing reuse")
-        root.mkdir(mode=0o700, parents=False)
-        save(root / "run.json", {"schema": SCHEMA, "at": utc(), "config": config,
-                                "mode": "system" if args.system else "installation",
-                                "cases": [], "driver_sha256": digest(HERE / "driver.py"),
-                                "guest_sha256": digest(HERE / "guest.py")})
-        driver = Driver(root)
     lock_path = driver.root / "lock"
     if lock_path.is_symlink():
         raise Invalid("Symlink lock refused")
@@ -1071,36 +1177,36 @@ def main(argv=None):
         except BlockingIOError as error:
             raise Invalid("Another operation owns this run context") from error
         try:
-            if args.cleanup:
-                driver.cleanup()
+            if args.verify_cleanup:
+                driver.verify_cleanup()
+                print("PASS: owned resources are absent and the baseline is preserved")
                 return 0
-            if args.runtime:
-                matches = [case for case in driver.state["cases"] if case["name"] == args.case]
-                if len(matches) != 1 or not matches[0].get("remote"):
-                    raise Invalid("Runtime requires one verified installation context and --case")
-                driver.runtime(matches[0])
+            if args.init:
+                driver.prepare()
+                print("PASS: run initialized; no guest was contacted")
                 return 0
-            driver.prepare()
-            for name in MATRIX if args.system else (args.case,):
-                case = driver.create(name)
-                if args.system:
-                    if not case["negative"]:
-                        driver.runtime(case)
-                        if not driver.state.get("interruption_verified"):
-                            driver.lifecycle_checks(case)
-                    driver.shutdown(case)
-            print("INCOMPLETE: explicit cleanup and lifecycle evidence remain pending"
-                  if args.system else "PASS: selected installation assertions only")
-            return 77 if args.system else 0
-        except (Failed, KeyboardInterrupt, OSError, ValueError, KeyError, ET.ParseError,
+            case = driver.adopt(args.case, handoff)
+            if not case["negative"]:
+                driver.runtime(case)
+                if not driver.state.get("interruption_verified"):
+                    driver.lifecycle_checks(case)
+            driver.finish(case)
+            print("PASS: case " + case["name"] + " recorded; only --verdict establishes acceptance")
+            return 0
+        except (Failed, Invalid, KeyboardInterrupt, OSError, ValueError, KeyError, ET.ParseError,
                 subprocess.SubprocessError) as error:
+            # A refusal before a case is recorded leaves the run record unchanged.
+            if isinstance(error, Invalid) and not driver.recorded:
+                raise
             failure = {"at": utc(), "category": type(error).__name__}
             driver.state.setdefault("failure", failure)
             driver.state.setdefault("failures", []).append(failure)
             driver.persist()
-            if not args.cleanup:
+            if not args.verify_cleanup:
                 driver.stop_helpers()
                 driver.persist()
+            if isinstance(error, Invalid):
+                raise Failed(str(error)) from error
             raise
 
 

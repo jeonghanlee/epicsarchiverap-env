@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Phase entrypoint for real VM installation verification.
+# Compatibility entrypoint: one handed-off VM case (installation and runtime).
 set -euo pipefail
 TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly TOP
@@ -8,4 +8,4 @@ if [[ $# -eq 0 ]]; then
     printf '%s\n' 'INCOMPLETE: explicit VM inputs are required; no system action ran.' >&2
     exit 77
 fi
-exec python3 "${TOP}/tests/vm/driver.py" --installation "$@"
+exec python3 "${TOP}/tests/vm/driver.py" --case "$@"

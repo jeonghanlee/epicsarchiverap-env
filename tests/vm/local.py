@@ -13,6 +13,7 @@ import sys
 import tempfile
 import time
 import unittest
+import unittest.mock
 import xml.etree.ElementTree as ET
 
 TOP = Path(__file__).resolve().parents[2]
@@ -272,16 +273,25 @@ class EntrypointTests(unittest.TestCase):
         return subprocess.run(['python3', str(DRIVER), *map(str, arguments)],
                               capture_output=True, text=True, timeout=10)
 
+    def context_operations(self, context):
+        handoff = Path(tempfile.mkdtemp()) / 'handoff.json'
+        handoff.write_text('{}')
+        self.addCleanup(shutil.rmtree, handoff.parent)
+        return (('--verify-cleanup', context), ('--verdict', context),
+                ('--case', 'debian13-sqlite', '--handoff', handoff, context))
+
     def test_missing_execution_inputs(self):
-        for mode in ('--system', '--installation'):
-            with self.subTest(mode=mode):
-                result = self.invoke(mode)
+        for arguments in (('--init',), ('--case', 'debian13-socket')):
+            with self.subTest(arguments=arguments):
+                result = self.invoke(*arguments)
                 self.assertEqual(result.returncode, 77, result.stderr)
                 self.assertIn('no system action ran', result.stderr)
 
     def test_unknown_and_conflicting_operations(self):
-        for arguments in (('--system', '--unknown'), ('--system', '--installation'),
-                          ('--system', '--case', 'unknown')):
+        for arguments in (('--system',), ('--init', '--verdict', '/unowned'),
+                          ('--case', 'unknown'), ('--init', '--handoff', '/unowned'),
+                          ('--case', 'debian13-socket', '--config', '/unowned',
+                           '--handoff', '/unowned', '/unowned')):
             with self.subTest(arguments=arguments):
                 self.assertEqual(self.invoke(*arguments).returncode, 2)
 
@@ -293,7 +303,7 @@ class EntrypointTests(unittest.TestCase):
                 spec = self.config()
                 spec['fixture'][field] = value
                 config.write_text(json.dumps(spec))
-                result = self.invoke('--system', '--config', config, '--evidence', evidence)
+                result = self.invoke('--init', '--config', config, '--evidence', evidence)
                 self.assertEqual(result.returncode, 2, result.stderr)
                 self.assertIn('accepted original', result.stderr)
                 self.assertFalse(evidence.exists())
@@ -320,8 +330,8 @@ class EntrypointTests(unittest.TestCase):
                 modified = json.loads(json.dumps(state))
                 modified['cases'][0][field] = value
                 (root / 'run.json').write_text(json.dumps(modified))
-                for mode in ('--cleanup', '--runtime', '--verdict'):
-                    result = self.invoke(mode, root)
+                for arguments in self.context_operations(root):
+                    result = self.invoke(*arguments)
                     self.assertEqual(result.returncode, 2, result.stderr)
                     self.assertFalse((root / 'lock').exists())
                     self.assertFalse(list(root.glob('command-*.json')))
@@ -332,7 +342,7 @@ class EntrypointTests(unittest.TestCase):
             config, evidence = root / 'input.json', root / 'evidence'
             for value in (None, [], {}, {'cloud': None}):
                 config.write_text(json.dumps(value))
-                result = self.invoke('--system', '--config', config, '--evidence', evidence)
+                result = self.invoke('--init', '--config', config, '--evidence', evidence)
                 self.assertEqual(result.returncode, 2, result.stderr)
                 self.assertFalse(evidence.exists())
 
@@ -352,7 +362,7 @@ class EntrypointTests(unittest.TestCase):
                 spec = self.config()
                 spec[section][field] = value
                 config.write_text(json.dumps(spec))
-                result = self.invoke('--system', '--config', config, '--evidence', evidence)
+                result = self.invoke('--init', '--config', config, '--evidence', evidence)
                 self.assertEqual(result.returncode, 2, result.stderr)
                 self.assertFalse(evidence.exists())
 
@@ -382,9 +392,9 @@ class EntrypointTests(unittest.TestCase):
             linked = root / 'linked'
             linked.symlink_to(root, target_is_directory=True)
             for context in (root, absent, linked):
-                for mode in ('--cleanup', '--runtime', '--verdict'):
-                    with self.subTest(context=context, mode=mode):
-                        result = self.invoke(mode, context)
+                for arguments in self.context_operations(context):
+                    with self.subTest(context=context, arguments=arguments[0]):
+                        result = self.invoke(*arguments)
                         self.assertEqual(result.returncode, 2, result.stderr)
             self.assertFalse((root / 'lock').exists())
             self.assertFalse((root / 'run.json').exists())
@@ -402,6 +412,246 @@ class EntrypointTests(unittest.TestCase):
                                     capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 77, result.stderr)
             self.assertIn('no system action ran', result.stderr)
+
+
+class RunOperationTests(unittest.TestCase):
+    """Exercise the shipped handoff, origin, freshness and run rules with real files and tools."""
+
+    def setUp(self):
+        self.driver = load_driver()
+        self.spec = json.loads((DRIVER.parent / 'config.example.json').read_text())
+        for image in self.spec['images'].values():
+            image['minimum_build_free_bytes'] = 1
+
+    def handoff(self, name, index):
+        os_name = name.split('-', 1)[0]
+        node, creation = 'test-%016x' % index, '20261004T000000Z-%012x' % index
+        vm_name = '-'.join((self.spec['cloud']['prefix'], os_name + '-archiver-dev', node, creation))
+        disk = Path(self.spec['images'][os_name]['directory']) / (vm_name + '.qcow2')
+        return {'schema': 1, 'os_selector': os_name + '-archiver-dev',
+                'prefix': self.spec['cloud']['prefix'], 'node': node, 'creation_id': creation,
+                'uuid': '%08x-0000-4000-8000-000000000000' % index, 'vm_name': vm_name,
+                'mac': '02:00:00:00:00:%02x' % index, 'address': '192.0.2.%d' % index,
+                'disk': str(disk), 'seed': str(disk.with_name(vm_name + '-seed.iso')),
+                'record': str(disk) + '.creation-record', 'tool_ref': 'a' * 40}
+
+    def state(self, cases):
+        return {'schema': 1, 'config': self.spec, 'mode': 'system', 'cases': cases,
+                'driver_sha256': hashlib.sha256(DRIVER.read_bytes()).hexdigest(),
+                'guest_sha256': hashlib.sha256((DRIVER.parent / 'guest.py').read_bytes()).hexdigest(),
+                'preflight': {'result': 'Pass'},
+                'baseline': {'domains': {'%08x-0000-4000-8000-000000000000' % 99: 'preserved'},
+                             'reservations': {'live': [], 'persistent': []}}}
+
+    def invoke(self, *arguments):
+        return subprocess.run(['python3', str(DRIVER), *map(str, arguments)],
+                              capture_output=True, text=True, timeout=10)
+
+    def test_handoff_validation_with_real_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / 'handoff.json'
+            valid = self.handoff('rocky8-tcp', 1)
+            path.write_text(json.dumps(valid))
+            case = self.driver.case_from_handoff('rocky8-tcp', self.driver.load(path), self.spec)
+            self.assertEqual((case['os'], case['backend'], case['negative']), ('rocky8', 'tcp', False))
+            self.assertEqual(case['vm_name'], valid['vm_name'])
+            negative = self.driver.case_from_handoff('debian13-build-failure',
+                                                     self.handoff('debian13-build-failure', 2), self.spec)
+            self.assertEqual((negative['backend'], negative['negative']), ('sqlite', True))
+            for field, value in (('schema', 2), ('schema', True), ('prefix', 'other'), ('os_selector', 'debian13-archiver-dev'),
+                                 ('vm_name', 'unowned'), ('disk', '/unowned.qcow2'), ('uuid', 'unowned'),
+                                 ('mac', '02:00:00:00:00:0G'), ('address', '192.0.2.300'),
+                                 ('tool_ref', 'HEAD'), ('node', 1)):
+                with self.subTest(field=field, value=value):
+                    modified = dict(valid, **{field: value})
+                    path.write_text(json.dumps(modified))
+                    with self.assertRaises(self.driver.Invalid):
+                        self.driver.case_from_handoff('rocky8-tcp', self.driver.load(path), self.spec)
+            for modified in ({key: value for key, value in valid.items() if key != 'seed'},
+                             dict(valid, extra='value')):
+                path.write_text(json.dumps(modified))
+                with self.assertRaises(self.driver.Invalid):
+                    self.driver.case_from_handoff('rocky8-tcp', self.driver.load(path), self.spec)
+
+    def test_case_refusals_leave_the_run_unchanged(self):
+        recorded = self.driver.case_from_handoff('debian13-socket', self.handoff('debian13-socket', 3), self.spec)
+        baseline_guest = dict(self.handoff('debian13-tcp', 99))
+        for label, cases, failure, name, handoff in (
+                ('baseline UUID', [], None, 'debian13-tcp', baseline_guest),
+                ('recorded case', [recorded], None, 'debian13-socket', self.handoff('debian13-socket', 4)),
+                ('failed run', [], {'category': 'Failed'}, 'debian13-tcp', self.handoff('debian13-tcp', 5))):
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary) / 'run'
+                root.mkdir(mode=0o700)
+                state = self.state(cases)
+                if failure:
+                    state['failure'] = failure
+                (root / 'run.json').write_text(json.dumps(state))
+                path = Path(temporary) / 'handoff.json'
+                path.write_text(json.dumps(handoff))
+                before = (root / 'run.json').read_bytes()
+                result = self.invoke('--case', name, '--handoff', path, root)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertEqual((root / 'run.json').read_bytes(), before)
+                self.assertFalse(list(root.glob('command-*.json')))
+                self.assertFalse(list(root.glob('*-handoff.json')))
+
+    def test_origin_check_uses_the_stored_url(self):
+        git = shutil.which('git')
+        self.assertIsNotNone(git)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'global.gitconfig').write_text('[url "git@github.com:"]\n\tinsteadOf = https://github.com/\n')
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=str(root / 'global.gitconfig'), GIT_CONFIG_NOSYSTEM='1')
+            subprocess.run([git, 'init', '-q', str(root / 'tool')], check=True, env=env)
+            for stored, accepted in (('https://github.com/example/tool', True),
+                                     ('git@github.com:example/tool', False),
+                                     ('https://user@github.com/example/tool', False)):
+                with self.subTest(stored=stored):
+                    subprocess.run([git, '-C', str(root / 'tool'), 'remote', 'remove', 'origin'],
+                                   env=env, capture_output=True)
+                    subprocess.run([git, '-C', str(root / 'tool'), 'remote', 'add', 'origin', stored],
+                                   check=True, env=env)
+                    result = subprocess.run(self.driver.tool_origin_command(root / 'tool'),
+                                            capture_output=True, text=True, env=env, check=True)
+                    self.assertEqual(result.stdout.strip(), stored)
+                    self.assertIs(self.driver.published_origin(result.stdout.strip()), accepted)
+            rewritten = subprocess.run([git, '-C', str(root / 'tool'), 'remote', 'get-url', 'origin'],
+                                       capture_output=True, text=True, env=env, check=True)
+            self.assertFalse(self.driver.published_origin(rewritten.stdout.strip()))
+
+    def test_publication_clone_ignores_rewrite_rules(self):
+        git = shutil.which('git')
+        self.assertIsNotNone(git)
+        url = 'https://github.com/example/tool'
+        with tempfile.TemporaryDirectory() as temporary:
+            rules = Path(temporary) / 'global.gitconfig'
+            rules.write_text('[url "git@github.com:"]\n\tinsteadOf = https://github.com/\n')
+            with unittest.mock.patch.dict(os.environ, GIT_CONFIG_GLOBAL=str(rules)):
+                rewritten = subprocess.run([git, 'ls-remote', '--get-url', url], capture_output=True,
+                                           text=True, check=True)
+                published = subprocess.run([git, 'ls-remote', '--get-url', url], capture_output=True,
+                                           text=True, check=True, env=self.driver.publication_env())
+        self.assertEqual(rewritten.stdout.strip(), 'git@github.com:example/tool')
+        self.assertEqual(published.stdout.strip(), url)
+
+    def test_fresh_probe_reads_paths_and_units(self):
+        self.assertIsNotNone(shutil.which('systemctl'))
+        with tempfile.TemporaryDirectory() as temporary:
+            present, absent = Path(temporary), Path(temporary) / 'absent'
+            command = self.driver.fresh_probe_command([str(present), str(absent)])
+            self.assertEqual(command[:4], ['sudo', '-n', 'sh', '-c'])
+            result = subprocess.run(command[2:], capture_output=True, text=True, timeout=20)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            fresh = self.driver.parse_fresh_probe(result.stdout, 2)
+            self.assertEqual(fresh['paths'], {str(present): True, str(absent): False})
+            self.assertEqual(fresh['units_exit'], 0)
+            self.assertTrue(all(unit.endswith('.service') for unit in fresh['units']))
+            lines = result.stdout.splitlines()
+            for broken in ([line for line in lines if not line.startswith('@@units_exit')],
+                           ['unknown ' + str(present)] + lines[1:]):
+                with self.assertRaises(self.driver.Failed):
+                    self.driver.parse_fresh_probe('\n'.join(broken), 2)
+
+    def test_host_key_comes_from_the_stored_creation_key(self):
+        keygen = shutil.which('ssh-keygen')
+        self.assertIsNotNone(keygen)
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            (home / '.ssh').mkdir(mode=0o700)
+            entries = {}
+            for address in ('192.0.2.1', '192.0.2.2'):
+                key = home / ('key-' + address)
+                subprocess.run([keygen, '-q', '-t', 'ed25519', '-N', '', '-f', str(key)], check=True)
+                entries[address] = key.with_suffix(key.suffix + '.pub').read_text().split()[:2]
+            known_hosts = home / '.ssh/known_hosts'
+            known_hosts.write_text(''.join('%s %s %s\n' % (address, *entry) for address, entry in entries.items()))
+            subprocess.run([keygen, '-H', '-f', str(known_hosts)], check=True, capture_output=True)
+            with unittest.mock.patch.dict(os.environ, HOME=temporary):
+                command = self.driver.stored_host_key_command('192.0.2.1')
+                found = subprocess.run(command, capture_output=True, text=True)
+                missing = subprocess.run(self.driver.stored_host_key_command('192.0.2.3'),
+                                         capture_output=True, text=True)
+            self.assertEqual(command[-1], str(known_hosts))
+            lines = self.driver.host_key_lines(found.stdout)
+            self.assertEqual(len(lines), 1)
+            self.assertTrue(lines[0].startswith('|1|'))
+            self.assertEqual(lines[0].split()[1:], entries['192.0.2.1'])
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertEqual(self.driver.host_key_lines(missing.stdout), [])
+        options = self.driver.ssh_options('/run/case.known_hosts')
+        self.assertIn('StrictHostKeyChecking=yes', options)
+        self.assertIn('UserKnownHostsFile=/run/case.known_hosts', options)
+        variables = self.driver.ansible_connection_variables('/run/case.known_hosts', '/key')
+        self.assertIs(variables['ansible_host_key_checking'], True)
+        self.assertEqual(shlex.split(variables['ansible_ssh_common_args']), options)
+
+    def test_cleanup_inspection_error_is_incomplete_and_unrecorded(self):
+        case = self.driver.case_from_handoff('debian13-socket', self.handoff('debian13-socket', 6), self.spec)
+        case['reservation'] = {'mac': case['handoff']['mac'], 'ip': case['handoff']['address']}
+        with tempfile.TemporaryDirectory() as temporary:
+            root, tools = Path(temporary) / 'run', Path(temporary) / 'bin'
+            root.mkdir(mode=0o700)
+            tools.mkdir()
+            # The libvirt client is the outer boundary; it fails as a transient error would.
+            (tools / 'virsh').write_text('#!/bin/sh\necho "error: failed to connect" >&2\nexit 1\n')
+            (tools / 'virsh').chmod(0o755)
+            (root / 'run.json').write_text(json.dumps(self.state([case])))
+            before = (root / 'run.json').read_bytes()
+            result = subprocess.run(['python3', str(DRIVER), '--verify-cleanup', str(root)],
+                                    capture_output=True, text=True, timeout=10,
+                                    env=dict(os.environ, PATH=str(tools) + os.pathsep + os.environ['PATH']))
+            self.assertEqual(result.returncode, 77, result.stderr)
+            self.assertEqual((root / 'run.json').read_bytes(), before)
+            self.assertFalse((root / 'cleanup.json').exists())
+
+    def test_verdict_accepts_any_case_order_and_requires_each_case_once(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / 'run'
+            root.mkdir(mode=0o700)
+            proof = root / 'command-00001.json'
+            proof.write_text(json.dumps({'command': ['bash', str(root / 'candidate-env/tests/run-all-tests.bash'),
+                                                     '--local'], 'exit': 0, 'output': 'Ran 1 test\nOK\n'}))
+            cases = []
+            for index, name in enumerate(self.driver.MATRIX, start=10):
+                case = self.driver.case_from_handoff(name, self.handoff(name, index), self.spec)
+                labels = ['T3', 'T14'] if case['negative'] else ['T%d' % n for n in range(3, 13)]
+                if case['backend'] == 'sqlite' and not case['negative']:
+                    labels.append('T13')
+                case['results'] = {label: {'result': 'Pass'} for label in labels}
+                case.update(lifecycle='verified', cleanup={'result': 'Pass'},
+                            reservation={'mac': case['handoff']['mac'], 'ip': case['handoff']['address']},
+                            previous_owned=[c['uuid'] for c in cases[:1]])
+                if not case['negative']:
+                    actions = ['installation', 'runtime', 'snapshot', 'unchanged', 'reinstalled', 'stop'] + (
+                        ['negative'] if case['backend'] == 'sqlite' else [])
+                    for action in actions:
+                        (root / ('%s-%s.json' % (name, action))).write_text(action)
+                    case['artifacts'] = {action: hashlib.sha256(action.encode()).hexdigest()
+                                         for action in actions}
+                cases.append(case)
+            state = self.state(list(reversed(cases)))
+            state['local_suite'] = {'result': 'Pass', 'env_ref': self.spec['candidate']['env_ref'],
+                                    'command_file': proof.name,
+                                    'sha256': hashlib.sha256(proof.read_bytes()).hexdigest()}
+            state.update(interruption_verified=True, refusal_verified=True)
+            for stem in ('lifecycle', 'interruption', 'cleanup'):
+                (root / (stem + '.json')).write_text(stem)
+                state[stem + '_sha256'] = hashlib.sha256(stem.encode()).hexdigest()
+            (root / 'run.json').write_text(json.dumps(state))
+            before = {str(path): path.read_bytes() for path in root.iterdir()}
+            result = self.invoke('--verdict', root)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(before, {str(path): path.read_bytes() for path in root.iterdir()})
+            for action in ('snapshot', 'unchanged', 'stop'):
+                with self.subTest(changed=action):
+                    evidence = root / ('debian13-socket-%s.json' % action)
+                    evidence.write_text('changed')
+                    self.assertEqual(self.invoke('--verdict', root).returncode, 77)
+                    evidence.write_text(action)
+            state['cases'][-1] = json.loads(json.dumps(state['cases'][0]))
+            (root / 'run.json').write_text(json.dumps(state))
+            self.assertEqual(self.invoke('--verdict', root).returncode, 77)
 
 
 if __name__ == '__main__':
