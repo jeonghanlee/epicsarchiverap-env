@@ -172,8 +172,8 @@ sudo -u tomcat /opt/epicsarchiverap-maven/archappl.bash health
 ```
 
 The Linux-only `health` command checks every instance in startup order. Each
-line names the instance, the observed PID when available, and `PRESENT`, `FAIL`
-or `ERROR` with a reason. Storage lines follow for `ARCHAPPL_STORAGE_TOP` and
+line names the instance, the observed PID when available, and `PRESENT`,
+`STARTING`, `FAIL` or `ERROR` with a reason. Storage lines follow for `ARCHAPPL_STORAGE_TOP` and
 each configured STS, MTS and LTS directory, including separate filesystems.
 Older configurations without tier paths check only `ARCHAPPL_STORAGE_TOP`.
 Each storage line has the form
@@ -182,8 +182,10 @@ Each storage line has the form
 above `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85), or `ERROR` when `df`
 cannot read the store (`storage-unreadable`) or the threshold is not a percent
 from 1 to 100 (`storage-invalid-threshold`); when `archappl.conf` does not
-load, the line is `storage path=- ERROR <cause>`. An aggregate line follows
-and names each failing cause: `health FAIL one-or-more-invalid-instances`,
+load, the line is `storage path=- ERROR <cause>`. An aggregate line follows.
+When no instance fails and at least one is starting, it is
+`health STARTING instances-starting; application-readiness-not-checked`.
+Otherwise it names each failing cause: `health FAIL one-or-more-invalid-instances`,
 `health FAIL storage-threshold`, or, when both hold,
 `health FAIL one-or-more-invalid-instances; storage-threshold`. It reads the installed
 configuration, validates each PID file, checks the actual Java executable,
@@ -192,11 +194,23 @@ start time, then repeats observations to reject inconsistent identities. It
 does not delete PID files or signal processes. Other launcher commands retain
 their existing behavior; `status` is a diagnostic listing, not this check.
 
+The launcher records the PID of `bin/run.sh` at once. That process becomes
+`catalina.sh` and then Java by `exec`, so for a fraction of a second after a
+start the PID file names a shell of the start chain. An instance line in that
+window is `STARTING run-script` or `STARTING catalina-script`, not a failure.
+The first stage is recognized by the instance's `bin/run.sh` in the command
+line, the second by `catalina.sh run` with `CATALINA_BASE` of the instance in
+the process environment. A start older than `ARCHAPPL_HEALTH_STARTING_SECONDS`
+(default 10) is `FAIL startup-timeout`. The value is a whole number from 1 to
+59, below the scheduled startup allowance of 60 seconds; any other value is
+`ERROR starting-invalid-bound`. A process that is not in the start chain and
+does not run the configured Java stays `FAIL wrong-java-executable`.
+
 | Exit | Meaning |
 | --- | --- |
 | 0 | Four expected JVM processes verified and the store's filesystem below the alarm threshold at the observation; no application-readiness claim |
-| 1 | One or more missing, dead or invalid instances, or the store's filesystem at or above the alarm threshold |
-| 2 | Inspection incomplete, including unreadable/invalid configuration, inaccessible process identity, or an unreadable store or invalid threshold |
+| 1 | One or more missing, dead or invalid instances, an instance still starting, or the store's filesystem at or above the alarm threshold; the aggregate line tells them apart |
+| 2 | Inspection incomplete, including unreadable/invalid configuration, inaccessible process identity, an unreadable store, an invalid threshold or an invalid startup bound |
 
 Exit 2 takes precedence when failures and inspection errors coexist. A
 scheduled check that skips because the appliance is inactive or stopping prints

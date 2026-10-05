@@ -209,20 +209,85 @@ function health_process_start {
     printf '%s\n' "${fields[19]}"
 }
 
+# Age of a process in hundredths of a second, from its /proc start time in clock ticks.
+function health_process_age {
+    local ticks="$1" hz up
+    hz=$(getconf CLK_TCK 2>/dev/null) || hz=100
+    if [[ ! $hz =~ ^[1-9][0-9]*$ ]]; then hz=100; fi
+    if ! read -r up _ 2>/dev/null < /proc/uptime || [[ ! $up =~ ^[0-9]+\.[0-9]{2}$ ]]; then return 1; fi
+    up="${up/./}"
+    printf '%s\n' $(( 10#$up - 10#$ticks * 100 / hz ))
+}
+
+# A start older than the bound, or one whose age cannot be read, no longer counts as starting.
+function health_starting_expired {
+    local age
+    age=$(health_process_age "$1") || return 0
+    (( age >= 100 * 10#$starting_limit ))
+}
+
+# Name the start-chain stage of a PID that has not executed Java yet. The launcher records the
+# PID of bin/run.sh, which becomes catalina.sh and then Java by exec. The first stage names the
+# instance only in its command line, the second only in CATALINA_BASE of its environment.
+function health_starting_stage {
+    local pid="$1" base="$2" home="$3" index=1 value
+    local -a args=() vars=()
+    mapfile -d '' -t args 2>/dev/null < "/proc/$pid/cmdline" || return 1
+    if [[ ${args[0]:-} == env || ${args[0]##*/} == env ]]; then index=2; fi
+    if (( ${#args[@]} > index )) && value=$(realpath -e -- "${args[index]}" 2>/dev/null) &&
+        [[ $value == "${base}/bin/run.sh" ]]; then
+        printf '%s\n' 'run-script'
+        return 0
+    fi
+    if (( ${#args[@]} == 3 )) && [[ ${args[2]} == run ]] &&
+        value=$(realpath -e -- "${args[1]}" 2>/dev/null) && [[ $value == "${home}/bin/catalina.sh" ]]; then
+        mapfile -d '' -t vars 2>/dev/null < "/proc/$pid/environ" || return 1
+        for value in "${vars[@]}"; do
+            if [[ $value == CATALINA_BASE=* ]]; then
+                value=$(realpath -e -- "${value#*=}" 2>/dev/null) || return 1
+                if [[ $value == "$base" ]]; then
+                    printf '%s\n' 'catalina-script'
+                    return 0
+                fi
+                return 1
+            fi
+        done
+    fi
+    return 1
+}
+
 # Verify executable and complete Tomcat identity arguments between state observations.
+# Returns 3 with the start-chain stage while the PID has not executed Java yet.
 function health_process_identity {
     local pid="$1" base="$2" java="$3" home="$4"
-    local start finish exe arg value index rc=0 bases=0 homes=0 bootstrap=0
+    local start finish exe exe_again stage attempt arg value index rc=0 bases=0 homes=0 bootstrap=0
     local -a args=()
     start=$(health_process_start "$pid") || rc=$?
     if (( rc )); then printf '%s\n' "$start"; return "$rc"; fi
-    if ! exe=$(readlink -e "/proc/$pid/exe" 2>/dev/null); then
-        printf '%s\n' 'unreadable-process-executable'
-        return 2
-    fi
+    for (( attempt=0; attempt<3; attempt++ )); do
+        if ! exe=$(readlink -e "/proc/$pid/exe" 2>/dev/null); then
+            printf '%s\n' 'unreadable-process-executable'
+            return 2
+        fi
+        if [[ $exe == "$java" ]]; then break; fi
+        if stage=$(health_starting_stage "$pid" "$base" "$home"); then
+            if health_starting_expired "$start"; then
+                printf '%s\n' 'startup-timeout'
+                return 1
+            fi
+            printf '%s\n' "$stage"
+            return 3
+        fi
+        # The PID may have advanced to its next stage between the reads; look again before judging.
+        exe_again=$(readlink -e "/proc/$pid/exe" 2>/dev/null) || exe_again=""
+        if [[ $exe_again == "$exe" ]]; then
+            printf '%s\n' 'wrong-java-executable'
+            return 1
+        fi
+    done
     if [[ $exe != "$java" ]]; then
-        printf '%s\n' 'wrong-java-executable'
-        return 1
+        printf '%s\n' 'process-changed-during-inspection'
+        return 2
     fi
     if ! mapfile -d '' -t args 2>/dev/null < "/proc/$pid/cmdline"; then
         printf '%s\n' 'unreadable-process-arguments'
@@ -292,6 +357,11 @@ function health_instance {
     else
         start='unreadable-instance-path'
     fi
+    if (( rc == 3 )); then
+        # Still in the start chain: only the PID file has to stay stable.
+        again=$(health_pid "$file") || again=""
+        if [[ $again != "$pid" ]]; then start='pid-file-changed-during-inspection'; rc=2; fi
+    fi
     if (( rc == 0 )); then
         finish=$(health_process_identity "$pid" "$base" "$java" "$home") || rc=$?
         if (( rc )); then
@@ -309,6 +379,7 @@ function health_instance {
     case "$rc" in
         0) printf '%s pid=%s PRESENT verified-process-presence\n' "$name" "$pid" ;;
         1) printf '%s pid=%s FAIL %s\n' "$name" "$pid" "$start" ;;
+        3) printf '%s pid=%s STARTING %s\n' "$name" "$pid" "$start" ;;
         *) printf '%s pid=%s ERROR %s\n' "$name" "$pid" "$start" ;;
     esac
     return "$rc"
@@ -362,7 +433,8 @@ function health_storage {
 }
 
 function health_archappl {
-    local JAVA_HOME="" CATALINA_HOME="" java="" home="" error="" service rc result=0
+    local JAVA_HOME="" CATALINA_HOME="" java="" home="" error="" service rc
+    local failed=0 errored=0 starting=0 starting_limit
     local loaded=0 storage_rc=-1 verdict
     # shellcheck disable=SC1091,SC1090
     if [[ $OSTYPE != linux* ]]; then
@@ -377,8 +449,13 @@ function health_archappl {
         ! home=$(realpath -e -- "$CATALINA_HOME" 2>/dev/null) || [[ ! -x $java || ! -d $home ]]; then
         error='invalid-runtime-paths'
     fi
+    # A start counts only for a bound below the scheduled startup allowance of 60 seconds.
+    starting_limit="${ARCHAPPL_HEALTH_STARTING_SECONDS:-10}"
+    if [[ -z $error ]] && { [[ ! $starting_limit =~ ^[0-9]{1,2}$ ]] || (( 10#$starting_limit < 1 || 10#$starting_limit > 59 )); }; then
+        error='starting-invalid-bound'
+    fi
     # The configuration was read when no error occurred before the runtime paths.
-    if [[ -z $error || $error == invalid-runtime-paths ]]; then loaded=1; fi
+    if [[ -z $error || $error == invalid-runtime-paths || $error == starting-invalid-bound ]]; then loaded=1; fi
     for service in "${startup_services[@]}"; do
         rc=0
         if [[ -n $error ]]; then
@@ -387,7 +464,12 @@ function health_archappl {
         else
             health_instance "$service" "$java" "$home" || rc=$?
         fi
-        if (( rc > result )); then result=$rc; fi
+        case "$rc" in
+            0) ;;
+            1) failed=1 ;;
+            3) starting=1 ;;
+            *) errored=1 ;;
+        esac
     done
     # The store is known once the configuration loads; without it the store
     # path is unknown, and a non-Linux host has no storage line at all.
@@ -398,16 +480,20 @@ function health_archappl {
         printf 'storage path=- ERROR %s\n' "$error"
         storage_rc=2
     fi
-    if (( storage_rc == 2 || result == 2 )); then
+    if (( storage_rc == 2 || errored )); then
         printf '%s\n' 'health ERROR inspection-incomplete'
         return 2
     fi
-    if (( result == 1 || storage_rc == 1 )); then
+    if (( failed || storage_rc == 1 )); then
         verdict='health FAIL'
-        if (( result == 1 )); then verdict+=' one-or-more-invalid-instances'; fi
-        if (( result == 1 && storage_rc == 1 )); then verdict+=';'; fi
+        if (( failed )); then verdict+=' one-or-more-invalid-instances'; fi
+        if (( failed && storage_rc == 1 )); then verdict+=';'; fi
         if (( storage_rc == 1 )); then verdict+=' storage-threshold'; fi
         printf '%s\n' "$verdict"
+        return 1
+    fi
+    if (( starting )); then
+        printf '%s\n' 'health STARTING instances-starting; application-readiness-not-checked'
         return 1
     fi
     printf '%s\n' 'health PRESENT all-four-processes-verified; application-readiness-not-checked'

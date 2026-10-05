@@ -320,7 +320,9 @@ Notes:
 
 - Process presence: run the installed `archappl.bash health` as the service
   account. Exit 0 verifies the four expected JVM processes at that observation;
-  exit 1 names invalid/missing instances; exit 2 reports incomplete inspection.
+  exit 1 names invalid/missing instances or reports `STARTING` for an instance
+  that has not executed Java yet, so repeat the command a few seconds after a
+  start or restart; exit 2 reports incomplete inspection.
   The recurring health service reports failures independently of the appliance
   service. A successful or skipped oneshot becomes inactive, so inactive alone
   is not proof of four healthy processes. Inspect its journal and exit status.

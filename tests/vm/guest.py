@@ -224,6 +224,7 @@ class Guest:
         self.bounds = self.spec["bounds"]
         self.ioc_started = False
         self.expected_restart = False
+        self.startup_health = ""
         self.checkout = Path(self.settings["source_parent"]) / "epicsarchiverap-env"
         self.source = self.checkout / "epicsarchiverap-maven-src"
         self.install = Path(self.settings["install_parent"]) / "epicsarchiverap-maven"
@@ -267,8 +268,12 @@ class Guest:
     def health(self, expected=0, retry_startup=False):
         rc, out, err = execute(["runuser", "-u", self.settings["user"], "--", "bash",
                                 str(self.install / "archappl.bash"), "health"], check_exit=False)
+        # Right after a start the PID file can name a shell of the start chain; the launcher
+        # reports it as STARTING, and a launcher without that verdict as a wrong executable.
         if retry_startup and rc != expected and any(token in out + err for token in
-                ("missing-pid-file", "missing-process", "dead-process")):
+                ("missing-pid-file", "missing-process", "dead-process", "STARTING",
+                 "wrong-java-executable")):
+            self.startup_health = out + err
             return None
         check(rc == expected, "Shipped launcher health returned an unexpected verdict: " + out + err)
         if not expected:
@@ -312,6 +317,7 @@ class Guest:
     def ready(self, bound):
         deadline = time.monotonic() + bound
         started = time.monotonic()
+        self.startup_health = ""
         while time.monotonic() < deadline:
             try:
                 if self.health(retry_startup=True) is None:
@@ -334,7 +340,8 @@ class Guest:
                 return
             except (urllib.error.URLError, TimeoutError):
                 time.sleep(2)
-        raise CheckError("Application readiness deadline exceeded")
+        raise CheckError("Application readiness deadline exceeded" + (
+            "; last health: " + self.startup_health.strip() if self.startup_health else ""))
 
     def payload(self):
         check(execute(["git", "-C", str(self.checkout), "rev-parse", "HEAD"])[1].strip() ==

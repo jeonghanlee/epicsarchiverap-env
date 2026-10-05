@@ -414,6 +414,56 @@ class EntrypointTests(unittest.TestCase):
             self.assertIn('no system action ran', result.stderr)
 
 
+class StartupHealthTests(unittest.TestCase):
+    """Run the shipped retry logic of the guest verifier against launcher verdict text."""
+
+    STARTING = ("mgmt pid=11 STARTING run-script\nengine pid=12 PRESENT verified-process-presence\n"
+                "health STARTING instances-starting; application-readiness-not-checked\n")
+    # The verdict a correct guest returned about 0.4 s after a restart, as retained by the VM run.
+    WRONG_JAVA = ("mgmt pid=63614 FAIL wrong-java-executable\nengine pid=63630 FAIL wrong-java-executable\n"
+                  "etl pid=63653 PRESENT verified-process-presence\n"
+                  "retrieval pid=63664 PRESENT verified-process-presence\n"
+                  "health FAIL one-or-more-invalid-instances\n")
+    OTHER_FAILURE = "mgmt pid=11 FAIL wrong-tomcat-identity\nhealth FAIL one-or-more-invalid-instances\n"
+
+    def guest_printing(self, text):
+        """Return a verifier whose launcher command is replaced by a runuser that prints text."""
+        module = load_guest()
+        directory = Path(tempfile.mkdtemp(prefix='startup-health-'))
+        self.addCleanup(shutil.rmtree, directory)
+        (directory / 'verdict').write_text(text)
+        runuser = directory / 'runuser'
+        runuser.write_text('#!/bin/sh\ncat "%s/verdict"\nexit 1\n' % directory)
+        runuser.chmod(0o755)
+        patch = unittest.mock.patch.dict(os.environ, PATH=str(directory) + os.pathsep + os.environ['PATH'])
+        patch.start()
+        self.addCleanup(patch.stop)
+        guest = module.Guest.__new__(module.Guest)
+        guest.settings = {'user': 'service'}
+        guest.install = directory
+        guest.startup_health = ''
+        return module, guest
+
+    def test_start_chain_verdicts_are_retried(self):
+        for text in (self.STARTING, self.WRONG_JAVA):
+            with self.subTest(text=text.splitlines()[0]):
+                module, guest = self.guest_printing(text)
+                self.assertIsNone(guest.health(retry_startup=True))
+                self.assertEqual(guest.startup_health, text)
+
+    def test_other_failures_are_not_retried(self):
+        module, guest = self.guest_printing(self.OTHER_FAILURE)
+        with self.assertRaises(module.CheckError):
+            guest.health(retry_startup=True)
+
+    def test_persistent_wrong_executable_fails_at_the_deadline_with_the_last_verdict(self):
+        module, guest = self.guest_printing(self.WRONG_JAVA)
+        with self.assertRaises(module.CheckError) as raised:
+            guest.ready(3)
+        self.assertIn('Application readiness deadline exceeded', str(raised.exception))
+        self.assertIn('mgmt pid=63614 FAIL wrong-java-executable', str(raised.exception))
+
+
 class RunOperationTests(unittest.TestCase):
     """Exercise the shipped handoff, origin, freshness and run rules with real files and tools."""
 
