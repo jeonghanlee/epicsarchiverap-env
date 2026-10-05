@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M46 is Complete (#59 closed on 2026-10-05; the measured `STARTING` windows are below 1.1 s against the 10 s bound and a persistent wrong executable fails the shipped verifier at its deadline), and the two guests of the measurement run were removed and verified. Commit and publish this record, then decide the remaining work: M45 (#58) and the alignment of the driver with the cloud-provision species rename. M10 is Complete (the accepted matrix passed on 2026-10-05 in the run on `e441d59` and #56 is closed). cloud-provision landed the species rename (`archiver-dev` to `archiver-dev-uds`, group `archiver_dev_uds`, new `archiver-dev-tcp`) as 796682c, so a later matrix run needs an ansible-provision commit that aligns with it plus a matching driver configuration, which is not yet a register item. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: commit and publish the locally verified failure-evidence retention (the M45 plan step 2 and 3 are implemented and verified on the local host), then confirm its commands and management endpoints on a fresh Rocky 8.10 and a fresh Debian 13 guest of a VM run on the published candidate (plan step 4, which needs separate authority and guest requests), then close #58 under issue authority and mark M45 Complete. M46 is Complete (#59 closed on 2026-10-05). M10 is Complete (the accepted matrix passed on 2026-10-05 in the run on `e441d59` and #56 is closed). cloud-provision landed the species rename (`archiver-dev` to `archiver-dev-uds`, group `archiver_dev_uds`, new `archiver-dev-tcp`) as 796682c, so a later matrix run needs an ansible-provision commit that aligns with it plus a matching driver configuration, which is not yet a register item. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -32,7 +32,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | D42 | Specify the launcher health starting verdict: `STARTING` exits 1, the status that FAIL uses, and is told apart by its output token; the time bound is `ARCHAPPL_HEALTH_STARTING_SECONDS` with a default of 10 seconds, which must stay below the scheduled health startup allowance of 60 seconds. The owner accepted the recommended values. The default is provisional until the VM run records the real window. | 2026-10-04 |
 | Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Complete | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
-| Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Not started | Yes | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
+| Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | In progress | No | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
 | Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | No | M43, M14, M10, D31, D37 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
@@ -838,7 +838,7 @@ The engine creates one CAJ context per CA command thread, ten by default. On one
 Origin: 2.0.1 / M45
 Identity History: none
 GitHub Issue: [#58](https://github.com/jeonghanlee/epicsarchiverap-env/issues/58)
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -868,21 +868,23 @@ Out of scope: fixing journalctl, CAJ or jca, which their owners do under D38; pu
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: 2026-10-04; owner authorized only the read-only T1 measurement on the retained `rocky8-socket` guest, with no change to the guest or the repository. T2, T3, any code change and any guest request need plan acceptance and separate authorization
+Plan Status: accepted
+Plan Acceptance: 2026-10-05; owner accepted the revised plan whose remaining work is T2 and whose T3 is not required
+Implementation Authorization: 2026-10-05; owner authorized implementation of this accepted plan and its local verification; commit, push, publication, any VM run and every guest request need separate authority
 Superseded Plan Artifacts: draft of 2026-10-04 with a fresh-guest T1 and an unconditional T3, carried by 36b17908531bc06863f47c20fa96842581a9b782, docs/milestone-2.0.1.md, M45
 
 1. On the retained `rocky8-socket` guest, copy the journal files read-only to private evidence, count health-unit success entries with the guest's systemd 239 `journalctl` and with a newer `journalctl` over the copy, and run G7 header accounting over the same files.
-2. Add evidence retention for T8 and for T10 and T11 failures to `tests/vm/guest.py` in the M46 change, with a local regression that executes the shipped retention path.
-3. If T1 shows exposure, select the T8 revision from the G7 mechanism, implement it, and verify it on Rocky 8.10.
+2. In `tests/vm/guest.py`, add `retain_failure_evidence(action, error)` and call it from the failure handler of `main()` before the failed-evidence file is written. It never masks the original failure: an error inside the retention is recorded as `retention_error`. The failure is classified by a `CheckError` subclass that carries an evidence kind, raised at the final raise of `scheduled()` (journal) and at the acquisition deadline and the CA comparison of `acquire()` and `compare()` (CA). Journal kind: keep the health-unit entries as the guest's `journalctl` returned them (`-o json`, since the check began) in the failure evidence, and copy the journal directories (`/var/log/journal`, `/run/log/journal`) into a private `journal-copy` directory of the case root for a newer reader, recording file names and sizes. CA kind: keep the `ss -uanp` lines of the engine JVM and the management status of the test PV and of the currently disconnected PVs; the exact management endpoints are confirmed on the real guest in step 4.
+3. In `tests/vm/local.py`, add a regression that calls the shipped failure handler with the real host `journalctl`, `ss` and `cp` and a temporary journal directory: each kind produces its evidence names and files, a failing retention command leaves the original failure and its category intact, and with the retention disabled the regression fails. It stays Python because the code under test is Python (D41); it is kept small.
+4. Run the shipped retention commands on a fresh Rocky 8.10 guest (systemd 239) and a fresh Debian 13 guest of a VM run on the published candidate, by calling `retain_failure_evidence` directly over SSH as in the M46 measurement, to confirm the commands and the management endpoints on both OS; this does not force an acceptance failure.
+5. T1 showed no exposure, so no T8 revision is planned; it returns only if the retained evidence of a later failure shows a hidden health entry.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | System | Read-only count of health-unit success entries by systemd 239 and by a newer reader over copies of the same journal files, plus G7 header accounting | Retained installed Rocky 8.10 guest of the failed M10 run | Hidden health-unit entries counted over a stated window; zero means T8 is not exposed |
-| T2 | Local and system | Local regression through the shipped retention path; the next M10 run carries it | Local host; next M10 run | Retention runs on the real failure path and names journal holes or the search ports and unconnected PVs |
+| T2 | Local and system | Local regression through the shipped failure handler with real `journalctl`, `ss` and `cp`; then the shipped retention on a real guest of each OS | Local host; fresh Rocky 8.10 and Debian 13 guests of a VM run on the published candidate | The failure evidence names the health-unit entries and the journal copy, or the engine JVM's UDP sockets and the PV status, and a retention error never hides the original failure |
 | T3 | System | Only if T1 shows exposure: T8 with identical entries hidden under the G7 reproducer, and with a failing health run | Fresh Rocky 8.10 guest | Correct installation passes; a failing health run still fails T8 |
 
 ##### Verification Results
@@ -890,7 +892,7 @@ Superseded Plan Artifacts: draft of 2026-10-04 with a fresh-guest T1 and an unco
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | T1 | 2026-10-04 18:59 PDT | Retained installed Rocky 8.10 `rocky8-socket` guest of the failed M10 run, systemd 239-82.el8_10.19, kernel 4.18.0-553.el8_10; its journal files copied read-only and read by host systemd 257.13 | Pass | Health unit entries until 2026-10-05 01:57:00 UTC: the guest's 239 `journalctl` and 257 over the copy both return 2,880 entries, 220 of them health success lines with 220 distinct invocations, over a 114-minute window with gaps of 30.2 s minimum, 31.0 s median and 91.9 s maximum; no health entry is hidden. Whole journal: 239 returns 12,122 entries and 257 returns 12,123; the one entry only 257 returns is an `[INFO]` line of `archiver-build.sh`, a repeated short line of the build unit, and 239 returns no entry that 257 does not. The reader defect is therefore present on the real appliance guest but did not touch the health unit. The 5 non-success invocations are four startup-allowance SKIPs and one oneshot start without an invocation id. G7 header accounting was not run, because comparing the two readers by journal cursor counts the hidden entries directly. Evidence: `work/m10-validation/m45-t1-journal-reader-exposure-20261005T015917Z.log`, SHA256 `4169db729a89fdb93b1eb5c137cf48aba09c9f8ae8b716cdd8abfc5aaf91ace2`; journal copy `work/m10-validation/rocky8-socket-journal-20261005T015749Z` |
-| T2 | Pending | Local host; next M10 run | Pending | none |
+| T2 | 2026-10-05 10:45 | Local host; the shipped `Guest.fail` and `retain_failure_evidence` in `tests/vm/guest.py` run by `FailureEvidenceTests` in `tests/vm/local.py` with the real host `journalctl`, `ss` and file copy, a real UDP socket of the test process and a local HTTP server as the management transport | Partial (local only) | Journal kind keeps the health-unit entries and copies the journal files byte for byte; CA kind keeps the engine process's UDP sockets from `ss -uanp` and the management PV status and disconnected-PV list; a retention fault is recorded without hiding the original failure and its category; an unclassified failure keeps nothing. Each of five broken variants (retention skipped, retention fault propagating, journal files not copied, engine sockets not selected, every failure classified) fails its targeted test and the shipped code passes. Full `--local` suite exit 0 without skips: Phase 1 223/0, health 20, new health 32/0, database 10, VM local 36 tests, Phase 2 13/0. Verified source SHA256: `tests/vm/guest.py` `86721baca6d162e1e718a9de5b4699e747ea7a33facc3764b6d86e696bc05e44`, `tests/vm/local.py` `b0947d273551b0594c231d8ae82e454c8be9b314899930a3c597296cbdbf1f7f`. Evidence: `work/m10-validation/m45-t2-local-20261005T174521Z.log`, SHA256 `5558d4a8a283bce63466ebbad70a7510e0bc3b724d0a5e335f1ea4eed460a11f`; `work/m10-validation/m45-t2-mutation-20261005T174552Z.log`, SHA256 `16d1e9c65085afbf7854a45652ab1f5e6dd49fe5d8b3894549c870af58aaa5a7`. The commands and management endpoints (`getPVStatus`, `getCurrentlyDisconnectedPVs`) are not yet confirmed on real Rocky 8.10 and Debian 13 guests; that is plan step 4 |
 | T3 | 2026-10-04 18:59 PDT | Conditional on T1 | Not required | T1 found no hidden health entry, so the T8 revision is not needed on this evidence. One guest and 114 minutes is a measurement, not proof for every run; T2 keeps the evidence that would show a hidden health line if one ever fails T8. |
 
 ##### Closure Evidence
