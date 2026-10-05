@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: plan and implement M46 (#59), the launcher health starting verdict that caused the M10 run on f8c457e to fail at `rocky8-socket` T11; its plan is draft and needs acceptance and authorization. Then open a new M10 run on a published candidate that carries M46, and run the eight cases on fresh cloud-provision guests one at a time. Request cleanup of the four guests of the failed run `work/m10-vm-run-f8c457e-dca485f` from cloud-provision and verify it with `--verify-cleanup` on that context. Project results to #56 under separate issue authority. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: plan and implement M46 (#59), the launcher health starting verdict that caused the M10 run on f8c457e to fail at `rocky8-socket` T11; its plan is draft and needs acceptance and authorization. Then open a new M10 run on a published candidate that carries M46, with source `aa953a44bd2e6fb2a299224b97d365e7753a2fd8` under D39, and run the eight cases on fresh cloud-provision guests one at a time. Before that, record M45 / T1 on the retained `rocky8-socket` guest, then request cleanup of the four guests of the failed run `work/m10-vm-run-f8c457e-dca485f` from cloud-provision and verify it with `--verify-cleanup` on that context. Project results to #56 under separate issue authority. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -26,11 +26,11 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | DB | M43 | Reject operations on an unselected database backend | Milestone | Complete | No | D31, D32 | SQLite db.* skips; unsupported and invalid selections stop before configuration writes or DB contact; [detail](#m43---reject-operations-on-an-unselected-database-backend) |
 | Gate | G6 | epicsarchiverap-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---epicsarchiverap-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | Blocked | No | G6, D31, D33 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
-| Tests | M10 | Automate VM installation and runtime tests | Milestone | In progress | No | M46, D31, D34 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
+| Tests | M10 | Automate VM installation and runtime tests | Milestone | In progress | No | M46, D31, D34, D39 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
 | Health | M46 | Report a starting instance distinctly in the launcher health check | Milestone | Not started | Yes | | A launcher-started PID that has not yet executed Java reports a starting state, not `wrong-java-executable`, and the VM verifier waits on it; [detail](#m46---report-a-starting-instance-distinctly-in-the-launcher-health-check) |
 | Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Complete | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
-| Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Not started | Yes | G7, G8, D38 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and a correct installation does not fail on a hidden entry; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
+| Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Not started | Yes | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
 | Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | No | M43, M14, M10, D31, D37 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
@@ -51,6 +51,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D36 | Defer M41 implementation and measurement. Preserve the accepted plan, recovered source evidence and local input-inspection tool. Resumption requires a new dated decision; release assignment and M44 dependencies remain pending a separate scope decision. | 2026-10-01 |
 | D37 | Move M41 to Backlog, excluding heap measurement and new heap guidance from 2.0.1 completion requirements. Preserve its accepted plan and evidence. Reassignment requires an environment with sufficient dedicated disk capacity for the complete archive, response and measurement evidence plus shutdown reserves; existing resource stop rules remain applicable. | 2026-10-01 |
 | D38 | Split the two independent Rocky 8.10 defects by owner. epicsarchiverap-maven owns the CAJ search-port defect (its #26), ansible-provision owns the systemd 239 journald unlinked-entry gap, and epicsarchiverap-env owns how both reach its VM acceptance checks (M45). Each owner proves the exact cause first, then fixes its own side. Patches stay local; publication and upstream reports are decided after the problem is resolved. A session that needs a VM requests it from cloud-provision directly. | 2026-10-04 |
+| D39 | Run M10 acceptance on the latest epicsarchiverap-maven `modernize` commit that carries the current fixes and passes its CI, and keep following newly fixed commits instead of holding an older source. The next run uses `aa953a44bd2e6fb2a299224b97d365e7753a2fd8`, which carries the CAJ correction `7adc7d5a` and passed run 37249019863. The repository source pin `SRC_TAG` in `configure/RELEASE` follows the same commit, so the tested and released source stay equal. | 2026-10-04 |
 
 ### Assignment History
 
@@ -802,51 +803,52 @@ Two independent defects can change an M10 acceptance result. The journalctl read
 
 ##### Scope
 
-- Measure T8 exposure on a fresh Rocky 8.10 guest with the health timer alone, using the reproducer and sequence scanner that G7 shares.
-- On a T8 failure, retain the health unit entries as read and the journal file for a newer reader; a sequence hole alone does not prove a lost entry on systemd 239. On a T10 or T11 failure on either OS, retain `ss -uanp` of the engine JVM and the connection status of the archived PVs.
-- If T1 shows exposure, change how the verifier establishes T8 so that a hidden identical entry cannot fail a correct installation, and verify it on Rocky 8.10.
+- T1: before the failed M10 run's guests are cleaned up, measure T8 exposure read-only on its installed Rocky 8.10 `rocky8-socket` guest, whose health timer has run since installation. Count the health-unit success entries that systemd 239 `journalctl` returns, and compare them with the same journal files read by a newer reader and with G7 header accounting.
+- T2: retain classifying evidence on failure. On a T8 failure, keep the health-unit entries as read and the journal files for a newer reader; a sequence hole alone does not prove a lost entry on systemd 239. On a T10 or T11 failure on either OS, keep `ss -uanp` of the engine JVM and the connection status of the archived PVs. This changes `tests/vm/guest.py` together with M46.
+- T3, only if T1 shows exposure: change how the verifier establishes T8 so that a hidden identical entry cannot fail a correct installation, and verify it on Rocky 8.10.
+- The CAJ defect is handled at its source: under D39 the next M10 run uses an epicsarchiverap-maven commit that carries the CAJ correction, and M45 only keeps the evidence that would classify a recurrence.
 
 Out of scope: fixing journalctl, CAJ or jca, which their owners do under D38; publishing a patch or reporting upstream, which D38 defers until the problem is resolved; changing the M10 acceptance matrix.
 
 ##### Completion Criteria
 
-- M45 / T1 records the T8 exposure on Rocky 8.10 with the shared yardstick.
-- M45 / T2 shows the verifier retaining the classifying evidence on real failures of each class, including CAJ failures on Debian 13.
-- M45 / T3 shows T8 passing a correct installation on Rocky 8.10 while identical entries are hidden, and still failing when health runs fail.
+- M45 / T1 records the T8 exposure on Rocky 8.10 over a stated window with both readers and header accounting.
+- M45 / T2 shows the shipped verifier retaining the classifying evidence through its real failure path, and the next M10 run carries it.
+- M45 / T3 is required only when T1 shows exposure; it then shows T8 passing a correct installation on Rocky 8.10 while identical entries are hidden, and still failing when health runs fail.
 
 ##### Dependencies And Decisions
 
-- D38 assigns this work and keeps every fix local.
+- D38 assigns this work and keeps every fix local; D39 sets the source that the next M10 run uses.
 - G7 and G8 blocked M45 when it was created; resume as Not started. Both are Complete since 2026-10-04, so M45 resumed as Not started.
-- M10's Rocky 8.10 cases are exposed to both defects and its Debian 13 cases to the CAJ defect. The owner has not set an order between M10, M44 and M45; M44's dependencies are unchanged.
-- Guests come from cloud-provision on a request under separate owner authorization; the retained M10 diagnostic guests are not used.
+- M10's Rocky 8.10 cases are exposed to the journalctl reader defect, and every case was exposed to the CAJ defect before its correction. The owner has not set an order between M10, M44 and M45; M44's dependencies are unchanged.
+- T1 reads the retained `rocky8-socket` guest of the failed run `work/m10-vm-run-f8c457e-dca485f` without changing it; that run's cleanup request waits until T1 is recorded. Any other guest comes from cloud-provision on a request under separate owner authorization.
 
 ##### Implementation Plan
 
 Plan Status: draft
 Plan Acceptance: none
 Implementation Authorization: none
-Superseded Plan Artifacts: none
+Superseded Plan Artifacts: draft of 2026-10-04 with a fresh-guest T1 and an unconditional T3, carried by 36b17908531bc06863f47c20fa96842581a9b782, docs/milestone-2.0.1.md, M45
 
-1. Request one fresh Rocky 8.10 guest from cloud-provision and run the health timer alone after an installation, comparing the systemd 239 reader with a newer reader of the same journal file using the G7 tools.
-2. Add evidence retention to the verifier for T8 and for T10 and T11 failures.
+1. On the retained `rocky8-socket` guest, copy the journal files read-only to private evidence, count health-unit success entries with the guest's systemd 239 `journalctl` and with a newer `journalctl` over the copy, and run G7 header accounting over the same files.
+2. Add evidence retention for T8 and for T10 and T11 failures to `tests/vm/guest.py` in the M46 change, with a local regression that executes the shipped retention path.
 3. If T1 shows exposure, select the T8 revision from the G7 mechanism, implement it, and verify it on Rocky 8.10.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | System | Installed appliance with the health timer alone; G7 tools comparing the systemd 239 reader with a newer reader of the same journal file | Fresh Rocky 8.10 guest | Count of hidden health-unit entries and runs over a stated window |
-| T2 | System | Real T8 failures on Rocky 8.10 and T10/T11 failures on either OS, or the reproducer conditions G7 and G8 establish | Fresh Rocky 8.10 and Debian 13 guests | Retained evidence names the journal holes or the shared search port and unconnected PVs |
-| T3 | System | T8 with identical entries hidden under the G7 reproducer, and with a failing health run | Fresh Rocky 8.10 guest | Correct installation passes; a failing health run still fails T8 |
+| T1 | System | Read-only count of health-unit success entries by systemd 239 and by a newer reader over copies of the same journal files, plus G7 header accounting | Retained installed Rocky 8.10 guest of the failed M10 run | Hidden health-unit entries counted over a stated window; zero means T8 is not exposed |
+| T2 | Local and system | Local regression through the shipped retention path; the next M10 run carries it | Local host; next M10 run | Retention runs on the real failure path and names journal holes or the search ports and unconnected PVs |
+| T3 | System | Only if T1 shows exposure: T8 with identical entries hidden under the G7 reproducer, and with a failing health run | Fresh Rocky 8.10 guest | Correct installation passes; a failing health run still fails T8 |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Fresh Rocky 8.10 guest | Pending | none |
-| T2 | Pending | Fresh Rocky 8.10 and Debian 13 guests | Pending | none |
-| T3 | Pending | Fresh Rocky 8.10 guest | Pending | none |
+| T1 | Pending | Retained installed Rocky 8.10 guest | Pending | none |
+| T2 | Pending | Local host; next M10 run | Pending | none |
+| T3 | Pending | Conditional on T1 | Pending | none |
 
 ##### Closure Evidence
 
