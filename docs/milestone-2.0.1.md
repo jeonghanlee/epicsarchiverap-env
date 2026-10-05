@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: the full accepted matrix passed on 2026-10-05 in the M10 run on published environment `e441d59fc4f2072032c3bdaf5895c20f131ab770` (all eight cases, independent cleanup PASS, `--verdict` PASS); commit and publish this record, then project the results to #56 and handle its closure under separate issue authority, which is the last open M10 completion criterion. M46 / T3 stays Partial: the verifier does not retain the `STARTING` window of a passing restart, and the deadline failure for a persistent wrong executable is covered only locally. cloud-provision plans to rename the `archiver-dev` species to `archiver-dev-uds` and its inventory group to `archiver_dev_uds`; the next run after that needs a matching ansible-provision pin and driver configuration. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: M10 is Complete (the accepted matrix passed on 2026-10-05 in the run on `e441d59` and #56 is closed); commit and publish this record. Then decide the open items: M46 / T3 stays Partial because the verifier does not retain the `STARTING` window of a passing restart and the deadline failure for a persistent wrong executable is covered only locally; cloud-provision landed the species rename (`archiver-dev` to `archiver-dev-uds`, group `archiver_dev_uds`, new `archiver-dev-tcp`) as 796682c, so the next VM run needs an ansible-provision commit that aligns with it plus a matching driver configuration, which is not yet a register item. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -26,7 +26,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | DB | M43 | Reject operations on an unselected database backend | Milestone | Complete | No | D31, D32 | SQLite db.* skips; unsupported and invalid selections stop before configuration writes or DB contact; [detail](#m43---reject-operations-on-an-unselected-database-backend) |
 | Gate | G6 | epicsarchiverap-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---epicsarchiverap-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | Blocked | No | G6, D31, D33 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
-| Tests | M10 | Automate VM installation and runtime tests | Milestone | In progress | No | M46, D31, D34, D39 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
+| Tests | M10 | Automate VM installation and runtime tests | Milestone | Complete | No | M46, D31, D34, D39 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
 | Health | M46 | Report a starting instance distinctly in the launcher health check | Milestone | In progress | No | D40, D41, D42 | A launcher-started PID that has not yet executed Java reports a starting state, not `wrong-java-executable`, and the VM verifier waits on it; [detail](#m46---report-a-starting-instance-distinctly-in-the-launcher-health-check) |
 | D41 | Write new tests in Bash and keep Python tests to the minimum that testing Python code requires, because Python versions differ across the supported systems and Python test code needs rewriting as the language changes. Converting the existing Python tests to Bash is the long-term direction and is not scheduled. | 2026-10-04 |
 | D42 | Specify the launcher health starting verdict: `STARTING` exits 1, the status that FAIL uses, and is told apart by its output token; the time bound is `ARCHAPPL_HEALTH_STARTING_SECONDS` with a default of 10 seconds, which must stay below the scheduled health startup allowance of 60 seconds. The owner accepted the recommended values. The default is provisional until the VM run records the real window. | 2026-10-04 |
@@ -278,7 +278,7 @@ Last Compared: 2026-09-30 at 06:40 UTC, `gh issue view 57 --repo jeonghanlee/epi
 Origin: 265f580 / M10
 Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved
 GitHub Issue: [#56](https://github.com/jeonghanlee/epicsarchiverap-env/issues/56)
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -762,6 +762,7 @@ cloud-provision removed the eight guests with `create_vm.bash -c` and reported e
 
 ##### Closure Evidence
 
+- Complete on 2026-10-05: the accepted matrix passed in the run on published environment `e441d59fc4f2072032c3bdaf5895c20f131ab770` (all eight cases, independent `--verify-cleanup` PASS and `--verdict` PASS, subsection "VM Acceptance Run On e441d59"), the register record of that run is `067cb8455c485751d4a7fdbd32c8f66b01b125c2`, and #56 was closed as completed on 2026-10-05 at 15:08 UTC (`gh issue view 56 --repo jeonghanlee/epicsarchiverap-env` returned CLOSED, closedAt 2026-10-05T15:08:40Z).
 - Not a closure record: the implementation `9dcf72996d10a6fd3c1d3712088900c0ac6fce1d` and its register record landed on `origin/release-2.0.1`; on 2026-10-05 at 01:12 UTC, `git fetch` and `git rev-parse origin/release-2.0.1` returned `f8c457eec76184d5d12366923cd7b3c511d5bce0`.
 - Not a closure record: the Rocky 8.10 compatibility revision commit `65cf077b1230f61efdba817aa697483a79a3a5d5` landed on `origin/release-2.0.1`; on 2026-10-02 at 23:52 PDT, `git fetch` followed by `git rev-parse HEAD origin/release-2.0.1` returned that commit for both.
 
@@ -770,10 +771,10 @@ cloud-provision removed the eight guests with `create_vm.bash -c` and reported e
 Title: Automate real VM installation and runtime tests
 Labels: enhancement
 GitHub Milestone: 2.0.1
-Observed State: OPEN
+Observed State: CLOSED
 Observed Labels: enhancement
 Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-10-05 at 01:12 UTC, `gh issue view 56 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:32:58Z. The live title "Automate real container installation and VM runtime tests" and body still describe container installation; the handed-off VM design, its implementation and the run results have not been projected.
+Last Compared: 2026-10-05 at 15:09 UTC, `gh issue view 56 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-05T15:08:40Z, enhancement, milestone 2.0.1, assignee jeonghanlee; the live title and body equal the revised draft and the closing comment records the matrix result.
 
 
 #### G7 - ansible-provision reports the exact cause of the Rocky 8.10 journald gap
