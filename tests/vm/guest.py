@@ -13,6 +13,7 @@ import pwd
 import re
 import shlex
 import signal
+import shutil
 import subprocess
 import sys
 import threading
@@ -30,6 +31,7 @@ MARIADB_UNITS = ("mariadb.service", "mysql.service", "mysqld.service")
 UNIT = "epicsarchiverap-maven.service"
 HEALTH_UNIT = "epicsarchiverap-maven-health.service"
 HEALTH_TIMER = "epicsarchiverap-maven-health.timer"
+JOURNAL_DIRECTORIES = ("/var/log/journal", "/run/log/journal")
 SAFE_NAME = re.compile(r"[A-Za-z0-9_.-]+")
 CA_LINE = re.compile(r"^\S+\s+(\d{4}-\d\d-\d\d)\s+(\d\d:\d\d:\d\d)(\.\d+)\s+([-+0-9.eE]+)")
 COMMANDS = []
@@ -37,6 +39,13 @@ COMMANDS = []
 
 class CheckError(Exception):
     pass
+
+
+class ClassifiedError(CheckError):
+    """A check failure that names the classifying evidence worth keeping."""
+    def __init__(self, message, evidence):
+        super().__init__(message)
+        self.evidence = evidence
 
 
 def check(condition, message):
@@ -351,6 +360,55 @@ class Guest:
         raise CheckError("Application readiness deadline exceeded" + (
             "; last health: " + self.startup_health.strip() if self.startup_health else ""))
 
+    def fail(self, action, error):
+        """Record a failed action with the evidence that classifies its cause."""
+        self.retain_failure_evidence(error)
+        self.evidence["failure"] = {"category": type(error).__name__, "message": str(error)}
+        (self.root / ("failed-" + action + ".json")).write_text(json.dumps(self.evidence))
+
+    def retain_failure_evidence(self, error):
+        """Keep what tells a hidden journal entry or a CA search-port defect apart from a real fault."""
+        kind = getattr(error, "evidence", None)
+        if kind not in ("journal", "ca"):
+            return
+        retained = {"kind": kind}
+        try:
+            getattr(self, "retain_" + kind)(retained)
+        except Exception as failure:
+            # The original failure stays authoritative; a retention fault is only recorded.
+            retained["retention_error"] = type(failure).__name__ + ": " + str(failure)[:300]
+        self.evidence["classifying_evidence"] = retained
+
+    def retain_journal(self, retained):
+        """Keep the health-unit entries as read and a copy of the journal files for a newer reader."""
+        _, entries, _ = execute(["journalctl", "-u", HEALTH_UNIT, "-o", "json", "--no-pager",
+                                  "-n", "2000"], check_exit=False)
+        retained["health_unit_entries"] = entries.splitlines()
+        copied = []
+        for source in JOURNAL_DIRECTORIES:
+            for directory, _, names in os.walk(source):
+                target = self.root / "journal-copy" / Path(directory).relative_to("/")
+                target.mkdir(parents=True, exist_ok=True)
+                for name in sorted(names):
+                    shutil.copy2(os.path.join(directory, name), str(target / name))
+                    copied.append({"file": str((target / name).relative_to(self.root)),
+                                   "bytes": (target / name).stat().st_size})
+        retained["journal_copy"] = copied
+
+    def retain_ca(self, retained):
+        """Keep the engine JVM's UDP sockets and the management view of the test PVs."""
+        pid = int((self.install / "engine/temp/engine.pid").read_text().strip())
+        _, sockets, _ = execute(["ss", "-uanp"], check_exit=False)
+        retained["engine_pid"] = pid
+        retained["engine_udp_sockets"] = [line for line in sockets.splitlines()
+                                          if re.search(r"pid=%d[,)]" % pid, line)]
+        for key, endpoint, parameters in (("pv_status", "getPVStatus", {"pv": self.pv}),
+                                          ("disconnected_pvs", "getCurrentlyDisconnectedPVs", {})):
+            try:
+                retained[key] = self.http(self.mgmt, endpoint, **parameters)
+            except Exception as failure:
+                retained[key] = {"error": type(failure).__name__ + ": " + str(failure)[:200]}
+
     def payload(self):
         check(execute(["git", "-C", str(self.checkout), "rev-parse", "HEAD"])[1].strip() ==
               self.spec["candidate"]["env_ref"], "Environment checkout mismatch")
@@ -517,7 +575,7 @@ class Guest:
                 self.result("T8")
                 return
             time.sleep(2)
-        raise CheckError("Three eligible scheduled health invocations were not observed")
+        raise ClassifiedError("Three eligible scheduled health invocations were not observed", "journal")
 
     def start_ioc(self):
         fixture = self.root / "UnitTestPVs.db"
@@ -578,9 +636,9 @@ class Guest:
     @staticmethod
     def compare(events, observations):
         for event in events:
-            check(any(abs(observed["time"] - event["time"]) < observed["precision_ns"] and
-                      float(event["value"]) == observed["value"] for observed in observations),
-                  "Retrieved timestamp/value does not match real CA")
+            if not any(abs(observed["time"] - event["time"]) < observed["precision_ns"] and
+                       float(event["value"]) == observed["value"] for observed in observations):
+                raise ClassifiedError("Retrieved timestamp/value does not match real CA", "ca")
 
     def acquire(self, observer, register=False):
         start = time.time_ns()
@@ -612,7 +670,7 @@ class Guest:
             except (urllib.error.URLError, TimeoutError):
                 pass
             time.sleep(2)
-        raise CheckError("Fresh acquisition deadline exceeded")
+        raise ClassifiedError("Fresh acquisition deadline exceeded", "ca")
 
     def persistent_pv(self):
         check(SAFE_NAME.fullmatch(self.pv), "Unsafe PV identifier")
@@ -759,8 +817,7 @@ def main():
     try:
         getattr(guest, sys.argv[1])()
     except (Exception, KeyboardInterrupt) as error:
-        guest.evidence["failure"] = {"category": type(error).__name__, "message": str(error)}
-        (guest.root / ("failed-" + sys.argv[1] + ".json")).write_text(json.dumps(guest.evidence))
+        guest.fail(sys.argv[1], error)
         print(json.dumps(guest.evidence))
         return 1
     print(json.dumps(guest.evidence))

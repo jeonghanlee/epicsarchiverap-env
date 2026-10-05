@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Exercise shipped VM entrypoint refusal paths without virtualization or network."""
+import http.server
 import json
 import hashlib
 import importlib.util
@@ -12,6 +13,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 import unittest.mock
@@ -475,6 +477,92 @@ class StartupHealthTests(unittest.TestCase):
             guest.ready(3)
         self.assertIn('Application readiness deadline exceeded', str(raised.exception))
         self.assertIn('mgmt pid=63614 FAIL wrong-java-executable', str(raised.exception))
+
+
+class FailureEvidenceTests(unittest.TestCase):
+    """Run the shipped failure handler with the real journalctl, ss and file copy."""
+
+    def guest(self):
+        module = load_guest()
+        root = Path(tempfile.mkdtemp(prefix='failure-evidence-'))
+        self.addCleanup(shutil.rmtree, root)
+        guest = module.Guest.__new__(module.Guest)
+        guest.root = root
+        guest.evidence = {}
+        guest.install = root / 'install'
+        (guest.install / 'engine/temp').mkdir(parents=True)
+        guest.pv = 'VMTEST_0123456789ab_test_0'
+        return module, guest
+
+    def test_journal_failure_keeps_the_health_entries_and_the_journal_files(self):
+        if shutil.which('journalctl') is None:
+            self.skipTest('journalctl is required')
+        module, guest = self.guest()
+        journal = guest.root / 'source-journal'
+        (journal / 'machine').mkdir(parents=True)
+        (journal / 'machine/system.journal').write_bytes(b'LPKSHHRH' + bytes(range(64)))
+        with unittest.mock.patch.object(module, 'JOURNAL_DIRECTORIES', (str(journal),)):
+            guest.fail('runtime', module.ClassifiedError('Three health invocations missing', 'journal'))
+        kept = guest.evidence['classifying_evidence']
+        self.assertEqual(kept['kind'], 'journal')
+        self.assertNotIn('retention_error', kept)
+        self.assertIsInstance(kept['health_unit_entries'], list)
+        self.assertEqual([entry['bytes'] for entry in kept['journal_copy']], [72])
+        copy = guest.root / kept['journal_copy'][0]['file']
+        self.assertEqual(copy.read_bytes(), (journal / 'machine/system.journal').read_bytes())
+        written = json.loads((guest.root / 'failed-runtime.json').read_text())
+        self.assertEqual(written['failure']['message'], 'Three health invocations missing')
+
+    def test_ca_failure_keeps_the_engine_sockets_and_the_pv_view(self):
+        if shutil.which('ss') is None:
+            self.skipTest('ss is required')
+        module, guest = self.guest()
+        replies = {'/getPVStatus': [{'pvName': guest.pv, 'status': 'Being archived'}],
+                   '/getCurrentlyDisconnectedPVs': []}
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(handler):
+                body = json.dumps(replies[handler.path.split('?')[0]]).encode()
+                handler.send_response(200)
+                handler.send_header('Content-Length', str(len(body)))
+                handler.end_headers()
+                handler.wfile.write(body)
+
+            def log_message(handler, *unused):
+                pass
+
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        guest.mgmt = 'http://127.0.0.1:%d/' % server.server_address[1]
+        (guest.install / 'engine/temp/engine.pid').write_text('%d\n' % os.getpid())
+        udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.addCleanup(udp.close)
+        udp.bind(('127.0.0.1', 0))
+        guest.fail('runtime', module.ClassifiedError('Fresh acquisition deadline exceeded', 'ca'))
+        kept = guest.evidence['classifying_evidence']
+        self.assertEqual(kept['kind'], 'ca')
+        self.assertNotIn('retention_error', kept)
+        self.assertTrue(any(':%d ' % udp.getsockname()[1] in line for line in kept['engine_udp_sockets']),
+                        kept['engine_udp_sockets'])
+        self.assertEqual(kept['pv_status'], replies['/getPVStatus'])
+        self.assertEqual(kept['disconnected_pvs'], [])
+
+    def test_a_retention_fault_never_hides_the_original_failure(self):
+        module, guest = self.guest()
+        guest.fail('runtime', module.ClassifiedError('Fresh acquisition deadline exceeded', 'ca'))
+        kept = guest.evidence['classifying_evidence']
+        self.assertIn('retention_error', kept)
+        self.assertEqual(guest.evidence['failure']['message'], 'Fresh acquisition deadline exceeded')
+        self.assertEqual(guest.evidence['failure']['category'], 'ClassifiedError')
+        self.assertTrue((guest.root / 'failed-runtime.json').is_file())
+
+    def test_an_unclassified_failure_keeps_no_classifying_evidence(self):
+        module, guest = self.guest()
+        guest.fail('runtime', module.CheckError('Application readiness deadline exceeded'))
+        self.assertNotIn('classifying_evidence', guest.evidence)
+        self.assertEqual(guest.evidence['failure']['category'], 'CheckError')
 
 
 class RunOperationTests(unittest.TestCase):
