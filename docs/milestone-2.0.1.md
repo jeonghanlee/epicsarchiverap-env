@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: plan and implement M46 (#59), the launcher health starting verdict that caused the M10 run on f8c457e to fail at `rocky8-socket` T11; its plan is draft and needs acceptance and authorization. Then open a new M10 run on a published candidate that carries M46, with source `aa953a44bd2e6fb2a299224b97d365e7753a2fd8` under D39, and run the eight cases on fresh cloud-provision guests one at a time. Before that, record M45 / T1 on the retained `rocky8-socket` guest, then request cleanup of the four guests of the failed run `work/m10-vm-run-f8c457e-dca485f` from cloud-provision and verify it with `--verify-cleanup` on that context. Project results to #56 under separate issue authority. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: settle the exit status, token and time bound of the M46 (#59) starting verdict, whose instance signals are observed in a scratch chain, which fixes the false `wrong-java-executable` that made the M10 run on f8c457e fail at `rocky8-socket` T11 in both the launcher health and the VM verifier under D40; its plan is draft and needs those points, acceptance and authorization. Then open a new M10 run on a published candidate that carries M46, with source `aa953a44bd2e6fb2a299224b97d365e7753a2fd8` under D39, and run the eight cases on fresh cloud-provision guests one at a time. M45 / T1 is recorded (no hidden health entry on the retained `rocky8-socket` guest), and the four guests of the failed run `work/m10-vm-run-f8c457e-dca485f` were removed and verified with `--verify-cleanup` on 2026-10-04. Project results to #56 under separate issue authority. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -27,7 +27,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G6 | epicsarchiverap-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---epicsarchiverap-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | Blocked | No | G6, D31, D33 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
 | Tests | M10 | Automate VM installation and runtime tests | Milestone | In progress | No | M46, D31, D34, D39 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
-| Health | M46 | Report a starting instance distinctly in the launcher health check | Milestone | Not started | Yes | | A launcher-started PID that has not yet executed Java reports a starting state, not `wrong-java-executable`, and the VM verifier waits on it; [detail](#m46---report-a-starting-instance-distinctly-in-the-launcher-health-check) |
+| Health | M46 | Report a starting instance distinctly in the launcher health check | Milestone | Not started | Yes | D40 | A launcher-started PID that has not yet executed Java reports a starting state, not `wrong-java-executable`, and the VM verifier waits on it; [detail](#m46---report-a-starting-instance-distinctly-in-the-launcher-health-check) |
 | Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Complete | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Not started | Yes | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
@@ -52,6 +52,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D37 | Move M41 to Backlog, excluding heap measurement and new heap guidance from 2.0.1 completion requirements. Preserve its accepted plan and evidence. Reassignment requires an environment with sufficient dedicated disk capacity for the complete archive, response and measurement evidence plus shutdown reserves; existing resource stop rules remain applicable. | 2026-10-01 |
 | D38 | Split the two independent Rocky 8.10 defects by owner. epicsarchiverap-maven owns the CAJ search-port defect (its #26), ansible-provision owns the systemd 239 journald unlinked-entry gap, and epicsarchiverap-env owns how both reach its VM acceptance checks (M45). Each owner proves the exact cause first, then fixes its own side. Patches stay local; publication and upstream reports are decided after the problem is resolved. A session that needs a VM requests it from cloud-provision directly. | 2026-10-04 |
 | D39 | Run M10 acceptance on the latest epicsarchiverap-maven `modernize` commit that carries the current fixes and passes its CI, and keep following newly fixed commits instead of holding an older source. The next run uses `aa953a44bd2e6fb2a299224b97d365e7753a2fd8`, which carries the CAJ correction `7adc7d5a` and passed run 37249019863. The repository source pin `SRC_TAG` in `configure/RELEASE` follows the same commit, so the tested and released source stay equal. | 2026-10-04 |
+| D40 | Fix the false `wrong-java-executable` at start in both places: the launcher health reports a starting state for a PID that has not yet executed Java, and the VM verifier waits on that state and on `wrong-java-executable` within its bounded readiness deadline, failing when it persists. The owner chose this for system stability and reliability over the smaller verifier-only change, accepting the larger plan and later M10 run. | 2026-10-04 |
 
 ### Assignment History
 
@@ -509,7 +510,7 @@ T1 retains the cumulative system-run identity; T2-T15 make its required observat
 | T12 | 2026-10-04 16:52 PDT | Fresh cloud-provision guests | Pending | Latest, run `work/m10-vm-run-f8c457e-dca485f` on published environment `f8c457eec76184d5d12366923cd7b3c511d5bce0`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`: Pass in the three Debian 13 positive cases; the other cases did not reach it. |
 | T13 | 2026-10-04 16:52 PDT | Fresh Debian 13 guest | Pending | Latest, run `work/m10-vm-run-f8c457e-dca485f` on published environment `f8c457eec76184d5d12366923cd7b3c511d5bce0`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`: Pass in `debian13-sqlite`; `rocky8-sqlite` did not run. |
 | T14 | Not run | Planned environment above | Pending | none |
-| T15 | 2026-10-04 16:30 PDT | Fresh cloud-provision guests | Pending | Latest, run `work/m10-vm-run-f8c457e-dca485f` on published environment `f8c457eec76184d5d12366923cd7b3c511d5bce0`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`: `debian13-tcp` started while the first guest remained owned and present, and the interruption and cleanup-refusal checks passed in `debian13-socket`; cleanup verification has not run. |
+| T15 | 2026-10-04 16:30 PDT | Fresh cloud-provision guests | Pending | Latest, run `work/m10-vm-run-f8c457e-dca485f` on published environment `f8c457eec76184d5d12366923cd7b3c511d5bce0`, source `dca485fd28d14cf91e988fae9ade13729a55c7ee` and Ansible `b8823c1c95c71c0eaea28e1fc292fdf18aa939e5`: `debian13-tcp` started while the first guest remained owned and present, and the interruption and cleanup-refusal checks passed in `debian13-socket`; `--verify-cleanup` on this failed run returned PASS at 19:04 PDT after cloud-provision removed its four guests; the run holds a failure, so it yields no verdict. |
 
 ###### Published-Candidate Run Before Inventory Revision
 
@@ -716,7 +717,7 @@ Run context `work/m10-vm-run-f8c457e-dca485f`, opened on 2026-10-04 with `--init
 | `debian13-sqlite` | 2026-10-04 16:52 | Debian 13 SQLite | Pass: T3-T13 |
 | `rocky8-socket` | 2026-10-04 17:06 | Rocky 8.10 MariaDB socket | Fail at T11 after T3-T10 passed. About 0.4 s after `make sd_restart`, the shipped health reported mgmt and engine `FAIL wrong-java-executable`. The same PIDs ran Java afterwards and health then reported PRESENT. The launcher writes the PID of the backgrounded `run.sh` before the shell chain executes Java, and the verifier does not treat that window as startup (M46). Evidence: `command-01027.json` in the run context; `work/m10-validation/rocky8-socket-restart-race-20261005T004541Z.log`, SHA256 `35688cefd4f5d87afa3a78f0c0e14dfdebeb0170e8e170787c62c790b10a6da8` |
 
-The remaining four cases did not run. The four guests of this run stay owned and running until a cleanup request, followed by `--verify-cleanup` on this context.
+The remaining four cases did not run. By owner decision on 2026-10-04, cloud-provision removed the four guests of this run with `create_vm.bash -c` and reported four removals, each confirmed against the recorded UUID first. The driver's `--verify-cleanup` on this context then returned PASS at 19:04 PDT: every owned domain, disk, seed, creation record and reservation is absent, and the 15 baseline domains and reservations are preserved; the two domains added to the host since the baseline belong to another session. The run keeps its recorded failure. Evidence: `work/m10-validation/f8c457e-run-verify-cleanup-20261005T020411Z.log`, SHA256 `bb632ef45c2f360b0c408af5542e246b1d34de2e5e288e03c3f86976e4bb447a`; `cleanup.json` in the run context, SHA256 `982738a7bb74fb698e1252d84b808dff34b38564da414054a55437e7571a722e`.
 
 ##### Closure Evidence
 
@@ -827,7 +828,7 @@ Out of scope: fixing journalctl, CAJ or jca, which their owners do under D38; pu
 
 Plan Status: draft
 Plan Acceptance: none
-Implementation Authorization: none
+Implementation Authorization: 2026-10-04; owner authorized only the read-only T1 measurement on the retained `rocky8-socket` guest, with no change to the guest or the repository. T2, T3, any code change and any guest request need plan acceptance and separate authorization
 Superseded Plan Artifacts: draft of 2026-10-04 with a fresh-guest T1 and an unconditional T3, carried by 36b17908531bc06863f47c20fa96842581a9b782, docs/milestone-2.0.1.md, M45
 
 1. On the retained `rocky8-socket` guest, copy the journal files read-only to private evidence, count health-unit success entries with the guest's systemd 239 `journalctl` and with a newer `journalctl` over the copy, and run G7 header accounting over the same files.
@@ -846,9 +847,9 @@ Superseded Plan Artifacts: draft of 2026-10-04 with a fresh-guest T1 and an unco
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Retained installed Rocky 8.10 guest | Pending | none |
+| T1 | 2026-10-04 18:59 PDT | Retained installed Rocky 8.10 `rocky8-socket` guest of the failed M10 run, systemd 239-82.el8_10.19, kernel 4.18.0-553.el8_10; its journal files copied read-only and read by host systemd 257.13 | Pass | Health unit entries until 2026-10-05 01:57:00 UTC: the guest's 239 `journalctl` and 257 over the copy both return 2,880 entries, 220 of them health success lines with 220 distinct invocations, over a 114-minute window with gaps of 30.2 s minimum, 31.0 s median and 91.9 s maximum; no health entry is hidden. Whole journal: 239 returns 12,122 entries and 257 returns 12,123; the one entry only 257 returns is an `[INFO]` line of `archiver-build.sh`, a repeated short line of the build unit, and 239 returns no entry that 257 does not. The reader defect is therefore present on the real appliance guest but did not touch the health unit. The 5 non-success invocations are four startup-allowance SKIPs and one oneshot start without an invocation id. G7 header accounting was not run, because comparing the two readers by journal cursor counts the hidden entries directly. Evidence: `work/m10-validation/m45-t1-journal-reader-exposure-20261005T015917Z.log`, SHA256 `4169db729a89fdb93b1eb5c137cf48aba09c9f8ae8b716cdd8abfc5aaf91ace2`; journal copy `work/m10-validation/rocky8-socket-journal-20261005T015749Z` |
 | T2 | Pending | Local host; next M10 run | Pending | none |
-| T3 | Pending | Conditional on T1 | Pending | none |
+| T3 | 2026-10-04 18:59 PDT | Conditional on T1 | Not required | T1 found no hidden health entry, so the T8 revision is not needed on this evidence. One guest and 114 minutes is a measurement, not proof for every run; T2 keeps the evidence that would show a hidden health line if one ever fails T8. |
 
 ##### Closure Evidence
 
@@ -873,26 +874,26 @@ Status: Not started
 
 ##### Summary
 
-`service_start_instance` in `scripts/archappl.bash` starts `bin/run.sh` in the background and writes its `$!` to the instance PID file at once. That PID is still the shell until `run.sh` executes `catalina.sh run` and `catalina.sh` executes Java. A health check in that window finds the PID file and a live process whose executable is not Java, and `health_process_identity` reports `wrong-java-executable` as FAIL. A correct installation therefore fails health right after every start or restart, for a fraction of a second. The M10 VM run on f8c457e hit it at T11 on Rocky 8.10, and a scheduled health run can hit it in operation. The VM verifier retries only `missing-pid-file`, `missing-process` and `dead-process` during startup.
+`service_start_instance` in `scripts/archappl.bash` starts `bin/run.sh` in the background and writes its `$!` to the instance PID file at once. That PID is still the shell until `run.sh` executes `catalina.sh run` and `catalina.sh` executes Java. A health check in that window finds the PID file and a live process whose executable is not Java, and `health_process_identity` reports `wrong-java-executable` as FAIL. A direct `archappl.bash health` call right after a start or restart therefore fails on a correct installation for a fraction of a second. The scheduled `--systemd` mode is not exposed: it skips for the first `SYSTEMD_HEALTH_STARTUP_SECONDS` (60) seconds after the appliance unit starts, which covers the window, and the first scheduled runs of the failed guest show `SKIP startup-allowance`. The exposed callers are an operator running `health` by hand and the VM verifier. The M10 VM run on f8c457e hit it at T11 on Rocky 8.10 through the verifier's direct call. The verifier retries only `missing-pid-file`, `missing-process` and `dead-process` during startup, within its bounded readiness deadline.
 
 ##### Scope
 
-- Make the launcher health distinguish a PID that the launcher started and that has not yet executed Java from a process with a wrong executable, and report the first as a starting state.
-- Keep `wrong-java-executable` and every other identity failure for a process that is not in that window.
-- Let the VM verifier wait on the starting state within its readiness deadline.
+- Under D40, change both places. The launcher health reports a starting state for a PID that has not yet executed Java. The VM verifier waits on that state and on `wrong-java-executable` within its existing bounded readiness deadline and fails when either persists to that deadline.
+- Keep `wrong-java-executable` and every other identity failure for a process that stays outside startup.
+- Settle before plan acceptance: the exit status and output token of the starting verdict, and a time bound after which a stuck wrapper is reported as a failure. The instance signal is observed but not yet specified: in a scratch chain of the same shape on a Linux 6.12 host, read by the same user, the `run.sh` stage exposes the instance only in its command line (`bash <base>/bin/run.sh`) and not in its environment, because the exports happen after `bash` starts, while the `catalina.sh` stage exposes `CATALINA_BASE` in `/proc/<pid>/environ` and no instance in its command line; the final executable follows. Two stage-specific signals are therefore needed. Not yet checked: a process of another user, where health already needs the same read access for `/proc/<pid>/exe`, and the Rocky 8.10 kernel and the shipped Tomcat chain. Evidence: `work/m10-validation/m46-instance-signal-check-20261005T021900Z.log`, SHA256 `df3433e8074529a8b80a49520aab51d75a7eaded75f8ed0326f47caae99458ca`.
 - Update the operator documentation of the health verdicts.
 
 Out of scope: changing when the launcher writes the PID file; changing Tomcat scripts; changing the health timer schedule.
 
 ##### Completion Criteria
 
-- M46 / T1 shows the real launcher health reporting the starting state for a real `run.sh` chain before it executes Java, and PRESENT once it does.
-- M46 / T2 shows `wrong-java-executable` still reported for a live process outside the window whose executable is not the configured Java.
-- M46 / T3 shows the VM verifier passing restarts on Rocky 8.10 and Debian 13 guests with health polled inside the window.
+- M46 / T1 shows the shipped launcher chain (`service_start_instance`, `run.sh`, `catalina.sh`) is polled by the real health while the PID is still a shell, reports the starting state, and then PRESENT. A hand-built shell standing in for the chain does not count.
+- M46 / T2 shows `wrong-java-executable` still reported for a live process outside startup whose executable is not the configured Java, and a stuck wrapper is reported as a failure after the time bound.
+- M46 / T3 shows the VM verifier passing restarts on Rocky 8.10 and Debian 13 guests with health polled immediately after `sd_restart`, and a persistent wrong executable still fails the check at the readiness deadline.
 
 ##### Dependencies And Decisions
 
-- Owner selected this approach on 2026-10-04 over delaying the PID file and over a verifier-only retry. A verifier-only retry would leave operational health wrong and could hide a real wrong executable.
+- D40 sets the approach. Plan review on 2026-10-04 found that scheduled health skips during the startup allowance, so only direct callers are exposed, and that a verifier-only retry with the existing bounded deadline would also fail a persistent wrong executable. The owner still chose both changes for stability and reliability.
 - M10 depends on M46: its next run uses a candidate that carries this change.
 
 ##### Implementation Plan
@@ -902,17 +903,17 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Define how health recognizes the window: the PID file names the process the launcher started, and that process still runs the `run.sh` or `catalina.sh` shell of the same instance base.
-2. Report a starting verdict for it, keeping the existing exit-status contract for PRESENT, FAIL and ERROR, and add the verdict to the verifier's startup tokens.
-3. Add real-path regressions to the existing health tests and document the verdict.
+1. Define the starting verdict with its exit status, token, time bound and the two stage-specific instance signals as listed in the Scope, implement it in `scripts/archappl.bash`, and add real-path regressions to the existing health tests.
+2. In `tests/vm/guest.py`, add the starting verdict and `wrong-java-executable` to the startup tokens of `ready()`, with a regression that executes the shipped retry path and shows a persistent wrong executable failing at the deadline.
+3. Document the verdict, and prove the result on real guests with T3.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Integration | Real launcher health against a real `run.sh` chain held before its Java exec, then after it | Local host | Starting verdict, then PRESENT |
-| T2 | Integration | Real launcher health against a live process with another executable outside the window | Local host | `wrong-java-executable` FAIL |
-| T3 | System | VM verifier restarts with health polled immediately after `sd_restart` | Fresh Rocky 8.10 and Debian 13 guests | Restart checks pass |
+| T1 | Integration | The shipped chain polled by the real health while the PID is still a shell, then after Java runs | Local host | Starting verdict, then PRESENT |
+| T2 | Integration | Real health against a live process with another executable outside startup, and against a stuck wrapper past the time bound | Local host | `wrong-java-executable` FAIL; stuck wrapper FAIL |
+| T3 | System | VM verifier restarts with health polled immediately after `sd_restart`, and a persistent wrong executable | Fresh Rocky 8.10 and Debian 13 guests | Restart checks pass; the persistent wrong executable fails at the deadline |
 
 ##### Verification Results
 
@@ -934,7 +935,7 @@ GitHub Milestone: 2.0.1
 Observed State: OPEN
 Observed Labels: bug
 Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-10-05 at 00:59 UTC, `gh issue view 59 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-10-05T00:59:11Z; body equal to the draft
+Last Compared: 2026-10-05 at 02:16 UTC, `gh issue view 59 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-10-05T02:16:11Z; title unchanged and body equal to the revised draft that states the direct-call exposure and the D40 scope
 
 #### M44 - Verify and publish release 2.0.1
 
