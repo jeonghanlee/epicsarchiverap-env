@@ -1260,11 +1260,11 @@ Local preparation tool: `tests/heap/inspect-inputs.py` reads the preserved sourc
 
 Title: Measure per-component heap needs by archiving load
 Labels: enhancement
-GitHub Milestone: 2.0.1
+GitHub Milestone: none
 Observed State: OPEN
 Observed Labels: enhancement
-Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-09-30 at 04:34 UTC, `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T04:33:58Z
+Observed Milestone: none
+Last Compared: 2026-10-05 at 17:34 UTC, `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-10-05T17:33:17Z; the milestone was cleared under D37 and a comment records why and what resumption requires.
 
 #### M42 - Apply backend selection to all database operations
 
