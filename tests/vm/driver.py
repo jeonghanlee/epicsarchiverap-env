@@ -193,6 +193,11 @@ def disk_bytes(size):
     return int(size[:-1]) * 1024 ** 3
 
 
+# Messages that git versions print when checking out a commit the repository lacks.
+ABSENT_REF_FAILURE = ("invalid reference|reference is not a tree|unable to read tree|"
+                      "pathspec.*did not match")
+
+
 def tool_origin_command(path):
     """Return the command reading a tool checkout's stored origin URL."""
     # "git remote get-url" would apply the user's insteadOf rewrite rules.
@@ -763,7 +768,7 @@ class Driver:
             _, journal = self.ssh(case, ["sudo", "-n", "journalctl", "-u", "archiver-build",
                                           "--no-pager", "-n", "300"], check=False)
             if not rc or case["fault_ref"] not in output + journal or not re.search(
-                    "invalid reference|reference is not a tree|pathspec.*did not match", output + journal):
+                    ABSENT_REF_FAILURE, output + journal):
                 raise Failed("T14 did not observe the real absent-ref checkout failure")
             rc, _ = self.ssh(case, ["test", "-e", "/var/tmp/archiver-build.done"], check=False)
             if rc != 1:

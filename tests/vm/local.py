@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import os
 from pathlib import Path
+import re
 import shlex
 import shutil
 import socket
@@ -702,6 +703,43 @@ class RunOperationTests(unittest.TestCase):
             state['cases'][-1] = json.loads(json.dumps(state['cases'][0]))
             (root / 'run.json').write_text(json.dumps(state))
             self.assertEqual(self.invoke('--verdict', root).returncode, 77)
+
+
+class AbsentRefFailureTests(unittest.TestCase):
+    def checkout_failure(self, remote):
+        """Return the real git output of checking out an absent commit in a clone."""
+        git = shutil.which('git')
+        if git is None:
+            self.skipTest('git is required')
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / 'source'
+            env = dict(os.environ, GIT_AUTHOR_NAME='n', GIT_AUTHOR_EMAIL='n@example.org',
+                       GIT_COMMITTER_NAME='n', GIT_COMMITTER_EMAIL='n@example.org')
+            for command in ([git, 'init', '-q', str(source)],
+                            [git, '-C', str(source), 'commit', '-q', '--allow-empty', '-m', 'x']):
+                subprocess.run(command, env=env, check=True, capture_output=True)
+            clone = Path(tmp) / 'clone'
+            subprocess.run([git, 'clone', '-q', ('file://' if remote else '') + str(source), str(clone)],
+                           env=env, check=True, capture_output=True)
+            result = subprocess.run([git, '-C', str(clone), 'checkout', '0123456789' * 4],
+                                    env=env, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        return result.stdout + result.stderr
+
+    def test_real_git_absent_commit_failure_is_recognized(self):
+        driver = load_driver()
+        for remote in (False, True):
+            with self.subTest(remote=remote):
+                output = self.checkout_failure(remote)
+                self.assertIsNotNone(re.search(driver.ABSENT_REF_FAILURE, output), output)
+
+    def test_other_checkout_failures_are_not_recognized(self):
+        driver = load_driver()
+        for output in ('fatal: unable to access the repository',
+                       'fatal: could not read from remote repository',
+                       'make: *** [clone] Error 128'):
+            with self.subTest(output=output):
+                self.assertIsNone(re.search(driver.ABSENT_REF_FAILURE, output))
 
 
 if __name__ == '__main__':
