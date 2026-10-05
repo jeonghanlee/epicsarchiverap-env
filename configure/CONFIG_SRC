@@ -25,9 +25,8 @@ endif
 #
 #
 
-PATH:=$(ANT_PATH):$(JAVA_PATH):${PATH}
+PATH:=$(JAVA_PATH):${PATH}
 
-ANT_CMD=$(ANT_PATH)/ant
 ## The Maven Wrapper committed in the source repository; needs make init first.
 MAVEN_CMD:=$(TOP)/$(SRC_PATH)/mvnw
 JAVA_CMD=$(JAVA_PATH)/java

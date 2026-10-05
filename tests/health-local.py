@@ -345,7 +345,7 @@ class SystemdFileTests(WorkspaceTest):
                         self.assertIn(f'CATALINA_HOME="{expected_home}"', config)
                         self.assertIn("ARCHAPPL_MGMT_PORT=18765\n", config)
                         self.assertEqual(self.make("-s", "print-TOMCAT_INSTALL_LOCATION").strip(), str(expected_install))
-                        self.assertIn(f"-Dtomcathome={expected_home}", self.make("-s", "print-ANT_OPTS"))
+                        self.assertEqual(self.make("-s", "print-TOMCAT_HOME").strip(), str(expected_home))
                         install_commands = self.make("-n", "tomcat.src_install")
                         self.assertIn(f'tar -C "{expected_install}"', install_commands)
                         appliances = ET.parse(template / "appliances.xml").getroot().find("appliance")

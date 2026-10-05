@@ -3,13 +3,11 @@
 ## The JDK is the distro package from configure/os/<os>.pkgs; Maven comes
 ## from the source repository's Maven Wrapper (see MAVEN_CMD in CONFIG_SRC).
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-ANT_HOME=/usr/share/ant
 TOMCAT_MAJOR_VER:=9
 TOMCAT_INSTALL_LOCATION=$(AA_INSTALL_PATH)/tomcat$(TOMCAT_MAJOR_VER)
 TOMCAT_HOME=$(TOMCAT_INSTALL_LOCATION)
 
 JAVA_PATH=$(JAVA_HOME)/bin
-ANT_PATH=$(ANT_HOME)/bin
 
 ### MariaDB defaults (overridable via CONFIG_SITE.local)
 ## MariaDB is expected to listen on the loopback only (127.0.0.1); exposing it
@@ -61,14 +59,6 @@ ARCHAPPL_VERSION:=$(SRC_VERSION)-$(ARCHAPPL_SITEID)
 ARCHAPPL_WARS_TARGET_PATH=$(TOP)/$(SRC_PATH)/target
 ARCHAPPL_SITEID_TEMPATE_PATH=$(AA_SITE_TEMPLATE_PATH)/siteid
 ARCHAPPL_SITEID_CLASSPATHFILES_PATH=$(ARCHAPPL_SITEID_TEMPATE_PATH)/classpathfiles
-
-ANT_OPTS=-Dant.home=$(ANT_HOME)
-ANT_OPTS+=-Dant.library.dir=$(ANT_HOME)/lib
-#ANT_OPTS+=--execdebug
-ANT_OPTS+=-Dver=$(ARCHAPPL_VERSION)
-ANT_OPTS+=-Dwardest=$(ARCHAPPL_WARS_TARGET_PATH)
-ANT_OPTS+=-Dtomcathome=$(TOMCAT_HOME)
-ANT_OPTS+=-Darchapplsite=$(ARCHAPPL_SITEID)
 
 ## Maven command-line flags, such as -B or -gs /absolute/path/settings.xml.
 ## MAVEN_OPTS is Maven's JVM-options environment variable, not this Make hook.
