@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: settle the exit status, token and time bound of the M46 (#59) starting verdict, whose instance signals are observed in a scratch chain, which fixes the false `wrong-java-executable` that made the M10 run on f8c457e fail at `rocky8-socket` T11 in both the launcher health and the VM verifier under D40; its plan is draft and needs those points, acceptance and authorization. Then open a new M10 run on a published candidate that carries M46, with source `aa953a44bd2e6fb2a299224b97d365e7753a2fd8` under D39, and run the eight cases on fresh cloud-provision guests one at a time. M45 / T1 is recorded (no hidden health entry on the retained `rocky8-socket` guest), and the four guests of the failed run `work/m10-vm-run-f8c457e-dca485f` were removed and verified with `--verify-cleanup` on 2026-10-04. Project results to #56 under separate issue authority. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
+Next session entry point: commit and publish the verified M46 implementation (#59: launcher `STARTING` verdict, verifier retry, Bash test and health guides), which fixes the false `wrong-java-executable` that made the M10 run on f8c457e fail at `rocky8-socket` T11; its local verification passed, and commit, push and the VM run need separate authority. Then open a new M10 run on a published candidate that carries M46, with source `aa953a44bd2e6fb2a299224b97d365e7753a2fd8` under D39, and run the eight cases on fresh cloud-provision guests one at a time. M45 / T1 is recorded (no hidden health entry on the retained `rocky8-socket` guest), and the four guests of the failed run `work/m10-vm-run-f8c457e-dca485f` were removed and verified with `--verify-cleanup` on 2026-10-04. Project results to #56 under separate issue authority. M45 (#58) is Not started and Ready under D38; G7 and G8 are Complete; its plan is draft. M41 remains Backlog under D37; M14 remains Blocked on G6.
 
 ## Scope
 
@@ -27,7 +27,9 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G6 | epicsarchiverap-maven lands Ant removal with the per-site build contract | External gate | Open | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---epicsarchiverap-maven-lands-ant-removal-with-the-per-site-build-contract) |
 | Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | Blocked | No | G6, D31, D33 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
 | Tests | M10 | Automate VM installation and runtime tests | Milestone | In progress | No | M46, D31, D34, D39 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
-| Health | M46 | Report a starting instance distinctly in the launcher health check | Milestone | Not started | Yes | D40 | A launcher-started PID that has not yet executed Java reports a starting state, not `wrong-java-executable`, and the VM verifier waits on it; [detail](#m46---report-a-starting-instance-distinctly-in-the-launcher-health-check) |
+| Health | M46 | Report a starting instance distinctly in the launcher health check | Milestone | In progress | No | D40, D41, D42 | A launcher-started PID that has not yet executed Java reports a starting state, not `wrong-java-executable`, and the VM verifier waits on it; [detail](#m46---report-a-starting-instance-distinctly-in-the-launcher-health-check) |
+| D41 | Write new tests in Bash and keep Python tests to the minimum that testing Python code requires, because Python versions differ across the supported systems and Python test code needs rewriting as the language changes. Converting the existing Python tests to Bash is the long-term direction and is not scheduled. | 2026-10-04 |
+| D42 | Specify the launcher health starting verdict: `STARTING` exits 1, the status that FAIL uses, and is told apart by its output token; the time bound is `ARCHAPPL_HEALTH_STARTING_SECONDS` with a default of 10 seconds, which must stay below the scheduled health startup allowance of 60 seconds. The owner accepted the recommended values. The default is provisional until the VM run records the real window. | 2026-10-04 |
 | Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Complete | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Not started | Yes | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
@@ -870,7 +872,7 @@ Last Compared: 2026-10-04 at 22:32 UTC, `gh issue view 58 --repo jeonghanlee/epi
 Origin: 2.0.1 / M46
 Identity History: none
 GitHub Issue: [#59](https://github.com/jeonghanlee/epicsarchiverap-env/issues/59)
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -880,7 +882,9 @@ Status: Not started
 
 - Under D40, change both places. The launcher health reports a starting state for a PID that has not yet executed Java. The VM verifier waits on that state and on `wrong-java-executable` within its existing bounded readiness deadline and fails when either persists to that deadline.
 - Keep `wrong-java-executable` and every other identity failure for a process that stays outside startup.
-- Settle before plan acceptance: the exit status and output token of the starting verdict, and a time bound after which a stuck wrapper is reported as a failure. The instance signal is observed but not yet specified: in a scratch chain of the same shape on a Linux 6.12 host, read by the same user, the `run.sh` stage exposes the instance only in its command line (`bash <base>/bin/run.sh`) and not in its environment, because the exports happen after `bash` starts, while the `catalina.sh` stage exposes `CATALINA_BASE` in `/proc/<pid>/environ` and no instance in its command line; the final executable follows. Two stage-specific signals are therefore needed. Not yet checked: a process of another user, where health already needs the same read access for `/proc/<pid>/exe`, and the Rocky 8.10 kernel and the shipped Tomcat chain. Evidence: `work/m10-validation/m46-instance-signal-check-20261005T021900Z.log`, SHA256 `df3433e8074529a8b80a49520aab51d75a7eaded75f8ed0326f47caae99458ca`.
+- Verdict, fixed by D42: an instance line `<name> pid=<pid> STARTING run-script` or `STARTING catalina-script`; `FAIL startup-timeout` once the process is older than the bound; an aggregate line `health STARTING instances-starting; application-readiness-not-checked`. Precedence is ERROR, FAIL, STARTING, PRESENT. `STARTING` exits 1, so the aggregation by largest status stays valid and the health unit, whose `SuccessExitStatus=3` treats skips as success, cannot mask a stuck wrapper in `--systemd` mode.
+- Bound, fixed by D42: `${ARCHAPPL_HEALTH_STARTING_SECONDS:-10}`, validated like the storage threshold, with an invalid value reported as `ERROR starting-invalid-bound` and a value of 60 or more refused because it must stay below the scheduled startup allowance. The process age comes from its `/proc` start time, which `exec` keeps.
+- Instance signals, observed in a scratch chain of the same shape on a Linux 6.12 host and read by the same user: in the `run-script` stage the second command-line word resolves to `<base>/bin/run.sh` and the environment does not yet carry the instance, because the exports happen after `bash` starts; in the `catalina-script` stage the command line is `<CATALINA_HOME>/bin/catalina.sh run` with no instance, while `CATALINA_BASE` in `/proc/<pid>/environ` resolves to the instance base. Reading exe, command line and environment repeats up to three times when the executable changes between reads, and then reports `ERROR process-changed-during-inspection`. Not yet checked: a process of another user, where health already needs the same read access for `/proc/<pid>/exe`, and the Rocky 8.10 kernel and the shipped Tomcat chain. Evidence: `work/m10-validation/m46-instance-signal-check-20261005T021900Z.log`, SHA256 `df3433e8074529a8b80a49520aab51d75a7eaded75f8ed0326f47caae99458ca`.
 - Update the operator documentation of the health verdicts.
 
 Out of scope: changing when the launcher writes the PID file; changing Tomcat scripts; changing the health timer schedule.
@@ -893,18 +897,18 @@ Out of scope: changing when the launcher writes the PID file; changing Tomcat sc
 
 ##### Dependencies And Decisions
 
-- D40 sets the approach. Plan review on 2026-10-04 found that scheduled health skips during the startup allowance, so only direct callers are exposed, and that a verifier-only retry with the existing bounded deadline would also fail a persistent wrong executable. The owner still chose both changes for stability and reliability.
+- D40 sets the approach and D41 sets Bash for the new launcher tests and D42 fixes the verdict, exit status and bound. Plan review on 2026-10-04 found that scheduled health skips during the startup allowance, so only direct callers are exposed, and that a verifier-only retry with the existing bounded deadline would also fail a persistent wrong executable. The owner still chose both changes for stability and reliability.
 - M10 depends on M46: its next run uses a candidate that carries this change.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
+Plan Status: accepted
+Plan Acceptance: 2026-10-04; owner accepted the plan as revised by D40, D41 and D42 after plan review
+Implementation Authorization: 2026-10-04; owner authorized implementation of this accepted plan and its local verification; commit, push, publication, the VM run and every guest request need separate authority
+Superseded Plan Artifacts: draft with the approach left open between a verifier-only change, a launcher change and both, carried by 3a7bcc9105afbe9d30eb0fcce8c632531a794804, docs/milestone-2.0.1.md, M46
 
-1. Define the starting verdict with its exit status, token, time bound and the two stage-specific instance signals as listed in the Scope, implement it in `scripts/archappl.bash`, and add real-path regressions to the existing health tests.
-2. In `tests/vm/guest.py`, add the starting verdict and `wrong-java-executable` to the startup tokens of `ready()`, with a regression that executes the shipped retry path and shows a persistent wrong executable failing at the deadline.
+1. Implement the starting verdict exactly as the Scope specifies, implement it in `scripts/archappl.bash`, and add the launcher regressions as a new Bash test under Phase 1 that uses `tests/lib/common.bash`, per D41, leaving `tests/health-local.py` unchanged.
+2. In `tests/vm/guest.py`, add the starting verdict and `wrong-java-executable` to the startup tokens of `ready()`, with a small regression in `tests/vm/local.py` that executes the shipped retry path and shows a persistent wrong executable failing at the deadline; it stays Python because the code under test is Python (D41).
 3. Document the verdict, and prove the result on real guests with T3.
 
 ##### Test Plan
@@ -913,15 +917,17 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- |
 | T1 | Integration | The shipped chain polled by the real health while the PID is still a shell, then after Java runs | Local host | Starting verdict, then PRESENT |
 | T2 | Integration | Real health against a live process with another executable outside startup, and against a stuck wrapper past the time bound | Local host | `wrong-java-executable` FAIL; stuck wrapper FAIL |
-| T3 | System | VM verifier restarts with health polled immediately after `sd_restart`, and a persistent wrong executable | Fresh Rocky 8.10 and Debian 13 guests | Restart checks pass; the persistent wrong executable fails at the deadline |
+| T3 | System | VM verifier restarts with health polled immediately after `sd_restart`, recording how long health reports `STARTING`, and a persistent wrong executable | Fresh Rocky 8.10 and Debian 13 guests | Restart checks pass; the recorded window is below the bound; the persistent wrong executable fails at the deadline |
 
 ##### Verification Results
 
+Observed on 2026-10-04 (times PDT) on the local Debian 13 host, bash 5.2.37, with the accepted plan implemented in `scripts/archappl.bash`, `tests/vm/guest.py`, the new `tests/health-starting.bash` with its fixture `tests/fixtures/tomcat/org/apache/catalina/startup/Bootstrap.java`, `tests/vm/local.py`, `tests/phase1-logic.bash` and the two health guides. Verified source SHA256: `scripts/archappl.bash` `ca22bec9ef9a64b3848a71176e1f1c02f2b4afd1355d71f13b3f0f0282616c24`, `tests/health-starting.bash` `76b8da67f8fe2e376d1fffb8c8b9449504a1a46e28639fa47be60dd74f4bffc6`, `tests/vm/guest.py` `419103264fdf2c01c89783188ab324d13ca8188efc2e6997d43bd5dc3947cd15`, `tests/vm/local.py` `99180ec08352004775683411fd8344ce9d5415ba3bed8f6a6df27a0d6daf9f7c`. The local chain is the shipped `run.sh` rendered with the Make `sed`, a stand-in `catalina.sh` that holds and then executes a live JVM named like Tomcat's Bootstrap; real Tomcat and the shipped launcher start function are not exercised here, so the real-chain proof is T3. The `env` start stage of `#!/usr/bin/env bash`, which lasts under a millisecond, is handled by the code but not exercised; the verifier's retry of `wrong-java-executable` covers it.
+
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Local host | Pending | none |
-| T2 | Pending | Local host | Pending | none |
-| T3 | Pending | Fresh Rocky 8.10 and Debian 13 guests | Pending | none |
+| T1 | 2026-10-04 19:41 | Local host; shipped launcher copied as installed, real `health`, shipped `run.sh`, stand-in `catalina.sh`, live Bootstrap-named JVM | Pass | `tests/health-starting.bash`, 32 checks inside the full suite: four live JVMs PRESENT; one PID reported `STARTING run-script`, then `STARTING catalina-script`, then PRESENT with the same PID; each starting verdict exits 1 with the aggregate `health STARTING instances-starting; application-readiness-not-checked`. Evidence: `work/m10-validation/m46-local-20261005T024120Z.log`, SHA256 `52f27dfccf368f63725aa223524aa44f0247cba4b3cd653bba31b85d07e20bfa`: exit 0 without skips, Phase 1 223/0, health 20, new health 32/0, database 10, VM local 29 tests, Phase 2 13/0 |
+| T2 | 2026-10-04 19:39 | Local host; the same test against the launcher before the change and eight scratch mutants | Pass | `wrong-java-executable` is still reported for an unrelated executable and for the run.sh and catalina.sh shells of another instance; `FAIL startup-timeout` in both stages; a failure outranks a start; bounds 0, 60, `abc` and 1.5 give `ERROR starting-invalid-bound` and 59 is accepted. The old launcher and each mutant (starting exits 0, no timeout, run.sh stage ignores the instance, catalina.sh stage ignores the instance, start outranks failure, bound accepts 60, any process counts as starting, no bound validation) fail the targeted check and the shipped launcher passes. Evidence: `work/m10-validation/m46-launcher-mutation-20261005T023902Z.log`, SHA256 `bbbcb78e6a994306027c2206ecb2539a8c3563bc9f60d4e20bf6ca6fa3dbd2ec`. Verifier: `StartupHealthTests` in `tests/vm/local.py` runs the shipped retry logic against the retained real verdict text and the specified starting verdict; four mutants (no `STARTING` token, no `wrong-java-executable` token, retry of every failure, deadline error without the last verdict) each fail a targeted test and the shipped code passes. Evidence: `work/m10-validation/m46-verifier-mutation-20261005T024045Z.log`, SHA256 `2d3977b46c8bf0619ca3085e81a45edd2c3017d64a25d951958ebf98155f9e7d` |
+| T3 | Pending | Fresh Rocky 8.10 and Debian 13 guests | Pending | Requires a published candidate and a VM run under separate authority; it records how long health reports `STARTING` |
 
 ##### Closure Evidence
 
@@ -1062,6 +1068,7 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M43, D29, D31 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
 | UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required epicsarchiverap-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
+| Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
 
 ### Backlog Details
 
@@ -1336,6 +1343,73 @@ Superseded Plan Artifacts: none
 ##### Closure Evidence
 
 - none
+#### M47 - Replace the Python tests with Bash tests
+
+Origin: 2.0.1 / M47
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+D41 sets Bash for new tests and names the conversion of the existing Python tests as the long-term direction, because Python versions differ across the supported systems and Python test code needs rewriting as the language changes. Seven tracked Python files total 3,755 lines: `tests/vm/driver.py` 1,233, `tests/vm/guest.py` 761, `tests/vm/local.py` 658, `tests/health-local.py` 472, `tests/database-config.py` 344, `tests/install-payload.py` 145 and `tests/heap/inspect-inputs.py` 142. The shell scripts and Make rules of the repository contain no Python; the tests are the only dependency. The guest verifier needs `python3` on the guest, which a fresh Rocky 8.10 guest lacks until Ansible installs it, and the guest then runs Python 3.6 while the host runs 3.13.
+
+The row is Open because its scope and order are unsettled: the owner has set the direction, not a schedule or an acceptance rule.
+
+##### Scope
+
+- Inventory every Python file and the consumers that call it, from `tests/phase1-logic.bash` and `tests/run-all-tests.bash`.
+- Convert the tests of shell code first (`tests/health-local.py`, `tests/database-config.py`, `tests/install-payload.py`), keeping each assertion and its real-path method.
+- Decide separately how the VM driver and guest verifier are replaced, since they carry the largest logic and run on guests with different Python versions.
+
+Out of scope: any change to what the tests assert; replacing Ansible, which the control host still needs.
+
+##### Completion Criteria
+
+- No test of shell code, Make rules or the installed appliance remains Python.
+- Each converted test fails on the defect it covers, shown by a mutation of the shipped code.
+- The full local suite and the VM matrix keep their current pass conditions without skips.
+
+##### Dependencies And Decisions
+
+- D41 sets the direction. A dated owner decision on scope and order is required before it can become Not started.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After the owner decision, inventory each Python file with its callers and the behavior it asserts.
+2. Convert the shell-code tests one file at a time, then plan the driver and verifier.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Each converted test against the shipped code, then against a scratch mutation that reintroduces the defect it covers | Local host | Passes on the shipped code and fails on its mutation |
+| T2 | System | Full `tests/run-all-tests.bash --local` and the VM matrix | Local host; fresh guests | Same pass conditions as before, no skips |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Local host | Pending | none |
+| T2 | Pending | Local host; fresh guests | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Replace the Python tests with Bash tests
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 #### M13 - Site skin aligned with the rewritten mgmt UI
 
 Origin: 265f580 / M13
