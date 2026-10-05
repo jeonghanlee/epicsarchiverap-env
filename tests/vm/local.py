@@ -443,6 +443,8 @@ class StartupHealthTests(unittest.TestCase):
         guest.settings = {'user': 'service'}
         guest.install = directory
         guest.startup_health = ''
+        guest.startup_observations = []
+        guest.ready_started = time.monotonic()
         return module, guest
 
     def test_start_chain_verdicts_are_retried(self):
@@ -451,6 +453,16 @@ class StartupHealthTests(unittest.TestCase):
                 module, guest = self.guest_printing(text)
                 self.assertIsNone(guest.health(retry_startup=True))
                 self.assertEqual(guest.startup_health, text)
+
+    def test_retried_health_is_retained_with_its_elapsed_time(self):
+        module, guest = self.guest_printing(self.STARTING)
+        self.assertIsNone(guest.health(retry_startup=True))
+        self.assertIsNone(guest.health(retry_startup=True))
+        self.assertEqual(len(guest.startup_observations), 2)
+        for observation in guest.startup_observations:
+            self.assertEqual(observation['output'], self.STARTING.strip())
+            self.assertGreaterEqual(observation['elapsed'], 0)
+        self.assertLessEqual(guest.startup_observations[0]['elapsed'], guest.startup_observations[1]['elapsed'])
 
     def test_other_failures_are_not_retried(self):
         module, guest = self.guest_printing(self.OTHER_FAILURE)

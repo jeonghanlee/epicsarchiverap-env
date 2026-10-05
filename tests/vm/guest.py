@@ -225,6 +225,8 @@ class Guest:
         self.ioc_started = False
         self.expected_restart = False
         self.startup_health = ""
+        self.startup_observations = []
+        self.ready_started = 0.0
         self.checkout = Path(self.settings["source_parent"]) / "epicsarchiverap-env"
         self.source = self.checkout / "epicsarchiverap-maven-src"
         self.install = Path(self.settings["install_parent"]) / "epicsarchiverap-maven"
@@ -274,6 +276,9 @@ class Guest:
                 ("missing-pid-file", "missing-process", "dead-process", "STARTING",
                  "wrong-java-executable")):
             self.startup_health = out + err
+            if len(self.startup_observations) < 100:
+                self.startup_observations.append({
+                    "elapsed": time.monotonic() - self.ready_started, "output": (out + err).strip()[:600]})
             return None
         check(rc == expected, "Shipped launcher health returned an unexpected verdict: " + out + err)
         if not expected:
@@ -317,7 +322,9 @@ class Guest:
     def ready(self, bound):
         deadline = time.monotonic() + bound
         started = time.monotonic()
+        self.ready_started = started
         self.startup_health = ""
+        self.startup_observations = []
         while time.monotonic() < deadline:
             try:
                 if self.health(retry_startup=True) is None:
@@ -336,7 +343,8 @@ class Guest:
                 check(info.get("version") == version, "HTTP/build version mismatch")
                 check(time.monotonic() <= deadline, "Application readiness completed after its deadline")
                 self.evidence.setdefault("timing", []).append(
-                    {"operation": "readiness", "elapsed": time.monotonic() - started, "bound": bound})
+                    {"operation": "readiness", "elapsed": time.monotonic() - started, "bound": bound,
+                     "retried_health": self.startup_observations})
                 return
             except (urllib.error.URLError, TimeoutError):
                 time.sleep(2)
