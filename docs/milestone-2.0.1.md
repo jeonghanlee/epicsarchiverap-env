@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45 and M46 are Complete and their issues are closed; the Ant removal is published and verified (`4800b4a`, #57 closed on 2026-10-06). M44 (release 2.0.1) is the only open Milestone row: its plan is still a draft that needs review and acceptance, its dependencies are now complete once this record is published, and by owner direction on 2026-10-05 the full eight-case VM matrix runs later, as the release verification of M44. The matrix run needs an ansible-provision commit that aligns with the cloud-provision species rename (`archiver-dev` to `archiver-dev-uds`, group `archiver_dev_uds`, new `archiver-dev-tcp`, cloud-provision `796682c`) and a matching driver configuration, which is not yet a register item. M41 remains Backlog under D37.
+Next session entry point: M10, M14, M43, M45 and M46 are Complete and their issues are closed; M44 (release 2.0.1) is the only open Milestone row and is Ready. Its plan was revised on 2026-10-05 (dependencies and completion criteria include M45 and M46, the integrated verification rows follow the current checks, the source pin is `af2e734857dab01105576086adeca0d4f318d6ee` under D39, the release merge targets the default branch `maven`, and the post-release verification is one SQLite case per operating system) and was accepted and authorized for implementation on 2026-10-05 (changelog entry, local suite, release notes draft, matrix preparation); commit, push, guest requests, the VM run and the release objects need separate authority. The eight-case VM matrix runs later, as the release verification of M44, with the pinned Ansible and cloud-provision inventory generator; the cloud-provision species rename (`archiver-dev` to `archiver-dev-uds`, `archiver_dev_uds`, new `archiver-dev-tcp`, cloud-provision `796682c`) matters only when those pins move, which is not yet a register item. M41 remains Backlog under D37.
 
 ## Scope
 
@@ -34,7 +34,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Complete | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Complete | No | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
-| Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | No | M43, M14, M10, D31, D37 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
+| Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | Yes | M43, M14, M10, M45, M46, D31, D37, D39 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
 
@@ -1006,25 +1006,25 @@ Out of scope: another release line, automatic security fixes, changing or deleti
 
 ##### Completion Criteria
 
-- M43, M14 and M10 complete, G6 resolved, and all required final checks Pass. Heap measurement is Backlog work under D37 and is not required for 2.0.1.
+- M43, M14, M10, M45 and M46 complete, G6 complete, and all required final checks Pass. Heap measurement is Backlog work under D37 and is not required for 2.0.1.
 - The annotated 2.0.1 tag and GitHub release resolve to the authorized candidate.
 - Required issue states and canonical closure agree after publication.
 
 ##### Dependencies And Decisions
 
-- M43, M14, M10, D31 and D37. Ant work is release-blocking under the current proposed scope; any deferral or source-contract change requires an explicit decision.
-- No source pin is changed during planning. A new epicsarchiverap-maven commit is selected only after G6 is satisfied and the source change is accepted.
+- M43, M14, M10, M45, M46, D31, D37 and D39. The Ant removal is part of this release and is complete (M14, G6).
+- The source pin is `af2e734857dab01105576086adeca0d4f318d6ee` under D39: the tested and released source stay equal, so adopting a newer source commit before the release needs a new matrix run. The pinned Ansible and cloud-provision inventory generator of the VM acceptance stay fixed for the matrix; the cloud-provision species rename does not block it.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
+Plan Status: accepted
+Plan Acceptance: 2026-10-05; owner accepted the revised release plan (dependencies M43, M14, M10, M45 and M46, source pin under D39, RV3 eight-case matrix, RV6 one SQLite case per operating system)
+Implementation Authorization: 2026-10-05; owner authorized the changelog entry, the local suite on the release candidate, the release notes draft and the preparation of the eight-case matrix; commit, push, every guest request, the VM run, and the release objects (merge, tag, GitHub release, milestone close) need separate authority
+Superseded Plan Artifacts: draft written before the Ant removal and the two defect-containment items, carried by d3e16d54d05a57de281fb353802e24947187ca3f, docs/milestone-2.0.1.md, M44
 
 1. Accept this release plan and the work plans, commit the canonical plan, then project issues to GitHub.
 2. Complete the ordered work; record actual refs, configuration and evidence for each check.
-3. Preserve pre-change checks, write the changelog and prove the combined 2.0.1 candidate.
+3. Preserve pre-change checks, write the changelog entry in the style of the 2.0.0 entry from the five closed issues (backend rejection, VM acceptance, launcher starting verdict, journal and CA failure evidence, Ant removal), and prove the combined 2.0.1 candidate. No version-bump commit exists: the repository has no numeric version field beyond the changelog and the release objects.
 4. Prepare the exact authorized merge, branch push, annotated tag, tag push and release commands through `git-workflow`.
 5. Execute separately authorized actions, verify the released object on clean hosts, reconcile issues and close this cycle.
 
@@ -1045,22 +1045,23 @@ Final observations are owned by Release Verification Results below.
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M43 / T1, M43 / T2 | Later Make, install, source schema or DB-helper changes | Backend command routing | Release Verification 2 | Rejections and supported behavior hold on final tree | Pending |
-| M14 / T1, M14 / T2 | Later source-pin or overlay changes | Build and installed WARs | Release Verification 2 | Real build retains overlay with no Ant integration | Pending |
-| M10 / T1 | Later install, build or configuration changes | Documented installation | Release Verification 3 | Real container/VM installation checks pass | Pending |
+| M14 / T1, M14 / T3 | Later source-pin, site-input or Make changes | Build and installed WARs | Release Verification 2 | No Ant in the tracked tree; the shipped build passes with the site folder and fails when a site `build.xml` is put back | Pending |
+| M45 / T2, M46 / T1, M46 / T2 | Later launcher, verifier or health changes | Launcher health and VM verifier | Release Verification 3 | The starting verdict and the failure-evidence retention hold on the final tree | Pending |
+| M10 / T1 | Later install, build or configuration changes | Documented installation | Release Verification 3 | Real VM installation checks pass | Pending |
 
 ##### Production Environment Tests
 
 | Release Verification Label | Timing | System | Version | Architecture | Deployment Path | Method | Expected Result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Release Verification 3 | post-change | Debian; Rocky Linux | 13; 8.10 | x86_64 | Documented prerequisites and eight ordered install targets | Real WAR build, four JVMs, systemd, health timer, HTTP identity, CA acquisition and timestamped retrieval; MariaDB TCP/socket and SQLite cases fixed at acceptance | Installed candidate works on accepted backend matrix | Pending |
-| Release Verification 6 | post-release | Debian; Rocky Linux | 13; 8.10 | x86_64 | Clean host using immutable 2.0.1 tag and install guide | Cold real build and installed payload comparison; four JVMs, health timer, HTTP identity, changing PV acquisition and retrieval | Released object runs; evidence records refs, options and backend | Pending |
+| Release Verification 3 | post-change | Debian; Rocky Linux | 13; 8.10 | x86_64 | Documented prerequisites and eight ordered install targets | The accepted eight-case matrix through the shipped VM driver: Debian 13 and Rocky 8.10 with MariaDB socket, MariaDB TCP and SQLite, plus a build-failure case on each; real WAR build, four JVMs, systemd, health timer, HTTP identity, CA acquisition and timestamped retrieval | Installed candidate works on the accepted backend matrix | Pending |
+| Release Verification 6 | post-release | Debian; Rocky Linux | 13; 8.10 | x86_64 | Clean guest using the immutable 2.0.1 tag commit and the install guide | One SQLite case per operating system through the shipped VM driver at the tag commit: cold real build and installed payload comparison; four JVMs, health timer, HTTP identity, changing PV acquisition and retrieval | Released object runs; evidence records refs, options and backend; the eight-case matrix of Release Verification 3 covers the same commit | Pending |
 
 ##### Version Changes
 
 | Field | File | Before | Planned After | Pre-check | Pre-check Label | Post-check | Post-check Label |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Changelog release heading | CHANGELOG.md | Newest dated release 2.0.0 | One dated 2.0.1 heading above preserved 2.0.0 | Read committed heading and working-tree diff | Release Verification 1 | Check date, uniqueness and actual shipped scope | Release Verification 4 |
-| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 | Exact commit accepted after G6; unresolved | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
+| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 before this cycle | `af2e734857dab01105576086adeca0d4f318d6ee`, already set; unchanged unless a newer passing commit is adopted with a new matrix run | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
 
 The source POM belongs to epicsarchiverap-maven. This cycle does not independently bump it. APPNAME, SRC_VERSION and install-path derivation remain checked for consistency; no environment numeric version field has been identified beyond the changelog and release objects.
 
@@ -1070,8 +1071,8 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 | --- | --- | --- | --- | --- |
 | 1 | Planning and candidate commits on release-2.0.1 | Separate Commit/add scope | Only reviewed files committed | Pending |
 | 2 | Publish release-2.0.1 branch | Separate Push scope | Same-named branch and upstream verified | Pending |
-| 3 | Merge verified release-2.0.1 into maven | Exact preview and separate Release authority | Reviewed merge commit becomes release candidate | Pending |
-| 4 | Publish maven candidate | Separate Push scope or exact authorized release sequence | Remote candidate equals local | Pending |
+| 3 | Merge verified release-2.0.1 into the default branch `maven` of this repository (not epicsarchiverap-maven) with a merge commit | Exact preview and separate Release authority | Reviewed merge commit becomes release candidate | Pending |
+| 4 | Publish branch `maven` | Separate Push scope or exact authorized release sequence | Remote candidate equals local | Pending |
 | 5 | Create annotated tag 2.0.1 on merge candidate | Exact preview and separate Release authority | Immutable tag object recorded | Pending |
 | 6 | Publish refs/tags/2.0.1 | Separate Tag push scope | Remote tag object and peeled candidate match | Pending |
 | 7 | Create GitHub release 2.0.1 with reviewed notes | Exact preview and separate Release authority | Published non-prerelease object references tag | Pending |
@@ -1083,8 +1084,8 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 | Label | Layer | Timing | Method | Environment | Expected Result | Evidence Target |
 | --- | --- | --- | --- | --- | --- | --- |
 | Release Verification 1 | Baseline | pre-change | Record current epicsarchiverap-env commit, effective source pin, changelog and existing released refs before candidate version changes | Checkout and origin | Reproducible pre-change baseline | Private evidence with public hashes |
-| Release Verification 2 | Integrated | post-change | Execute shipped local suite, M43 routing/DB checks and real M14 build on combined candidate | Supported local toolchain and disposable DBs | No failed or required skipped check | Suite/build logs and payload hashes |
-| Release Verification 3 | Deployment | post-change | Run real M10 installation and runtime entrypoints on accepted matrix | Debian 13 and Rocky 8.10 | Actual installed system, acquisition and retrieval succeed | Install/runtime evidence |
+| Release Verification 2 | Integrated | post-change | Execute the shipped local suite, M43 routing and DB checks, and the real build with the Maven-run site overlay on the combined candidate | Supported local toolchain and disposable DBs | No failed or required skipped check | Suite/build logs and payload hashes |
+| Release Verification 3 | Deployment | post-change | Run the real VM installation and runtime entrypoints on the accepted eight-case matrix | Debian 13 and Rocky 8.10 | Actual installed system, acquisition and retrieval succeed | Install/runtime evidence |
 | Release Verification 4 | Candidate | post-change | Resolve changelog/source versions and confirm the shipped heap default is unchanged; no new heap recommendation is included | Combined candidate | Consistent 2.0.1 candidate within the assigned scope | Version and configuration evidence |
 | Release Verification 5 | Published objects | post-release | Read origin tag object/peeled commit and GitHub release flags/notes | origin and GitHub | Objects match recorded authorized candidate | Remote observations with time |
 | Release Verification 6 | Released installation | post-release | Execute documented clean installation and runtime checks from immutable tag | Clean Debian 13 and Rocky 8.10 hosts | Actual released system succeeds on accepted matrix | Private install/runtime evidence and hashes |
