@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: the Ant removal is published (`4800b4a`) and verified: M14 T1 to T3 pass and the two-case SQLite VM check T4 passed on a fresh Debian 13 and a fresh Rocky 8.10 guest at the Ant-free source `af2e734857dab01105576086adeca0d4f318d6ee`, with its own guests removed; the driver's cleanup verification failed only because another session's soak guests changed in the baseline during the run. Next: commit and publish this record, update and close #57 under issue authority, and mark M14 Complete. M44 (release 2.0.1) follows with its plan still a draft that needs review and acceptance; by owner direction on 2026-10-05 the full eight-case matrix runs later, as the release verification of M44. M10, M43, M45 and M46 are Complete. cloud-provision landed the species rename (`archiver-dev` to `archiver-dev-uds`, group `archiver_dev_uds`, new `archiver-dev-tcp`) as 796682c, so the matrix run needs an ansible-provision commit that aligns with it plus a matching driver configuration, which is not yet a register item. M41 remains Backlog under D37.
+Next session entry point: M10, M14, M43, M45 and M46 are Complete and their issues are closed; the Ant removal is published and verified (`4800b4a`, #57 closed on 2026-10-06). M44 (release 2.0.1) is the only open Milestone row: its plan is still a draft that needs review and acceptance, its dependencies are now complete once this record is published, and by owner direction on 2026-10-05 the full eight-case VM matrix runs later, as the release verification of M44. The matrix run needs an ansible-provision commit that aligns with the cloud-provision species rename (`archiver-dev` to `archiver-dev-uds`, group `archiver_dev_uds`, new `archiver-dev-tcp`, cloud-provision `796682c`) and a matching driver configuration, which is not yet a register item. M41 remains Backlog under D37.
 
 ## Scope
 
@@ -25,7 +25,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | DB | M43 | Reject operations on an unselected database backend | Milestone | Complete | No | D31, D32 | SQLite db.* skips; unsupported and invalid selections stop before configuration writes or DB contact; [detail](#m43---reject-operations-on-an-unselected-database-backend) |
 | Gate | G6 | epicsarchiverap-maven lands Ant removal with the per-site build contract | External gate | Complete | No | | Exact usable source commit and overlay contract confirmed; [detail](#g6---epicsarchiverap-maven-lands-ant-removal-with-the-per-site-build-contract) |
-| Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | In progress | No | G6, D31, D33, D43 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
+| Build | M14 | Remove Ant leftovers from epicsarchiverap-env | Milestone | Complete | No | G6, D31, D33, D43 | After Maven stabilization, four real WARs retain generated site content through the Maven-only build; [detail](#m14---remove-ant-leftovers-from-epicsarchiverap-env) |
 | Tests | M10 | Automate VM installation and runtime tests | Milestone | Complete | No | M46, D31, D34, D39 | Composed provisioning/install and independent acceptance pass for all accepted OS/backend cases; [detail](#m10---automate-vm-installation-and-runtime-tests) |
 | Health | M46 | Report a starting instance distinctly in the launcher health check | Milestone | Complete | No | D40, D41, D42 | A launcher-started PID that has not yet executed Java reports a starting state, not `wrong-java-executable`, and the VM verifier waits on it; [detail](#m46---report-a-starting-instance-distinctly-in-the-launcher-health-check) |
 | D41 | Write new tests in Bash and keep Python tests to the minimum that testing Python code requires, because Python versions differ across the supported systems and Python test code needs rewriting as the language changes. Converting the existing Python tests to Bash is the long-term direction and is not scheduled. | 2026-10-04 |
@@ -189,7 +189,7 @@ and moved to the epicsarchiverap-maven backlog 2026-09-19, their D7).
 Origin: 265f580 / M14
 Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved
 GitHub Issue: [#57](https://github.com/jeonghanlee/epicsarchiverap-env/issues/57)
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -261,17 +261,17 @@ Superseded Plan Artifacts: original draft at epicsarchiverap-env d68f66848e1edc1
 
 ##### Closure Evidence
 
-- none
+- Complete on 2026-10-06: the Ant removal landed in `4800b4aeb8445b0fcd6c4975f522c00fbb69b74e` on `origin/release-2.0.1`; M14 T1 to T4 passed; and #57 was closed as completed on 2026-10-06 at 00:53 UTC (`gh issue view 57 --repo jeonghanlee/epicsarchiverap-env` returned CLOSED, closedAt 2026-10-06T00:53:30Z).
 
 ##### GitHub Projection
 
 Title: Remove Ant leftovers from the environment configuration
 Labels: enhancement
 GitHub Milestone: 2.0.1
-Observed State: OPEN
+Observed State: CLOSED
 Observed Labels: enhancement
 Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-09-30 at 06:40 UTC, `gh issue view 57 --repo jeonghanlee/epicsarchiverap-env`; prepared body matched the published body; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee, updatedAt 2026-09-30T06:40:26Z
+Last Compared: 2026-10-06 at 00:54 UTC, `gh issue view 57 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-06T00:53:30Z, enhancement, milestone 2.0.1, assignee jeonghanlee; the live title is unchanged, the live body equals the final draft with the five Acceptance Criteria boxes checked, and the closing comment records the result.
 
 #### M10 - Automate VM installation and runtime tests
 
