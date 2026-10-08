@@ -876,6 +876,7 @@ bash "${TOP}/tests/health-starting.bash"
 bash "${TOP}/tests/no-ant.bash"
 
 python3 "${TOP}/tests/database-config.py"
+bash "${TOP}/tests/local-install-output.bash"
 
 # VM CLI validation runs without virtualization or network.
 python3 "${TOP}/tests/vm/local.py"

@@ -1,0 +1,7 @@
+record(calc, "$(P)Value") {
+    field(DESC, "Local installation verification")
+    field(SCAN, "1 second")
+    field(CALC, "VAL+1")
+    field(MDEL, "0")
+    field(ADEL, "0")
+}

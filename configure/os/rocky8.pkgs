@@ -7,6 +7,7 @@ sudo
 git
 unzip
 curl
+jq
 make
 tree
 sed

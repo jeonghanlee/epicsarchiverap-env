@@ -81,7 +81,7 @@ Prerequisites:
    | --- | --- |
    | `--plan` | Prints steps without executing installation |
    | `-y`, `--yes` | Skips the installation confirmation; required with non-interactive stdin |
-   | `--skip-packages` | Uses host-provided prerequisites, including JDK 21 |
+   | `--skip-packages` | Uses host-provided prerequisites, including JDK 21, `curl`, and `jq` |
    | `--tomcat existing` | Uses existing Tomcat after checking access and version as the service account |
    | `--tomcat replace` | Backs up the default Tomcat directory and installs the configured version; stops an installed appliance before the backup |
    | `--socket <socket_path>` | UDS only: selects an absolute socket path without whitespace |
@@ -116,14 +116,29 @@ Prerequisites:
    monitor before moving Tomcat, so a later build failure can leave the appliance
    stopped. Backup restoration is manual.
 
-Verification: a successful run prints `Installation ready:` with the management
-URL and exits 0. It checks process health as the service account, all four
-`startupState` responses for `STARTUP_COMPLETE`, a successful management HTTP
-response, and active appliance and health timer units within the startup deadline.
-Perform the separate [functional verification](#functional-verification) to
-confirm PV acquisition and retrieval.
+Verification: a successful run prints `Installation completed.` and displays the
+management UI, four component startup API URLs, process/storage health, the
+repeat health command, and the information API URL, appliance identity, and version.
+It checks process health as the service account, all four JSON `startupState`
+responses for `STARTUP_COMPLETE`, valid appliance information, and active
+appliance and health timer units within the startup deadline.
+Waiting messages report outstanding checks when they change, without repeating
+the full health output or raw information JSON.
 
-On failure, the script exits nonzero and reports the error. Once installation
+Interactive installation offers an optional test of one changing soft IOC PV.
+The test registers the PV using Bash and `curl`, then uses the selected source
+pin's `getDataToCsv.bash` to check stored samples against actual CA observations.
+See [soft IOC verification](../scripts/README.md#verify-one-changing-pv) for
+EPICS prerequisites, retained evidence, the keep/stop choice, and unattended use.
+Skipping the test leaves acquisition, storage, and retrieval marked `NOT CHECKED`.
+Its failure is separate from installation completion. The installer exits 0 after
+successful installation even when the optional test fails.
+Interrupting post-install verification reports the interruption separately and
+preserves the installation completion message.
+Perform the separate [functional verification](#functional-verification) for
+broader acceptance.
+
+On installation failure, the script exits nonzero and reports the error. Once installation
 begins, it also names the failed step. It retains data and build files and
 performs no automatic rollback or restart. A failure
 after the appliance stop can leave it stopped or partly replaced; resolve the

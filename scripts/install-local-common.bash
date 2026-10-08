@@ -34,6 +34,9 @@ service_user=''
 service_unit=''
 health_timer=''
 mgmt_url=''
+ready_info=''
+ready_health=''
+installation_completed=0
 declare -a component_urls=()
 
 function die {
@@ -384,30 +387,89 @@ function run_before_deadline {
 }
 
 function wait_ready {
-    local deadline=$((SECONDS + timeout)) response ready url
+    local started=$SECONDS deadline=$((SECONDS + timeout)) response url index
+    local pending previous=''
     if (( plan )); then
         printf 'Wait up to %s seconds for process health, four startup states and %s\n' "$timeout" "$mgmt_url"
+        printf '%s\n' 'Show the management UI, four component URLs, health result and appliance information.' \
+            'Offer a separate soft IOC PV registration/storage/CSV test in interactive mode; unattended mode skips it.'
         return
     fi
     while (( SECONDS < deadline )); do
-        ready=1
-        run_before_deadline "$deadline" sudo -n -u "$service_user" -- "$install_path/archappl.bash" health || ready=0
-        for url in "${component_urls[@]}"; do
+        pending=''
+        if ! ready_health=$(run_before_deadline "$deadline" sudo -n -u "$service_user" -- "$install_path/archappl.bash" health 2>&1); then
+            pending+=' process/storage health;'
+        fi
+        for index in "${!component_urls[@]}"; do
             (( SECONDS < deadline )) || break
+            url="${component_urls[$index]}"
             response=$(run_before_deadline "$deadline" curl -q --noproxy '*' --fail --silent --max-time 2 "$url") || response=''
-            [[ "$response" == *'"STARTUP_COMPLETE"'* ]] || ready=0
+            if ! jq -e -s 'length == 1 and (.[0] | type == "object" and .status == "STARTUP_COMPLETE")' <<< "$response" >/dev/null 2>&1; then
+                pending+=" ${COMPONENTS[$index]} startup;"
+            fi
         done
         (( SECONDS < deadline )) || break
-        if (( ready )) && run_before_deadline "$deadline" curl -q --noproxy '*' --fail --silent --show-error --max-time 2 "$mgmt_url"; then
-            printf '\n'
-            if run_before_deadline "$deadline" sudo -n systemctl is-active --quiet "$service_unit" &&
-                run_before_deadline "$deadline" sudo -n systemctl is-active --quiet "$health_timer"; then
-                return
-            fi
+        ready_info=$(run_before_deadline "$deadline" curl -q --noproxy '*' --fail --silent --max-time 2 "$mgmt_url") || ready_info=''
+        if ! jq -e -s 'length == 1 and (.[0] | type == "object" and (.identity | type == "string" and length > 0)
+            and (.version | type == "string" and length > 0))' <<< "$ready_info" >/dev/null 2>&1; then
+            pending+=' appliance information;'
+        fi
+        if ! run_before_deadline "$deadline" sudo -n systemctl is-active --quiet "$service_unit"; then
+            pending+=' appliance service;'
+        fi
+        if ! run_before_deadline "$deadline" sudo -n systemctl is-active --quiet "$health_timer"; then
+            pending+=' health timer;'
+        fi
+        if [[ -z "$pending" ]] && (( SECONDS < deadline )); then
+            printf 'Startup checks passed in %s seconds.\n' "$((SECONDS - started))"
+            return
+        fi
+        if [[ "$pending" != "$previous" ]]; then
+            printf 'Waiting (%ss/%ss):%s\n' "$((SECONDS - started))" "$timeout" "$pending"
+            previous="$pending"
         fi
         run_before_deadline "$deadline" sleep 2 || true
     done
+    printf 'Last process/storage health result:\n%s\n' "$ready_health" >&2
     die "Startup did not become ready within $timeout seconds; inspect journalctl -u $service_unit"
+}
+
+function show_ready {
+    local index
+    printf '\n%s\n' 'Installation completed.' 'Four processes, storage usage, four startup states, service and health timer: PASS'
+    printf '\nManagement UI: %s/ui/\n' "${mgmt_url%/bpl/getApplianceInfo}"
+    printf '%s\n' 'Component startup APIs (each returned STARTUP_COMPLETE):'
+    for index in "${!component_urls[@]}"; do
+        printf '  %-9s %s\n' "${COMPONENTS[$index]}" "${component_urls[$index]}"
+    done
+    printf '\n%s\n' 'Process/storage health (application readiness was checked separately above):' "$ready_health"
+    printf 'Repeat health check: '
+    printf '%q ' sudo -u "$service_user" -- "$install_path/archappl.bash" health
+    printf '\n\nAppliance information: %s\n' "$mgmt_url"
+    jq -r '["  Identity: " + .identity, "  Version: " + .version][]' <<< "$ready_info"
+    printf '%s\n' 'The information API answered; this does not verify PV acquisition or stored samples.' \
+        'localhost refers to the installed machine. Open its browser or use SSH port forwarding.' \
+        'PV acquisition, storage and retrieval: NOT CHECKED'
+}
+
+function offer_pv_verification {
+    local answer retrieval_url local_mgmt
+    if (( yes )) || [[ ! -t 0 ]]; then
+        printf '%s\n' 'Optional soft IOC test skipped in unattended mode; see scripts/README.md to run it separately.'
+        return
+    fi
+    printf '\n%s\n' 'Optional test: start one changing soft IOC PV, register it, and extract real stored samples to CSV.'
+    printf '%s' 'Run the PV acquisition/storage/retrieval test? [y/N] '
+    read -r answer || answer=''
+    case "$answer" in
+        y|Y|yes)
+            local_mgmt="http://localhost:$(make_value ARCHAPPL_MGMT_PORT)/mgmt/bpl"
+            retrieval_url="http://localhost:$(make_value ARCHAPPL_RETRIEVAL_PORT)/retrieval"
+            if ! bash "$REPO/scripts/verify-local-pv.bash" "$local_mgmt" "$retrieval_url" "$source_path" 9>&-; then
+                printf '%s\n' 'Installation remains completed. Optional PV verification FAILED; inspect its retained evidence.' >&2
+            fi ;;
+        *) printf '%s\n' 'Optional PV verification skipped. PV acquisition, storage and retrieval remain NOT CHECKED.' ;;
+    esac
 }
 
 function prepare_database {
@@ -448,6 +510,10 @@ function prepare_database {
 function report_exit {
     local status=$?
     if (( status != 0 )); then
+        if (( installation_completed )); then
+            printf 'Installation completed. Post-install verification stopped (exit %s); inspect its retained evidence.\n' "$status" >&2
+            return
+        fi
         printf 'Installation stopped during %s (exit %s). Data and build files are retained.\n' "$stage" "$status" >&2
         printf '%s\n' 'No rollback or automatic restart is attempted.' >&2
     fi
@@ -503,7 +569,7 @@ function main {
     run_make "$os.conf"
     read_settings
     if (( ! plan )); then
-        for tool in curl unzip sha512sum systemctl timeout; do require_command "$tool"; done
+        for tool in curl jq unzip sha512sum systemctl timeout; do require_command "$tool"; done
         if [[ "$backend" == sqlite ]]; then require_command sqlite3; else require_command mysql; fi
         [[ -d /run/systemd/system ]] || die 'A running systemd host is required'
         java_home=$(make_value JAVA_HOME)
@@ -539,7 +605,9 @@ function main {
     run_make sd_start
     wait_ready
     if (( ! plan )); then
-        printf 'Installation ready: %s\nPV acquisition and retrieval must be checked separately.\n' "$mgmt_url"
+        installation_completed=1
+        show_ready
+        offer_pv_verification
     fi
 }
 
