@@ -422,6 +422,18 @@ It also verifies that a failed `conf.archappl` substitution returns nonzero
 without creating or replacing the output, and that inline comments on
 `DB_SOCKET` leave JDBC and shell clients using the same transport and path.
 
+The same local checks verify mode 0600 when the real `db.conf` target creates
+or replaces MariaDB client configuration under a permissive umask. All three
+local installer entry scripts run their plan path against both a source clone
+and a Git worktree. Generated `als` inputs are allowed; tracked changes,
+untracked source files, and ignored inputs under `src` and `.mvn` are rejected.
+
+The readiness unit check invokes the shipped `wait_ready` and
+`run_before_deadline` functions with a slow real HTTP server and `curl`.
+Only the outer `sudo` boundary is replaced to deny access or delay its response.
+The check requires the startup deadline to hold in both cases. It does not run
+package installation, a Maven build, or systemd appliance installation/startup.
+
 For actual MariaDB account, schema, query, backup and restore operations, and
 SQLite schema load/list operations:
 
@@ -442,6 +454,8 @@ setup script and the real client/server. The socket setting comes from a local
 override with an inline comment. Both TCP and socket connections use
 a password containing shell, XML and SQL special characters. The test also
 checks that removing a configured admin preserves unrelated `admin` accounts.
+Account creation output must contain neither a `Password` column nor a MariaDB
+password hash over either connection.
 The private server's general log must remain unchanged while SQLite `db.*`
 skips and unsupported/invalid targets and helper actions reject; the generated
 MariaDB configuration and application data remain unchanged. SQLite uses the

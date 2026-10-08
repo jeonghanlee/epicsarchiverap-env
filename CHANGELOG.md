@@ -8,6 +8,7 @@ changes to the environment repository.
 ## [2.0.1] - unreleased
 
 ### Added
+- Local systemd installers for SQLite, MariaDB over UDS, and MariaDB over TCP, sharing one driver with plan output, configurable startup verification, and an option to retain provisioned MariaDB accounts. See the local installation procedure in `docs/README.install.md`.
 - VM acceptance driver `tests/vm/` behind `tests/run-all-tests.bash` (`--init`, `--case`, `--verify-cleanup`, `--verdict`): it composes cloud-provision (fresh guests) and ansible-provision (prerequisites and the ordered installation) and checks Debian 13 and Rocky Linux 8.10 with MariaDB over a socket, MariaDB over TCP and SQLite, plus two real build-failure cases, each on its own guest. It verifies the installed payload against the WARs, the four JVM identities, three scheduled health runs, archiving and retrieval of a changing PV, and survival of a restart, a repeat apply and a forced reinstall. The design is in `docs/README.vmtests.md`.
 - Failure evidence in the VM verifier: a failed health check keeps the health unit entries and a copy of the journal files; a failed channel access data check keeps the engine JVM's UDP sockets and the management view of the test PV and the disconnected PVs.
 - `ARCHAPPL_HEALTH_STARTING_SECONDS` (default 10, valid 1 to 59) bounds how long `archappl.bash health` reports an instance as starting.
@@ -15,11 +16,12 @@ changes to the environment repository.
 - `docs/README.install.md` documents the site folder inputs (`img/`, `css/main.css`, `css/mgmt.css`, `template_changes.html`, `classpathfiles/`) and the variables `ARCHAPPL_SITEID` and `ARCHAPPL_SITEID_TEMPATE_PATH`.
 
 ### Changed
-- `SRC_TAG` pins jeonghanlee/epicsarchiverap-maven commit `af2e734857dab01105576086adeca0d4f318d6ee`, whose Maven build applies the site template and copies the site assets; a site folder that still holds a `build.xml` stops the build; remove that file (see "Site inputs" in `docs/README.install.md`).
+- `SRC_TAG` pins jeonghanlee/epicsarchiverap-maven commit `120d53fe43133c7699e4c9624dc948cc96b0ece2`, whose Maven build applies the site template and copies the site assets; a site folder that still holds a `build.xml` stops the build; remove that file (see "Site inputs" in `docs/README.install.md`).
 - Every Maven call of `configure/RULES_SRC` passes `ARCHAPPL_SITEID` (default `als`) instead of a fixed `als`, so the copied site folder and the built site agree.
 - The VM verifier waits on `STARTING` and `wrong-java-executable` within its readiness deadline, fails when either persists, and keeps every retried health output with its elapsed time.
 
 ### Fixed
+- MariaDB client configuration is created and replaced with mode 0600, and account creation output excludes password hashes.
 - `archappl.bash health` run right after a start or restart no longer reports a correct, starting appliance as `FAIL wrong-java-executable`: a PID that the launcher started and that has not yet executed Java is reported as `STARTING run-script` or `STARTING catalina-script` (exit status 1), and `FAIL startup-timeout` once the bound passes. Any other executable still fails with `wrong-java-executable`.
 - With `DB_BACKEND=sqlite`, all `db.*` targets skip with a message and return success without reading or writing MariaDB configuration; unsupported SQLite delete and query operations and standalone MariaDB helper actions are rejected, and an invalid backend selector fails before any configuration write or database contact.
 - The build-failure check recognizes the absent-commit message of git 2.47 (`unable to read tree`).

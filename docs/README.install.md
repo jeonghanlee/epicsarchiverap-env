@@ -6,6 +6,106 @@ this environment on a pre-provisioned host, so an automation role drives the
 privilege boundary of each, the inputs each consumes, the paths each writes, and
 the check that proves it ran.
 
+For a local host whose prerequisites and database are not provisioned, use the
+entry scripts below. The manual ordered sequence assumes host-provided
+prerequisites and accounts.
+
+## Local systemd installation
+
+The three entry scripts share `scripts/install-local-common.bash` and install
+a systemd-managed appliance with the `als` site configuration. They use the
+source pin and installation paths resolved from Make settings.
+
+Prerequisites:
+
+- Debian 13 or Rocky Linux 8 with systemd running.
+- An ordinary checkout owner with `sudo` access; do not run an entry script as root.
+- `bash`, `make`, `git`, and `realpath` for preflight; `sudo` and `flock` for installation.
+- Network access for OS packages, source Git fetches, Tomcat downloads, and Maven dependencies.
+- Storage, Tomcat, service-account, and database settings in
+  `../CONFIG_SITE.local`, as described in [configuration variable placement](#configuration-variable-placement).
+  Select a different source pin through the supported RELEASE overrides.
+- A clean source checkout, if one exists. Tracked or staged changes and
+  untracked files stop preflight. Generated `src/sitespecific/als` files and
+  ignored build outputs are allowed; ignored inputs under `src` or `.mvn` are rejected.
+
+1. Choose one database mode and review its inputs.
+
+   | Entry script | Connection and preparation |
+   | --- | --- |
+   | `install-local-sqlite.bash` | Uses `ARCHAPPL_SQLITE_FILE`, loads the SQLite schema as the service account, and excludes MariaDB packages from installation |
+   | `install-local-mariadb-uds.bash` | Uses `--socket`, then `DB_SOCKET`, then the OS default socket; starts MariaDB and prepares accounts at `localhost` |
+   | `install-local-mariadb-tcp.bash` | Clears `DB_SOCKET`, requires `DB_HOST_NAME=127.0.0.1`, uses `DB_HOST_PORT`, and prepares accounts at `127.0.0.1` |
+
+   The default UDS path is `/run/mysqld/mysqld.sock` on Debian 13 and
+   `/var/lib/mysql/mysql.sock` on Rocky Linux 8. The service account must be able
+   to reach and write the socket. The script does not configure MariaDB's listener.
+
+   MariaDB starts `mariadb.service` and creates or updates `DB_NAME`, `DB_ADMIN`,
+   and `DB_USER` using the configured passwords and grants. Set `DB_ADMIN_PASS`
+   and `DB_USER_PASS` before confirming; existing accounts receive those values.
+   Default account preparation requires local root socket authentication. For TCP,
+   the root socket server's port must match `DB_HOST_PORT`.
+
+2. In the environment checkout, print the plan for the selected mode. These are
+   alternatives; run only the line matching your choice:
+
+   ```bash
+   bash scripts/install-local-sqlite.bash --plan
+   bash scripts/install-local-mariadb-uds.bash --plan
+   bash scripts/install-local-mariadb-tcp.bash --plan
+   ```
+
+   `--plan` reads configuration and checks an existing source checkout. It prints
+   the steps without installing packages, changing files, building, or starting
+   services. It does not establish that the host is ready for installation.
+
+3. In the same checkout, start the selected installer and review its confirmation
+   before answering `y`. Run only one of these alternatives:
+
+   ```bash
+   bash scripts/install-local-sqlite.bash
+   bash scripts/install-local-mariadb-uds.bash
+   bash scripts/install-local-mariadb-tcp.bash
+   ```
+
+   Packages and the OS preset are prepared first. The script selects the source
+   pin, prepares Tomcat 9, generates configuration, and builds before stopping an
+   installed appliance. It requires the appliance to be stopped before database
+   preparation and payload replacement, then starts the appliance and health timer.
+   The OS preset rewrites `configure/CONFIG_SITE.local`; keep site overrides in
+   `../CONFIG_SITE.local`.
+
+   | Option | Behavior |
+   | --- | --- |
+   | `--plan` | Prints steps without executing installation |
+   | `-y`, `--yes` | Skips the installation confirmation; required with non-interactive stdin |
+   | `--skip-packages` | Uses host-provided prerequisites, including JDK 21 |
+   | `--socket <socket_path>` | UDS only: selects an absolute socket path without whitespace |
+   | `--existing-db` | MariaDB only: skips account/database provisioning; starts MariaDB and loads the schema |
+   | `--timeout <seconds>` | Sets the startup verification deadline from 1 to 86400 seconds; default 180 |
+   | `-h`, `--help` | Prints usage and option descriptions |
+
+   With `--existing-db`, the database and application account must already exist,
+   and `DB_USER_PASS` must match that account. The flag preserves account
+   configuration, not database contents: schema loading runs in both modes.
+   Existing archive stores and database files remain during payload replacement.
+   An unavailable default Tomcat installation is downloaded and checked against
+   Apache's SHA-512 before extraction; a custom `TOMCAT_HOME` must already contain Tomcat 9.
+
+Verification: a successful run prints `Installation ready:` with the management
+URL and exits 0. It checks process health as the service account, all four
+`startupState` responses for `STARTUP_COMPLETE`, a successful management HTTP
+response, and active appliance and health timer units within the startup deadline.
+Perform the separate [functional verification](#functional-verification) to
+confirm PV acquisition and retrieval.
+
+On failure, the script exits nonzero and reports the error. Once installation
+begins, it also names the failed step. It retains data and build files and
+performs no automatic rollback or restart. A failure
+after the appliance stop can leave it stopped or partly replaced; resolve the
+reported failure before repeating installation or starting the service.
+
 ## Architecture
 
 - aa-env clones the source repository (https://github.com/jeonghanlee/epicsarchiverap-maven) and drives its Maven Wrapper build, then

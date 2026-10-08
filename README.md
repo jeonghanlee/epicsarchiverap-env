@@ -7,7 +7,7 @@ The source code for the [EPICS Archiver Appliance with MAVEN](https://github.com
 
 ## Scope
 
-This document covers setup and build of the EPICS Archiver Appliance with MAVEN on Debian 13: prerequisites, MariaDB configuration, the four Tomcat 9 runtime instances, and systemd service management.
+This document covers local installation of the EPICS Archiver Appliance with MAVEN on Debian 13 or Rocky Linux 8 using SQLite or MariaDB. It also covers the manual Debian 13 setup, the four Tomcat 9 runtime instances, and systemd service management.
 
 **Out of scope:**
 * Archiving policy configuration and storage tier tuning — see [docs/README.policies.md](docs/README.policies.md).
@@ -15,14 +15,28 @@ This document covers setup and build of the EPICS Archiver Appliance with MAVEN 
 * The upstream community build process — see [archiver-appliance/epicsarchiverap](https://github.com/archiver-appliance/epicsarchiverap).
 
 ## Purpose of this Environment
-This repository provides a set of `Makefiles` and scripts to automate the setup and build process for the EPICS Archiver Appliance with MAVEN. It handles system dependencies, database configuration, and service management to create a reproducible environment currently on Debian 13.
+This repository provides a set of `Makefiles` and scripts to automate the setup and build process for the EPICS Archiver Appliance with MAVEN. It handles system dependencies, database configuration, and service management on Debian 13 and Rocky Linux 8.
 
 ## Prerequisites
-* **JDK 21+**: the distro package (`openjdk-21-jdk-headless` on Debian 13), installed by the package step below.
+* **JDK 21**: required by the local installation scripts. The package step installs `openjdk-21-jdk-headless` on Debian 13 or `java-21-openjdk-devel` on Rocky Linux 8.
 * **Apache Maven**: none to install. The source repository ships the Maven Wrapper (`./mvnw`), which downloads its pinned Maven version on the first build.
 * **Git**: Required to clone and select the pinned application source.
 * **Operating System**:
     * Core build (JARs/WARs) is generally OS-agnostic.
+
+## Local systemd installation
+
+The [local installation procedure](docs/README.install.md#local-systemd-installation)
+provides three entry scripts: `scripts/install-local-sqlite.bash`,
+`scripts/install-local-mariadb-uds.bash`, and
+`scripts/install-local-mariadb-tcp.bash`. Run the selected script as the ordinary
+checkout owner; it uses `sudo` for privileged steps. Each supports `--plan`.
+
+These scripts install packages, select the configured source pin, build the
+appliance, prepare its database, replace its payload, and start its systemd
+service and health timer. MariaDB account preparation also sets configured
+passwords and grants on existing accounts; use `--existing-db` to preserve
+provisioned accounts. Follow the linked procedure before confirming installation.
 
 ## Debian 13 Setup Guide
 This guide outlines the setup and build process on a Debian 13 system.
