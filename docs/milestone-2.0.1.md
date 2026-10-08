@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45 and M46 are Complete and their issues are closed; M44 (release 2.0.1) is the only open Milestone row and is Ready. Its plan was revised on 2026-10-05 (dependencies and completion criteria include M45 and M46, the integrated verification rows follow the current checks, the source pin is `af2e734857dab01105576086adeca0d4f318d6ee` under D39, the release merge targets the default branch `maven`, and the post-release verification is one SQLite case per operating system) and was accepted and authorized for implementation on 2026-10-05 (changelog entry, local suite, release notes draft, matrix preparation); commit, push, guest requests, the VM run and the release objects need separate authority. The eight-case VM matrix runs later, as the release verification of M44, with the pinned Ansible and cloud-provision inventory generator; the cloud-provision species rename (`archiver-dev` to `archiver-dev-uds`, `archiver_dev_uds`, new `archiver-dev-tcp`, cloud-provision `796682c`) matters only when those pins move, which is not yet a register item. M41 remains Backlog under D37.
+Next session entry point: M10, M14, M43, M45 and M46 are Complete and their issues are closed; M44 (release 2.0.1) is the only open Milestone row and is In progress. The release plan accepted and authorized on 2026-10-05 covers the changelog entry, local suite, release notes draft and matrix preparation. On 2026-10-07, D44 accepts and authorizes the candidate source pin `120d53fe43133c7699e4c9624dc948cc96b0ece2` and preliminary local verification before its Maven CI completes. Source CI and Release Verification 2 now pass at this pin; the release notes draft, matrix preparation and separately authorized eight-case VM run remain. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per operating system. Commit, push, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged; the cloud-provision species rename (`archiver-dev` to `archiver-dev-uds`, `archiver_dev_uds`, new `archiver-dev-tcp`, cloud-provision `796682c`) matters only when those pins move, which is not yet a register item. M41 remains Backlog under D37.
 
 ## Scope
 
@@ -34,7 +34,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Complete | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Complete | No | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
-| Release | M44 | Verify and publish release 2.0.1 | Milestone | Not started | Yes | M43, M14, M10, M45, M46, D31, D37, D39 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
+| Release | M44 | Verify and publish release 2.0.1 | Milestone | In progress | No | M43, M14, M10, M45, M46, D31, D37, D39, D44 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
 
@@ -56,6 +56,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D38 | Split the two independent Rocky 8.10 defects by owner. epicsarchiverap-maven owns the CAJ search-port defect (its #26), ansible-provision owns the systemd 239 journald unlinked-entry gap, and epicsarchiverap-env owns how both reach its VM acceptance checks (M45). Each owner proves the exact cause first, then fixes its own side. Patches stay local; publication and upstream reports are decided after the problem is resolved. A session that needs a VM requests it from cloud-provision directly. | 2026-10-04 |
 | D39 | Run M10 acceptance on the latest epicsarchiverap-maven `modernize` commit that carries the current fixes and passes its CI, and keep following newly fixed commits instead of holding an older source. The next run uses `aa953a44bd2e6fb2a299224b97d365e7753a2fd8`, which carries the CAJ correction `7adc7d5a` and passed run 37249019863. The repository source pin `SRC_TAG` in `configure/RELEASE` follows the same commit, so the tested and released source stay equal. | 2026-10-04 |
 | D40 | Fix the false `wrong-java-executable` at start in both places: the launcher health reports a starting state for a PID that has not yet executed Java, and the VM verifier waits on that state and on `wrong-java-executable` within its bounded readiness deadline, failing when it persists. The owner chose this for system stability and reliability over the smaller verifier-only change, accepting the larger plan and later M10 run. | 2026-10-04 |
+| D44 | Adopt epicsarchiverap-maven `modernize` commit `120d53fe43133c7699e4c9624dc948cc96b0ece2` as the 2.0.1 candidate source pin and run preliminary local verification before its Maven CI finishes. This permits candidate preparation ahead of D39's CI condition; release readiness still requires passing source CI and new integrated and eight-case VM verification at the same pin. Preserve earlier results as evidence for their original commits. Commit, push, guest requests, the VM run and release objects remain separately authorized. | 2026-10-07 |
 
 ### Assignment History
 
@@ -992,7 +993,7 @@ Last Compared: 2026-10-05 at 17:28 UTC, `gh issue view 59 --repo jeonghanlee/epi
 Origin: 2.0.1 / M44
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -1012,14 +1013,15 @@ Out of scope: another release line, automatic security fixes, changing or deleti
 
 ##### Dependencies And Decisions
 
-- M43, M14, M10, M45, M46, D31, D37 and D39. The Ant removal is part of this release and is complete (M14, G6).
-- The source pin is `af2e734857dab01105576086adeca0d4f318d6ee` under D39: the tested and released source stay equal, so adopting a newer source commit before the release needs a new matrix run. The pinned Ansible and cloud-provision inventory generator of the VM acceptance stay fixed for the matrix; the cloud-provision species rename does not block it.
+- M43, M14, M10, M45, M46, D31, D37, D39 and D44. The Ant removal is part of this release and is complete (M14, G6).
+- The candidate source pin is `120d53fe43133c7699e4c9624dc948cc96b0ece2` under D44. Preliminary local verification may run while its Maven CI is pending; release readiness requires passing CI and new integrated and eight-case VM verification. Earlier results at `af2e734857dab01105576086adeca0d4f318d6ee` remain historical evidence. The tested and released source must stay equal. The pinned Ansible and cloud-provision inventory generator of the VM acceptance stay fixed for the matrix; the cloud-provision species rename does not block it.
+- Source CI observation: 2026-10-07 at 16:38 PDT, the public page of [Maven run 37698987276](https://github.com/jeonghanlee/epicsarchiverap-maven/actions/runs/37698987276) for `modernize` commit `120d53fe43133c7699e4c9624dc948cc96b0ece2` reports `Success`. The retained page is `work/rv2-120d53fe-20261007/source-ci.html`; the verification manifest records its SHA256. This satisfies the source CI condition, not VM acceptance.
 
 ##### Implementation Plan
 
 Plan Status: accepted
-Plan Acceptance: 2026-10-05; owner accepted the revised release plan (dependencies M43, M14, M10, M45 and M46, source pin under D39, RV3 eight-case matrix, RV6 one SQLite case per operating system)
-Implementation Authorization: 2026-10-05; owner authorized the changelog entry, the local suite on the release candidate, the release notes draft and the preparation of the eight-case matrix; commit, push, every guest request, the VM run, and the release objects (merge, tag, GitHub release, milestone close) need separate authority
+Plan Acceptance: 2026-10-05; owner accepted the revised release plan (dependencies M43, M14, M10, M45 and M46, source pin under D39, RV3 eight-case matrix, RV6 one SQLite case per operating system); 2026-10-07, owner accepted the candidate pin and preliminary verification before source CI completion under D44
+Implementation Authorization: 2026-10-05; owner authorized the changelog entry, the local suite on the release candidate, the release notes draft and the preparation of the eight-case matrix; 2026-10-07, owner authorized the D44 pin update and preliminary local verification; commit, push, every guest request, the VM run, and the release objects (merge, tag, GitHub release, milestone close) need separate authority
 Superseded Plan Artifacts: draft written before the Ant removal and the two defect-containment items, carried by d3e16d54d05a57de281fb353802e24947187ca3f, docs/milestone-2.0.1.md, M44
 
 1. Accept this release plan and the work plans, commit the canonical plan, then project issues to GitHub.
@@ -1044,8 +1046,8 @@ Final observations are owned by Release Verification Results below.
 
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M43 / T1, M43 / T2 | Later Make, install, source schema or DB-helper changes | Backend command routing | Release Verification 2 | Rejections and supported behavior hold on final tree | Pending |
-| M14 / T1, M14 / T3 | Later source-pin, site-input or Make changes | Build and installed WARs | Release Verification 2 | No Ant in the tracked tree; the shipped build passes with the site folder and fails when a site `build.xml` is put back | Pending |
+| M43 / T1, M43 / T2 | Later Make, install, source schema or DB-helper changes | Backend command routing | Release Verification 2 | Rejections and supported behavior hold on final tree | Pass; local suite and real database integration at candidate `120d53fe`, recorded in Release Verification 2 |
+| M14 / T1, M14 / T3 | Later source-pin, site-input or Make changes | Build and installed WARs | Release Verification 2 | No Ant in the tracked tree; the shipped build passes with the site folder and fails when a site `build.xml` is put back | Pass; no-Ant checks, real ALS build, WAR payload checks and site `build.xml` rejection at candidate `120d53fe`, recorded in Release Verification 2 |
 | M45 / T2, M46 / T1, M46 / T2 | Later launcher, verifier or health changes | Launcher health and VM verifier | Release Verification 3 | The starting verdict and the failure-evidence retention hold on the final tree | Pending |
 | M10 / T1 | Later install, build or configuration changes | Documented installation | Release Verification 3 | Real VM installation checks pass | Pending |
 
@@ -1061,7 +1063,7 @@ Final observations are owned by Release Verification Results below.
 | Field | File | Before | Planned After | Pre-check | Pre-check Label | Post-check | Post-check Label |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Changelog release heading | CHANGELOG.md | Newest dated release 2.0.0 | One dated 2.0.1 heading above preserved 2.0.0 | Read committed heading and working-tree diff | Release Verification 1 | Check date, uniqueness and actual shipped scope | Release Verification 4 |
-| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 before this cycle | `af2e734857dab01105576086adeca0d4f318d6ee`, already set; unchanged unless a newer passing commit is adopted with a new matrix run | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
+| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 before this cycle | Candidate `120d53fe43133c7699e4c9624dc948cc96b0ece2` under D44; source CI, integrated verification and a new matrix run must pass before release | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
 
 The source POM belongs to epicsarchiverap-maven. This cycle does not independently bump it. APPNAME, SRC_VERSION and install-path derivation remain checked for consistency; no environment numeric version field has been identified beyond the changelog and release objects.
 
@@ -1096,7 +1098,7 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | Release Verification 1 | Not run | Planned environment above | Pending | none |
-| Release Verification 2 | Not run | Planned environment above | Pending | none |
+| Release Verification 2 | 2026-10-07 16:50 PDT | Local Debian 13, JDK 21; isolated environment at `e2ade5a184098379424ed87972ff308490eeedec` plus the D44 candidate patch, source `120d53fe43133c7699e4c9624dc948cc96b0ece2`, site `als`, SQLite build configuration and short `/tmp` test workspace | Pass | Shipped `--local` exits 0 without failures or skips: Phase 1 223/0, health 20, starting health 32/0, no-Ant 22/0, database 10, VM local 36, Phase 2 13/0; all 20 tracked test files are unchanged. Real `database-config.py --integration` passes both tests, including MariaDB socket/TCP account, schema, query, backup/restore and SQLite schema loading. Shipped `make conf.archapplproperties build.mvn DB_BACKEND=sqlite MAVEN_FLAGS='-o -B -ntp'` produces four real WARs; 246 artifact checks verify 47 site images, main CSS, three classpath files and version in each WAR, mgmt CSS, and 33 merged template blocks. The original site `build.xml` from `4800b4ae^` makes the real build exit 2 with the site-overlay rejection; moving that file out restores BUILD SUCCESS. Evidence: `work/rv2-120d53fe-20261007/verification.json`, SHA256 `93b5bdcfa1e431f29a4155c3f69f265e8f9429921665c3859e62247e59b6dd54`, records commands, exit statuses, all log hashes, the candidate patch, retained workspace and WAR hashes; `payload-manifest.json`, SHA256 `d9a6e777b9bbdd9aeb0c0f8f511056c064621bf0d8aa56cc01018f03a1249b5a`, records every WAR entry. This verifies the local integrated path only. |
 | Release Verification 3 | Not run | Planned environment above | Pending | none |
 | Release Verification 4 | Not run | Planned environment above | Pending | none |
 | Release Verification 5 | Not run | Planned environment above | Pending | none |
