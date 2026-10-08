@@ -23,7 +23,7 @@ db.conf: export RENDER_DB_SOCKET = $(strip $(DB_SOCKET))
 db.conf: $(SQL_CONFIG_FILE).in
 	$(call checkfile,$(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE))
 	$(QUIET) echo ">>> Generate $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)"
-	$(QUIET)bash $(TOP)/scripts/render-db-config.bash shell "$<" "$(basename $<)" DB_ADMIN_HOST DB_ADMIN DB_ADMIN_PASS DB_HOST_NAME DB_HOST_IPADDR DB_NAME DB_HOST_PORT DB_USER DB_USER_PASS DB_SOCKET
+	$(QUIET)umask 077; bash $(TOP)/scripts/render-db-config.bash shell "$<" "$(basename $<)" DB_ADMIN_HOST DB_ADMIN DB_ADMIN_PASS DB_HOST_NAME DB_HOST_IPADDR DB_NAME DB_HOST_PORT DB_USER DB_USER_PASS DB_SOCKET
 
 db.conf.show:
 	$(QUIET)cat -b $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)

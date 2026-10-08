@@ -2,6 +2,7 @@
 """Run the shipped configuration targets and shell consumers in isolation."""
 
 import socket
+import http.server
 import sys
 import time
 from pathlib import Path
@@ -9,6 +10,7 @@ import shutil
 import os
 import subprocess
 import tempfile
+import threading
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -80,6 +82,122 @@ class DatabaseConfigTests(unittest.TestCase):
         resource = ET.parse(template / "context.xml").find("Resource")
         self.assertEqual(resource.attrib["password"], password)
         self.assertEqual(self.value(template / "mariadb.conf", "DB_USER_PASS"), password)
+
+    def test_database_password_file_is_private_on_creation_and_replacement(self):
+        config = self.root / "site-template/mariadb.conf"
+        for existing in (False, True):
+            with self.subTest(existing=existing):
+                if existing:
+                    config.chmod(0o666)
+                self.run_command(["bash", "-c", "umask 000; make --no-print-directory -s db.conf"])
+                self.assertEqual(config.stat().st_mode & 0o777, 0o600)
+                self.assertEqual(self.value(config, "DB_USER_PASS"), "archappl")
+
+    def test_installers_require_clean_source_inputs_in_checkouts_and_worktrees(self):
+        source = self.root / "source"
+        self.run_command(["git", "clone", "--quiet", "--shared", str(SOURCE_TOP), str(source)])
+        exclude = source / ".git/info/exclude"
+        exclude.parent.mkdir(parents=True, exist_ok=True)
+        with exclude.open("a") as output:
+            output.write("\n/.mvn/maven.config\n/.mvn/jvm.config\n/.mvn/extensions.xml\n")
+        worktree = self.root / "source-worktree"
+        self.run_command(["git", "-C", str(source), "worktree", "add", "--quiet", "--detach", str(worktree), "HEAD"])
+        for tree in (source, worktree):
+            (self.root / "configure/CONFIG_VARS.local").write_text(f"SRC_PATH:={tree.name}\n")
+            site = tree / "src/sitespecific/als"
+            site.mkdir(parents=True, exist_ok=True)
+            (site / "GeneratedReviewMarker.txt").write_text("Generated site overlay.\n")
+            for mode in ("sqlite", "mariadb-uds", "mariadb-tcp"):
+                entry = ["bash", f"scripts/install-local-{mode}.bash", "--plan", "--skip-packages"]
+                with self.subTest(tree=tree.name, mode=mode):
+                    self.run_command(entry)
+                    marker = tree / "src/resources/main/ReviewPinMarker.txt"
+                    marker.write_text("Untracked build input.\n")
+                    self.run_command(["git", "-C", str(tree), "diff", "--quiet"])
+                    run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn(b"untracked files", run.stderr)
+                    marker.unlink()
+                    marker = tree / "src/resources/main/ReviewPinMarker.swp"
+                    marker.write_text("Ignored build input.\n")
+                    run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn(b"ignored build inputs", run.stderr)
+                    marker.unlink()
+                    for name in ("maven.config", "jvm.config", "extensions.xml"):
+                        with self.subTest(config=name):
+                            marker = tree / ".mvn" / name
+                            marker.parent.mkdir(parents=True, exist_ok=True)
+                            marker.write_text("Ignored Maven build configuration.\n")
+                            self.run_command(["git", "-C", str(tree), "check-ignore", str(marker)])
+                            run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                            self.assertNotEqual(run.returncode, 0)
+                            self.assertIn(b"ignored build inputs", run.stderr)
+                            self.assertIn(f".mvn/{name}".encode(), run.stderr)
+                            marker.unlink()
+                    tracked = tree / "pom.xml"
+                    original = tracked.read_bytes()
+                    tracked.write_bytes(original + b"\n<!-- Local source modification. -->\n")
+                    run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn(b"tracked changes", run.stderr)
+                    tracked.write_bytes(original)
+
+    def test_installer_readiness_obeys_deadline(self):
+        # Invoke the shipped functions without running the system installation.
+        script = (self.root / "scripts/install-local-common.bash").read_text()
+        functions, invocation = script.rsplit('\nmain "$@"', 1)
+        self.assertFalse(invocation.strip())
+        harness = self.root / "scripts/readiness-functions.bash"
+        harness.write_text(functions + "\n")
+        boundary = self.root / "boundary"
+        boundary.mkdir()
+        sudo = boundary / "sudo"
+
+        class SlowResponse(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                time.sleep(3)
+                try:
+                    self.send_response(200)
+                    self.end_headers()
+                    self.wfile.write(b'{"status":"STARTUP_COMPLETE"}')
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SlowResponse)
+        self.addCleanup(server.server_close)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(server.shutdown)
+        url = f"http://127.0.0.1:{server.server_port}/startupState"
+        command = (
+            'source "$1"; PATH="$2:$PATH"; timeout=1; service_user=review; '
+            'install_path=/unused; service_unit=review.service; health_timer=review.timer; '
+            'component_urls=("$3" "$3" "$3" "$3"); mgmt_url="$3"; wait_ready'
+        )
+        # Only the outer privilege boundary is replaced; HTTP uses real curl.
+        for action in ("exit 1", "sleep 10"):
+            with self.subTest(privilege_boundary=action):
+                sudo.write_text(f"#!/bin/sh\n{action}\n")
+                sudo.chmod(0o755)
+                started = time.monotonic()
+                run = subprocess.run(
+                    ["bash", "-c", command, "review", str(harness), str(boundary), url],
+                    cwd=self.root, capture_output=True, timeout=3,
+                )
+                elapsed = time.monotonic() - started
+                self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                self.assertIn(b"within 1 seconds", run.stderr)
+                self.assertLess(elapsed, 2)
+
+        command = (
+            'source "$1"; run_before_deadline "$((SECONDS + 5))" true; '
+            'run_before_deadline "$SECONDS" true'
+        )
+        self.run_command(["bash", "-c", command, "review", str(harness)], expected=124)
 
     def test_configured_database_name_reaches_runtime(self):
         template = self.root / "site-template"
@@ -288,7 +406,9 @@ class DatabaseIntegrationTests(unittest.TestCase):
         for transport in ([], ["DB_SOCKET="]):
             with self.subTest(transport=transport):
                 self.make("db.conf", *common, *transport)
-                self.run_command(helper + ["dbUserCreate"])
+                create_output = self.run_command(helper + ["dbUserCreate"])
+                self.assertNotIn(b"Password", create_output)
+                self.assertNotRegex(create_output.decode(), r"\*[0-9A-Fa-f]{40}\b")
                 self.make("sql.fill", f"SQL_AA_ORIG_SQL={schema}")
                 self.run_command(helper + ["query", "SELECT 'query-ok'"])
                 sql = Path(self.temp.name) / "query file.sql"
