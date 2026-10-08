@@ -22,6 +22,7 @@ setup_db=0
 plan=0
 yes=0
 skip_packages=0
+tomcat_action=''
 timeout=180
 os=''
 stage='preflight'
@@ -52,6 +53,7 @@ function usage {
         '  --plan             Print the steps without installing or starting anything' \
         '  -y, --yes          Run without the installation confirmation' \
         '  --skip-packages    Use the host-provided prerequisites' \
+        '  --tomcat ACTION    existing: use as service user; replace: back up and install' \
         '  --socket PATH      MariaDB UDS path; otherwise DB_SOCKET or the OS default' \
         '  --existing-db      MariaDB: keep provisioned accounts; load schema only' \
         '  --timeout SEC      Startup deadline, 1..86400 seconds (180)' \
@@ -78,6 +80,13 @@ function parse_args {
             --plan) plan=1; shift ;;
             -y|--yes) yes=1; shift ;;
             --skip-packages) skip_packages=1; shift ;;
+            --tomcat)
+                (( $# >= 2 )) || die '--tomcat requires existing or replace'
+                case "$2" in
+                    existing|replace) tomcat_action="$2" ;;
+                    *) die '--tomcat requires existing or replace' ;;
+                esac
+                shift 2 ;;
             --existing-db)
                 [[ "$backend" == mariadb ]] || die '--existing-db requires MariaDB'
                 setup_db=0; shift ;;
@@ -227,10 +236,115 @@ function install_packages {
     esac
 }
 
+# Stops an installed appliance before replacing shared runtime files or payloads.
+function stop_appliance {
+    local load state
+    if (( plan )); then
+        printf 'If installed, stop %s and require it to be inactive before changing installed files.\n' "$service_unit"
+        return
+    fi
+    load=$(systemctl show --property=LoadState --value "$service_unit")
+    if [[ "$load" != not-found ]]; then
+        run sudo -- systemctl stop "$service_unit"
+        state=$(systemctl show --property=ActiveState --value "$service_unit")
+        [[ "$state" == inactive || "$state" == failed ]] || die "Appliance is not stopped: $state"
+    fi
+}
+
+# Rejects replacement paths that would move build inputs or appliance data.
+function validate_tomcat_replacement {
+    local location candidate key protected
+    location=$(make_value TOMCAT_INSTALL_LOCATION) || return 1
+    candidate=$(realpath -m -- "$tomcat_home") || return 1
+    if [[ "$tomcat_home" != "$location" || "$candidate" == / || "$candidate" != "$tomcat_home" || -L "$tomcat_home" || ( -e "$tomcat_home" && ! -d "$tomcat_home" ) ]]; then
+        printf '%s\n' 'Tomcat replacement requires the default canonical directory without symlink paths.' >&2
+        return 1
+    fi
+    if [[ "$REPO/" == "$candidate/"* ]]; then
+        printf 'Tomcat replacement would move the checkout: %s\n' "$REPO" >&2
+        return 1
+    fi
+    for key in SRC_PATH AA_INSTALL_LOCATION ARCHAPPL_STORAGE_TOP ARCHAPPL_SHORT_TERM_FOLDER ARCHAPPL_MEDIUM_TERM_FOLDER ARCHAPPL_LONG_TERM_FOLDER ARCHAPPL_SQLITE_FILE; do
+        protected=$(make_value "$key") || return 1
+        [[ -n "$protected" ]] || return 1
+        [[ "$protected" == /* ]] || protected="$REPO/$protected"
+        protected=$(realpath -m -- "$protected") || return 1
+        if [[ "$protected/" == "$candidate/"* || "$candidate/" == "$protected/"* ]]; then
+            printf 'Tomcat replacement overlaps %s: %s\n' "$key" "$protected" >&2
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Requires an explicit choice when the checkout owner cannot execute Tomcat.
+function choose_tomcat {
+    local answer replace_allowed=0
+    [[ -e "$tomcat_home" || -L "$tomcat_home" ]] || return 0
+    [[ -z "$tomcat_action" ]] || return 0
+    [[ ! -x "$tomcat_home/bin/catalina.sh" ]] || return 0
+    if validate_tomcat_replacement 2>/dev/null; then
+        replace_allowed=1
+    fi
+    printf 'The checkout owner cannot execute %s/bin/catalina.sh.\n' "$tomcat_home"
+    printf '1) Use existing Tomcat after checking access as %s.\n' "$service_user"
+    if (( replace_allowed )); then
+        printf '%s\n' '2) Back up existing Tomcat and install the configured version (stops the appliance).'
+    else
+        printf '%s\n' '2) Unavailable: replacement requires the default canonical directory separate from checkout, source, appliance and data paths.'
+    fi
+    if (( plan )); then
+        if (( replace_allowed )); then
+            printf '%s\n' 'Installation will ask for a choice; --tomcat existing or --tomcat replace selects it explicitly.'
+        else
+            printf '%s\n' 'Use --tomcat existing to check and use this installation; replacement is unavailable.'
+        fi
+        return
+    fi
+    (( ! yes )) || die 'Select --tomcat existing or --tomcat replace for unattended installation'
+    if (( replace_allowed )); then
+        printf '%s' 'Tomcat choice [1/2; anything else cancels]: '
+    else
+        printf '%s' 'Tomcat choice [1; anything else cancels]: '
+    fi
+    read -r answer || die 'No answer; Tomcat preparation cancelled'
+    case "$answer" in
+        1) tomcat_action=existing ;;
+        2)
+            (( replace_allowed )) || die 'Tomcat replacement is unavailable for this path'
+            tomcat_action=replace ;;
+        *) die 'Tomcat preparation cancelled' ;;
+    esac
+}
+
+# Retains the original directory under a unique root-created sibling directory.
+function backup_tomcat {
+    local backup
+    validate_tomcat_replacement || die 'Unsafe Tomcat replacement path'
+    [[ -d "$tomcat_home" ]] || die 'Tomcat backup requires an existing directory'
+    stop_appliance
+    root_make sd_health_stop
+    if (( plan )); then
+        printf 'Back up %s in a unique %s.backup.XXXXXXXX directory before installing Tomcat.\n' "$tomcat_home" "$tomcat_home"
+        return
+    fi
+    backup=$(sudo -- mktemp -d -- "$tomcat_home.backup.XXXXXXXX")
+    [[ -d "$backup" && ! -L "$backup" ]] || die 'Cannot create Tomcat backup directory'
+    printf 'Tomcat backup: %s/tomcat\n' "$backup"
+    run sudo -- mv -T -- "$tomcat_home" "$backup/tomcat"
+    [[ ! -e "$tomcat_home" && ! -L "$tomcat_home" ]] || die "Tomcat backup failed: $backup"
+    sudo -- test -d "$backup/tomcat" || die "Tomcat backup is unavailable: $backup"
+}
+
 function prepare_tomcat {
     local location archive url expected _unused info
     location=$(make_value TOMCAT_INSTALL_LOCATION)
-    if [[ ! -e "$tomcat_home" ]]; then
+    choose_tomcat
+    if [[ "$tomcat_action" == replace ]]; then
+        validate_tomcat_replacement || die 'Unsafe Tomcat replacement path'
+    fi
+    if [[ ! -e "$tomcat_home" || "$tomcat_action" == replace ]]; then
+        [[ "$tomcat_action" != existing ]] || die "Existing Tomcat is missing: $tomcat_home"
         [[ "$tomcat_home" == "$location" ]] || die 'Custom TOMCAT_HOME must already contain Tomcat 9'
         run_make tomcat.get
         archive=$(make_value TOMCAT_SRC)
@@ -246,11 +360,14 @@ function prepare_tomcat {
         else
             printf '%s\n' 'Verify the downloaded Tomcat archive against its Apache SHA-512 before extraction.'
         fi
+        if [[ -e "$tomcat_home" ]]; then backup_tomcat; fi
         root_make tomcat.install
     fi
     if (( ! plan )); then
-        [[ -x "$tomcat_home/bin/catalina.sh" ]] || die "Tomcat is incomplete: $tomcat_home"
-        info=$(unzip -p "$tomcat_home/lib/catalina.jar" org/apache/catalina/util/ServerInfo.properties)
+        sudo -n -u "$service_user" -- test -x "$tomcat_home/bin/catalina.sh" || die "Service user $service_user cannot execute $tomcat_home/bin/catalina.sh"
+        sudo -n -u "$service_user" -- test -r "$tomcat_home/bin/catalina.sh" || die "Service user $service_user cannot read $tomcat_home/bin/catalina.sh"
+        sudo -n -u "$service_user" -- test -r "$tomcat_home/bin/setclasspath.sh" || die "Service user $service_user cannot read $tomcat_home/bin/setclasspath.sh"
+        info=$(sudo -n -u "$service_user" -- unzip -p "$tomcat_home/lib/catalina.jar" org/apache/catalina/util/ServerInfo.properties) || die "Service user $service_user cannot inspect $tomcat_home/lib/catalina.jar"
         [[ "$info" == *'server.number=9.'* ]] || die 'Tomcat 9 is required'
     fi
 }
@@ -337,7 +454,7 @@ function report_exit {
 }
 
 function main {
-    local answer tool load state actual expected java_home java_version
+    local answer tool actual expected java_home java_version
     case "${1:-}" in
         sqlite) backend=sqlite; transport=sqlite; entry_script='install-local-sqlite.bash' ;;
         mariadb-uds) backend=mariadb; transport=uds; setup_db=1; entry_script='install-local-mariadb-uds.bash' ;;
@@ -412,16 +529,7 @@ function main {
     run_make conf.archapplproperties
     run_make build.mvn
     stage='appliance stop'
-    if (( plan )); then
-        printf 'If installed, stop %s and require it to be inactive before changing installed files.\n' "$service_unit"
-    else
-        load=$(systemctl show --property=LoadState --value "$service_unit")
-        if [[ "$load" != not-found ]]; then
-            run sudo -- systemctl stop "$service_unit"
-            state=$(systemctl show --property=ActiveState --value "$service_unit")
-            [[ "$state" == inactive || "$state" == failed ]] || die "Appliance is not stopped: $state"
-        fi
-    fi
+    stop_appliance
     stage='database and installation'
     root_make sd_health_stop
     prepare_database

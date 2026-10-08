@@ -143,6 +143,183 @@ class DatabaseConfigTests(unittest.TestCase):
                     self.assertIn(b"tracked changes", run.stderr)
                     tracked.write_bytes(original)
 
+    def test_tomcat_choices_and_backup_preserve_existing_files(self):
+        # Run shipped functions, real Make targets, and real directory moves.
+        script = (self.root / "scripts/install-local-common.bash").read_text()
+        functions, invocation = script.rsplit('\nmain "$@"', 1)
+        self.assertFalse(invocation.strip())
+        harness = self.root / "scripts/tomcat-functions.bash"
+        harness.write_text(functions + "\n")
+        home = self.root / "tomcat"
+        (home / "bin").mkdir(parents=True)
+        marker = home / "bin/catalina.sh"
+        marker.write_text("#!/bin/sh\nexit 0\n")
+        marker.chmod(0o640)
+        original = marker.read_bytes()
+        preset = self.root / "configure/CONFIG_SITE.local"
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={home}\n")
+        setup = ('source "$1"; tomcat_home="$2"; service_user=review; '
+                 'service_unit=review.service; ')
+        command = setup + 'choose_tomcat; printf "Selected: %s\\n" "$tomcat_action"'
+        for reply, action in ((b"1\n", b"existing"), (b"2\n", b"replace")):
+            with self.subTest(choice=reply):
+                output = self.run_command(
+                    ["bash", "-c", command, "review", str(harness), str(home)], input=reply)
+                self.assertIn(b"Selected: " + action, output)
+                self.assertEqual(marker.read_bytes(), original)
+        for prefix, reply in (("", b""), ("", b"x\n"), ("yes=1; ", b"")):
+            self.run_command(["bash", "-c", setup + prefix + 'choose_tomcat',
+                              "review", str(harness), str(home)], expected=1, input=reply)
+            self.assertEqual(marker.read_bytes(), original)
+
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={self.root}/default-tomcat\n")
+        for prefix, reply, expected in (("", b"1\n", 0), ("", b"2\n", 1),
+                                        ("plan=1; ", b"", 0)):
+            run = subprocess.run(["bash", "-c", setup + prefix + 'choose_tomcat',
+                                  "review", str(harness), str(home)],
+                                 input=reply, cwd=self.root, capture_output=True, timeout=30)
+            self.assertEqual(run.returncode, expected, run.stdout + run.stderr)
+            self.assertIn(b"2) Unavailable", run.stdout)
+            self.assertNotIn(b"2) Back up", run.stdout)
+            self.assertEqual(marker.read_bytes(), original)
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={home}\n")
+
+        boundary = self.root / "boundary"
+        boundary.mkdir()
+        sudo = boundary / "sudo"
+        sudo.write_text('#!/bin/bash\nset -eu\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\n'
+                        'while (( $# )); do\ncase "$1" in\n'
+                        '-n|--) shift ;;\n-u) shift 2 ;;\n*) break ;;\nesac\ndone\n'
+                        'exec "$@"\n')
+        sudo.chmod(0o755)
+        systemctl = boundary / "systemctl"
+        systemctl.write_text('#!/bin/bash\nset -eu\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\n'
+                             'case "$*" in\n*LoadState*) printf "loaded\\n" ;;\n'
+                             '*ActiveState*) printf "%s\\n" "${TEST_ACTIVE_STATE:-inactive}" ;;\n'
+                             'stop*) exit 0 ;;\n*) exit 1 ;;\nesac\n')
+        systemctl.chmod(0o755)
+        log = self.root / "boundary.log"
+        env = dict(os.environ, BOUNDARY_LOG=str(log), TEST_ACTIVE_STATE="active")
+        command = setup + 'PATH="$3:$PATH"; backup_tomcat'
+        args = ["bash", "-c", command, "review", str(harness), str(home), str(boundary)]
+        self.run_command(args, expected=1, env=env)
+        self.assertEqual(marker.read_bytes(), original)
+        self.assertFalse(list(self.root.glob("tomcat.backup.*")))
+
+        env["TEST_ACTIVE_STATE"] = "inactive"
+        self.run_command(args, env=env)
+        backups = list(self.root.glob("tomcat.backup.*"))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual((backups[0] / "tomcat/bin/catalina.sh").read_bytes(), original)
+        self.assertFalse(home.exists())
+        trace = log.read_text()
+        self.assertLess(trace.rindex("stop review.service"), trace.index("mktemp"))
+        self.assertLess(trace.index("sd_health_stop"), trace.index("mktemp"))
+        home.symlink_to(backups[0] / "tomcat", target_is_directory=True)
+        self.run_command(args, expected=1, env=env)
+        self.assertEqual(len(list(self.root.glob("tomcat.backup.*"))), 1)
+
+        # A readable launcher must still be rejected if sudo denies service access.
+        home.unlink()
+        home.mkdir()
+        (home / "bin").mkdir()
+        launcher = home / "bin/catalina.sh"
+        launcher.write_bytes(original)
+        launcher.chmod(0o100)
+        command = setup + 'PATH="$3:$PATH"; tomcat_action=existing; prepare_tomcat'
+        args = ["bash", "-c", command, "review", str(harness), str(home), str(boundary)]
+        run = subprocess.run(args, cwd=self.root, capture_output=True, env=env, timeout=30)
+        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+        self.assertIn(b"Service user review cannot read", run.stderr)
+        self.assertIn(f"-n -u review -- test -r {launcher}", log.read_text())
+        launcher.chmod(0o755)
+        sudo.write_text('#!/bin/bash\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\nexit 1\n')
+        command = setup + 'PATH="$3:$PATH"; tomcat_action=existing; prepare_tomcat'
+        args = ["bash", "-c", command, "review", str(harness), str(home), str(boundary)]
+        run = subprocess.run(args, cwd=self.root, capture_output=True, env=env, timeout=30)
+        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+        self.assertIn(b"Service user review cannot execute", run.stderr)
+        self.assertIn(f"-n -u review -- test -x {launcher}", log.read_text())
+
+        for mode in ("sqlite", "mariadb-uds", "mariadb-tcp"):
+            entry = ["bash", f"scripts/install-local-{mode}.bash", "--plan", "--skip-packages"]
+            self.run_command(entry + ["--tomcat", "existing"])
+            self.run_command(entry + ["--tomcat", "invalid"], expected=1)
+            self.run_command(entry + ["--tomcat"], expected=1)
+
+    def test_tomcat_replacement_rejects_protected_paths_before_side_effects(self):
+        script = (self.root / "scripts/install-local-common.bash").read_text()
+        functions, invocation = script.rsplit('\nmain "$@"', 1)
+        self.assertFalse(invocation.strip())
+        harness = self.root / "scripts/tomcat-path-functions.bash"
+        harness.write_text(functions + "\n")
+        home = self.root / "runtime/tomcat"
+        (home / "bin").mkdir(parents=True)
+        marker = home / "bin/catalina.sh"
+        marker.write_bytes(b"Existing Tomcat launcher.\n")
+        marker.chmod(0o640)
+        original = marker.read_bytes()
+        boundary = self.root.parent / "boundary"
+        boundary.mkdir()
+        log = boundary / "commands.log"
+        for name in ("sudo", "systemctl", "wget", "curl"):
+            tool = boundary / name
+            tool.write_text('#!/bin/bash\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\nexit 97\n')
+            tool.chmod(0o755)
+        env = dict(os.environ, BOUNDARY_LOG=str(log))
+        preset = self.root / "configure/CONFIG_SITE.local"
+        variables = self.root / "configure/CONFIG_VARS.local"
+        setup = 'source "$1"; PATH="$2:$PATH"; read_settings; '
+        arguments = ["bash", "-c", "", "review", str(harness), str(boundary)]
+        keys = ("SRC_PATH", "AA_INSTALL_LOCATION", "ARCHAPPL_STORAGE_TOP",
+                "ARCHAPPL_SHORT_TERM_FOLDER", "ARCHAPPL_MEDIUM_TERM_FOLDER",
+                "ARCHAPPL_LONG_TERM_FOLDER", "ARCHAPPL_SQLITE_FILE")
+        cases = [("checkout", self.root, [])]
+        for key in keys:
+            # Both containment directions and equality must fail.
+            for relation, protected in (("equal", home), ("child", home / "protected"),
+                                         ("parent", home.parent)):
+                cases.append((f"{key}-{relation}", home, [(key, protected)]))
+            alias = self.root.parent / f"alias-{key}"
+            alias.symlink_to(home, target_is_directory=True)
+            cases.append((f"{key}-alias", home, [(key, alias)]))
+        for name, candidate, overrides in cases:
+            with self.subTest(path=name):
+                preset.write_text(f"TOMCAT_INSTALL_LOCATION:={candidate}\n" +
+                                  "".join(f"{key}:={path}\n" for key, path in overrides
+                                          if key != "SRC_PATH"))
+                variables.write_text("".join(f"{key}:={path}\n" for key, path in overrides
+                                             if key == "SRC_PATH"))
+                for action in ("tomcat_action=replace; prepare_tomcat",
+                               "plan=1; tomcat_action=replace; prepare_tomcat",
+                               "backup_tomcat"):
+                    arguments[2] = setup + action
+                    run = subprocess.run(arguments, cwd=self.root, capture_output=True,
+                                         env=env, timeout=30)
+                    self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                    self.assertIn(b"Unsafe Tomcat replacement path", run.stderr)
+                    self.assertFalse(log.exists(), "No download or service command may run")
+                    self.assertEqual(marker.read_bytes(), original)
+                    self.assertTrue((self.root / "Makefile").is_file())
+                if candidate == home:
+                    arguments[2] = setup + 'choose_tomcat'
+                    run = subprocess.run(arguments, input=b"2\n", cwd=self.root,
+                                         capture_output=True, env=env, timeout=30)
+                    self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                    self.assertIn(b"2) Unavailable", run.stdout)
+                    self.assertFalse(log.exists())
+
+        # A shared parent and a lexical prefix are not directory overlap.
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={home}\n" +
+                          "".join(f"{key}:={home}-other\n" for key in keys if key != "SRC_PATH"))
+        variables.write_text(f"SRC_PATH:={home}-other\n")
+        arguments[2] = setup + 'validate_tomcat_replacement'
+        self.run_command(arguments, env=env)
+        arguments[2] = setup + 'choose_tomcat; printf "Selected: %s\\n" "$tomcat_action"'
+        self.assertIn(b"Selected: replace", self.run_command(arguments, input=b"2\n", env=env))
+        self.assertFalse(log.exists())
+        self.assertEqual(marker.read_bytes(), original)
+
     def test_installer_readiness_obeys_deadline(self):
         # Invoke the shipped functions without running the system installation.
         script = (self.root / "scripts/install-local-common.bash").read_text()

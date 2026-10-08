@@ -71,7 +71,8 @@ Prerequisites:
 
    Packages and the OS preset are prepared first. The script selects the source
    pin, prepares Tomcat 9, generates configuration, and builds before stopping an
-   installed appliance. It requires the appliance to be stopped before database
+   installed appliance when reusing Tomcat. Tomcat replacement stops the appliance
+   earlier, before moving the shared Tomcat directory. The installer requires the appliance to be stopped before database
    preparation and payload replacement, then starts the appliance and health timer.
    The OS preset rewrites `configure/CONFIG_SITE.local`; keep site overrides in
    `../CONFIG_SITE.local`.
@@ -81,6 +82,8 @@ Prerequisites:
    | `--plan` | Prints steps without executing installation |
    | `-y`, `--yes` | Skips the installation confirmation; required with non-interactive stdin |
    | `--skip-packages` | Uses host-provided prerequisites, including JDK 21 |
+   | `--tomcat existing` | Uses existing Tomcat after checking access and version as the service account |
+   | `--tomcat replace` | Backs up the default Tomcat directory and installs the configured version; stops an installed appliance before the backup |
    | `--socket <socket_path>` | UDS only: selects an absolute socket path without whitespace |
    | `--existing-db` | MariaDB only: skips account/database provisioning; starts MariaDB and loads the schema |
    | `--timeout <seconds>` | Sets the startup verification deadline from 1 to 86400 seconds; default 180 |
@@ -92,6 +95,26 @@ Prerequisites:
    Existing archive stores and database files remain during payload replacement.
    An unavailable default Tomcat installation is downloaded and checked against
    Apache's SHA-512 before extraction; a custom `TOMCAT_HOME` must already contain Tomcat 9.
+
+   If the checkout owner cannot execute an existing `bin/catalina.sh`, the
+   installer offers two choices: use Tomcat after checking service-account
+   access, or back it up and install the configured version. Select explicitly
+   with `--tomcat existing` or `--tomcat replace` when using `--yes`.
+   Existing Tomcat is checked as `AA_USERID`, including access to
+   execute and read `catalina.sh`, read `setclasspath.sh`, and inspect the
+   Tomcat 9 version in `catalina.jar`.
+   Replacement supports only the default `TOMCAT_HOME`, without symlink paths.
+   It rejects a Tomcat directory containing the environment checkout, or
+   overlapping the source checkout, appliance install directory, archive root,
+   STS/MTS/LTS directories, or SQLite file. Protected paths are resolved through
+   symlinks before comparison. Rejection occurs before download or service shutdown.
+   The choice menu marks replacement unavailable for other paths before asking
+   for a selection; existing Tomcat can still be checked with choice 1.
+   The download and checksum check precede appliance shutdown. The original
+   directory is moved to `<TOMCAT_HOME>.backup.<unique-id>/tomcat`; its path is
+   printed and retained on failure. Replacement stops the appliance and health
+   monitor before moving Tomcat, so a later build failure can leave the appliance
+   stopped. Backup restoration is manual.
 
 Verification: a successful run prints `Installation ready:` with the management
 URL and exits 0. It checks process health as the service account, all four

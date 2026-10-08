@@ -434,6 +434,18 @@ Only the outer `sudo` boundary is replaced to deny access or delay its response.
 The check requires the startup deadline to hold in both cases. It does not run
 package installation, a Maven build, or systemd appliance installation/startup.
 
+The Tomcat unit check runs the shipped choice and backup functions, the real
+monitor-stop Make target, and real temporary directory moves. Only the outer
+`sudo` and `systemctl` boundaries are replaced. It checks cancellation and
+explicit choices, preserves the original files in a unique backup, rejects
+symlink replacement, and requires an inactive appliance before any backup.
+It also rejects an executable but unreadable launcher and marks replacement
+unavailable before selection for a custom Tomcat path.
+The path checks reject checkout containment and source, appliance, archive-root,
+archive-tier, or SQLite-file overlap, including symlink aliases, before any
+download, service command, or backup. Separate sibling paths remain eligible.
+It does not verify a host Tomcat reinstall or service-account permissions.
+
 For actual MariaDB account, schema, query, backup and restore operations, and
 SQLite schema load/list operations:
 
