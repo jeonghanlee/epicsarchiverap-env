@@ -36,8 +36,20 @@ health_timer=''
 mgmt_url=''
 ready_info=''
 ready_health=''
+ready_processes='NOT CHECKED'
+ready_storage='NOT CHECKED'
+ready_health_status='NOT CHECKED'
+ready_health_detail=''
+ready_information='NOT CHECKED'
+ready_service='NOT CHECKED'
+ready_timer='NOT CHECKED'
+ready_service_detail=''
+ready_timer_detail=''
 installation_completed=0
+verify_pv=0
+pv_epics_bin=''
 declare -a component_urls=()
+declare -a ready_components=('NOT CHECKED' 'NOT CHECKED' 'NOT CHECKED' 'NOT CHECKED')
 
 function die {
     printf 'ERROR: %s\n' "$*" >&2
@@ -48,7 +60,7 @@ function usage {
     printf '%s\n' \
         "Usage: bash scripts/$entry_script [OPTIONS]" \
         '' \
-        'Install a systemd-managed appliance on Debian 13 or Rocky 8.' \
+        'Install a systemd-managed appliance on Debian 13, Rocky 8, Rocky 10.2 or Ubuntu 24.04/26.04.' \
         'Run as the ordinary checkout owner; sudo is used for privileged steps.' \
         'The selected source pin and site configuration come from Make settings.' \
         'Existing appliance payloads are replaced; database contents and stores remain.' \
@@ -132,7 +144,10 @@ function detect_os {
     case "$id:$version" in
         debian:13|debian:13.*) os=debian13 ;;
         rocky:8|rocky:8.*) os=rocky8 ;;
-        *) die "Unsupported host: $id $version; use Debian 13 or Rocky 8" ;;
+        rocky:10.2|rocky:10.2.*) os=rocky10 ;;
+        ubuntu:24.04|ubuntu:24.04.*) os=ubuntu24 ;;
+        ubuntu:26.04|ubuntu:26.04.*) os=ubuntu26 ;;
+        *) die "Unsupported host: $id $version; use Debian 13, Rocky 8, Rocky 10.2 or Ubuntu 24.04/26.04" ;;
     esac
 }
 
@@ -154,8 +169,8 @@ function select_backend {
         if [[ -z "$db_socket" ]]; then db_socket=$(make_value DB_SOCKET); fi
         if [[ -z "$db_socket" ]]; then
             case "$os" in
-                debian13) db_socket='/run/mysqld/mysqld.sock' ;;
-                rocky8) db_socket='/var/lib/mysql/mysql.sock' ;;
+                debian13|ubuntu24|ubuntu26) db_socket='/run/mysqld/mysqld.sock' ;;
+                rocky8|rocky10) db_socket='/var/lib/mysql/mysql.sock' ;;
             esac
         fi
         [[ "$db_socket" == /* && "$db_socket" != *[[:space:]]* ]] || die 'DB_SOCKET must be an absolute path without whitespace'
@@ -225,17 +240,17 @@ function install_packages {
     while IFS= read -r package; do
         if [[ "$backend" == sqlite ]]; then
             case "$package" in
-                mariadb-*|libmariadb-*) continue ;;
+                mariadb|mariadb-*|libmariadb-*) continue ;;
             esac
         fi
         [[ -n "$package" ]] && packages+=("$package")
     done <<< "$list"
     (( ${#packages[@]} )) || die 'Empty prerequisite package list'
     case "$os" in
-        debian13)
+        debian13|ubuntu24|ubuntu26)
             run sudo -- apt-get update
             run sudo -- apt-get install -y "${packages[@]}" ;;
-        rocky8) run sudo -- dnf install -y "${packages[@]}" ;;
+        rocky8|rocky10) run sudo -- dnf install -y "${packages[@]}" ;;
     esac
 }
 
@@ -386,26 +401,106 @@ function run_before_deadline {
     return "$status"
 }
 
+# Separates the shipped launcher's process and storage observations without changing its verdict.
+function classify_health {
+    local status="$1" component line present=0 storage_seen=0 storage_failed=0 storage_error=0
+    ready_health_detail=''
+    if (( status == 0 )); then
+        ready_health_status=PASS
+        ready_processes=PASS
+        ready_storage=PASS
+        return
+    fi
+    ready_health_status=FAIL
+    if (( status == 124 )); then
+        ready_health_status='TIMED OUT'
+        return
+    fi
+    if (( status >= 128 )); then
+        ready_health_status='INSPECTION ERROR'
+        ready_health_detail="The health inspection ended before the startup deadline (exit $status)."
+        return
+    fi
+    ready_processes='NOT VERIFIED'
+    ready_storage='NOT CHECKED'
+    for component in "${COMPONENTS[@]}"; do
+        while IFS= read -r line; do
+            if [[ "$line" == "$component pid="*' PRESENT verified-process-presence' ]]; then
+                present=$((present + 1))
+                break
+            fi
+        done <<< "$ready_health"
+    done
+    if (( present == ${#COMPONENTS[@]} )); then ready_processes=PASS; fi
+    while IFS= read -r line; do
+        [[ "$line" == 'storage path='* ]] || continue
+        storage_seen=1
+        case "$line" in
+            *' FAIL storage-threshold') storage_failed=1 ;;
+            *' PRESENT') ;;
+            *) storage_error=1 ;;
+        esac
+    done <<< "$ready_health"
+    if (( storage_error )); then ready_storage=ERROR
+    elif (( storage_failed )); then ready_storage=FAIL
+    elif (( storage_seen )); then ready_storage=PASS
+    fi
+}
+
+# Requires an observed unit state before reporting inactivity; query errors remain inspection failures.
+function check_unit_ready {
+    local deadline="$1" unit="$2" output status=0 unit_result unit_detail=''
+    output=$(run_before_deadline "$deadline" sudo -n systemctl is-active "$unit" 2>&1) || status=$?
+    unit_detail=''
+    case "$status:$output" in
+        0:*) unit_result=PASS ;;
+        124:*)
+            unit_result='TIMED OUT'
+            unit_detail='The unit state query did not complete within the startup deadline.' ;;
+        3:inactive|3:failed|3:activating|3:deactivating|3:maintenance)
+            unit_result='NOT ACTIVE'
+            unit_detail="systemctl reports: $output" ;;
+        *)
+            unit_result='INSPECTION ERROR'
+            unit_detail="Unit state could not be verified (exit $status): ${output:-No diagnostic output.}" ;;
+    esac
+    printf -v "$3" '%s' "$unit_result"
+    printf -v "$4" '%s' "$unit_detail"
+}
+
 function wait_ready {
     local started=$SECONDS deadline=$((SECONDS + timeout)) response url index
-    local pending previous=''
+    local pending previous='' health_status health_output remaining
     if (( plan )); then
         printf 'Wait up to %s seconds for process health, four startup states and %s\n' "$timeout" "$mgmt_url"
         printf '%s\n' 'Show the management UI, four component URLs, health result and appliance information.' \
-            'Offer a separate soft IOC PV registration/storage/CSV test in interactive mode; unattended mode skips it.'
+            'Run the soft IOC PV registration/storage/CSV test if selected before installation; unattended mode skips it.'
         return
     fi
     while (( SECONDS < deadline )); do
         pending=''
-        if ! ready_health=$(run_before_deadline "$deadline" sudo -n -u "$service_user" -- "$install_path/archappl.bash" health 2>&1); then
-            pending+=' process/storage health;'
+        health_status=0
+        health_output=$(run_before_deadline "$deadline" sudo -n -u "$service_user" -- "$install_path/archappl.bash" health 2>&1) || health_status=$?
+        if (( health_status != 124 && health_status < 128 )); then ready_health="$health_output"; fi
+        classify_health "$health_status"
+        if [[ "$ready_processes" != PASS ]]; then pending+=' process identity checks;'; fi
+        if [[ "$ready_storage" == FAIL ]]; then
+            pending+=' storage usage at or above configured limit;'
+        elif [[ "$ready_storage" != PASS ]]; then
+            pending+=' storage inspection;'
+        fi
+        if (( health_status != 0 )) && [[ "$ready_processes" == PASS && "$ready_storage" == PASS ]]; then
+            pending+=' health inspection;'
         fi
         for index in "${!component_urls[@]}"; do
             (( SECONDS < deadline )) || break
             url="${component_urls[$index]}"
             response=$(run_before_deadline "$deadline" curl -q --noproxy '*' --fail --silent --max-time 2 "$url") || response=''
             if ! jq -e -s 'length == 1 and (.[0] | type == "object" and .status == "STARTUP_COMPLETE")' <<< "$response" >/dev/null 2>&1; then
+                ready_components[index]='NOT READY'
                 pending+=" ${COMPONENTS[$index]} startup;"
+            else
+                ready_components[index]=PASS
             fi
         done
         (( SECONDS < deadline )) || break
@@ -413,13 +508,14 @@ function wait_ready {
         if ! jq -e -s 'length == 1 and (.[0] | type == "object" and (.identity | type == "string" and length > 0)
             and (.version | type == "string" and length > 0))' <<< "$ready_info" >/dev/null 2>&1; then
             pending+=' appliance information;'
+            ready_information='NOT READY'
+        else
+            ready_information=PASS
         fi
-        if ! run_before_deadline "$deadline" sudo -n systemctl is-active --quiet "$service_unit"; then
-            pending+=' appliance service;'
-        fi
-        if ! run_before_deadline "$deadline" sudo -n systemctl is-active --quiet "$health_timer"; then
-            pending+=' health timer;'
-        fi
+        check_unit_ready "$deadline" "$service_unit" ready_service ready_service_detail
+        if [[ "$ready_service" != PASS ]]; then pending+=' appliance service;'; fi
+        check_unit_ready "$deadline" "$health_timer" ready_timer ready_timer_detail
+        if [[ "$ready_timer" != PASS ]]; then pending+=' health timer;'; fi
         if [[ -z "$pending" ]] && (( SECONDS < deadline )); then
             printf 'Startup checks passed in %s seconds.\n' "$((SECONDS - started))"
             return
@@ -428,48 +524,93 @@ function wait_ready {
             printf 'Waiting (%ss/%ss):%s\n' "$((SECONDS - started))" "$timeout" "$pending"
             previous="$pending"
         fi
-        run_before_deadline "$deadline" sleep 2 || true
+        remaining=$((deadline - SECONDS))
+        if (( remaining > 2 )); then sleep 2
+        elif (( remaining > 0 )); then sleep "$remaining"
+        fi
     done
-    printf 'Last process/storage health result:\n%s\n' "$ready_health" >&2
-    die "Startup did not become ready within $timeout seconds; inspect journalctl -u $service_unit"
+    printf '\nVerification could not pass within %s seconds. Last observed results:\n' "$timeout" >&2
+    show_readiness >&2
+    if [[ "$ready_storage" == FAIL ]]; then
+        printf '\n' >&2
+        printf '%s\n' 'Storage usage has reached or exceeded the configured limit. See the usage and threshold for each path above.' \
+            'Free space on the affected filesystem or move the archive stores to a filesystem with enough space.' \
+            'The installer keeps the storage limit unchanged and does not delete any data.' >&2
+        if [[ "$ready_processes" == PASS && "$ready_information" == PASS && "$ready_service" == PASS && "${ready_components[*]}" == 'PASS PASS PASS PASS' ]]; then
+            printf '%s\n' 'The four components have started and the information API responds.' \
+                'The failed storage check does not mean that the appliance failed to start.' >&2
+        fi
+    fi
+    printf '\nInspect the service journal: ' >&2
+    printf '%q ' sudo journalctl -u "$service_unit" -n 80 --no-pager >&2
+    printf '\n' >&2
+    die 'Installation verification did not pass; use the results above to identify the failed check.'
 }
 
-function show_ready {
+function show_readiness {
     local index
-    printf '\n%s\n' 'Installation completed.' 'Four processes, storage usage, four startup states, service and health timer: PASS'
-    printf '\nManagement UI: %s/ui/\n' "${mgmt_url%/bpl/getApplianceInfo}"
-    printf '%s\n' 'Component startup APIs (each returned STARTUP_COMPLETE):'
+    printf 'Appliance service: %s (%s)\n' "$ready_service" "$service_unit"
+    if [[ -n "$ready_service_detail" ]]; then printf '  %s\n' "$ready_service_detail"; fi
+    printf 'Health timer: %s (%s)\n' "$ready_timer" "$health_timer"
+    if [[ -n "$ready_timer_detail" ]]; then printf '  %s\n' "$ready_timer_detail"; fi
+    printf 'Four process identities: %s\nStorage usage: %s\nHealth check: %s\n' "$ready_processes" "$ready_storage" "$ready_health_status"
+    if [[ -n "$ready_health_detail" ]]; then printf '  %s\n' "$ready_health_detail"; fi
+    printf '\nManagement UI: %s/ui/index.html\n' "${mgmt_url%/bpl/getApplianceInfo}"
+    printf '%s\n' 'Component startup APIs (PASS means STARTUP_COMPLETE):'
     for index in "${!component_urls[@]}"; do
-        printf '  %-9s %s\n' "${COMPONENTS[$index]}" "${component_urls[$index]}"
+        printf '  %s: %s\n    %s\n' "${COMPONENTS[$index]}" "${ready_components[$index]}" "${component_urls[$index]}"
     done
-    printf '\n%s\n' 'Process/storage health (application readiness was checked separately above):' "$ready_health"
+    printf '\n%s\n' 'Last completed process/storage inspection:' "${ready_health:-No completed inspection result is available.}"
     printf 'Repeat health check: '
     printf '%q ' sudo -u "$service_user" -- "$install_path/archappl.bash" health
-    printf '\n\nAppliance information: %s\n' "$mgmt_url"
-    jq -r '["  Identity: " + .identity, "  Version: " + .version][]' <<< "$ready_info"
-    printf '%s\n' 'The information API answered; this does not verify PV acquisition or stored samples.' \
+    printf '\n\nAppliance information: %s\n  %s\n' "$mgmt_url" "$ready_information"
+    if [[ "$ready_information" == PASS ]]; then
+        jq -r '["  Identity: " + .identity, "  Version: " + .version][]' <<< "$ready_info"
+    fi
+    printf '%s\n' 'The information API reports appliance identity and version; it does not verify PV acquisition or stored samples.' \
         'localhost refers to the installed machine. Open its browser or use SSH port forwarding.' \
         'PV acquisition, storage and retrieval: NOT CHECKED'
 }
 
-function offer_pv_verification {
-    local answer retrieval_url local_mgmt
+function show_ready {
+    printf '\n%s\n' 'Installation completed. All required installation checks passed.'
+    show_readiness
+}
+
+# Selects the optional data-path test and validates Base before any installation changes.
+function prepare_pv_verification {
+    local answer
+    if (( plan )); then
+        printf '%s\n' 'Before installation, offer the optional soft IOC test and validate exported EPICS_BASE, softIoc and caget.'
+        return
+    fi
     if (( yes )) || [[ ! -t 0 ]]; then
         printf '%s\n' 'Optional soft IOC test skipped in unattended mode; see scripts/README.md to run it separately.'
         return
     fi
     printf '\n%s\n' 'Optional test: start one changing soft IOC PV, register it, and extract real stored samples to CSV.'
-    printf '%s' 'Run the PV acquisition/storage/retrieval test? [y/N] '
+    printf '%s' 'Run the PV acquisition/storage/retrieval test after installation? [y/N] '
     read -r answer || answer=''
     case "$answer" in
         y|Y|yes)
-            local_mgmt="http://localhost:$(make_value ARCHAPPL_MGMT_PORT)/mgmt/bpl"
-            retrieval_url="http://localhost:$(make_value ARCHAPPL_RETRIEVAL_PORT)/retrieval"
-            if ! bash "$REPO/scripts/verify-local-pv.bash" "$local_mgmt" "$retrieval_url" "$source_path" 9>&-; then
-                printf '%s\n' 'Installation remains completed. Optional PV verification FAILED; inspect its retained evidence.' >&2
-            fi ;;
+            pv_epics_bin=$(bash "$REPO/scripts/verify-local-pv.bash" --check-epics) || die 'EPICS preparation failed. No installation changes have been made. Source your EPICS environment setup file in this terminal, then rerun the installer.'
+            verify_pv=1
+            printf 'EPICS prerequisites ready: %s\n' "$pv_epics_bin" ;;
         *) printf '%s\n' 'Optional PV verification skipped. PV acquisition, storage and retrieval remain NOT CHECKED.' ;;
     esac
+}
+
+function offer_pv_verification {
+    local retrieval_url local_mgmt
+    if (( ! verify_pv )); then
+        printf '%s\n' 'Optional PV verification was not selected before installation; PV acquisition, storage and retrieval remain NOT CHECKED.'
+        return
+    fi
+    local_mgmt="http://localhost:$(make_value ARCHAPPL_MGMT_PORT)/mgmt/bpl"
+    retrieval_url="http://localhost:$(make_value ARCHAPPL_RETRIEVAL_PORT)/retrieval"
+    if ! bash "$REPO/scripts/verify-local-pv.bash" --epics-bin "$pv_epics_bin" "$local_mgmt" "$retrieval_url" "$source_path" 9>&-; then
+        printf '%s\n' 'Installation remains completed. Optional PV verification FAILED; inspect its retained evidence.' >&2
+    fi
 }
 
 function prepare_database {
@@ -488,7 +629,7 @@ function prepare_database {
             if (( plan )); then
                 printf 'Require the local root socket server port to match TCP port %s before preparing accounts.\n' "$db_port"
             else
-                root_port=$(sudo -- mysql --protocol=socket --user=root --batch --skip-column-names --execute='SELECT @@port')
+                root_port=$(sudo -- mysql --host=localhost --protocol=socket --user=root --batch --skip-column-names --execute='SELECT @@port')
                 [[ "$root_port" =~ ^[0-9]+$ ]] || die 'Cannot identify the local MariaDB server port'
                 (( 10#$root_port == 10#$db_port )) || die 'Local root socket and configured TCP port identify different servers'
             fi
@@ -514,6 +655,11 @@ function report_exit {
             printf 'Installation completed. Post-install verification stopped (exit %s); inspect its retained evidence.\n' "$status" >&2
             return
         fi
+        if [[ "$stage" == 'startup verification' ]]; then
+            printf 'Appliance files are installed. Verification failed (exit %s); data and build files are retained.\n' "$status" >&2
+            printf '%s\n' 'The installer does not roll back the installation, stop the appliance, or restart it after this failure.' >&2
+            return
+        fi
         printf 'Installation stopped during %s (exit %s). Data and build files are retained.\n' "$stage" "$status" >&2
         printf '%s\n' 'No rollback or automatic restart is attempted.' >&2
     fi
@@ -535,6 +681,7 @@ function main {
     select_backend
     read_settings
     check_source
+    prepare_pv_verification
     printf 'Repository: %s\nOS: %s\nSource pin: %s\nInstall: %s\nBackend: %s\n' \
         "$REPO" "$os" "$source_pin" "$install_path" "$backend"
     if [[ "$backend" == sqlite ]]; then
@@ -611,4 +758,5 @@ function main {
     fi
 }
 
-main "$@"
+# Parse the entry call and exit together before a long-running operation can change this file.
+main "$@"; exit "$?"

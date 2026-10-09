@@ -8,7 +8,7 @@
 #  Options:
 #    -l, --list-only   print the resolved package list and exit (no root)
 #    -f, --force       do not prompt (CI / unattended runs)
-#        --os <id>     override OS detection (debian13, rocky8)
+#        --os <id>     override OS detection (debian13, rocky8, rocky10, ubuntu24, ubuntu26)
 #    -h, --help        this text
 
 set -euo pipefail
@@ -51,6 +51,14 @@ function detect_os {
     ver="$(sed -n 's/^VERSION_ID="\{0,1\}\([0-9]*\).*/\1/p' /etc/os-release)"
     case "${id}" in
         debian)                      printf "debian%s" "${ver}" ;;
+        ubuntu)
+            if [[ "$ver" == 24 ]] && grep -Eq '^VERSION_ID="?24\.04("|$)' /etc/os-release; then
+                printf '%s' ubuntu24
+            elif [[ "$ver" == 26 ]] && grep -Eq '^VERSION_ID="?26\.04("|$)' /etc/os-release; then
+                printf '%s' ubuntu26
+            else
+                return 1
+            fi ;;
         rocky|almalinux|rhel|centos) printf "rocky%s" "${ver}" ;;
         *)                           return 1 ;;
     esac
@@ -92,7 +100,7 @@ function confirm_or_die {
 function install_pkgs {
     local osid="$1"; shift
     case "${osid}" in
-        debian*)
+        debian*|ubuntu24|ubuntu26)
             [[ ${EUID} -eq 0 ]] || die "Run with sudo: package installation needs root."
             apt-get update -y
             apt-get install -y "$@"

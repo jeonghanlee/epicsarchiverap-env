@@ -43,17 +43,6 @@ function get_ip
     ip -4 route get 8.8.8.8 | awk \{'print $7'\} | tr -d '\n'
 }
 
-# 1 : Archappl installation path : /opt/epicsarchiver
-# 2 : Service name : one of mgmt, engine, etl, retrieval
-function get_pid
-{
-    local  archappl_top="$1";shift;
-    local  name="$1";shift;
-    local  pid;
-    pid=$(cat "${archappl_top}/${name}/temp/${name}.pid")
-    printf "%12s : pid %6d exists.\n" "${name}" "$pid"
-}
-
 # shellcheck disable=SC2120
 function startup_archappl
 {
@@ -123,24 +112,21 @@ function status_archappl
         printf "  journalctl -t archappl-%s\n" "${service}";
     done
 
-    printf ">>> Service PIDs \n"
-    printf "    All Tomcat processes\n";
-    pgrep 'org.apache.catalina.startup.Bootstrap'
-    printf "    Archiver Appliance PIDs\n"
-    for service in "${startup_services[@]}"; do
-        get_pid "${archappl_top}" "${service}";
-    done  
-    printf "\n";
+    printf '%s\n' '>>> Verified process and storage health'
+    health_archappl
 }
 
 
 function status_storage
 {
-    local all=$1; shift;
+    local all="${1:-}" rc=0
+    local -a options=(--total --human-readable --time)
+    if [[ "$all" == all ]]; then options+=(--all); fi
     printf "\n>>>> Storage Status at %s\n\n" "${SC_TIME}";
     # ARCHAPPL_STORAGE_TOP is defined in archappl.conf
-    sudo -E bash -c "du --total --human-readable --time --\"${all}\" \"${ARCHAPPL_STORAGE_TOP}\"";
+    sudo -- du "${options[@]}" -- "${ARCHAPPL_STORAGE_TOP}" || rc=$?
     printf "\n";
+    return "$rc"
 }
 
 # Read one bounded PID value without deleting the file or signalling its process.
@@ -747,7 +733,7 @@ function usage
         echo "               startup   : startup all services in order";
         echo "               shutdown  : shutdown all services in order ";
         echo "               service   : run all services in the foreground (systemd main process)";
-        echo "               restartup : shutdown and startup";
+        echo "               restart   : shutdown and startup";
         echo "               storage   : show the storage status";
         echo "               status    : show summary for status";      
         echo "               health    : verify all four JVM processes and the store usage (Linux)";

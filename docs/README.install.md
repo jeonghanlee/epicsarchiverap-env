@@ -18,7 +18,9 @@ source pin and installation paths resolved from Make settings.
 
 Prerequisites:
 
-- Debian 13 or Rocky Linux 8 with systemd running.
+- Debian 13, Rocky Linux 8, Rocky Linux 10.2, Ubuntu 24.04 LTS or Ubuntu 26.04 LTS with systemd running.
+  See the [OS defaults](../scripts/README.md#supported-os-defaults) for exact
+  detected versions, package managers, JDK paths, and socket paths.
 - An ordinary checkout owner with `sudo` access; do not run an entry script as root.
 - `bash`, `make`, `git`, and `realpath` for preflight; `sudo` and `flock` for installation.
 - Network access for OS packages, source Git fetches, Tomcat downloads, and Maven dependencies.
@@ -37,8 +39,8 @@ Prerequisites:
    | `install-local-mariadb-uds.bash` | Uses `--socket`, then `DB_SOCKET`, then the OS default socket; starts MariaDB and prepares accounts at `localhost` |
    | `install-local-mariadb-tcp.bash` | Clears `DB_SOCKET`, requires `DB_HOST_NAME=127.0.0.1`, uses `DB_HOST_PORT`, and prepares accounts at `127.0.0.1` |
 
-   The default UDS path is `/run/mysqld/mysqld.sock` on Debian 13 and
-   `/var/lib/mysql/mysql.sock` on Rocky Linux 8. The service account must be able
+   The default UDS path is `/run/mysqld/mysqld.sock` on Debian 13 or Ubuntu 24.04/26.04 and
+   `/var/lib/mysql/mysql.sock` on Rocky Linux 8 or 10.2. The service account must be able
    to reach and write the socket. The script does not configure MariaDB's listener.
 
    MariaDB starts `mariadb.service` and creates or updates `DB_NAME`, `DB_ADMIN`,
@@ -80,7 +82,7 @@ Prerequisites:
    | Option | Behavior |
    | --- | --- |
    | `--plan` | Prints steps without executing installation |
-   | `-y`, `--yes` | Skips the installation confirmation; required with non-interactive stdin |
+   | `-y`, `--yes` | Skips the installation confirmation and optional PV test; required with non-interactive stdin |
    | `--skip-packages` | Uses host-provided prerequisites, including JDK 21, `curl`, and `jq` |
    | `--tomcat existing` | Uses existing Tomcat after checking access and version as the service account |
    | `--tomcat replace` | Backs up the default Tomcat directory and installs the configured version; stops an installed appliance before the backup |
@@ -119,13 +121,38 @@ Prerequisites:
 Verification: a successful run prints `Installation completed.` and displays the
 management UI, four component startup API URLs, process/storage health, the
 repeat health command, and the information API URL, appliance identity, and version.
+The default UI URL is `http://localhost:17665/mgmt/ui/index.html`; `/mgmt/ui`
+is a directory, not the page URL. The information API is
+`http://localhost:17665/mgmt/bpl/getApplianceInfo` with the default port.
 It checks process health as the service account, all four JSON `startupState`
 responses for `STARTUP_COMPLETE`, valid appliance information, and active
 appliance and health timer units within the startup deadline.
 Waiting messages report outstanding checks when they change, without repeating
 the full health output or raw information JSON.
 
+If verification fails, the installer displays the last observed results for
+each component, process identities, storage, service, timer, and information API.
+It also displays the management UI and a journal command with `sudo`.
+Service and timer checks distinguish observed inactivity (`NOT ACTIVE`),
+query failure (`INSPECTION ERROR` with the diagnostic), and deadline expiry
+(`TIMED OUT`). A failed query does not establish that the unit is inactive.
+Early signal termination reports `INSPECTION ERROR` with its exit status.
+Health inspection also distinguishes early signal termination from deadline expiry.
+Successful component startup does not imply that the storage check passes.
+For example, 93% filesystem usage fails the default 85% storage limit even
+when all four components have started and the information API responds.
+The installer identifies this as a storage failure and exits nonzero.
+Installed files and data remain; it does not stop or restart the appliance
+after verification fails, delete data, or raise the storage limit.
+Make space available on the affected filesystem or relocate the archive stores
+before repeating verification.
+
 Interactive installation offers an optional test of one changing soft IOC PV.
+The choice is made before installation. Selecting the test requires an exported
+`EPICS_BASE` with executable `softIoc` and `caget`; otherwise the installer stops
+before installing packages and asks the user to source their EPICS environment
+setup file in the same terminal, then rerun. The installer never sources that
+file itself. The selected test runs after appliance startup succeeds.
 The test registers the PV using Bash and `curl`, then uses the selected source
 pin's `getDataToCsv.bash` to check stored samples against actual CA observations.
 See [soft IOC verification](../scripts/README.md#verify-one-changing-pv) for
@@ -168,7 +195,7 @@ reported failure before repeating installation or starting the service.
   Configuration below). With `DB_SOCKET` set, MariaDB is reached over that
   Unix domain socket instead, and the account host-spec is `@'localhost'`.
 - For the SQLite backend (`DB_BACKEND=sqlite`): the `sqlite3` command-line tool
-  (package `sqlite` on Rocky Linux 8, `sqlite3` on Debian 13) and no MariaDB.
+  (package `sqlite` on Rocky Linux 8 or 10.2, `sqlite3` on Debian 13 or Ubuntu 24.04/26.04) and no MariaDB.
   A host that also carries `mariadb-server` from the per-OS package list need
   not enable it.
 - Build tools: `git`, `make`, `unzip`, `sed`, `tree`, and `curl` or `wget`.
@@ -274,8 +301,8 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   configuration writes or database contact.
 - MariaDB transport: `DB_SOCKET` is empty by default, which connects over TCP to
   `DB_HOST_NAME:DB_HOST_PORT`. Set it in `../CONFIG_SITE.local` to the server's
-  Unix domain socket (`/var/lib/mysql/mysql.sock` on Rocky Linux 8,
-  `/run/mysqld/mysqld.sock` on Debian 13, or the path the provisioning sets)
+  Unix domain socket (`/var/lib/mysql/mysql.sock` on Rocky Linux 8 or 10.2,
+  `/run/mysqld/mysqld.sock` on Debian 13 or Ubuntu 24.04/26.04, or the path the provisioning sets)
   and every MariaDB connection uses it: the appliance through a `localSocket`
   URL in `context.xml`, and `db.secure`, `db.addAdmin`, `db.create`,
   `sql.fill`, `sql.show` and the backup commands of
@@ -290,9 +317,11 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   also replaces the WARs), then start it after installation succeeds.
   `DB_SOCKET` is ignored for `sqlite`.
 - Toolchain: `JAVA_HOME` is set through the OS preset
-  (`make <os>.conf`, with `<os>` one of `debian13`, `debian12` and `rocky8`,
+  (`make <os>.conf`, with `<os>` one of `debian13`, `debian12`, `rocky8`, `rocky10`, `ubuntu24` and `ubuntu26`,
   writes `configure/CONFIG_SITE.local` to include `configure/os/<os>.mk`), or
-  set in `../CONFIG_SITE.local`. `TOMCAT_HOME` defaults to
+  set in `../CONFIG_SITE.local`. All five supported local-install presets
+  preserve a custom `JAVA_HOME`; `JAVA_PATH` follows it unless overridden.
+  `--skip-packages` does not skip the preset. `TOMCAT_HOME` defaults to
   `TOMCAT_INSTALL_LOCATION`, which follows `AA_INSTALL_PATH` unless explicitly
   overridden. OS presets preserve both Tomcat path overrides. Do not place
   overrides in `configure/CONFIG_SITE.local` when `make <os>.conf` is used, since
@@ -424,15 +453,18 @@ Notes:
   timer does not retroactively activate it for an already-running appliance.
 - With the MariaDB backend the unit declares `Requires=mariadb.service`, so that
   unit must resolve on the host; with SQLite the unit names no database service.
-- MariaDB: the database and account are created by the host; the sequence
-  therefore skips `db.secure`, `db.addAdmin`, and `db.create` and runs only
-  `sql.fill`. A host installed by aa-env alone runs those three targets
-  first; over TCP they need a server without `skip-name-resolve`, because
-  `db.addAdmin` creates the admin account at `localhost` while the TCP client
-  arrives as `127.0.0.1`. A server with `skip-name-resolve` uses `DB_SOCKET`,
-  whose clients arrive as `localhost`, or the host-provided path. Each of
-  these targets, and `db.rmAdmin` and `db.drop`, stops with a non-zero status
-  and names the failed step when the database client fails.
+- MariaDB: the manual sequence assumes host-provided accounts and runs
+  `sql.fill` without account provisioning. For manual local provisioning,
+  use `DB_SOCKET` with `db.addAdmin` and `db.create`: `db.addAdmin` creates
+  the administrator at `localhost`. TCP clients at `127.0.0.1` cannot rely
+  on that account with `skip-name-resolve`. The TCP installation entry script
+  instead prepares both accounts explicitly at `127.0.0.1`; the UDS entry
+  script prepares them at `localhost`. Neither entry script invokes
+  `db.secure`. That optional target removes anonymous and non-localhost root
+  accounts and the test database; it preserves the remaining root account's
+  authentication method. See the [MariaDB reference](technicaldocs/README.mariadb.md).
+  The database targets, including `db.rmAdmin` and `db.drop`, stop with a non-zero status
+  and name the failed step when the database client fails.
 - SQLite: step 5 needs root (R). `sql.fill` first creates the service account
   when it does not exist yet, as `make install` does later, then creates the
   directory of `ARCHAPPL_SQLITE_FILE` for that account and loads the schema
@@ -455,6 +487,11 @@ Notes:
   MariaDB service and the application account for the MariaDB backend, the
   base packages, and the service
   group and user when pre-created.
+
+The local entry scripts can install host packages and the shared Tomcat runtime,
+start MariaDB, and prepare database accounts. The appliance unit does not own
+MariaDB's listener configuration. `--existing-db` preserves account provisioning,
+and `--tomcat replace` explicitly permits replacing the default shared Tomcat.
 
 ## Logs
 
@@ -487,11 +524,16 @@ Notes:
 
 ## Health check
 
-- Process presence: run the installed `archappl.bash health` as the service
-  account. Exit 0 verifies the four expected JVM processes at that observation;
-  exit 1 names invalid/missing instances or reports `STARTING` for an instance
+- Process and storage health: run the installed `archappl.bash health` as the service
+  account. Exit 0 verifies the four expected JVM processes and filesystem usage
+  below the storage alarm threshold at that observation. Exit 1 reports a
+  reached or exceeded storage threshold, names invalid/missing instances, or
+  reports `STARTING` for an instance
   that has not executed Java yet, so repeat the command a few seconds after a
   start or restart; exit 2 reports incomplete inspection.
+  `archappl.bash status` displays UI and journal information, then runs the
+  same process/storage check and returns its exit status. Run it as the service
+  account too. Neither command verifies HTTP readiness or sample acquisition.
   The recurring health service reports failures independently of the appliance
   service. A successful or skipped oneshot becomes inactive, so inactive alone
   is not proof of four healthy processes. Inspect its journal and exit status.

@@ -32,13 +32,14 @@ STATE="$workspace/state" bash -c '
     wait_ready
     show_ready
     yes=1
+    prepare_pv_verification
     offer_pv_verification
 ' test "$workspace/scripts/functions.bash" "$workspace/boundary" > "$workspace/output.log"
 [[ $(grep -c 'HEALTH_BOUNDARY_RESULT' "$workspace/output.log") == 1 ]]
 [[ $(grep -c '^Waiting ' "$workspace/output.log") == 1 ]]
 grep -q 'appliance information;' "$workspace/output.log"
 grep -q '^Installation completed.' "$workspace/output.log"
-grep -q '^Management UI: http://localhost:1/mgmt/ui/' "$workspace/output.log"
+grep -q '^Management UI: http://localhost:1/mgmt/ui/index.html$' "$workspace/output.log"
 grep -q '^  Identity: appliance0' "$workspace/output.log"
 grep -q 'PV acquisition, storage and retrieval: NOT CHECKED' "$workspace/output.log"
 grep -q 'skipped in unattended mode' "$workspace/output.log"

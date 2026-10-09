@@ -67,19 +67,17 @@ function usage
 	echo "          dbBackupList       : show all backup DB list at default -${DEFAULT_DB_BACKUP_PATH}.";
 	echo "          dbRestore          : restore the DB into the running sql at default -${DEFAULT_DB_BACKUP_PATH}.";
 	echo "";
-	echo "          tableCreate        : create the tables";
 	echo "          tableDrop          : drop   the tables";
 	echo "          tableShow          : show   the tables";
-	echo "          viewCreate         : create the views";
-	echo "          viewDrop           : drop   the views";
-	echo "          viewShow           : show   the views";
-	echo "          sProcCreate        : create the stored_procedures";
-	echo "          sProcDrop          : drop   the stored_procedures";
-	echo "          sProcShow          : show   the stored_procedures";
-	echo "";
-	echo "          allCreate          : create the tables, views, and stored_procedures";
-	echo "          allViews           : show the tables, views, and stored_procedures";
-	echo "          allDrop            : drop the tables, views, and stored_procedures";
+	echo "          aaShow [table]     : show appliance table rows (PVTypeInfo by default)";
+	echo "          isDb               : check whether the configured database exists";
+	echo "          userDrop           : drop the application account; keep its database";
+	echo "          localAdminAdd      : add the administrator at localhost";
+	echo "          hostnameAdminAdd   : add the administrator at DB_HOST_NAME";
+	echo "          adminRemove        : remove the administrator at localhost";
+	echo "          localAdminRemove   : remove the administrator at localhost";
+	echo "          hostnameAdminRemove: remove the administrator at DB_HOST_NAME";
+	echo "          Schema creation    : use make sql.fill";
 	echo "";
 	echo "          query \"sql query\"    : Send any sql query to DB -${DB_NAME}-"
 	echo "          queryFile \"sql file\" : Send a query through a sql file to DB -${DB_NAME}-";
@@ -102,7 +100,10 @@ function drop_procedures
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        outputs=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}')
+        if ! outputs=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}'); then
+            clientFailMessage "Listing procedures for removal in ${db_name}"
+            return 1
+        fi
         # shellcheck disable=SC2086
 
         printf "\n";
@@ -211,6 +212,7 @@ function backup_db
     local dbDir;
     local db_exist;
     local backup_file;
+    local backup_temp;
 
     db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
 
@@ -223,13 +225,27 @@ function backup_db
 	    mkdir -p "${db_backup_path}"
 	fi
 	backup_file="${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
-	# The backup fails when either the dump or gzip fails; the partial file is
-	# removed so it cannot be mistaken for a backup.
-	if ! ( set -o pipefail; "${SQL_BACKUP_CMD[@]}" "${db_name}" | gzip -9 > "${backup_file}" ); then
-	    rm -f "${backup_file}"
-	    printf "\nBacking up >> %s << into >> %s << failed.\n\n" "${db_name}" "${backup_file}" >&2
-	    exit 1;
-	fi
+        if [[ -e "$backup_file" || -L "$backup_file" ]]; then
+            printf 'Backup already exists; refusing to overwrite: %s\n' "$backup_file" >&2
+            return 1
+        fi
+        # A private temporary file holds the complete dump. A same-directory
+        # hard link publishes it atomically without replacing a competing file.
+        (
+            set -o pipefail
+            backup_temp=$(mktemp -- "${db_backup_path}/.${db_name}_${LOGDATE}.XXXXXXXX") || exit 1
+            trap 'rm -f -- "$backup_temp"' EXIT
+            trap 'exit 130' INT
+            trap 'exit 143' TERM
+            if ! "${SQL_BACKUP_CMD[@]}" "${db_name}" | gzip -9 > "$backup_temp"; then
+                printf 'Database backup failed; no backup published: %s\n' "$backup_file" >&2
+                exit 1
+            fi
+            if ! ln -T -- "$backup_temp" "$backup_file"; then
+                printf 'Cannot publish backup without replacing an existing path: %s\n' "$backup_file" >&2
+                exit 1
+            fi
+        )
     fi
 }
 
@@ -305,7 +321,10 @@ function show_archappl
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        tables=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SELECT * FROM ${table_name}" | awk '{print $1}')
+        if ! tables=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SELECT * FROM $(sql_identifier "$table_name")" | awk '{print $1}'); then
+            clientFailMessage "Reading ${db_name}.${table_name}"
+            return 1
+        fi
         printf "\n";
         # shellcheck disable=SC2206
         declare -a  table_array=( ${tables} )

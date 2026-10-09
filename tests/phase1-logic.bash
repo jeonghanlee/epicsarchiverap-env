@@ -28,7 +28,7 @@ remaining=$(grep -rl 'CONFIG_COMMON' "${TOP}/configure/" 2>/dev/null || true)
 assert_empty "${remaining}" "No CONFIG_COMMON references in configure/"
 
 # P1.3 OS preset files exist as separately tracked Makefile fragments.
-for preset in debian12 debian13 rocky8; do
+for preset in debian12 debian13 rocky8 rocky10 ubuntu24 ubuntu26; do
     assert_file "${TOP}/configure/os/${preset}.mk" "configure/os/${preset}.mk present"
 done
 
@@ -36,8 +36,8 @@ done
 make -C "${TOP}" -n build > "${WORKSPACE}/make-n-build.txt" 2>&1
 assert_status $? 0 "make -n build parses"
 
-# P1.5 Both OS conf targets parse and reference their preset.
-for target in debian12.conf debian13.conf rocky8.conf; do
+# P1.5 OS configuration targets parse and reference their preset.
+for target in debian12.conf debian13.conf rocky8.conf rocky10.conf ubuntu24.conf ubuntu26.conf; do
     out=$(make -C "${TOP}" -n "${target}" 2>&1)
     rc=$?
     if [[ ${rc} -ne 0 ]]; then
@@ -767,7 +767,7 @@ case "$(cat "${so_ctx}")" in
 esac
 assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=''" "Empty DB_SOCKET renders an empty value in mariadb.conf"
 so_cmds=$(socket_commands)
-assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root" "Empty DB_SOCKET keeps the root command"
+assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --host=localhost --protocol=socket" "Empty DB_SOCKET keeps root on the local socket"
 for so_role in admin user backup; do
     case "$(grep "^${so_role}=" <<< "${so_cmds}" || true)" in
         *'--port=3306 --host=127.0.0.1 --protocol=tcp') _record_pass "Empty DB_SOCKET keeps the TCP ${so_role} command" ;;
@@ -786,7 +786,7 @@ case "$(cat "${so_ctx}")" in
 esac
 assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=${so_path}" "DB_SOCKET reaches mariadb.conf"
 so_cmds=$(socket_commands)
-assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --socket=${so_path}" "DB_SOCKET reaches the root command"
+assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --host=localhost --protocol=socket --socket=${so_path}" "DB_SOCKET reaches the root command"
 for so_role in admin user backup; do
     so_line=$(grep "^${so_role}=" <<< "${so_cmds}" || true)
     if [[ "${so_line}" == *"--protocol=socket --socket=${so_path}" && "${so_line}" != *--host=* && "${so_line}" != *--port=* ]]; then
@@ -877,6 +877,7 @@ bash "${TOP}/tests/no-ant.bash"
 
 python3 "${TOP}/tests/database-config.py"
 bash "${TOP}/tests/local-install-output.bash"
+python3 "${TOP}/tests/local-install-epics.py"
 
 # VM CLI validation runs without virtualization or network.
 python3 "${TOP}/tests/vm/local.py"

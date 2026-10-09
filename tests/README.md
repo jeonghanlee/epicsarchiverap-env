@@ -192,12 +192,15 @@ the console summary; a skipped check is not verification.
 
 ### Phase 1 — Logic
 - `configure/CONFIG_COMMON` is fully removed; no surviving file in `configure/` references that name.
-- The three OS preset fragments (`debian12`, `debian13`, `rocky8`) are present under `configure/os/`.
+- The six OS preset fragments (`debian12`, `debian13`, `rocky8`, `rocky10`, `ubuntu24`, `ubuntu26`) are present under `configure/os/`.
 - `make -n build` parses without error.
-- The three `XXX.conf` Tomcat targets each generate a `CONFIG_SITE.local` line that includes the matching preset.
+- The six `XXX.conf` Tomcat targets each generate a `CONFIG_SITE.local` line that includes the matching preset.
 - `SRC_PATH` derives to `epicsarchiverap-maven-src` and downstream `ARCHAPPL_SITEID_TARGET_PATH` resolves under that subtree (regression guard for the CONFIG include reorder).
 - Both `../CONFIG_SITE.local` and `configure/CONFIG_SITE.local` can change the install, template and storage roots. The shipped Make rules render matching configuration, policy and service paths, copy the site classpath files into the relocated template tree, and create the storage directories there. Wrapper paths are checked in the real installation dry-run; no WAR or Tomcat substitute is installed. Explicit overrides of the six derived paths retain their values.
-- Both local configuration locations preserve Tomcat path and service-port overrides with all three OS presets. Real configuration generation and `serverxml.install`, using the shipped server template, agree on the service and shutdown ports. Tomcat installation paths are checked by dry-run; command-line overrides still win.
+- Both local configuration locations preserve Tomcat path and service-port overrides with the `debian12`, `debian13` and `rocky8` presets. Real configuration generation and `serverxml.install`, using the shipped server template, agree on the service and shutdown ports. Tomcat installation paths are checked by dry-run; command-line overrides still win.
+- All five supported local-install OS presets preserve a custom `JAVA_HOME`
+  from `../CONFIG_SITE.local`, and the real Make configuration derives its
+  matching `JAVA_PATH`.
 - The real `conf.storage` applies ownership to tier directories and existing files outside the archive root. The shipped launcher reads the rendered configuration and reports every storage path, including an unreadable tier and `/dev/shm`. These checks do not start an appliance JVM or install Tomcat.
 - `sql.drop` and `sql.table.drop` reject SQLite and invalid backend values before invoking a database client, even when files with those target names exist. The real Make targets run for rejection cases; the MariaDB deletion command is checked only with a dry-run.
 - The five removed obsolete documents (`README.ant.md`, `README.centos7.md`, `README.centos8.md`, `README.javapkgs.md`, `README.macos.md`) are not referenced from any tracked Markdown file other than `CHANGELOG.md`, the milestone register and `tests/`; the check fails when the search itself cannot run, such as outside a Git work tree.
@@ -218,6 +221,11 @@ the console summary; a skipped check is not verification.
   be rejected. It never constructs a healthy Tomcat substitute. Its
   `archappl.conf` names the store and a 100 percent threshold, as an installed
   file names the store, so these instance cases do not depend on disk usage.
+- The shipped `status` path rejects missing PID files and unrelated live
+  processes through the real health check. Storage tests run real `du` with
+  only the privilege transport replaced; literal shell characters remain path
+  data, and a missing directory returns nonzero.
+
 - PID cases require an installed Java executable so the configuration identity
   is real; they skip explicitly when none exists. Permission-denial cases skip
   under root. The unrelated-JVM negative compiles `fixtures/UnrelatedJava.java`
@@ -301,10 +309,11 @@ the console summary; a skipped check is not verification.
   default, and with a socket path in `../CONFIG_SITE.local` the
   `jdbc:mariadb://localhost/<db>?localSocket=<path>` URL and that path in
   `mariadb.conf`. Sourcing the rendered `mariadb.conf` and the shipped
-  `scripts/mariadb_generic_function.bash` expands the root, admin, user and
-  backup commands: TCP host and port and the `DB_HOST_NAME` account host by
-  default, `--socket=<path>` with no host or port and the `localhost` account
-  host with the path. The SQLite render is the same with and without
+  `scripts/mariadb_generic_function.bash` expands the admin, user, and backup
+  commands: TCP host and port and the `DB_HOST_NAME` account host by default,
+  `--socket=<path>` with no host or port and the `localhost` account host with
+  the path. Root commands explicitly use `localhost` and the socket protocol,
+  with `--socket=<path>` when configured. The SQLite render is the same with and without
   `DB_SOCKET`. No database client runs.
 - The account and database targets stop when the database client fails: from
   an isolated copy, with the real `mysql` client unable to connect, `make
@@ -316,7 +325,53 @@ the console summary; a skipped check is not verification.
   socket through `DB_SOCKET`, with a pass-through `sudo` first in `PATH`.
   Without a `mysql` client this part prints `[SKIP]`.
 
+### Native database and PV checks
+
+`database-config.py --integration` uses a private real MariaDB server and the
+selected source schema. Socket and TCP cases check account identities, schema
+loading, backup/restore, private backup permissions, rejection of an existing
+backup or symlink, failed dump cleanup, and a file appearing during publication.
+Account deletion output must omit password hashes. The root cleanup target
+preserves the existing authentication method. SQLite uses its real source schema.
+Conflicting root client defaults select TCP and a closed port; account preparation
+must reach the private server through its socket for both appliance transports.
+An empty table query succeeds, while missing-table queries fail through the
+helper and the real Make target.
+Denied account metadata queries return nonzero after successful primary account
+changes; the private server's account inventory confirms those changes.
+These checks do not contact the host's database service.
+
+`local-install-readiness.bash` starts four real WARs with Tomcat 9 and runs the
+shipped installer readiness functions and launcher health inspection.
+It checks successful output, inactive and failed units, denied and missing-unit
+queries, early signal termination versus deadlines for unit and health inspection,
+a storage limit equal to actual filesystem usage,
+and a missing PID file. Its health configuration uses the executable of the
+running management JVM, including a JDK selected through `JAVA_HOME`.
+Health recovery clears interruption diagnostics; an interrupted later check
+preserves the last completed process and storage observations.
+Failure output must preserve successful startup results,
+UI and API URLs, and the nonzero exit status without claiming installation success.
+Only privilege and systemd command boundaries are replaced; HTTP, JVM identity,
+and filesystem inspection run against the real appliance.
+This check does not establish host systemd installation or scheduled timer behavior.
+Set `AA_TEST_TOMCAT_HOME` to a readable Tomcat 9 installation and prepare the
+selected source's four WARs before running the check from the repository root:
+
+```bash
+bash tests/local-install-readiness.bash
+```
+
+`local-install-pv.bash` starts four real WARs and a real soft IOC in an isolated
+workspace. It checks acquisition/retrieval, interactive keep/resume, and failed
+retrieval cleanup. Its signal, range, and menu checks use the shipped verifier,
+IOC database, and CSV client, replacing only HTTP transport.
+`local-install-pv-menu.py` checks a live keep result, IOC exit during the cleanup
+menu, and IOC exit during resume. Menu fixtures verify lifecycle handling;
+the real appliance round trip establishes sample storage and retrieval.
+
 ### Phase 2 — Build wrapper
+
 - The real `make -n build` target parses and generates commands successfully.
 - The package command runs from the configured source directory and invokes its Maven Wrapper with `clean package -DskipTests`.
 - Only simple unquoted environment assignments may precede the wrapper; another command such as `echo` does not pass the invocation check.

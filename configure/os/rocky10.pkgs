@@ -1,0 +1,19 @@
+# Rocky Linux 10.2 prerequisites. Maven uses the source Maven Wrapper.
+gcc
+libgcc
+wget
+sudo
+git
+unzip
+curl
+jq
+make
+tree
+sed
+which
+java-21-openjdk-headless
+java-21-openjdk-devel
+mariadb
+mariadb-server
+sqlite
+chrony

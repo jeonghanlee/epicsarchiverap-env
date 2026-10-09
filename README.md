@@ -7,7 +7,7 @@ The source code for the [EPICS Archiver Appliance with MAVEN](https://github.com
 
 ## Scope
 
-This document covers local installation of the EPICS Archiver Appliance with MAVEN on Debian 13 or Rocky Linux 8 using SQLite or MariaDB. It also covers the manual Debian 13 setup, the four Tomcat 9 runtime instances, and systemd service management.
+This document covers local installation of the EPICS Archiver Appliance with MAVEN on Debian 13, Rocky Linux 8, Rocky Linux 10.2, Ubuntu 24.04 LTS or Ubuntu 26.04 LTS using SQLite or MariaDB. It also covers the manual Debian 13 setup, the four Tomcat 9 runtime instances, and systemd service management.
 
 **Out of scope:**
 * Archiving policy configuration and storage tier tuning — see [docs/README.policies.md](docs/README.policies.md).
@@ -15,10 +15,10 @@ This document covers local installation of the EPICS Archiver Appliance with MAV
 * The upstream community build process — see [archiver-appliance/epicsarchiverap](https://github.com/archiver-appliance/epicsarchiverap).
 
 ## Purpose of this Environment
-This repository provides a set of `Makefiles` and scripts to automate the setup and build process for the EPICS Archiver Appliance with MAVEN. It handles system dependencies, database configuration, and service management on Debian 13 and Rocky Linux 8.
+This repository provides a set of `Makefiles` and scripts to automate the setup and build process for the EPICS Archiver Appliance with MAVEN. It handles system dependencies, database configuration, and service management on Debian 13, Rocky Linux 8, Rocky Linux 10.2, Ubuntu 24.04 LTS and Ubuntu 26.04 LTS.
 
 ## Prerequisites
-* **JDK 21**: required by the local installation scripts. The package step installs `openjdk-21-jdk-headless` on Debian 13 or `java-21-openjdk-devel` on Rocky Linux 8.
+* **JDK 21**: required by the local installation scripts. The package step installs `openjdk-21-jdk-headless` on Debian 13 or Ubuntu 24.04/26.04, and `java-21-openjdk-devel` on Rocky Linux 8 or 10.2.
 * **Apache Maven**: none to install. The source repository ships the Maven Wrapper (`./mvnw`), which downloads its pinned Maven version on the first build.
 * **Git**: Required to clone and select the pinned application source.
 * **Operating System**:
@@ -37,6 +37,12 @@ appliance, prepare its database, replace its payload, and start its systemd
 service and health timer. MariaDB account preparation also sets configured
 passwords and grants on existing accounts; use `--existing-db` to preserve
 provisioned accounts. Follow the linked procedure before confirming installation.
+
+The [script reference](scripts/README.md) lists all 13 Bash files, the five
+supported OS defaults, and the optional soft IOC verification contract.
+Startup verification checks four JVMs, storage usage, component startup states,
+and appliance information. PV acquisition and retrieval require the separate
+optional test. The default UI URL is `http://localhost:17665/mgmt/ui/index.html`.
 
 ## Debian 13 Setup Guide
 This guide outlines the setup and build process on a Debian 13 system.
@@ -58,7 +64,13 @@ sudo systemctl start mariadb
 sudo systemctl status mariadb
 ```
 
-Set database credentials and transport in `../CONFIG_SITE.local` as described in the [configuration guide](docs/README.install.md#configuration-variable-placement), then create the database and account:
+For this manual local setup, set credentials and `DB_SOCKET` in
+`../CONFIG_SITE.local` as described in the
+[configuration guide](docs/README.install.md#configuration-variable-placement).
+Socket clients match the administrator account created at `localhost`.
+For TCP provisioning, use the TCP installation entry script instead.
+Create the database and account:
+
 ```bash
 make db.conf
 make db.addAdmin
@@ -106,7 +118,9 @@ For an existing installation, follow the [reinstall procedure](docs/README.insta
 ### Switch between different source commits
 To build against a different version of the source code:
 
-* First, update the `SRC_TAG` variable in the `configure/RELEASE` file to the desired Git commit hash, tag, or branch name.
+* First, set `SRC_TAG` in `configure/RELEASE.local` or `../RELEASE.local` to
+  the desired Git commit hash, tag, or branch name. Keep the tracked release
+  defaults in `configure/RELEASE` unchanged.
 * Then, run the following command to update the source code checkout:
 
 ```bash

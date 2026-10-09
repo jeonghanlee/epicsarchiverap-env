@@ -1,7 +1,8 @@
-# Local Installation Scripts
+# Appliance scripts
 
-These scripts install a systemd-managed EPICS Archiver Appliance on Debian 13
-or Rocky Linux 8. Choose one entry script for the required database connection.
+These scripts install a systemd-managed EPICS Archiver Appliance on Debian 13,
+Rocky Linux 8, Rocky Linux 10.2, Ubuntu 24.04 LTS or Ubuntu 26.04 LTS.
+Choose one entry script for the required database connection.
 All three use [install-local-common.bash](install-local-common.bash), the
 configured source pin, and the `als` site configuration.
 
@@ -17,6 +18,56 @@ Keep storage, Tomcat, service-account, and database settings in
 Read the [installation procedure](../docs/README.install.md#local-systemd-installation)
 for prerequisites, configuration placement, and database preparation before
 confirming installation.
+
+## Script responsibilities and callers
+
+This directory contains 13 Bash files. The three entry scripts above select the
+database mode; the remaining scripts have these responsibilities:
+
+| Script | Caller | Responsibility |
+| --- | --- | --- |
+| [install-local-common.bash](install-local-common.bash) | Three installation entry scripts | Preflight, installation order, database preparation, startup checks, and optional PV verification |
+| [install_os_packages.bash](install_os_packages.bash) | Installer or host administrator | Detects the OS and installs its package list; SQLite mode excludes MariaDB packages |
+| [install-payload.bash](install-payload.bash) | Make installation rules | Stages and replaces one component's WAR and logging JARs |
+| [render-db-config.bash](render-db-config.bash) | Make configuration rules | Renders escaped shell or XML database settings |
+| [check_storage_placement.bash](check_storage_placement.bash) | `make conf.storage` | Reports storage placement warnings; warnings do not fail the target |
+| [archappl.bash](archappl.bash) | Installed systemd service or operator | Runs the four instances, checks process/storage health, and manages application log levels |
+| [mariadb_setup.bash](mariadb_setup.bash) | Make database rules | Dispatches database, account, schema, backup, and restore operations |
+| [mariadb_generic_function.bash](mariadb_generic_function.bash) | Sourced by `mariadb_setup.bash` | Builds MariaDB client arguments and executes SQL operations |
+| [verify-local-pv.bash](verify-local-pv.bash) | Installer or operator | Starts a soft IOC and checks changing CA values against retrieved samples |
+| [verify-local-pv-curl.bash](verify-local-pv-curl.bash) | CSV client during PV verification | Records retrieval HTTP evidence and checks the returned PV identity |
+
+Use the installation entry scripts or Make targets for installation helpers.
+The sourced libraries and retrieval adapter are not operator entry points.
+The installed launcher's `health` command verifies actual process identities and
+filesystem usage. Its `status` command displays UI URLs and journal commands,
+then runs the same health check and returns its exit status. Run either check
+as the service account so process-access restrictions do not obscure the JVMs.
+Neither checks application readiness or PV acquisition.
+The `storage` command runs `du` with the configured directory as a literal
+argument; `storage all` includes individual files. A failed `du` returns nonzero.
+
+## Supported OS defaults
+
+Automatic detection accepts the following versions. Preset names also select
+the corresponding Make configuration and package list.
+
+| OS version | Preset | Package manager | Default MariaDB socket |
+| --- | --- | --- | --- |
+| Debian 13 | `debian13` | `apt-get` | `/run/mysqld/mysqld.sock` |
+| Rocky Linux 8.x | `rocky8` | `dnf` | `/var/lib/mysql/mysql.sock` |
+| Rocky Linux 10.2 | `rocky10` | `dnf` | `/var/lib/mysql/mysql.sock` |
+| Ubuntu 24.04 LTS | `ubuntu24` | `apt-get` | `/run/mysqld/mysqld.sock` |
+| Ubuntu 26.04 LTS | `ubuntu26` | `apt-get` | `/run/mysqld/mysqld.sock` |
+
+The default JDK 21 path is `/usr/lib/jvm/java-21-openjdk-amd64` on Debian and
+Ubuntu, and `/usr/lib/jvm/java-21-openjdk` on Rocky Linux. These are x86-64
+distribution paths. All five presets preserve a custom `JAVA_HOME` in
+`../CONFIG_SITE.local`; `JAVA_PATH` follows that directory unless overridden.
+`--skip-packages` skips package installation but still applies the OS preset.
+Package installation and a successful plan do not prove systemd startup or
+PV acquisition on a host. Other OS versions are rejected by these entry scripts,
+even when a separate legacy Make preset exists.
 
 ## Preview and Run
 
@@ -47,6 +98,22 @@ component startup API URLs, process/storage health, a health command, and the
 appliance identity, version, and information API URL. Waiting messages appear
 when the outstanding checks change. `localhost` refers to the installed host;
 use that host's browser or SSH port forwarding from another machine.
+The default management page is `http://localhost:17665/mgmt/ui/index.html`.
+Use the complete page path; `/mgmt/ui` names a directory.
+
+On failure, the installer displays the last observed result for each check,
+including successful checks, UI and API URLs, and a journal command with `sudo`.
+Unit checks report `NOT ACTIVE` only for an observed non-active state.
+Permission and other query errors report `INSPECTION ERROR` with the diagnostic;
+queries that exceed the startup deadline report `TIMED OUT`.
+Early signal termination reports `INSPECTION ERROR` with the exit status,
+including during health inspection.
+A storage failure does not imply that the four components failed to start.
+The message identifies filesystem usage at or above the configured limit and
+keeps the nonzero verification result. Installed files and data remain; the
+installer does not stop or restart the appliance after that failure.
+The default storage limit remains 85%; the installer does not delete data
+or change that limit.
 
 The information API confirms that management responds. It does not prove that
 the appliance receives or stores PV samples. The installer reports PV acquisition,
@@ -77,10 +144,18 @@ for `--tomcat`, `--skip-packages`, `--socket`, `--existing-db`, `--timeout`, and
 
 ## Verify one changing PV
 
-After installation, answer `y` to the optional soft IOC test. The test requires
+Before installation, answer `y` to select the optional soft IOC test. The installer
+checks the exported `EPICS_BASE` and executable `softIoc` and `caget` before
+installing packages or changing the appliance. If the environment is unavailable,
+source your EPICS environment setup file in the same terminal and rerun the
+installer. The installer does not source a setup file automatically.
+The test requires
 EPICS Base `softIoc` and `caget`, plus `curl`, `jq`, and the selected source
 checkout's `getDataToCsv.bash` and `archiverClient.bash`. EPICS Base is not
-installed by these scripts. Supply its absolute binary directory when prompted.
+installed by these scripts. The binary directory is resolved from
+`$EPICS_BASE/bin/$EPICS_HOST_ARCH`, or from the single directory containing both
+executables under `$EPICS_BASE/bin` when `EPICS_HOST_ARCH` is unset. No binary
+directory prompt is shown after installation.
 The appliance must discover the IOC on loopback using Channel Access.
 
 The [verification script](verify-local-pv.bash) starts the shipped
@@ -97,9 +172,16 @@ sample's UTC timestamp and value, the CSV path, and the evidence directory.
 This checks short-term acquisition and retrieval; it does not check ETL movement
 between storage tiers or long-term retention.
 
-On success, choose to pause this test PV and stop its IOC, or keep both running.
+When verification reaches the cleanup menu, the test PV is already paused.
+Choose to stop the IOC or resume PV archiving and keep the IOC running.
 The default leaves the PV paused and stops its IOC. Keeping the IOC resumes
-archiving. On failure or interruption, the script stops
+archiving. The script checks the owned IOC's PID and start time immediately
+before resume and again after the response. If the IOC exits during the menu
+wait, verification fails with the PV paused. If it exits during resume,
+verification fails and cleanup attempts to pause the PV again.
+A successful keep result confirms IOC presence at that observation;
+it does not monitor the IOC after the script exits.
+On failure or interruption, the script stops
 its IOC and attempts to pause its unique PV. An unconfirmed pause produces a
 warning; the registration might remain active. The PV registration remains in
 the appliance configuration database, and original samples remain in its configured
@@ -119,7 +201,9 @@ bash scripts/verify-local-pv.bash --help
 To retry without installation, supply `MGMT_BPL`, `RETRIEVAL`, and
 `SOURCE_CHECKOUT` as its three arguments. The API URLs must use `localhost` or
 `127.0.0.1`, explicit ports, and the `/mgmt/bpl` and `/retrieval` paths.
-`--epics-bin` selects the Base binary directory; `--cleanup stop` or
+`--check-epics` validates Base prerequisites without starting an IOC or contacting
+the appliance. `--epics-bin` explicitly selects the Base binary directory instead
+of using `EPICS_BASE`; `--cleanup stop` or
 `--cleanup keep` permits unattended execution. `--timeout` selects 10..3600
 seconds, with 180 seconds as default. Cleanup has a separate HTTP timeout of
 10 seconds.

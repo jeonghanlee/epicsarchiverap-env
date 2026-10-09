@@ -6,6 +6,7 @@ export LC_ALL=C TZ=UTC
 SCRIPT_PATH=$(realpath -- "${BASH_SOURCE[0]}")
 readonly SCRIPT_DIR="${SCRIPT_PATH%/*}"
 epics_bin=''
+check_epics_only=0
 cleanup_action=''
 limit=180
 workspace=''
@@ -31,6 +32,7 @@ function usage {
         'Usage: bash scripts/verify-local-pv.bash [OPTIONS] MGMT_BPL RETRIEVAL SOURCE_CHECKOUT' \
         'Start a loopback soft IOC, register one unique PV and verify changing stored CSV samples.' \
         '  --epics-bin DIR     EPICS Base bin directory containing softIoc and caget' \
+        '  --check-epics       Validate EPICS prerequisites and print the binary directory only' \
         '  --cleanup ACTION    stop: pause PV and stop IOC; keep: leave both running' \
         '  --timeout SEC       Verification limit, 10..3600 seconds (180)' \
         '  -h, --help          Show this help' \
@@ -107,6 +109,27 @@ function check_csv {
     ' "$workspace/ca.tsv" "$file"
 }
 
+# Resolves the exported Base environment without executing an environment setup file.
+function resolve_epics_bin {
+    local candidate
+    local -a candidates=()
+    if [[ -z "$epics_bin" ]]; then
+        [[ -n "${EPICS_BASE:-}" ]] || die 'EPICS_BASE is not exported. Source your EPICS environment setup file in this terminal, then rerun.'
+        [[ "$EPICS_BASE" == /* && -d "$EPICS_BASE" ]] || die 'EPICS_BASE must name an existing absolute Base directory. Source your EPICS environment setup file, then rerun.'
+        if [[ -n "${EPICS_HOST_ARCH:-}" ]]; then
+            [[ "$EPICS_HOST_ARCH" != */* && "$EPICS_HOST_ARCH" != . && "$EPICS_HOST_ARCH" != .. ]] || die 'Invalid EPICS_HOST_ARCH'
+            epics_bin="$EPICS_BASE/bin/$EPICS_HOST_ARCH"
+        else
+            for candidate in "$EPICS_BASE"/bin/*; do
+                if [[ -x "$candidate/softIoc" && -x "$candidate/caget" ]]; then candidates+=("$candidate"); fi
+            done
+            (( ${#candidates[@]} == 1 )) || die 'Cannot select a unique EPICS Base binary directory. Source your EPICS environment setup file with EPICS_HOST_ARCH, then rerun.'
+            epics_bin="${candidates[0]}"
+        fi
+    fi
+    [[ "$epics_bin" == /* && -x "$epics_bin/softIoc" && -x "$epics_bin/caget" ]] || die 'EPICS binary directory must contain executable softIoc and caget. Source your EPICS environment setup file or correct --epics-bin, then rerun.'
+}
+
 function main {
     local option tool resolved answer prefix deadline remaining from to now attempt=0
     local response name day clock value _unused seconds nanos stamp client file line archiving_since=-1
@@ -114,6 +137,7 @@ function main {
     while (( $# )); do
         option="$1"
         case "$option" in
+            --check-epics) check_epics_only=1; shift ;;
             --epics-bin|--cleanup|--timeout)
                 (( $# >= 2 )) || die "Missing value for $option"
                 case "$option" in
@@ -131,6 +155,12 @@ function main {
         esac
     done
     (( EUID != 0 )) || die 'Run as an ordinary user'
+    if (( check_epics_only )); then
+        (( ${#positional[@]} == 0 )) || die '--check-epics does not accept API arguments'
+        resolve_epics_bin
+        printf '%s\n' "$epics_bin"
+        return
+    fi
     (( ${#positional[@]} == 3 )) || die 'Supply MGMT_BPL, RETRIEVAL and SOURCE_CHECKOUT; see --help'
     [[ -t 0 || -n "$cleanup_action" ]] || die 'Non-interactive stdin; select --cleanup stop or keep'
     mgmt="${positional[0]%/}"
@@ -146,14 +176,7 @@ function main {
     [[ "$retrieval" =~ ^http://(localhost|127\.0\.0\.1):[0-9]+/retrieval$ ]] || die 'Use the local loopback retrieval URL'
     client="$source_path/docs/book/src/samples/getDataToCsv.bash"
     [[ -r "$client" && -r "${client%/*}/archiverClient.bash" ]] || die 'The selected source does not provide the CSV client'
-    if [[ -z "$epics_bin" ]]; then
-        if resolved=$(command -v softIoc); then epics_bin="${resolved%/*}"; fi
-    fi
-    if [[ -z "$epics_bin" && -t 0 ]]; then
-        printf '%s' 'EPICS Base bin directory containing softIoc and caget: '
-        read -r epics_bin || die 'No EPICS directory supplied; test was not started'
-    fi
-    [[ "$epics_bin" == /* && -x "$epics_bin/softIoc" && -x "$epics_bin/caget" ]] || die 'Provide an absolute --epics-bin directory with softIoc and caget'
+    resolve_epics_bin
     workspace=$(mktemp -d /tmp/archiver-local-pv.XXXXXXXX)
     mkdir -- "$workspace/client-bin"
     ln -s -- "$SCRIPT_DIR/verify-local-pv-curl.bash" "$workspace/client-bin/curl"
@@ -231,16 +254,20 @@ function main {
                         cat "$workspace/result.txt"
                         printf 'CSV: %s\n' "$file"
                         if [[ -z "$cleanup_action" ]]; then
-                            printf '%s\n' '1. Pause test PV and stop IOC; keep stored samples (default)' '2. Keep IOC and archiving running'
+                            printf '%s\n' 'Current state: test PV is Paused; IOC is running. Stored samples and CSV are retained.' \
+                                '1. Stop IOC; leave test PV Paused (default)' \
+                                '2. Resume test PV archiving; keep IOC running'
                             printf '%s' 'Select [1/2]: '
                             read -r answer || answer=1
                             case "$answer" in 2) cleanup_action=keep ;; *) cleanup_action=stop ;; esac
                         fi
                         if [[ "$cleanup_action" == keep ]]; then
+                            ioc_alive || die 'Test IOC stopped while waiting for the cleanup choice; PV remains paused'
                             paused=0
                             curl -q --noproxy '*' --fail --silent --show-error --max-time 10 --get \
                                 --data-urlencode "pv=$pv" "$mgmt/resumeArchivingPV" > "$workspace/resume.json" || die 'Cannot confirm test PV resume'
                             jq -e '.status == "ok"' "$workspace/resume.json" >/dev/null || die 'Test PV resume failed'
+                            ioc_alive || die 'Test IOC stopped during PV resume; cleanup will pause the PV'
                             printf 'IOC retained: PID %s; PV %s. See README for pause and stop commands.\n' "$ioc_pid" "$pv"
                             ioc_pid=''
                         fi
@@ -254,4 +281,5 @@ function main {
     die "No two changing stored samples matched real CA observations within $limit seconds"
 }
 
-main "$@"
+# Parse the entry call and exit together before a long-running operation can change this file.
+main "$@"; exit "$?"

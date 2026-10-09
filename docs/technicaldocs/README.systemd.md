@@ -86,8 +86,11 @@ stream:
 
 Both files write the same priority prefix and read the root level from
 `ARCHAPPL_ROOT_LOGGER_LEVEL` (default `INFO`), which `archappl.conf` exports;
-set it in `../CONFIG_SITE.local`, then run `make conf.archapplproperties`,
-`make install` and `make sd_restart`. Both files
+set it in `../CONFIG_SITE.local`, then run `make conf.archapplproperties`.
+Apply the generated settings using the
+[stop/install/start procedure](../README.install.md#reinstall-and-upgrade).
+Stop the appliance before installing its WARs and logging libraries.
+Both files
 carry `monitorInterval="30"`: a level edited in the site file, or in an
 instance's installed `$CATALINA_BASE/log4j/log4j2-tomcat.xml`, takes effect
 within about 30 seconds without a restart. A site file starts as a copy of
@@ -123,8 +126,9 @@ an edited site file. It reaches the WAR-level configuration only: Tomcat's
 own loggers and the `java.util.logging` loggers, such as the CA client's,
 follow `log4j2-tomcat.xml`. The command exits 2 for an invalid argument, a
 missing `curl`, or an installed `archappl.conf` without `ARCHAPPL_MGMT_PORT`
-(written before the command existed; run `make conf.archapplproperties` and
-`make install` again), and exits 1 when the request fails: with the service
+(regenerate with `make conf.archapplproperties`, then follow the
+[stop/install/start procedure](../README.install.md#reinstall-and-upgrade)),
+and exits 1 when the request fails: with the service
 stopped, or when the BPL answers with a status other than 200.
 
 The launcher's own lines (`started pid`, `stopping pid`, `process <pid> is
@@ -191,8 +195,8 @@ Otherwise it names each failing cause: `health FAIL one-or-more-invalid-instance
 configuration, validates each PID file, checks the actual Java executable,
 Tomcat bootstrap arguments, `catalina.base`, `catalina.home`, process state and
 start time, then repeats observations to reject inconsistent identities. It
-does not delete PID files or signal processes. Other launcher commands retain
-their existing behavior; `status` is a diagnostic listing, not this check.
+does not delete PID files or signal processes. `status` prints UI URLs and journal commands, then
+runs this same process/storage check and returns its exit status.
 
 The launcher records the PID of `bin/run.sh` at once. That process becomes
 `catalina.sh` and then Java by `exec`, so for a fraction of a second after a

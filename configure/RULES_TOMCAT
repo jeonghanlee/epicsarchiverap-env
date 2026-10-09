@@ -132,7 +132,25 @@ tomcat.sd_disable:
 	$(if $(wildcard $(SYSTEMD_PATH)/$(TOMCAT_SYSTEMD)), $(SUDO) systemctl disable $(TOMCAT_SYSTEMD))
 #
 
-.PHONY: centos8.conf rocky8.conf centos7.conf debian12.conf debian13.conf
+.PHONY: centos8.conf rocky8.conf rocky10.conf centos7.conf debian12.conf debian13.conf ubuntu24.conf ubuntu26.conf
+
+ubuntu26.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/ubuntu26.mk" > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
+
+rocky10.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/rocky10.mk" > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
+
+ubuntu24.conf:
+	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"
+	$(QUIET)-rm -f $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)echo "include \$$(TOP)/configure/os/ubuntu24.mk" > $(TOP)/configure/CONFIG_SITE.local
+	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
 
 debian13.conf:
 	$(QUIET)echo ">>> Generating $(TOP)/configure/CONFIG_SITE.local"

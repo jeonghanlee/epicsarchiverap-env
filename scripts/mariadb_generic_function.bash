@@ -7,17 +7,17 @@
 
 DB_PROTOCOL="tcp";
 
-# Every client reaches the server over the Unix domain socket DB_SOCKET when it
-# is set, otherwise over TCP. MariaDB names a socket client's host localhost,
-# so the application account is granted at DB_USER_HOST.
+# Application, administrator and backup clients use DB_SOCKET when set, otherwise
+# TCP. Root account operations use a local socket for either appliance transport.
+# MariaDB names a socket client's host localhost; grants follow DB_USER_HOST.
 if [ -n "${DB_SOCKET:-}" ]; then
     DB_CONNECT_OPTS=(--protocol=socket "--socket=${DB_SOCKET}")
-    SQL_ROOT_CMD=(sudo mysql --user=root "--socket=${DB_SOCKET}")
+    SQL_ROOT_CMD=(sudo mysql --user=root --host=localhost --protocol=socket "--socket=${DB_SOCKET}")
     DB_USER_HOST="localhost"
 else
     # shellcheck disable=SC2153
     DB_CONNECT_OPTS=("--port=${DB_HOST_PORT}" "--host=${DB_HOST_NAME}" "--protocol=${DB_PROTOCOL}")
-    SQL_ROOT_CMD=(sudo mysql --user=root)
+    SQL_ROOT_CMD=(sudo mysql --user=root --host=localhost --protocol=socket)
     # shellcheck disable=SC2034
     DB_USER_HOST="${DB_HOST_NAME}"
 fi
@@ -100,14 +100,11 @@ function die #@ Print error message and exit with error code
 # users are dropped, independent of the configured DB host.
 function mariadb_secure_setup
 {
-    # MariaDB Secure Installation without setting a root password: root stays
-    # unix_socket-only as root@'localhost'. Every other root account and all
-    # anonymous users are removed with DROP USER, which works on both MariaDB
-    # 10.3 (mysql.user is a table) and 10.4+ (mysql.user is a view over
-    # global_priv, where a direct DELETE reports success but does not remove the
-    # account -- a silent no-op). Only mysql.db, a real table on every version,
-    # is edited directly. No root login is reachable over TCP after this.
-    # Reference: distro mariadb-secure-installation.
+    # Keeps root@'localhost' with its existing authentication method and removes
+    # other root accounts, anonymous users, and the test database. DROP USER
+    # supports both the mysql.user table and its MariaDB 10.4+ view. Root
+    # passwords, authentication plugins, and TCP access are host settings;
+    # this operation does not change them or guarantee socket-only root access.
 
     # remove_anonymous_users(), remove_remote_root(): read mysql.user (readable
     # on every version) to build DROP USER statements, then execute them.
@@ -256,7 +253,11 @@ function create_db_and_user
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "SHOW databases;" >  "$temp_sql_file";
     echo "SELECT user, host, Grant_priv, Show_db_priv FROM mysql.user;" >>  "$temp_sql_file";
-    admin_query_from_sql_file "${temp_sql_file}";
+    if ! admin_query_from_sql_file "${temp_sql_file}"; then
+        rm -f "${temp_sql_file}"
+        clientFailMessage 'Listing databases and accounts'
+        return 1
+    fi
     rm -f "${temp_sql_file}"
 }
 
@@ -286,8 +287,12 @@ function drop_db_and_user
 
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
     echo "SHOW databases;" >  "$temp_sql_file";
-    echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
-    admin_query_from_sql_file "${temp_sql_file}";
+    printf '%s\n' 'SELECT user, host, Grant_priv, Show_db_priv FROM mysql.user;' >> "$temp_sql_file"
+    if ! admin_query_from_sql_file "${temp_sql_file}"; then
+        rm -f "${temp_sql_file}"
+        clientFailMessage 'Listing databases and accounts'
+        return 1
+    fi
     rm -f "${temp_sql_file}"
 }
 
@@ -314,8 +319,12 @@ function drop_user
     rm -f "${temp_sql_file}"
 
     temp_sql_file=$(mktemp -q) || die 1 "CANNOT create the $temp_sql_file file, please check the disk space";
-    echo "SELECT user, host, Password, Grant_priv, Show_db_priv, authentication_string, default_role, is_role FROM mysql.user;" >>  "$temp_sql_file";
-    admin_query_from_sql_file "${temp_sql_file}";
+    printf '%s\n' 'SELECT user, host, Grant_priv, Show_db_priv FROM mysql.user;' >> "$temp_sql_file"
+    if ! admin_query_from_sql_file "${temp_sql_file}"; then
+        rm -f "${temp_sql_file}"
+        clientFailMessage 'Listing accounts'
+        return 1
+    fi
     rm -f "${temp_sql_file}"
 }
 
@@ -448,7 +457,10 @@ function show_tables
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        tables=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}')
+        if ! tables=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}'); then
+            clientFailMessage "Listing tables in ${db_name}"
+            return 1
+        fi
         printf "\n";
         # shellcheck disable=SC2206
         declare -a  table_array=( ${tables} )
@@ -479,7 +491,10 @@ function show_procedures
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        outputs=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}')
+        if ! outputs=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}'); then
+            clientFailMessage "Listing procedures in ${db_name}"
+            return 1
+        fi
         printf "\n";
         # shellcheck disable=SC2206
         declare -a  array=( ${outputs} )
@@ -512,7 +527,10 @@ function drop_tables
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        tables=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}')
+        if ! tables=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}'); then
+            clientFailMessage "Listing tables for removal in ${db_name}"
+            return 1
+        fi
         if [ "$tables" ]; then
             # shellcheck disable=SC2086
             tables_cmd=$(echo ${tables} | tr -s ' ' ',')

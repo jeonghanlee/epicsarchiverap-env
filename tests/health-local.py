@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 import select
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -92,6 +93,58 @@ class HealthTests(WorkspaceTest):
         output = self.health(1)
         self.all_reported(output)
         self.assertEqual(output.count("missing-pid-file"), 4)
+
+    def test_launcher_help_names_supported_restart_command(self):
+        self.configure()
+        run = subprocess.run(["bash", str(self.launcher), "help"],
+                             text=True, capture_output=True, timeout=8)
+        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+        self.assertIn("restart", run.stderr)
+        self.assertNotIn("restartup", run.stderr)
+
+    def test_status_reports_missing_and_unrelated_processes(self):
+        self.configure()
+        child = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(child.wait)
+        self.addCleanup(child.terminate)
+        for populated in (False, True):
+            with self.subTest(populated=populated):
+                if populated:
+                    for name in SERVICES:
+                        self.pid(name, f"{child.pid}\n".encode())
+                run = subprocess.run(["bash", str(self.launcher), "status"],
+                                     text=True, capture_output=True, timeout=8)
+                self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                self.all_reported(run.stdout)
+                reason = "wrong-java-executable" if populated else "missing-pid-file"
+                self.assertEqual(run.stdout.count(reason), 4)
+                self.assertNotIn("exists.", run.stdout)
+                self.assertNotIn(" PRESENT verified-process-presence", run.stdout)
+                self.assertIsNone(child.poll())
+
+    def test_storage_preserves_literal_paths_and_failure_status(self):
+        store = self.root / "store$(touch STORAGE_EVALUATED)`touch STORAGE_BACKTICK`"
+        store.mkdir()
+        (store / "sample").write_text("sample\n")
+        self.config.write_text("ARCHAPPL_STORAGE_TOP=" + shlex.quote(str(store)) + "\n")
+        boundary = self.root / "boundary"
+        boundary.mkdir()
+        sudo = boundary / "sudo"
+        # Only privilege transport is replaced; the shipped launcher and real du run.
+        sudo.write_text('#!/bin/bash\n[[ "$1" == -- && "$2" == du ]] || exit 2\nshift\nexec "$@"\n')
+        sudo.chmod(0o700)
+        env = dict(os.environ, PATH=str(boundary) + os.pathsep + os.environ["PATH"])
+        for option in ([], ["all"]):
+            run = subprocess.run(["bash", str(self.launcher), "storage", *option],
+                                 cwd=self.root, env=env, text=True, capture_output=True, timeout=8)
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+            self.assertIn(store.name, run.stdout)
+            self.assertFalse((self.root / "STORAGE_EVALUATED").exists())
+            self.assertFalse((self.root / "STORAGE_BACKTICK").exists())
+        self.config.write_text("ARCHAPPL_STORAGE_TOP=" + shlex.quote(str(self.root / "absent")) + "\n")
+        run = subprocess.run(["bash", str(self.launcher), "storage"],
+                             cwd=self.root, env=env, text=True, capture_output=True, timeout=8)
+        self.assertNotEqual(run.returncode, 0, run.stdout + run.stderr)
 
     def test_invalid_pid_files_are_preserved(self):
         self.configure()

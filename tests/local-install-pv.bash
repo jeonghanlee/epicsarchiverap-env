@@ -81,6 +81,8 @@ printf -v keep_command '%q %q' bash "$workspace/keep.bash"
 printf '2\n' | script --quiet --return --command "$keep_command" "$workspace/keep.raw" > /dev/null
 tr -d '\r' < "$workspace/keep.raw" > "$workspace/keep.log"
 grep -q 'IOC retained: PID' "$workspace/keep.log"
+grep -q 'Current state: test PV is Paused; IOC is running.' "$workspace/keep.log"
+grep -q '2. Resume test PV archiving; keep IOC running' "$workspace/keep.log"
 evidence=$(sed -n 's/^Evidence: //p' "$workspace/keep.log" | tail -n 1)
 jq -e '.status == "ok"' "$evidence/resume.json" >/dev/null
 kept_pid=$(cat "$evidence/ioc.pid")
@@ -114,4 +116,5 @@ pid=$(cat "$evidence/ioc.pid")
 if kill -0 "$pid" 2>/dev/null; then printf '%s\n' 'FAIL: failed test IOC survived cleanup'; exit 1; fi
 AA_TEST_SOURCE_PATH="$SOURCE" AA_TEST_EPICS_BIN="$EPICS_BIN" python3 "$TOP/tests/local-install-pv-signals.py"
 AA_TEST_SOURCE_PATH="$SOURCE" AA_TEST_EPICS_BIN="$EPICS_BIN" python3 "$TOP/tests/local-install-pv-range.py"
+AA_TEST_SOURCE_PATH="$SOURCE" AA_TEST_EPICS_BIN="$EPICS_BIN" python3 "$TOP/tests/local-install-pv-menu.py"
 printf '%s\n' 'PASS: real PV round trip, interactive keep/resume and failed-retrieval cleanup'

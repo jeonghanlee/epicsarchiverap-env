@@ -73,6 +73,25 @@ class DatabaseConfigTests(unittest.TestCase):
                     self.assertEqual(self.value(template / "mariadb.conf", key), password)
                 self.assertFalse((self.root / "INJECTED").exists())
 
+    def test_supported_os_presets_preserve_custom_java_paths(self):
+        custom = "/custom/review-jdk21"
+        (self.root.parent / "CONFIG_SITE.local").write_text(f"JAVA_HOME := {custom}\n")
+        for preset in ("debian13", "rocky8", "rocky10", "ubuntu24", "ubuntu26"):
+            with self.subTest(preset=preset):
+                self.make(preset + ".conf")
+                self.assertEqual(self.make("print-JAVA_HOME").decode().strip(), custom)
+                self.assertEqual(self.make("print-JAVA_PATH").decode().strip(), custom + "/bin")
+
+    def test_database_help_describes_supported_schema_creation(self):
+        self.make("db.conf")
+        run = subprocess.run(["bash", "scripts/mariadb_setup.bash", "tableCreate"],
+                             cwd=self.root, capture_output=True, timeout=30)
+        self.assertEqual(run.returncode, 1)
+        output = run.stdout + run.stderr
+        self.assertIn(b"make sql.fill", output)
+        for command in (b"tableCreate", b"viewCreate", b"sProcCreate", b"allCreate", b"allViews", b"allDrop"):
+            self.assertNotIn(command, output)
+
     def test_password_from_local_override_file(self):
         password = "Local& |/'\" $HOME #literal"
         value = password.replace("$", "$$").replace("#", "\\#")
@@ -146,7 +165,7 @@ class DatabaseConfigTests(unittest.TestCase):
     def test_tomcat_choices_and_backup_preserve_existing_files(self):
         # Run shipped functions, real Make targets, and real directory moves.
         script = (self.root / "scripts/install-local-common.bash").read_text()
-        functions, invocation = script.rsplit('\nmain "$@"', 1)
+        functions, invocation = script.rsplit('\nmain "$@"; exit "$?"', 1)
         self.assertFalse(invocation.strip())
         harness = self.root / "scripts/tomcat-functions.bash"
         harness.write_text(functions + "\n")
@@ -249,7 +268,7 @@ class DatabaseConfigTests(unittest.TestCase):
 
     def test_tomcat_replacement_rejects_protected_paths_before_side_effects(self):
         script = (self.root / "scripts/install-local-common.bash").read_text()
-        functions, invocation = script.rsplit('\nmain "$@"', 1)
+        functions, invocation = script.rsplit('\nmain "$@"; exit "$?"', 1)
         self.assertFalse(invocation.strip())
         harness = self.root / "scripts/tomcat-path-functions.bash"
         harness.write_text(functions + "\n")
@@ -323,7 +342,7 @@ class DatabaseConfigTests(unittest.TestCase):
     def test_installer_readiness_obeys_deadline(self):
         # Invoke the shipped functions without running the system installation.
         script = (self.root / "scripts/install-local-common.bash").read_text()
-        functions, invocation = script.rsplit('\nmain "$@"', 1)
+        functions, invocation = script.rsplit('\nmain "$@"; exit "$?"', 1)
         self.assertFalse(invocation.strip())
         harness = self.root / "scripts/readiness-functions.bash"
         harness.write_text(functions + "\n")
@@ -577,6 +596,32 @@ class DatabaseIntegrationTests(unittest.TestCase):
         helper = ["bash", "scripts/mariadb_setup.bash"]
         self.run_command(helper + ["adminAdd"])
         self.run_command(helper + ["hostnameAdminAdd"])
+        defaults = Path(self.temp.name) / "root-client.cnf"
+        defaults.write_text(f"[client]\nprotocol=tcp\nhost=127.0.0.1\nport=1\nsocket={sock}\n")
+        defaults.chmod(0o600)
+        original_sudo = sudo.read_bytes()
+        # Only privilege transport changes; the actual client reads conflicting defaults.
+        sudo.write_text('#!/bin/bash\n[[ "$1" == mysql ]] || exit 2\nshift\n'
+                        'exec mysql "--defaults-extra-file=$ROOT_CLIENT_DEFAULTS" "$@"\n')
+        try:
+            for transport in ([f"DB_SOCKET={sock}"], ["DB_SOCKET="]):
+                self.make("db.conf", *common, *transport)
+                self.run_command(helper + ["adminAdd"],
+                                 env=dict(os.environ, ROOT_CLIENT_DEFAULTS=str(defaults)))
+                self.run_command(helper + ["hostnameAdminAdd"],
+                                 env=dict(os.environ, ROOT_CLIENT_DEFAULTS=str(defaults)))
+        finally:
+            sudo.write_bytes(original_sudo)
+        self.make("db.secure", *common, f"DB_SOCKET={sock}")
+        self.assertIn(b"root@localhost", self.run_command(
+            ["mysql", "--no-defaults", "--user=root", "--protocol=tcp", "--host=127.0.0.1",
+             f"--port={port}", "-N", "-B", "-e", "SELECT CURRENT_USER()"]
+        ))
+        # The clock boundary gives backup collision cases a deterministic filename.
+        date = wrappers / "date"
+        date.write_text('#!/bin/bash\nif [[ $# == 1 && $1 == +%y%m%d%H%M ]]; then '
+                        'printf "%s\\n" 2601010000; else exec /usr/bin/date "$@"; fi\n')
+        date.chmod(0o700)
         schema = SCHEMA_TOP / "archappl_mysql.sql"
         self.assertTrue(schema.is_file(), "Real source schema is required")
         (self.root.parent / "CONFIG_SITE.local").write_text(f"DB_SOCKET := {sock} # local socket\n")
@@ -586,6 +631,9 @@ class DatabaseIntegrationTests(unittest.TestCase):
                 create_output = self.run_command(helper + ["dbUserCreate"])
                 self.assertNotIn(b"Password", create_output)
                 self.assertNotRegex(create_output.decode(), r"\*[0-9A-Fa-f]{40}\b")
+                host = "127.0.0.1" if transport else "localhost"
+                identity = self.run_command(helper + ["query", "SELECT CURRENT_USER()"])
+                self.assertIn(f"review_user@{host}".encode(), identity)
                 self.make("sql.fill", f"SQL_AA_ORIG_SQL={schema}")
                 self.run_command(helper + ["query", "SELECT 'query-ok'"])
                 sql = Path(self.temp.name) / "query file.sql"
@@ -612,16 +660,79 @@ class DatabaseIntegrationTests(unittest.TestCase):
                                  "Skip/rejection must not connect to MariaDB")
                 self.assertEqual(config.read_bytes(), before_config)
                 self.assertIn(b"review-marker", self.make("DataServers.show"))
-                backup = Path(self.temp.name) / "backup path"
+                backup = Path(self.temp.name) / ("backup " + host)
                 self.run_command(helper + ["dbBackup", str(backup)])
                 archive = next(backup.glob("review_archive_*.sql.gz"))
+                self.run_command(["gzip", "-t", str(archive)])
+                self.assertEqual(archive.stat().st_mode & 0o777, 0o600)
+                original = archive.read_bytes()
+                self.run_command(helper + ["dbBackup", str(backup)], expected=1)
+                self.assertEqual(archive.read_bytes(), original)
+                collision = Path(self.temp.name) / ("symlink " + host)
+                collision.mkdir()
+                link = collision / archive.name
+                link.symlink_to(collision / "absent")
+                self.run_command(helper + ["dbBackup", str(collision)], expected=1)
+                self.assertTrue(link.is_symlink())
+                self.assertFalse(link.exists())
+                # The filesystem boundary creates a competitor at publication time.
+                publisher = wrappers / "ln"
+                publisher.write_text('#!/bin/bash\nprintf "%s\\n" competitor > "${*: -1}"\n'
+                                     'exec /usr/bin/ln "$@"\n')
+                publisher.chmod(0o700)
+                competing = Path(self.temp.name) / ("competing " + host)
+                try:
+                    self.run_command(helper + ["dbBackup", str(competing)], expected=1)
+                    self.assertEqual((competing / archive.name).read_text(), "competitor\n")
+                    self.assertEqual(list(competing.iterdir()), [competing / archive.name])
+                finally:
+                    publisher.unlink()
+                self.run_command(root + ["-e", f"REVOKE LOCK TABLES ON review_archive.* FROM 'review_user'@'{host}'"])
+                failed = Path(self.temp.name) / ("failed " + host)
+                self.run_command(helper + ["dbBackup", str(failed)], expected=1)
+                self.assertEqual(list(failed.iterdir()), [])
+                self.run_command(helper + ["dbBackup", str(backup)], expected=1)
+                self.assertEqual(archive.read_bytes(), original)
                 stamp = archive.name[len("review_archive_"):-len(".sql.gz")]
                 self.run_command(helper + ["query", "DELETE FROM ExternalDataServers"])
                 self.run_command(helper + ["dbRestore", stamp, str(backup)])
                 self.assertIn(b"review-marker", self.make("DataServers.show"))
                 self.run_command(helper + ["tableShow"])
+                self.run_command(helper + ["aaShow", "ReviewMissingTable"], expected=1)
+                # The empty-table result succeeds; a real missing table must fail through Make.
+                self.run_command(helper + ["query", "DELETE FROM ExternalDataServers"])
+                self.make("DataServers.show")
+                self.run_command(helper + ["query", "DROP TABLE ExternalDataServers"])
+                self.run_command(["make", "--no-print-directory", "-s", "DataServers.show"], expected=2)
                 self.run_command(helper + ["tableDrop"])
-                self.run_command(helper + ["dbUserDrop"])
+                # Primary account changes succeed; a real denied metadata query must propagate.
+                self.run_command(root + ["-e", " ".join(
+                    f"REVOKE SELECT ON *.* FROM 'review_admin'@'{admin_host}'; "
+                    f"GRANT SELECT ON review_archive.* TO 'review_admin'@'{admin_host}' WITH GRANT OPTION;"
+                    for admin_host in ("localhost", "127.0.0.1"))])
+                try:
+                    for action, exists in (("dbUserCreate", True), ("userDrop", False),
+                                           ("dbUserCreate", True), ("dbUserDrop", False)):
+                        run = subprocess.run(helper + [action], cwd=self.root,
+                                             capture_output=True, timeout=30)
+                        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                        self.assertIn(b"Listing", run.stderr)
+                        accounts = self.run_command(root + ["-e",
+                            f"SELECT User FROM mysql.user WHERE User='review_user' AND Host='{host}'"])
+                        self.assertEqual(bool(accounts.strip()), exists)
+                finally:
+                    self.run_command(root + ["-e", " ".join(
+                        f"GRANT SELECT ON *.* TO 'review_admin'@'{admin_host}' WITH GRANT OPTION;"
+                        for admin_host in ("localhost", "127.0.0.1"))])
+                self.run_command(helper + ["dbUserCreate"])
+                output = self.run_command(helper + ["userDrop"])
+                self.assertNotRegex(output.decode(), r"\*[0-9A-Fa-f]{40}\b")
+                self.assertNotIn(b"authentication_string", output)
+                self.run_command(helper + ["dbUserCreate"])
+                output = self.make("db.drop", *common, *transport)
+                self.assertNotRegex(output.decode(), r"\*[0-9A-Fa-f]{40}\b")
+                self.assertNotIn(b"Password", output)
+                self.assertNotIn(b"authentication_string", output)
         self.make("db.conf", *common, f"DB_SOCKET={sock}")
         self.run_command(helper + ["hostnameAdminRemove"])
         self.run_command(helper + ["adminRemove"])
