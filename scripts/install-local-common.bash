@@ -202,17 +202,41 @@ function read_settings {
     mgmt_url="http://$host:$port/mgmt/bpl/getApplianceInfo"
 }
 
-# Requires clean source inputs while permitting the generated site and ignored build output.
+# Pathspecs for the interface files that site-template/ui prepares inside the source checkout.
+# They are generated inputs, like the site overlay, and are named one by one, never by directory.
+function prepared_ui_excludes {
+    local ui="$REPO/site-template/ui" file relative gitdir manifest
+    local prefix='src/main/org/epics/archiverappliance'
+    if [[ -d "$ui" ]]; then
+        while IFS= read -r -d '' file; do
+            printf '%s\0' ":(exclude,literal)$prefix/${file#"$ui/"}"
+        done < <(find "$ui" -type f -print0)
+    fi
+    # The files of the earlier copy stay generated inputs until the next build undoes them.
+    gitdir=$(git -C "$source_path" rev-parse --absolute-git-dir 2>/dev/null) || return 0
+    manifest="$gitdir/aa-ui-prepared.list"
+    if [[ -f "$manifest" ]]; then
+        while IFS= read -r relative; do
+            [[ -n "$relative" ]] && printf '%s\0' ":(exclude,literal)$prefix/$relative"
+        done < "$manifest"
+    fi
+}
+
+# Requires clean source inputs while permitting the generated site, the prepared interface files and ignored build output.
 function check_source {
-    local top pending
+    local top pending item
+    local -a prepared=()
     [[ -e "$source_path" ]] || return 0
     top=$(git -C "$source_path" rev-parse --show-toplevel) || die 'Existing source path is not a Git checkout'
     [[ "$top" == "$(realpath -- "$source_path")" ]] || die 'Source path must be the root of its Git checkout'
-    git -C "$source_path" diff --quiet --ignore-submodules=none || die 'Source checkout contains tracked changes'
-    git -C "$source_path" diff --cached --quiet --ignore-submodules=none || die 'Source checkout contains staged changes'
-    pending=$(git -C "$source_path" ls-files --others --exclude-standard -- . ':(exclude)src/sitespecific/als') || die 'Cannot inspect untracked source files'
+    while IFS= read -r -d '' item; do
+        prepared+=("$item")
+    done < <(prepared_ui_excludes)
+    git -C "$source_path" diff --quiet --ignore-submodules=none -- . "${prepared[@]}" || die 'Source checkout contains tracked changes'
+    git -C "$source_path" diff --cached --quiet --ignore-submodules=none -- . "${prepared[@]}" || die 'Source checkout contains staged changes'
+    pending=$(git -C "$source_path" ls-files --others --exclude-standard -- . ':(exclude)src/sitespecific/als' "${prepared[@]}") || die 'Cannot inspect untracked source files'
     [[ -z "$pending" ]] || die "Source checkout contains untracked files: $pending"
-    pending=$(git -C "$source_path" ls-files --others --ignored --exclude-standard -- src .mvn ':(exclude)src/sitespecific/als') || die 'Cannot inspect ignored source inputs'
+    pending=$(git -C "$source_path" ls-files --others --ignored --exclude-standard -- src .mvn ':(exclude)src/sitespecific/als' "${prepared[@]}") || die 'Cannot inspect ignored source inputs'
     [[ -z "$pending" ]] || die "Source checkout contains ignored build inputs: $pending"
 }
 

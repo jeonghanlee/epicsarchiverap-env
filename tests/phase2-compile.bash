@@ -19,9 +19,9 @@ phase_header "Phase 2: Build wrapper"
 make_cmd=(make -C "${TOP}" --no-print-directory MAVEN_FLAGS=)
 config_output=$("${make_cmd[@]}" -s print-SRC_PATH print-MAVEN_CMD \
     print-AA_SITE_TEMPLATE_PATH print-ARCHAPPL_SITEID_TEMPATE_PATH \
-    print-ARCHAPPL_SITEID_TARGET_PATH)
+    print-ARCHAPPL_SITEID_TARGET_PATH print-ARCHAPPL_UI_TEMPLATE_PATH print-ARCHAPPL_UI_TARGET_PATH)
 mapfile -t config_values <<< "${config_output}"
-assert_eq "${#config_values[@]}" 5 "Build configuration resolves five paths"
+assert_eq "${#config_values[@]}" 7 "Build configuration resolves seven paths"
 for value in "${config_values[@]}"; do
     assert_nonempty "${value}" "Build configuration path is nonempty"
 done
@@ -30,6 +30,8 @@ mvncmd="${config_values[1]}"
 template_path="${config_values[2]}"
 overlay_path="${config_values[3]}"
 target_path="${config_values[4]}"
+ui_template_path="${config_values[5]}"
+ui_target_path="${config_values[6]}"
 
 # P2.2 Render the public build target without executing its recipes.
 build_rc=0
@@ -75,5 +77,16 @@ for config_file in appliances.xml archappl.properties policies.py context.xml ar
             ;;
     esac
 done
+
+# P2.5 The prepared interface files are copied after the site overlay and before the Maven build.
+ui_copy_command="bash \"${TOP}/scripts/prepare-ui.bash\" \"${ui_template_path}\" \"${ui_target_path}\" \"${TOP}/${src_path}\""
+case $'\n'"${build_output}"$'\n' in
+    *$'\n'"${copy_command}"$'\n'*$'\n'"${ui_copy_command}"$'\n'*$'\n'"${maven_line}"$'\n'*)
+        _record_pass "Prepared interface copy follows the overlay copy and precedes the Maven build"
+        ;;
+    *)
+        _record_fail "Prepared interface copy ordering" "see ${LOGFILE}"
+        ;;
+esac
 
 phase_pass "Phase 2: Build wrapper"

@@ -864,6 +864,57 @@ else
     done
 fi
 
+# P1.19 The prepared interface files replace source files before Maven runs, a file that
+# site-template/ui no longer holds is undone on the next run, and without site-template/ui the
+# source tree stays unchanged. The real copy.ui rule and script run from an isolated copy of
+# the Make system over a stand-in source checkout.
+ui_env="${WORKSPACE}/ui-env"
+mkdir -p "${ui_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${ui_env}/"
+rm -f "${ui_env}/configure/"*.local
+rm -rf "${ui_env}/site-template/ui"
+ui_target=$(make -C "${ui_env}" -s print-ARCHAPPL_UI_TARGET_PATH)
+ui_source=$(make -C "${ui_env}" -s print-SRC_PATH)
+case "${ui_target}" in
+    "${ui_env}/"*) _record_pass "The interface target path lies inside the checkout copy" ;;
+    *) _record_fail "The interface target path lies inside the checkout copy" "got ${ui_target}" ;;
+esac
+mkdir -p "${ui_target}/mgmt/staticcontent"
+printf '%s\n' "source index" > "${ui_target}/mgmt/staticcontent/index.html"
+printf '%s\n' "source other" > "${ui_target}/mgmt/staticcontent/other.html"
+git -C "${ui_env}/${ui_source}" init -q
+git -C "${ui_env}/${ui_source}" add -A
+git -C "${ui_env}/${ui_source}" -c user.name=review -c user.email=review@example.invalid commit -q -m "stand-in source"
+ui_rc=0
+make -C "${ui_env}" -s copy.ui > "${WORKSPACE}/ui-copy-none.txt" 2>&1 || ui_rc=$?
+assert_status "${ui_rc}" 0 "copy.ui succeeds without site-template/ui"
+assert_eq "$(cat "${ui_target}/mgmt/staticcontent/index.html")" "source index" \
+    "copy.ui leaves the source tree unchanged without site-template/ui"
+mkdir -p "${ui_env}/site-template/ui/mgmt/staticcontent" "${ui_env}/site-template/ui/retrieval/staticcontent/viewer"
+printf '%s\n' "prepared index" > "${ui_env}/site-template/ui/mgmt/staticcontent/index.html"
+printf '%s\n' "prepared viewer" > "${ui_env}/site-template/ui/retrieval/staticcontent/viewer/archViewer.html"
+ui_rc=0
+make -C "${ui_env}" -s copy.ui > "${WORKSPACE}/ui-copy.txt" 2>&1 || ui_rc=$?
+assert_status "${ui_rc}" 0 "copy.ui succeeds with prepared interface files"
+assert_eq "$(cat "${ui_target}/mgmt/staticcontent/index.html")" "prepared index" \
+    "A prepared file replaces the source file of the same path"
+assert_eq "$(cat "${ui_target}/mgmt/staticcontent/other.html")" "source other" \
+    "A source file without a prepared counterpart stays"
+assert_eq "$(cat "${ui_target}/retrieval/staticcontent/viewer/archViewer.html")" "prepared viewer" \
+    "A prepared file with no source counterpart is added"
+rm -f "${ui_env}/site-template/ui/mgmt/staticcontent/index.html" \
+    "${ui_env}/site-template/ui/retrieval/staticcontent/viewer/archViewer.html"
+mkdir -p "${ui_env}/site-template/ui/staticcontent"
+printf '%s\n' "shared" > "${ui_env}/site-template/ui/staticcontent/chart.css"
+ui_rc=0
+make -C "${ui_env}" -s copy.ui > "${WORKSPACE}/ui-copy-again.txt" 2>&1 || ui_rc=$?
+assert_status "${ui_rc}" 0 "copy.ui succeeds after a prepared file was removed"
+assert_eq "$(cat "${ui_target}/mgmt/staticcontent/index.html")" "source index" \
+    "A removed prepared file is undone to the source file"
+assert_not_file "${ui_target}/retrieval/staticcontent/viewer/archViewer.html" \
+    "A removed prepared file with no source counterpart is deleted"
+assert_eq "$(cat "${ui_target}/staticcontent/chart.css")" "shared" "A newly prepared file is added"
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.
@@ -874,6 +925,9 @@ bash "${TOP}/tests/health-starting.bash"
 
 # No Ant in the configuration, and the site id reaches every Maven call.
 bash "${TOP}/tests/no-ant.bash"
+
+# The prepared interface files: markers, content security, inline code, element ids, and rejection of defects.
+bash "${TOP}/tests/ui-static.bash"
 
 python3 "${TOP}/tests/database-config.py"
 bash "${TOP}/tests/local-install-output.bash"

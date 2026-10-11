@@ -162,6 +162,49 @@ class DatabaseConfigTests(unittest.TestCase):
                     self.assertIn(b"tracked changes", run.stderr)
                     tracked.write_bytes(original)
 
+    def test_installers_accept_prepared_interface_files(self):
+        # The interface files that site-template/ui prepares are generated inputs, like the site overlay:
+        # exactly those paths may differ, and any other change in the source checkout is still refused.
+        source = self.root / "source"
+        self.run_command(["git", "clone", "--quiet", "--shared", str(SOURCE_TOP), str(source)])
+        exclude = source / ".git/info/exclude"
+        exclude.parent.mkdir(parents=True, exist_ok=True)
+        with exclude.open("a") as output:
+            output.write("\n/.mvn/maven.config\n/.mvn/jvm.config\n/.mvn/extensions.xml\n")
+        (self.root / "configure/CONFIG_VARS.local").write_text("SRC_PATH:=source\n")
+        ui = self.root / "site-template/ui"
+        if ui.exists():
+            shutil.rmtree(ui)
+        pages = source / "src/main/org/epics/archiverappliance/mgmt/staticcontent"
+        for relative, text in (("index.html", "<!-- prepared page -->\n"), ("js/work.js", "// prepared script\n")):
+            prepared = ui / "mgmt/staticcontent" / relative
+            prepared.parent.mkdir(parents=True, exist_ok=True)
+            prepared.write_text(text)
+            (pages / relative).write_text(text)
+        entry = ["bash", "scripts/install-local-sqlite.bash", "--plan", "--skip-packages"]
+        self.run_command(["git", "-C", str(source), "status", "--short"])
+        self.run_command(entry)
+        other = pages / "reports.html"
+        original = other.read_bytes()
+        other.write_bytes(original + b"\n<!-- Local source modification. -->\n")
+        run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn(b"tracked changes", run.stderr)
+        other.write_bytes(original)
+        extra = pages / "js/unprepared.js"
+        extra.write_text("// not prepared\n")
+        run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertIn(b"untracked files", run.stderr)
+        extra.unlink()
+        # A file of the earlier copy stays a generated input until the next build undoes it.
+        gitdir = subprocess.run(["git", "-C", str(source), "rev-parse", "--absolute-git-dir"],
+                                capture_output=True, text=True, check=True).stdout.strip()
+        (Path(gitdir) / "aa-ui-prepared.list").write_text("mgmt/staticcontent/reports.html\n")
+        other.write_bytes(original + b"\n<!-- Earlier prepared copy. -->\n")
+        self.run_command(entry)
+        other.write_bytes(original)
+
     def test_tomcat_choices_and_backup_preserve_existing_files(self):
         # Run shipped functions, real Make targets, and real directory moves.
         script = (self.root / "scripts/install-local-common.bash").read_text()

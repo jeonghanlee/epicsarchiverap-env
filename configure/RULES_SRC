@@ -46,7 +46,7 @@ deinit: distclean
 distclean:
 	$(call distclean, $(SRC_PATH))
 
-.PHONY: info.mvn clean.mvn build.mvn copy.sitespecific mkdir.wars
+.PHONY: info.mvn clean.mvn build.mvn copy.sitespecific copy.ui mkdir.wars
 
 ## Maven and Java
 info.mvn:
@@ -70,23 +70,23 @@ clean.mvn: info.mvn
 ## So, I am good for cd && solution.
 ## 2025-06-03
 ## Build (tests skipped -- CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite)
-build.mvn: info.mvn copy.sitespecific
+build.mvn: info.mvn copy.sitespecific copy.ui
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=$(ARCHAPPL_SITEID) JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) clean package -DskipTests && cd ..
 
 ## Build 2
-build.mvn2: info.mvn copy.sitespecific
+build.mvn2: info.mvn copy.sitespecific copy.ui
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=$(ARCHAPPL_SITEID) JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) package && cd ..
 
 ## Build 3
-build.mvn3: info.mvn copy.sitespecific
+build.mvn3: info.mvn copy.sitespecific copy.ui
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=$(ARCHAPPL_SITEID) JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) package -X && cd ..
 
 ## Build 4 
-build.war: info.mvn copy.sitespecific
+build.war: info.mvn copy.sitespecific copy.ui
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=$(ARCHAPPL_SITEID) JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) war:exploded && cd ..
 
 ## Build 4 
-build.mvndeps: info.mvn copy.sitespecific
+build.mvndeps: info.mvn copy.sitespecific copy.ui
 	cd $(SRC_PATH) && ARCHAPPL_SITEID=$(ARCHAPPL_SITEID) JAVA_HOME=$(JAVA_HOME) $(MAVEN_CMD) $(MAVEN_FLAGS) dependency:tree && cd ..
 
 copy.sitespecific: | FORCE
@@ -94,6 +94,14 @@ copy.sitespecific: | FORCE
 	$(QUIET)echo ">>> We are copying the site specific source to  $(ARCHAPPL_SITEID_TARGET_PATH)"
 	rm -rf $(ARCHAPPL_SITEID_TARGET_PATH)
 	$(QUIET)cp -rf $(ARCHAPPL_SITEID_TEMPATE_PATH) $(ARCHAPPL_SITEID_TARGET_PATH)
+	$(QUIET)echo "-------------------------------------------------------------"
+
+## The prepared interface files replace source files before Maven runs. The script first undoes
+## the copy of the earlier run; a missing site-template/ui leaves the source tree unchanged.
+copy.ui: | FORCE
+	$(QUIET)echo "-------------------------------------------------------------"
+	$(QUIET)echo ">>> We are copying the prepared interface files to $(ARCHAPPL_UI_TARGET_PATH)"
+	$(QUIET)bash "$(TOP)/scripts/prepare-ui.bash" "$(ARCHAPPL_UI_TEMPLATE_PATH)" "$(ARCHAPPL_UI_TARGET_PATH)" "$(TOP)/$(SRC_PATH)"
 	$(QUIET)echo "-------------------------------------------------------------"
 
 
