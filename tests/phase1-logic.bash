@@ -915,6 +915,163 @@ assert_not_file "${ui_target}/retrieval/staticcontent/viewer/archViewer.html" \
     "A removed prepared file with no source counterpart is deleted"
 assert_eq "$(cat "${ui_target}/staticcontent/chart.css")" "shared" "A newly prepared file is added"
 
+# P1.28 startup, shutdown and restart report a failed instance script in their exit status, and
+# no action runs an instance without archappl.conf. The shipped launcher runs from a copy next to
+# an archappl.conf and four instance directories whose bin/startup.sh and bin/shutdown.sh are
+# the command boundary: each records its call and exits with a chosen status. A mutated copy of
+# the launcher must show the defect the check is written for.
+sc_instances="mgmt engine etl retrieval"
+sc_prepare() {
+    local dir="$1" launcher="$2" svc
+    rm -rf "${dir}"
+    mkdir -p "${dir}"
+    cp "${launcher}" "${dir}/archappl.bash"
+    printf 'SC_MARK=configured\n' > "${dir}/archappl.conf"
+    : > "${dir}/calls.log"
+    for svc in ${sc_instances}; do
+        mkdir -p "${dir}/${svc}/bin" "${dir}/${svc}/temp"
+        # shellcheck disable=SC2016
+        printf '#!/usr/bin/env bash\necho "startup %s" >> "%s/calls.log"\nexit "${SC_START_%s:-0}"\n' \
+            "${svc}" "${dir}" "${svc}" > "${dir}/${svc}/bin/startup.sh"
+        # shellcheck disable=SC2016
+        printf '#!/usr/bin/env bash\necho "shutdown %s" >> "%s/calls.log"\nexit "${SC_STOP_%s:-0}"\n' \
+            "${svc}" "${dir}" "${svc}" > "${dir}/${svc}/bin/shutdown.sh"
+    done
+}
+sc_run() {
+    local dir="$1" action="$2"
+    : > "${dir}/calls.log"
+    SC_RC=0
+    bash "${dir}/archappl.bash" "${action}" > "${dir}/out.txt" 2>&1 || SC_RC=$?
+}
+sc_calls() { grep -c "^$1 " "${sc_dir}/calls.log" || true; }
+
+sc_dir="${WORKSPACE}/launcher-actions"
+sc_prepare "${sc_dir}" "${TOP}/scripts/archappl.bash"
+
+sc_run "${sc_dir}" startup
+assert_status "${SC_RC}" 0 "startup exits 0 when every instance script succeeds"
+assert_eq "$(sc_calls startup)" 4 "startup runs the four instance scripts"
+sc_run "${sc_dir}" shutdown
+assert_status "${SC_RC}" 0 "shutdown exits 0 when every instance script succeeds"
+sc_run "${sc_dir}" restart
+assert_status "${SC_RC}" 0 "restart exits 0 when every instance script succeeds"
+assert_eq "$(sc_calls shutdown)/$(sc_calls startup)" "4/4" "restart stops and starts the four instances"
+
+export SC_START_engine=1
+sc_run "${sc_dir}" startup
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 4 ]] && grep -q 'startup ERROR engine status=1' "${sc_dir}/out.txt"; then
+    _record_pass "startup exits non-zero for a failed instance script, names it and starts the others"
+else
+    _record_fail "startup reports a failed instance script" "rc=${SC_RC} calls=$(sc_calls startup) out=$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" restart
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "restart exits non-zero when an instance script fails to start"
+else
+    _record_fail "restart reports a failed start" "rc=${SC_RC} calls=$(sc_calls startup)"
+fi
+unset SC_START_engine
+
+export SC_STOP_etl=3
+sc_run "${sc_dir}" shutdown
+if [[ ${SC_RC} -ne 0 && "$(sc_calls shutdown)" == 4 ]] && grep -q 'shutdown ERROR etl status=3' "${sc_dir}/out.txt"; then
+    _record_pass "shutdown exits non-zero for a failed instance script, names it and stops the others"
+else
+    _record_fail "shutdown reports a failed instance script" "rc=${SC_RC} calls=$(sc_calls shutdown) out=$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" restart
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 0 ]] && grep -q 'no instance was started' "${sc_dir}/out.txt"; then
+    _record_pass "restart stops and starts nothing when a shutdown fails"
+else
+    _record_fail "restart stops on a failed shutdown" "rc=${SC_RC} starts=$(sc_calls startup) out=$(cat "${sc_dir}/out.txt")"
+fi
+unset SC_STOP_etl
+
+rm -f "${sc_dir}/archappl.conf"
+for sc_action in startup shutdown restart; do
+    sc_run "${sc_dir}" "${sc_action}"
+    if [[ ${SC_RC} -ne 0 && ! -s "${sc_dir}/calls.log" ]]; then
+        _record_pass "${sc_action} without archappl.conf exits non-zero and runs no instance script"
+    else
+        _record_fail "${sc_action} without archappl.conf" "rc=${SC_RC} calls=$(cat "${sc_dir}/calls.log")"
+    fi
+done
+# A valid file whose last command returns non-zero is still a readable configuration.
+printf 'SC_MARK=configured\n[[ -n "${SC_UNSET_MARK:-}" ]] && SC_MARK=other\n' > "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" startup
+if [[ ${SC_RC} -eq 0 && "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "startup runs with a valid archappl.conf whose last command fails"
+else
+    _record_fail "startup with a valid archappl.conf" "rc=${SC_RC} calls=$(sc_calls startup) out=$(cat "${sc_dir}/out.txt")"
+fi
+# A file that is not valid shell stops every action that runs instances.
+printf 'SC_MARK=(configured\n' > "${sc_dir}/archappl.conf"
+for sc_action in startup shutdown restart service; do
+    sc_run "${sc_dir}" "${sc_action}"
+    if [[ ${SC_RC} -ne 0 && ! -s "${sc_dir}/calls.log" ]] && grep -q 'no instance was touched' "${sc_dir}/out.txt"; then
+        _record_pass "${sc_action} with an archappl.conf that is not valid shell exits non-zero and runs no instance"
+    else
+        _record_fail "${sc_action} with an invalid archappl.conf" "rc=${SC_RC} calls=$(cat "${sc_dir}/calls.log")"
+    fi
+done
+rm -f "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" service
+if [[ ${SC_RC} -ne 0 ]] && grep -q 'no instance was touched' "${sc_dir}/out.txt"; then
+    _record_pass "service without archappl.conf exits non-zero before it starts an instance"
+else
+    _record_fail "service without archappl.conf" "rc=${SC_RC} out=$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" help
+if [[ ${SC_RC} -eq 1 ]] && grep -q 'possbile args' "${sc_dir}/out.txt"; then
+    _record_pass "help prints the usage without archappl.conf"
+else
+    _record_fail "help without archappl.conf" "rc=${SC_RC}"
+fi
+
+# Each defect restored in a copy of the launcher must be seen by the scenario above.
+sc_mutant="${WORKSPACE}/launcher-mutant.bash"
+# shellcheck disable=SC2016
+sed 's/return "${failed}"/return 0/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+SC_START_engine=1 sc_run "${sc_dir}" startup
+assert_status "${SC_RC}" 0 "A launcher that drops the instance status exits 0 on a failed start (the check sees it)"
+SC_STOP_etl=3 sc_run "${sc_dir}" shutdown
+assert_status "${SC_RC}" 0 "A launcher that drops the instance status exits 0 on a failed stop (the check sees it)"
+sed 's/if ! shutdown_archappl; then$/if false; then/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+SC_STOP_etl=3 sc_run "${sc_dir}" restart
+if [[ "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "A launcher that ignores a failed shutdown in restart starts the instances (the check sees it)"
+else
+    _record_fail "Mutant that ignores a failed shutdown in restart" "starts=$(sc_calls startup)"
+fi
+sed 's/^    if (( conf_status != 0 )); then$/    if false; then/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+rm -f "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" startup
+if [[ "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "A launcher that skips the configuration check runs the instances (the check sees it)"
+else
+    _record_fail "Mutant without the configuration check" "calls=$(sc_calls startup)"
+fi
+sc_run "${sc_dir}" service
+if ! grep -q 'no instance was touched' "${sc_dir}/out.txt"; then
+    _record_pass "A launcher that skips the configuration check does not refuse service (the check sees it)"
+else
+    _record_fail "Mutant without the configuration check for service" "out=$(cat "${sc_dir}/out.txt")"
+fi
+# shellcheck disable=SC2016
+sed 's/^    \. "${SC_TOP}\/archappl.conf"$/    . "${SC_TOP}\/archappl.conf" || conf_status=$?/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+printf 'SC_MARK=configured\n[[ -n "${SC_UNSET_MARK:-}" ]] && SC_MARK=other\n' > "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" startup
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 0 ]]; then
+    _record_pass "A launcher that takes the status of the last command in the file refuses a valid file (the check sees it)"
+else
+    _record_fail "Mutant that uses the status of the last command" "rc=${SC_RC} calls=$(sc_calls startup)"
+fi
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.

@@ -35,6 +35,7 @@ changes to the environment repository.
 - `archappl.bash health` run right after a start or restart no longer reports a correct, starting appliance as `FAIL wrong-java-executable`: a PID that the launcher started and that has not yet executed Java is reported as `STARTING run-script` or `STARTING catalina-script` (exit status 1), and `FAIL startup-timeout` once the bound passes. Any other executable still fails with `wrong-java-executable`.
 - With `DB_BACKEND=sqlite`, all `db.*` targets skip with a message and return success without reading or writing MariaDB configuration; unsupported SQLite delete and query operations and standalone MariaDB helper actions are rejected, and an invalid backend selector fails before any configuration write or database contact.
 - The build-failure check recognizes the absent-commit message of git 2.47 (`unable to read tree`).
+- `archappl.bash startup`, `shutdown` and `restart` exit non-zero when an instance script fails and name the instance on stderr; `restart` starts nothing when its shutdown failed. Every action that runs instances (`startup`, `shutdown`, `restart`, `service`) refuses to run when `archappl.conf` is missing or is not valid shell.
 
 ### Removed
 - Ant: `site-template/siteid/build.xml`, `ANT_HOME`, `ANT_PATH`, `ANT_CMD`, `ANT_OPTS`, the Ant entry in `PATH` and the Ant comments and README sentence. At the same source commit, the four WARs differ from the Ant-backed build only by the new site overlay class and the embedded POM copy.
