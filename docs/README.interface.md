@@ -166,6 +166,7 @@ The marker blocks `site_header`, `site_navbar` and `site_footer` of a page are r
 
 `tests/ui-static.bash` runs inside `bash tests/run-all-tests.bash --local`. It checks the marker blocks, the content
 security policy, the absence of inline code, outside hosts, jQuery and text turned into markup, that the files a page names
-exist, that every element id a script reads exists in its page, and the contrast of the text colors; fourteen broken copies must
+exist, that every element id a script reads exists in its page, that the vendored chart library is the file whose
+SHA-256 `d3.SOURCE.txt` records, and the contrast of the text colors; fifteen broken copies must
 each be refused for their own reason. Every server call of a management file is written with its literal `../bpl/` path,
 because the source repository's `StaticContentBPLCallsTest` reads that form.

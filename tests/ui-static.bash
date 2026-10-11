@@ -144,6 +144,11 @@ assert_eq "${system_links}" "1" "The System overview builds its detail links wit
 filling=$(grep -rn -E '`mean_\$' "${UI}" --include='*.js' || true)
 assert_eq "${filling}" "" "No page asks the server for mean_N, which fills an interval without samples"
 
+# ---- the vendored chart library is the file its record names -----------------------------------------
+d3_recorded=$(grep -o -E '[0-9a-f]{64}' "${UI}/staticcontent/js/vendor/d3.SOURCE.txt" | head -1 || true)
+d3_actual=$(sha256sum "${UI}/staticcontent/js/vendor/d3.min.js" | cut -d' ' -f1)
+assert_eq "${d3_actual}" "${d3_recorded}" "d3.min.js matches the SHA-256 recorded in d3.SOURCE.txt"
+
 # ---- scripts and styles named by a page exist ------------------------------------------------------
 # comm/ is the shared folder; the stylesheet and the header image come from the source itself.
 SOURCE_FILES=" comm/css/main.css comm/img/archiverheader.svg "
@@ -245,6 +250,8 @@ if [[ -z "${UI_STATIC_TREE_UNDER_TEST:-}" ]]; then
         ui/retrieval/staticcontent/viewer/viewer.js "sed -i 's|(\\\\.\\[a-zA-Z_\\]\\[a-zA-Z0-9_\\]\\*)?||' \"\$F\""
     expect_rejected "a reduced range that fills empty intervals" "asks the server for mean_N" \
         ui/retrieval/staticcontent/viewer/viewer.js "sed -i 's|meanSample_|mean_|' \"\$F\""
+    expect_rejected "a vendored chart library that differs from its record" "matches the SHA-256 recorded" \
+        ui/staticcontent/js/vendor/d3.min.js "printf '\\n' >> \"\$F\""
     expect_rejected "a faint text color below the contrast limit" "contrast of at least 4.5:1" \
         siteid/css/main.css "sed -i 's|--ink-3: var(--c-muted);|--ink-3: #9aa9ae;|' \"\$F\""
 fi
