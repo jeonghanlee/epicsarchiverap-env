@@ -15,7 +15,16 @@ changes to the environment repository.
 - `tests/health-starting.bash` runs the shipped launcher chain under the real health check, and `tests/no-ant.bash` keeps Ant out of the tracked tree and checks the site id of every Maven call.
 - `docs/README.install.md` documents the site folder inputs (`img/`, `css/main.css`, `css/mgmt.css`, `template_changes.html`, `classpathfiles/`) and the variables `ARCHAPPL_SITEID` and `ARCHAPPL_SITEID_TEMPATE_PATH`.
 
+- The management interface rework in `site-template/ui`, copied over the source tree by `make copy.ui` before every build: a Work page that finds PVs (search words, glob, regular expression, the server reports as selections), scans up to 100 selected PVs as sparkline rows, charts up to 5 of one unit with D3, zooms and pans a window, shows the state of a PV with its explanation and the actions that apply, and keeps the name list as a browser snapshot that follows the appliance every 15 s.
+- System pages for everyone and for the operator: Overview with three verdict lines and a meaning for every measure, Operations with the questions, thresholds and remedies of samples, dropped samples, write path, stores, ETL and processes, and Retrieval performance with a request measured in the browser; disconnected PVs are grouped by host and time of loss.
+- Links from the Work page to the data viewer for the selected PVs and the focused PV over the window of the chart, and the state of the rows in view of the PV list, read in one call.
+- Maintenance of a PV from the page: change of sampling, rename, change of type and consolidation, each pausing the PV first and saying what it changes; pause, resume and stop for several selected PVs; pause of a disconnected host group.
+- `tests/ui-static.bash`, run by `tests/phase1-logic.bash`: marker blocks, content security policy, no inline code, outside host, jQuery or text turned into markup, referenced files, element ids and text contrast, each with a broken copy that must be refused.
+- `docs/README.interface.md` documents the pages, the judgements, the limits and the site skin tokens; `scripts/prepare-ui.bash`, `ARCHAPPL_UI_TEMPLATE_PATH` and `ARCHAPPL_UI_TARGET_PATH` implement the build step.
+
 ### Changed
+- The management pages are rebuilt without jQuery and with a content security policy on every full page; `metrics.html`, `storage.html`, `appliance.html`, `reports.html`, `pvdetails.html` and `cacompare.html` forward to the page that replaced them.
+- The site skin (`css/main.css`, `css/mgmt.css`, `template_changes.html`) uses one set of color tokens, drops shadows and gradients, keeps every control at 44 px on a narrow screen, and names no jQuery include.
 - `SRC_TAG` pins jeonghanlee/epicsarchiverap-maven commit `120d53fe43133c7699e4c9624dc948cc96b0ece2`, whose Maven build applies the site template and copies the site assets; a site folder that still holds a `build.xml` stops the build; remove that file (see "Site inputs" in `docs/README.install.md`).
 - Every Maven call of `configure/RULES_SRC` passes `ARCHAPPL_SITEID` (default `als`) instead of a fixed `als`, so the copied site folder and the built site agree.
 - The VM verifier waits on `STARTING` and `wrong-java-executable` within its readiness deadline, fails when either persists, and keeps every retried health output with its elapsed time.

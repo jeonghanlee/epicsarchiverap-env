@@ -384,6 +384,18 @@ and template_changes.html as described in the Building chapter.`, where `<site f
 is the folder path. Remove the file from the site folder, including an
 operator-supplied one named by `ARCHAPPL_SITEID_TEMPATE_PATH`.
 
+### Interface files
+
+The folder `site-template/ui` holds the management pages and the data viewer, laid out
+like the source tree. Every build target runs `make copy.ui` after
+`make copy.sitespecific`; it copies the folder over
+`src/main/org/epics/archiverappliance` of the source checkout and removes first what
+an earlier copy put there. `ARCHAPPL_UI_TEMPLATE_PATH` names the folder; without it the
+step changes nothing. A copy prints `>>> We are copying the prepared interface files to`
+followed by that path, and leaves the list of the copied files in
+`aa-ui-prepared.list` in the git directory of the source checkout. The pages, their
+judgements and their limits are described in [the interface guide](./README.interface.md).
+
 ## Reinstall and upgrade
 
 Build and generate the configuration before the maintenance window. Stop the
