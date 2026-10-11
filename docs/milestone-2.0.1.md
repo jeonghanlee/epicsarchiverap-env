@@ -35,6 +35,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Complete | No | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
 | UI | M13 | Rework the management web interface and its site skin | Milestone | In progress | No | D45, D46, D47, D48, D49, D50, D51, D52, D53, D54 | The management console pages, navigation, icons and explanatory text are redesigned and checked in the real appliance at desktop and mobile widths; the files owned by epicsarchiverap-maven are transferred to it; [detail](#m13---rework-the-management-web-interface-and-its-site-skin) |
+| UI | M50 | Replace the sample buffer capacity adjustment with the margin in seconds | Milestone | In progress | No | none | The environment writes `sampleBufferMarginSeconds` from `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS`, the Operations remedies name it, and `SRC_TAG` pins a source that reads it; [detail](#m50---replace-the-sample-buffer-capacity-adjustment-with-the-margin-in-seconds) |
 | Release | M44 | Verify and publish release 2.0.1 | Milestone | In progress | No | M43, M14, M10, M45, M46, M13, D31, D37, D39, D44, D45 | Released objects and required post-release checks pass; candidate `48724a2` published with source `162269e7`, final integration and VM acceptance Pending; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
@@ -1177,6 +1178,78 @@ server: `getMatchingPVsForThisAppliance` returns names for a glob or Java regex 
 
 - none
 
+#### M50 - Replace the sample buffer capacity adjustment with the margin in seconds
+
+Origin: 2.0.1 / M50
+Identity History: none
+GitHub Issue: [#60](https://github.com/jeonghanlee/epicsarchiverap-env/issues/60)
+Status: In progress
+
+##### Summary
+
+The source repository replaced the engine property `sampleBufferCapacityAdjustment`, a multiplier of the buffer capacity, with `sampleBufferMarginSeconds`, the seconds of write delay a sample buffer absorbs (default and minimum 1.0). This environment generated the old key and advised raising it as the remedy for a buffer overflow.
+
+##### Scope
+
+- `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS` replaces `ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT` in `configure/CONFIG_SITE` and `configure/RULES_PROPERTIES`; `site-template/archappl.properties.in` writes the new key.
+- The Operations page, the remedy in `js/system/judge.js`, `docs/README.interface.md` and `CHANGELOG.md` name the new key.
+- `SRC_TAG` pins the source commit that reads the key.
+
+Out of scope: the default value and the capacity formula, which belong to epicsarchiverap-maven; a check in `tests/` that the variable reaches `archappl.properties`, which the owner assigned to the work in epicsarchiverap-maven; removing the old key from deployed appliances, where it is ignored.
+
+##### Completion Criteria
+
+- No tracked file outside `CHANGELOG.md` and this register names the old variable or the old key.
+- `make conf.archapplproperties` writes `sampleBufferMarginSeconds = 1.0`, and a value set in `../CONFIG_SITE.local` reaches it.
+- The Operations page and `js/system/judge.js` name the new key.
+- The four WARs built at the pinned source carry the new key.
+- `bash tests/run-all-tests.bash --local` passes.
+
+##### Dependencies And Decisions
+
+- No dependency. The owner chose a new configure variable over keeping the old name and accepted the source pin `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0` on `modernize`, which contains the source change `6c6b973a92e23c0881e3964873e3c122799d01a9`.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: the owner chose the configure variable and the pin in the working session of 2026-10-11
+Implementation Authorization: the owner started the change in that session
+Superseded Plan Artifacts: none
+
+1. Rename the variable and the key in the five places named in #60.
+2. Record the change in `CHANGELOG.md` and regenerate the book page of the configuration variables.
+3. Move `SRC_TAG` to the source commit that reads the key and build the WARs at it.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `make conf.archapplproperties`, then the same with `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS:=2.5` in `../CONFIG_SITE.local` | Local host | The generated file holds `sampleBufferMarginSeconds = 1.0`, then `2.5` |
+| T2 | Local | `make init` into a new directory and `make conf.archapplproperties build.mvn` at the pinned source; read `archappl.properties` and the interface files in each WAR | Local host | Four WARs, each with the new key, and the Operations page and `judge.js` name it |
+| T3 | Local | `bash tests/run-all-tests.bash --local` | Local host with real Base binaries | Exit 0 with the same groups as before |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-11 | Local host | Pass | The default produced `sampleBufferMarginSeconds = 1.0`; the value 2.5 in `../CONFIG_SITE.local` produced `2.5`, and removing the file restored 1.0 |
+| T2 | 2026-10-11 | Local host; source `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0` cloned by `make init` | Pass | BUILD SUCCESS in about 24 s; `mgmt`, `engine`, `etl` and `retrieval` WARs each hold `sampleBufferMarginSeconds = 1.0`; `judge.js` in `mgmt.war` equals the source file and the Operations page names the key |
+| T3 | 2026-10-11 | Local checkout, real Base binaries | Pass | `run-all-tests.bash --local` exit 0: Phase 1 250, Health 32, No Ant 22, Interface files 243, Phase 2 16 |
+
+##### Closure Evidence
+
+- none; the change is not committed yet.
+
+##### GitHub Projection
+
+Title: Replace the sample buffer capacity adjustment with the margin in seconds
+Labels: enhancement
+GitHub Milestone: 2.0.1
+Observed State: OPEN
+Observed Labels: enhancement
+Observed Milestone: 2.0.1 / #7
+Last Compared: 2026-10-11 at 08:39 UTC, `gh issue view 60 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee
+
 #### M44 - Verify and publish release 2.0.1
 
 Origin: 2.0.1 / M44
@@ -1203,8 +1276,8 @@ Out of scope: another release line, automatic security fixes, changing or deleti
 ##### Dependencies And Decisions
 
 - M43, M14, M10, M45, M46, M13, D31, D37, D39, D44 and D45. The Ant removal is part of this release and is complete (M14, G6). M13 is a work-ordering dependency set by D45: release verification starts after M13 is complete. The release plan accepted on 2026-10-05 lists no M13 dependency, so its re-acceptance is pending.
-- Current committed candidate: epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, source pin `162269e7db97f527626ba0b387933a8c47e8bb57` (`Replace the archive request client with Bash`) in `configure/RELEASE`. D44 records the earlier `120d53fe` candidate; its results and the earlier `af2e7348` results remain evidence only for their original refs. Release readiness requires passing source CI, new integrated verification and eight-case VM verification at the final pin. The tested and released source must stay equal. The pinned Ansible and cloud-provision inventory generator of the VM acceptance stay fixed for the matrix; the cloud-provision species rename does not block it.
-- Historical source CI observation: 2026-10-07 at 16:38 PDT, the public page of [Maven run 37698987276](https://github.com/jeonghanlee/epicsarchiverap-maven/actions/runs/37698987276) for `modernize` commit `120d53fe43133c7699e4c9624dc948cc96b0ece2` reports `Success`. The retained page is `work/rv2-120d53fe-20261007/source-ci.html`; the verification manifest records its SHA256. This satisfies source CI only for that historical pin. No source CI result for `162269e7` is recorded here.
+- Current committed candidate: epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, source pin `162269e7db97f527626ba0b387933a8c47e8bb57` (`Replace the archive request client with Bash`) in `configure/RELEASE`. After that commit `SRC_TAG` moved to `modernize` commit `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0`, which adds the sample buffer margin change over `162269e7`; no verification result at that pin is recorded yet. D44 records the earlier `120d53fe` candidate; its results and the earlier `af2e7348` results remain evidence only for their original refs. Release readiness requires passing source CI, new integrated verification and eight-case VM verification at the final pin. The tested and released source must stay equal. The pinned Ansible and cloud-provision inventory generator of the VM acceptance stay fixed for the matrix; the cloud-provision species rename does not block it.
+- Historical source CI observation: 2026-10-07 at 16:38 PDT, the public page of [Maven run 37698987276](https://github.com/jeonghanlee/epicsarchiverap-maven/actions/runs/37698987276) for `modernize` commit `120d53fe43133c7699e4c9624dc948cc96b0ece2` reports `Success`. The retained page is `work/rv2-120d53fe-20261007/source-ci.html`; the verification manifest records its SHA256. This satisfies source CI only for that historical pin. No source CI result for `162269e7` or for `1f099b2f` is recorded here.
 - Candidate publication observation: 2026-10-09 at 22:32 UTC, after `git fetch`, `git status --short --branch` is clean and `git rev-parse HEAD '@{upstream}'` resolves both refs to `48724a28e0ce7a49f3c302f814b10116652b331e`. This confirms release-branch publication, not a merge, tag or GitHub release.
 - Committed local installation changes provide SQLite, MariaDB UDS and MariaDB TCP entrypoints with shared installation code, Tomcat reuse or backup/replacement, EPICS preparation before optional PV verification, component startup/UI/information URLs, and distinct process/storage inspection results. The optional PV path uses the source Bash archive client and CSV extraction client; pause/resume and IOC ownership are explicit. MariaDB setup selects the administrative socket and preserves existing backup files. Failure output retains successful checks and explains storage limits without deleting data or automatically restarting the appliance.
 - Local installer OS selection supports Debian 13, Rocky Linux 8.x, Rocky Linux 10.2, Ubuntu 24.04 LTS and Ubuntu 26.04 LTS. All five presets preserve a custom `JAVA_HOME`. Preset/package checks do not establish real installation on every OS. The accepted Release Verification 3 matrix remains Debian 13 and Rocky 8.10; adding OS cases requires a separate scope decision.
@@ -1255,7 +1328,7 @@ Final observations are owned by Release Verification Results below.
 | Field | File | Before | Planned After | Pre-check | Pre-check Label | Post-check | Post-check Label |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Changelog release heading | CHANGELOG.md | Newest dated release 2.0.0 | One dated 2.0.1 heading above preserved 2.0.0 | Read committed heading and working-tree diff | Release Verification 1 | Check date, uniqueness and actual shipped scope | Release Verification 4 |
-| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 before this cycle | Candidate `162269e7db97f527626ba0b387933a8c47e8bb57`, committed in `48724a2`; source CI, integrated verification and a new matrix run must pass before release | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
+| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 before this cycle | Candidate `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0` (`162269e7db97f527626ba0b387933a8c47e8bb57` in `48724a2`); source CI, integrated verification and a new matrix run must pass before release | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
 
 The source POM belongs to epicsarchiverap-maven. This cycle does not independently bump it. APPNAME, SRC_VERSION and install-path derivation remain checked for consistency; no environment numeric version field has been identified beyond the changelog and release objects. At `48724a2`, `CHANGELOG.md` has an unreleased 2.0.1 heading and still describes the earlier `120d53fe` pin. Release Verification 4 must reconcile the changelog pin and shipped scope, set the release date, and check the release notes before publication; this status update does not change those files.
 
@@ -1663,7 +1736,7 @@ Last Compared: none
 
 Origin: 2.0.1 / M48
 Identity History: none
-GitHub Issue: none
+GitHub Issue: [#61](https://github.com/jeonghanlee/epicsarchiverap-env/issues/61)
 Status: Open
 
 ##### Summary
@@ -1742,11 +1815,13 @@ Superseded Plan Artifacts: none
 
 ##### GitHub Projection
 
-Title: Review scripts/archappl.bash, starting with the `h` case that does nothing
+Title: Report failed starts and stops in the appliance control script
 Labels: bug
 GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
+Observed State: OPEN
+Observed Labels: bug
+Observed Milestone: none
+Last Compared: 2026-10-11 at 08:42 UTC, `gh issue view 61 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, no milestone, assignee jeonghanlee
 
 #### M49 - The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first
 
