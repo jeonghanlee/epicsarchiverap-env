@@ -1316,6 +1316,8 @@ Current-candidate checks below were executed before commit on the working-tree f
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M43, D29, D31 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
+| Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Open | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; the owner has not accepted them; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
+| Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Open | No | none | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner has not chosen; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 
 ### Backlog Details
 
@@ -1653,6 +1655,162 @@ Superseded Plan Artifacts: none
 
 Title: Replace the Python tests with Bash tests
 Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M48 - Review scripts/archappl.bash, starting with the `h` case that does nothing
+
+Origin: 2.0.1 / M48
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+`scripts/archappl.bash` (799 lines) is the control script that systemd runs as the main process of the appliance and that operators call for `status`, `health`, `storage` and `loglevel`. A reading for the book found one defect and several points that no test or review has examined as a whole. The defect: the usage text lists `h` as "this screen", the `case` has an empty `h` arm (`h);;` at line 792), so `bash archappl.bash h` prints nothing, while `help`, no argument and any unknown argument print the usage. Observed 2026-10-11 on the author's host; recheck with `bash scripts/archappl.bash help 2>&1 | grep -c .` (13 lines in a checkout) and `bash scripts/archappl.bash h 2>&1 | grep -v 'archappl.conf: No such' | grep -c .` (0 lines).
+
+The first review (2026-10-11, the whole file read and each action run in an isolated copy with a configuration file and instance scripts) found these. They are hypotheses until the owner accepts them.
+
+| # | Class | Finding | Evidence to recheck |
+| --- | --- | --- | --- |
+| F1 | must-fix | `startup` and `shutdown` ignore the exit status of `bin/startup.sh` and `bin/shutdown.sh` and exit 0, so `make start`, `make stop` and `restart` report success when an instance failed | In a copy with an instance script that exits 1, `bash archappl.bash startup` starts the others and exits 0 |
+| F2 | must-fix | Line 26 sources `archappl.conf` without checking; without the file `startup` prints one error, starts the instances with no environment and exits 0 | Remove `archappl.conf` from the copy and run `startup` |
+| F3 | minor | `shutdown` removes `temp/<component>.pid` even when `shutdown.sh` failed, so a running process is later reported as `missing-pid-file` | Run `shutdown` with a failing `shutdown.sh` and a pid file present |
+| F4 | minor | `status` prints `>>> Verified process and storage health` before it runs the check, so a failing check follows the word `Verified` (lines 115 and 116) | Run `status` in a copy whose `JAVA_HOME` is wrong |
+| F5 | minor | `get_ip` (line 42) prints the seventh field of the route to `8.8.8.8`: empty without a route, and `uid` value for a route without `via` | Put an `ip` command that fails or prints `8.8.8.8 dev eth0 src 10.0.0.5 uid 1000` first in `PATH` |
+| F6 | minor | `help`, no argument and an unknown argument print the usage to stderr and exit 1, while `h` prints nothing and exits 0 | `bash archappl.bash <arg>; echo $?` for each |
+| F7 | minor | The usage lists `h`, and the `h` arm (line 792) is empty | `bash archappl.bash h` prints no line |
+| F8 | info | The usage does not name `health --systemd <unit> <own_unit> <allowance>` (used by the timer), `storage all` or `help`, and it spells `possbile` (line 731) | Compare the usage (lines 729 to 745) with the `case` (lines 765 to 796) |
+| F9 | info | The local checks do not run `startup`, `shutdown`, `restart`, `help` or `h`; `service` is checked only as unit text | `grep` the actions in `tests/health-local.py` and `tests/phase1-logic.bash` |
+
+`shellcheck scripts/archappl.bash` reports no finding on 2026-10-11.
+
+The row is Open because the owner has not accepted the findings or set their priority.
+
+##### Scope
+
+- The owner chooses which of F1 to F9 are fixed; each chosen finding is fixed in `scripts/archappl.bash` one at a time.
+- The two must-fix findings, F1 and F2, make the exit status of a start, a stop and a restart state what happened; the owner chooses whether the other actions of the script are reviewed again after the fixes.
+- For F7 the owner chooses between making `h` print the usage and removing `h` from the usage text.
+
+Out of scope: a change of what `startup`, `shutdown`, `service`, `health` and `loglevel` do for a healthy appliance; replacing the script.
+
+##### Completion Criteria
+
+- Every finding of the table is fixed or recorded as a decision with its reason.
+- `startup`, `shutdown` and `restart` exit non-zero when an instance script fails, and `startup` stops when `archappl.conf` cannot be read.
+- Each fixed finding has a check in `tests/phase1-logic.bash` that fails on the defect, shown by a mutation of the shipped script.
+- The full local suite passes.
+
+##### Dependencies And Decisions
+
+- No dependency. A dated owner decision on the depth of the review and on the `h` option is required before it can become Not started.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. The owner accepts, rejects or defers each finding of the table.
+2. Fix the accepted findings in `scripts/archappl.bash`, one finding at a time, F1 and F2 first.
+3. Add a check for each fixed finding to the logic checks next to the existing `loglevel` and `status` checks, run against an isolated copy with a configuration file and instance scripts.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | The script run with `startup`, `shutdown` and `restart` in an isolated copy whose engine instance script exits 1, against the shipped code and against a mutation that ignores the status | Local host | The shipped script exits non-zero; the mutation exits 0 and fails the check |
+| T2 | Local | The script run with `startup` in a copy without `archappl.conf` | Local host | The script stops before it runs an instance script and exits non-zero |
+| T3 | Local | The script run with `help`, with `h` and with an unknown argument | Local host | The outcome the owner chose for F6 and F7 |
+| T4 | Local | The full local suite `bash tests/run-all-tests.bash --local` | Local host | Passes with the same groups as before |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Local host | Pending | none |
+| T2 | Pending | Local host | Pending | none |
+| T3 | Pending | Local host | Pending | none |
+| T4 | Pending | Local host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Review scripts/archappl.bash, starting with the `h` case that does nothing
+Labels: bug
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M49 - The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first
+
+Origin: 2.0.1 / M49
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The targets `<os>.conf` (`debian13.conf`, `rocky8.conf` and the others in `configure/RULES_TOMCAT`) delete `configure/CONFIG_SITE.local` and write one line into it, the include of `configure/os/<os>.mk`. Every installer runs its operating system target as its first step, so a value that an operator wrote into `configure/CONFIG_SITE.local` is lost when the installer runs. `../CONFIG_SITE.local`, next to the checkout, is not touched and is the place for site values.
+
+Observed 2026-10-11 on the author's host. `make -n debian13.conf` prints `rm -f <checkout>/configure/CONFIG_SITE.local` and `echo "include \$(TOP)/configure/os/debian13.mk" > <checkout>/configure/CONFIG_SITE.local`. The plan of `bash scripts/install-local-sqlite.bash --plan --skip-packages` lists `make ... debian13.conf` as its first make step. Recheck with those two commands.
+
+The row is Open because the owner has not set its priority or chosen among the options in Scope.
+
+##### Scope
+
+- Choose one behavior: the target keeps the existing lines and only ensures the include line, or the installer stops when `configure/CONFIG_SITE.local` holds other lines and names `../CONFIG_SITE.local`.
+- Keep the documented place for site values, `../CONFIG_SITE.local`.
+
+Out of scope: changing the content of the operating system files `configure/os/*.mk`.
+
+##### Completion Criteria
+
+- An assignment written into `configure/CONFIG_SITE.local` is either present after `make <os>.conf` or the installer stops before it changes anything and names `../CONFIG_SITE.local`.
+- The check for this behavior runs the real `make <os>.conf` target in an isolated copy of the repository.
+
+##### Dependencies And Decisions
+
+- No dependency. A dated owner decision on the option is required before it can become Not started.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After the owner decision, change the `<os>.conf` rules in `configure/RULES_TOMCAT`, or the first step of the installers.
+2. Add the real-target check to `tests/phase1-logic.bash`.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | In an isolated copy of the repository, write an assignment into `configure/CONFIG_SITE.local`, run the real `make debian13.conf`, and read the file | Local host | The assignment is present, or the installer stops first with a message that names `../CONFIG_SITE.local` |
+| T2 | Local | The full local suite `bash tests/run-all-tests.bash --local` | Local host | Passes with the same groups as before |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Local host | Pending | none |
+| T2 | Pending | Local host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first
+Labels: bug
 GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
