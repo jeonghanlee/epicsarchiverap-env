@@ -1389,7 +1389,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M43, D29, D31 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
-| Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Open | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; the owner has not accepted them; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
+| Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | In progress | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; F1 and F2 are fixed with checks; the owner has not decided the other findings; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Open | No | none | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner has not chosen; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 
 ### Backlog Details
@@ -1737,7 +1737,7 @@ Last Compared: none
 Origin: 2.0.1 / M48
 Identity History: none
 GitHub Issue: [#61](https://github.com/jeonghanlee/epicsarchiverap-env/issues/61)
-Status: Open
+Status: In progress
 
 ##### Summary
 
@@ -1747,8 +1747,8 @@ The first review (2026-10-11, the whole file read and each action run in an isol
 
 | # | Class | Finding | Evidence to recheck |
 | --- | --- | --- | --- |
-| F1 | must-fix | `startup` and `shutdown` ignore the exit status of `bin/startup.sh` and `bin/shutdown.sh` and exit 0, so `make start`, `make stop` and `restart` report success when an instance failed | In a copy with an instance script that exits 1, `bash archappl.bash startup` starts the others and exits 0 |
-| F2 | must-fix | Line 26 sources `archappl.conf` without checking; without the file `startup` prints one error, starts the instances with no environment and exits 0 | Remove `archappl.conf` from the copy and run `startup` |
+| F1 | must-fix, accepted, fixed | `startup` and `shutdown` ignore the exit status of `bin/startup.sh` and `bin/shutdown.sh` and exit 0, so `make start`, `make stop` and `restart` report success when an instance failed | In a copy with an instance script that exits 1, `bash archappl.bash startup` starts the others and exits 0 |
+| F2 | must-fix, accepted, fixed | Line 26 sources `archappl.conf` without checking; without the file `startup` prints one error, starts the instances with no environment and exits 0 | Remove `archappl.conf` from the copy and run `startup` |
 | F3 | minor | `shutdown` removes `temp/<component>.pid` even when `shutdown.sh` failed, so a running process is later reported as `missing-pid-file` | Run `shutdown` with a failing `shutdown.sh` and a pid file present |
 | F4 | minor | `status` prints `>>> Verified process and storage health` before it runs the check, so a failing check follows the word `Verified` (lines 115 and 116) | Run `status` in a copy whose `JAVA_HOME` is wrong |
 | F5 | minor | `get_ip` (line 42) prints the seventh field of the route to `8.8.8.8`: empty without a route, and `uid` value for a route without `via` | Put an `ip` command that fails or prints `8.8.8.8 dev eth0 src 10.0.0.5 uid 1000` first in `PATH` |
@@ -1759,7 +1759,7 @@ The first review (2026-10-11, the whole file read and each action run in an isol
 
 `shellcheck scripts/archappl.bash` reports no finding on 2026-10-11.
 
-The row is Open because the owner has not accepted the findings or set their priority.
+F1 and F2 were accepted and fixed on 2026-10-11 by the owner's direction; the row stays In progress because the owner has not decided F3 to F9. `restart` stops when its shutdown part failed, and `startup`, `shutdown`, `restart` and `service` stop when `archappl.conf` is missing or is not valid shell, and a valid file whose last command fails still runs; `status`, `storage`, `loglevel` and `help` are unchanged.
 
 ##### Scope
 
@@ -1782,9 +1782,9 @@ Out of scope: a change of what `startup`, `shutdown`, `service`, `health` and `l
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: F1 and F2 accepted by the owner on 2026-10-11
+Implementation Authorization: the owner started the fixes of F1 and F2 on 2026-10-11
 Superseded Plan Artifacts: none
 
 1. The owner accepts, rejects or defers each finding of the table.
@@ -1804,10 +1804,10 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Local host | Pending | none |
-| T2 | Pending | Local host | Pending | none |
+| T1 | 2026-10-11 | Local host; launcher copy beside instance scripts that record their call and exit with a chosen status (`tests/phase1-logic.bash`, P1.28) | Pass | A failed `engine` start gives `startup ERROR engine status=1`, exit non-zero and four calls; a failed `etl` stop gives the same for `shutdown`; `restart` exits non-zero on a failed start and starts nothing after a failed stop; a copy whose status is dropped exits 0 on a failed start and on a failed stop, and a copy that ignores a failed stop in `restart` starts the instances; each is seen by the check |
+| T2 | 2026-10-11 | Local host; the same copy without `archappl.conf` | Pass | `startup`, `shutdown`, `restart` and `service` exit non-zero and run no instance script when the file is missing or is not valid shell; a valid file whose last command fails still starts the four instances; a copy without the check, and a copy that uses the status of the last command, are seen by the check; `help` still prints the usage |
 | T3 | Pending | Local host | Pending | none |
-| T4 | Pending | Local host | Pending | none |
+| T4 | 2026-10-11 | Local checkout, real Base binaries | Pass | `run-all-tests.bash --local` exit 0: Phase 1 275, Health 32, No Ant 22, Interface files 243, Phase 2 16 |
 
 ##### Closure Evidence
 
