@@ -1,0 +1,12 @@
+[book]
+title = "EPICS Archiver Appliance Environment"
+authors = ["Jeong Han Lee"]
+description = "Build and install the EPICS Archiver Appliance with the epicsarchiverap-env repository."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "site"
+
+[output.html]
+git-repository-url = "https://github.com/jeonghanlee/epicsarchiverap-env"

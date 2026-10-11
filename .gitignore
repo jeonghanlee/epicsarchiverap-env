@@ -81,3 +81,6 @@ archappl_mysql_updated.sql
 archappl_sqlite_updated.sql
 # Python bytecode cache
 __pycache__/
+
+# mdBook output
+/book/site/

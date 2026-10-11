@@ -1,0 +1,59 @@
+# Summary
+
+[Introduction](index.md)
+
+# Understand the appliance
+
+- [How the four components fit together](understand/components.md)
+- [Storage tiers and the movement of data](understand/storage-tiers.md)
+- [What the repository builds and installs](understand/build-and-install.md)
+- [How a site changes the appliance](understand/site-changes.md)
+
+# Install and verify an appliance
+
+- [Prepare the host for the appliance](install/prepare-host.md)
+- [Install an appliance with SQLite](install/sqlite.md)
+- [Install an appliance with MariaDB over a Unix socket](install/mariadb-uds.md)
+- [Install an appliance with MariaDB over TCP](install/mariadb-tcp.md)
+- [Archive a test PV and check the stored samples](install/verify-pv.md)
+- [Reinstall or upgrade an appliance](install/reinstall.md)
+
+# Build from source
+
+- [Fetch and build the web applications](build/build-wars.md)
+- [Select the source commit to build](build/select-commit.md)
+
+# Configure the appliance
+
+- [Configuration variables and their defaults](configure/variables.md)
+- [Override a setting for one host](configure/override-setting.md)
+- [Site folder layout](configure/site-folder.md)
+- [Storage policy parameters](configure/policy-parameters.md)
+- [Files of an installation](configure/installed-files.md)
+
+# Operate the appliance
+
+- [Start, stop and restart the appliance](operate/start-stop.md)
+- [Check the health of the appliance](operate/health.md)
+- [Health check results](operate/health-results.md)
+- [Read the logs of the four components](operate/logs.md)
+- [Change a log level at run time](operate/loglevel.md)
+- [Watch the storage use](operate/storage.md)
+
+# Use the management interface
+
+- [The pages of the management interface](interface/pages.md)
+- [What the System pages judge](interface/judgements.md)
+- [Find and pause a PV on the Work page](interface/work-page.md)
+
+# Test the environment
+
+- [Run the local test suite](test/run-local.md)
+- [What each test phase checks](test/phases.md)
+- [Run the VM installation tests](test/vm.md)
+
+# Appendices
+
+- [Make targets of the repository](appendix/make-targets.md)
+- [Options of the repository scripts](appendix/script-options.md)
+- [Glossary of terms used in the book](appendix/glossary.md)
