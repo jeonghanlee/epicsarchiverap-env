@@ -58,7 +58,9 @@ function require_configuration
 
 function get_ip
 {
-    ip -4 route get 8.8.8.8 | awk \{'print $7'\} | tr -d '\n'
+    local src
+    src=$(ip -4 route get 8.8.8.8 2> /dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "src") {print $(i + 1); exit}}')
+    printf '%s' "${src:-${HOSTNAME}}"
 }
 
 # shellcheck disable=SC2120
@@ -103,7 +105,10 @@ function shutdown_archappl
         pushdd "${archappl_top}/${service}"
         bash bin/shutdown.sh
         status=$?
-        rm -rf "temp/${service}.pid"
+        # A pid file stays when the stop failed, so the process that still runs is found by it.
+        if (( status == 0 )); then
+            rm -rf "temp/${service}.pid"
+        fi
         popdd
         if (( status != 0 )); then
             printf '%s\n' "shutdown ERROR ${service} status=${status}" >&2
@@ -144,7 +149,7 @@ function status_archappl
         printf "  journalctl -t archappl-%s\n" "${service}";
     done
 
-    printf '%s\n' '>>> Verified process and storage health'
+    printf '%s\n' '>>> Process and storage health'
     health_archappl
 }
 
@@ -760,18 +765,20 @@ function usage
         echo "";
         echo "Usage    : $0  args"
         echo "";
-        echo "              possbile args";
+        echo "              possible args";
         echo "";
         echo "               startup   : startup all services in order";
         echo "               shutdown  : shutdown all services in order ";
         echo "               service   : run all services in the foreground (systemd main process)";
         echo "               restart   : shutdown and startup";
-        echo "               storage   : show the storage status";
+        echo "               storage   : show the storage status (storage all: list files as well as directories)";
         echo "               status    : show summary for status";      
         echo "               health    : verify all four JVM processes and the store usage (Linux)";
+        echo "               health --systemd <unit> <own_unit> <allowance>";
+        echo "                         : the scheduled check run by the health timer";
         echo "               loglevel <component> [<logger> [<level>]]";
         echo "                         : read or set an application logger level at runtime";
-        echo "               h         : this screen";
+        echo "               help      : this screen";
         echo "";
         echo " bash $0 startup "
         echo ""
@@ -831,7 +838,6 @@ case "$1" in
 	    *)       status_storage      ;;
 	    esac
 	    ;;
-    h);;
     help)
         usage;
         ;;

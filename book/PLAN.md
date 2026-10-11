@@ -120,7 +120,7 @@ The generated pages are regenerated with `bash book/scripts/generate-all.bash` a
 
 Found while writing, outside the book:
 
-- `scripts/archappl.bash` lists `h` as "this screen" in its usage, but the `h` case does nothing; the usage prints for `help` and for an unknown argument.
+- `scripts/archappl.bash` listed `h` as "this screen" in its usage while the `h` case did nothing; the argument is removed from the usage and is now an unknown argument, and `help` prints the usage.
 - The help text of the Makefile took the second line of a two-line comment as the description of `copy.ui`; the comment was rewritten so the description is one line.
 - The `<os>.conf` targets delete `configure/CONFIG_SITE.local` and rewrite it, and the installers run them first; site values belong in `../CONFIG_SITE.local`.
 

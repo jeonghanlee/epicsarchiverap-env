@@ -1023,11 +1023,67 @@ else
     _record_fail "service without archappl.conf" "rc=${SC_RC} out=$(cat "${sc_dir}/out.txt")"
 fi
 sc_run "${sc_dir}" help
-if [[ ${SC_RC} -eq 1 ]] && grep -q 'possbile args' "${sc_dir}/out.txt"; then
+if [[ ${SC_RC} -eq 1 ]] && grep -q 'possible args' "${sc_dir}/out.txt"; then
     _record_pass "help prints the usage without archappl.conf"
 else
     _record_fail "help without archappl.conf" "rc=${SC_RC}"
 fi
+
+# The usage names every action the case accepts, spells its heading right and no longer lists h.
+sc_run "${sc_dir}" help
+sc_usage_ok=1
+for sc_word in 'possible args' 'health --systemd <unit> <own_unit> <allowance>' 'storage all' 'help      : this screen'; do
+    grep -qF -- "${sc_word}" "${sc_dir}/out.txt" || sc_usage_ok=0
+done
+if grep -qE '^ +h +:' "${sc_dir}/out.txt"; then sc_usage_ok=0; fi
+if [[ ${sc_usage_ok} -eq 1 ]]; then
+    _record_pass "The usage names health --systemd, storage all and help, and does not list h"
+else
+    _record_fail "The usage text" "$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" h
+if [[ ${SC_RC} -eq 1 ]] && grep -q 'possible args' "${sc_dir}/out.txt"; then
+    _record_pass "h is an unknown argument: it prints the usage and exits 1 like any other"
+else
+    _record_fail "h behaves as an unknown argument" "rc=${SC_RC}"
+fi
+
+# shutdown keeps the pid file of an instance whose stop failed and removes the others.
+printf 'SC_MARK=configured\n' > "${sc_dir}/archappl.conf"
+for sc_svc in ${sc_instances}; do printf '1\n' > "${sc_dir}/${sc_svc}/temp/${sc_svc}.pid"; done
+SC_STOP_etl=3 sc_run "${sc_dir}" shutdown
+if [[ -f "${sc_dir}/etl/temp/etl.pid" && ! -f "${sc_dir}/mgmt/temp/mgmt.pid" && ! -f "${sc_dir}/engine/temp/engine.pid" ]]; then
+    _record_pass "shutdown keeps the pid file of a failed stop and removes the others"
+else
+    _record_fail "shutdown pid files" "$(ls "${sc_dir}"/*/temp 2>&1)"
+fi
+
+# status addresses the appliance by the source address of the route and falls back to the host name;
+# an ip command is the command boundary.
+sc_stub="${sc_dir}/stub"
+mkdir -p "${sc_stub}"
+printf '#!/usr/bin/env bash\necho "8.8.8.8 dev eth0 src 10.0.0.5 uid 1000"\n' > "${sc_stub}/ip"
+chmod +x "${sc_stub}/ip"
+PATH="${sc_stub}:${PATH}" sc_run "${sc_dir}" status
+if grep -qF 'http://10.0.0.5:' "${sc_dir}/out.txt" && ! grep -qF 'http://1000:' "${sc_dir}/out.txt"; then
+    _record_pass "status takes the address from the src field of a route without via"
+else
+    _record_fail "status address" "$(grep -n 'http://' "${sc_dir}/out.txt")"
+fi
+printf '#!/usr/bin/env bash\nexit 2\n' > "${sc_stub}/ip"
+PATH="${sc_stub}:${PATH}" sc_run "${sc_dir}" status
+if ! grep -qF 'http://:' "${sc_dir}/out.txt" && grep -qF "http://${HOSTNAME}:" "${sc_dir}/out.txt"; then
+    _record_pass "status falls back to the host name when the route has no address"
+else
+    _record_fail "status fallback address" "$(grep -n 'http://' "${sc_dir}/out.txt")"
+fi
+# The health heading no longer claims a verification before the check ran.
+if grep -qF '>>> Process and storage health' "${sc_dir}/out.txt" && ! grep -qF 'Verified process' "${sc_dir}/out.txt"; then
+    _record_pass "status names the health section without claiming a result"
+else
+    _record_fail "status health heading" "$(grep -n '>>>' "${sc_dir}/out.txt")"
+fi
+rm -f "${sc_dir}/archappl.conf"
 
 # Each defect restored in a copy of the launcher must be seen by the scenario above.
 sc_mutant="${WORKSPACE}/launcher-mutant.bash"
@@ -1070,6 +1126,49 @@ if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 0 ]]; then
     _record_pass "A launcher that takes the status of the last command in the file refuses a valid file (the check sees it)"
 else
     _record_fail "Mutant that uses the status of the last command" "rc=${SC_RC} calls=$(sc_calls startup)"
+fi
+
+# shellcheck disable=SC2016
+sed 's/^        if (( status == 0 )); then$/        if true; then/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+for sc_svc in ${sc_instances}; do printf '1\n' > "${sc_dir}/${sc_svc}/temp/${sc_svc}.pid"; done
+SC_STOP_etl=3 sc_run "${sc_dir}" shutdown
+if [[ ! -f "${sc_dir}/etl/temp/etl.pid" ]]; then
+    _record_pass "A launcher that removes the pid file of a failed stop is seen by the check"
+else
+    _record_fail "Mutant that removes the pid file of a failed stop" "pid file kept"
+fi
+# shellcheck disable=SC2016
+sed "s/src=\$(ip -4 route get 8.8.8.8 2> \/dev\/null | awk .*/src=\$(ip -4 route get 8.8.8.8 | awk '{print \$7}' | tr -d '\\\\n')/" "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+printf 'SC_MARK=configured\n' > "${sc_dir}/archappl.conf"
+printf '#!/usr/bin/env bash\necho "8.8.8.8 dev eth0 src 10.0.0.5 uid 1000"\n' > "${sc_dir}/stub-ip"
+mkdir -p "${sc_dir}/mstub"
+cp "${sc_dir}/stub-ip" "${sc_dir}/mstub/ip"
+chmod +x "${sc_dir}/mstub/ip"
+PATH="${sc_dir}/mstub:${PATH}" sc_run "${sc_dir}" status
+if grep -qF 'http://1000:' "${sc_dir}/out.txt"; then
+    _record_pass "A launcher that prints the seventh field of the route is seen by the check"
+else
+    _record_fail "Mutant with the seventh field" "$(grep -n 'http://' "${sc_dir}/out.txt")"
+fi
+sed "s/'>>> Process and storage health'/'>>> Verified process and storage health'/" "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+printf 'SC_MARK=configured\n' > "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" status
+if grep -qF 'Verified process' "${sc_dir}/out.txt"; then
+    _record_pass "A launcher that claims a verification before the check is seen by the check"
+else
+    _record_fail "Mutant with the Verified heading" "heading unchanged"
+fi
+sed 's/possible args/possbile args/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+rm -f "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" help
+if ! grep -qF 'possible args' "${sc_dir}/out.txt"; then
+    _record_pass "A usage with the misspelled heading is seen by the check"
+else
+    _record_fail "Mutant with the misspelled heading" "heading unchanged"
 fi
 
 phase_pass "Phase 1: Logic"

@@ -123,18 +123,20 @@ The command prints:
 
 Usage    : scripts/archappl.bash  args
 
-              possbile args
+              possible args
 
                startup   : startup all services in order
                shutdown  : shutdown all services in order
                service   : run all services in the foreground (systemd main process)
                restart   : shutdown and startup
-               storage   : show the storage status
+               storage   : show the storage status (storage all: list files as well as directories)
                status    : show summary for status
                health    : verify all four JVM processes and the store usage (Linux)
+               health --systemd <unit> <own_unit> <allowance>
+                         : the scheduled check run by the health timer
                loglevel <component> [<logger> [<level>]]
                          : read or set an application logger level at runtime
-               h         : this screen
+               help      : this screen
 
  bash scripts/archappl.bash startup
 

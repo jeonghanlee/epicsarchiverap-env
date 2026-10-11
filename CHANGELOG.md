@@ -36,6 +36,7 @@ changes to the environment repository.
 - With `DB_BACKEND=sqlite`, all `db.*` targets skip with a message and return success without reading or writing MariaDB configuration; unsupported SQLite delete and query operations and standalone MariaDB helper actions are rejected, and an invalid backend selector fails before any configuration write or database contact.
 - The build-failure check recognizes the absent-commit message of git 2.47 (`unable to read tree`).
 - `archappl.bash startup`, `shutdown` and `restart` exit non-zero when an instance script fails and name the instance on stderr; `restart` starts nothing when its shutdown failed. Every action that runs instances (`startup`, `shutdown`, `restart`, `service`) refuses to run when `archappl.conf` is missing or is not valid shell.
+- `archappl.bash shutdown` keeps `temp/<component>.pid` when the instance's `bin/shutdown.sh` failed; `status` takes its address from the `src` field of the route and falls back to the host name, and no longer prints `Verified` before the health check; the usage names `health --systemd`, `storage all` and `help`, spells `possible`, and no longer lists the `h` argument, which is now an unknown argument like any other.
 
 ### Removed
 - Ant: `site-template/siteid/build.xml`, `ANT_HOME`, `ANT_PATH`, `ANT_CMD`, `ANT_OPTS`, the Ant entry in `PATH` and the Ant comments and README sentence. At the same source commit, the four WARs differ from the Ant-backed build only by the new site overlay class and the embedded POM copy.
