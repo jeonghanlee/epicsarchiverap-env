@@ -1389,7 +1389,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M43, D29, D31 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
-| Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | In progress | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
+| Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Complete | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Open | No | none | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner has not chosen; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 
 ### Backlog Details
@@ -1737,7 +1737,7 @@ Last Compared: none
 Origin: 2.0.1 / M48
 Identity History: none
 GitHub Issue: [#61](https://github.com/jeonghanlee/epicsarchiverap-env/issues/61)
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1811,17 +1811,17 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Complete on 2026-10-11: F1 and F2 landed in `922c26c` and F3 to F9 in `972a312` on `origin/release-2.0.1`, the register in `72f6837` and `4686013`; T1 to T4 passed (T4: Phase 1 285, Health 32, No Ant 22, Interface files 243, Phase 2 16); #61 was closed as completed with its body synchronized and its four acceptance criteria checked. The row stays in the Backlog because the owner has not assigned it to a milestone.
 
 ##### GitHub Projection
 
 Title: Report failed starts and stops in the appliance control script
 Labels: bug
 GitHub Milestone: none
-Observed State: OPEN
+Observed State: CLOSED
 Observed Labels: bug
 Observed Milestone: none
-Last Compared: 2026-10-11 at 08:42 UTC, `gh issue view 61 --repo jeonghanlee/epicsarchiverap-env`; OPEN, bug, no milestone, assignee jeonghanlee
+Last Compared: 2026-10-11 at 18:37 UTC, `gh issue view 61 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-11T18:37:22Z, bug, no milestone, assignee jeonghanlee; one closing comment; the live body equals the synchronized draft with the four acceptance criteria checked
 
 #### M49 - The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first
 
