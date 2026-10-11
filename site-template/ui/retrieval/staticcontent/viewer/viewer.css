@@ -1,0 +1,173 @@
+/* The archived data viewer. Tokens come from the shared main.css; chart rules from chart.css. */
+
+.viewer-page {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+}
+
+.viewer-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 24px;
+    padding: 10px 16px;
+    background: var(--c-brand);
+    color: var(--accent-ink);
+}
+
+.viewer-bar h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.viewer-bar label {
+    font-size: 12.5px;
+    color: var(--c-border);
+}
+
+.viewer-bar input[type="search"],
+.viewer-bar input[type="datetime-local"] {
+    min-width: 0;
+    padding: 5px 8px;
+    font: inherit;
+    font-size: 13px;
+    color: #ffffff;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--c-border-strong);
+    border-radius: 0;
+    color-scheme: dark;
+}
+
+.viewer-bar input:focus {
+    outline: none;
+    border-bottom-color: #ffffff;
+}
+
+.viewer-bar button {
+    padding: 4px 10px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--accent-ink);
+    background: none;
+    border: 1px solid var(--c-border-strong);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.viewer-bar .ranges button {
+    border-color: transparent;
+    font-family: var(--mono);
+}
+
+.viewer-bar .ranges button[aria-pressed="true"] {
+    border-bottom-color: #ffffff;
+    border-radius: 0;
+}
+
+.viewer-bar .add,
+.viewer-bar .span,
+.viewer-bar .ranges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 10px;
+    margin: 0;
+}
+
+.viewer {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+.chips-list .pv {
+    font-family: var(--mono);
+    font-size: 12.5px;
+}
+
+.chips-list .warn {
+    color: var(--warn);
+    font-size: 12.5px;
+}
+
+button.plain {
+    margin-left: 6px;
+    padding: 0;
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--accent);
+    background: none;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+}
+
+button.plain:hover {
+    border-bottom-color: var(--accent);
+}
+
+.message {
+    min-height: 1.4em;
+    margin: 0 0 8px;
+    color: var(--ink-2);
+    font-size: 13px;
+}
+
+.unit {
+    margin-bottom: 24px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+}
+
+/* The unit is data: it is shown exactly as the archive holds it. mA is not MA. */
+.unit h2 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+    color: var(--ink-2);
+}
+
+.unit .sub {
+    margin: 0 0 6px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.tools {
+    margin: 8px 0 0;
+}
+
+.tools button.plain {
+    margin: 0 16px 0 0;
+}
+
+@media (max-width: 600px) {
+    .viewer-bar {
+        padding: 8px 12px;
+    }
+
+    .viewer {
+        padding: 12px;
+    }
+
+    .viewer-bar button,
+    .viewer-bar input,
+    .viewer-bar select,
+    button.plain {
+        min-height: 44px;
+    }
+}

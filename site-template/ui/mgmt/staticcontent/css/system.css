@@ -1,0 +1,483 @@
+/* System page. Tokens come from the shared main.css. The only saturated color is the alert color. */
+
+.system {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.system h2 {
+    margin: 24px 0 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+}
+
+/* An appliance name is data and keeps its case. */
+.system h2 .pv {
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+}
+
+.system h3 {
+    margin: 12px 0 2px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sub {
+    margin: 0 0 8px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.versions {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.error {
+    min-height: 1em;
+    margin: 4px 0;
+    color: var(--alarm);
+    font-size: 12.5px;
+}
+
+.num,
+.pv {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.num {
+    white-space: nowrap;
+}
+
+.warn {
+    color: var(--warn);
+    font-weight: 600;
+}
+
+.scroll {
+    overflow-x: auto;
+}
+
+.grid {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.grid th {
+    padding: 4px 12px 4px 0;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--rule);
+}
+
+.grid td {
+    padding: 6px 12px 6px 0;
+    border-bottom: 1px solid var(--grid);
+}
+
+.grid .r {
+    text-align: right;
+}
+
+.grid tbody tr {
+    cursor: pointer;
+}
+
+.grid tr[data-focus="true"] td {
+    background: var(--focus-bg);
+}
+
+.hosts tbody tr {
+    cursor: default;
+}
+
+.hosts button.link {
+    padding: 0;
+    font: inherit;
+    color: var(--accent);
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--accent);
+    cursor: pointer;
+}
+
+.hosts tr.detail td {
+    padding: 4px 0 10px;
+    background: var(--focus-bg);
+}
+
+.pvlist {
+    margin: 0;
+    padding: 0 0 0 16px;
+    font-size: 12.5px;
+    columns: 2 22rem;
+}
+
+.grid .empty {
+    padding: 12px 0;
+    color: var(--ink-2);
+}
+
+.help {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    max-width: 80ch;
+}
+
+.help dt {
+    margin-top: 6px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.help dd {
+    margin: 0;
+}
+
+/* storage bars: ink for the used part only */
+
+.bars {
+    display: grid;
+    gap: 12px;
+}
+
+.bar-row {
+    display: grid;
+    grid-template-columns: minmax(5rem, 9rem) minmax(0, 1fr) minmax(12rem, 22rem);
+    gap: 12px;
+    align-items: center;
+}
+
+.bar-row .pv {
+    overflow-wrap: anywhere;
+    font-size: 12.5px;
+}
+
+.bar-row .num {
+    white-space: normal;
+    text-align: right;
+}
+
+.track {
+    position: relative;
+    height: 8px;
+    background: var(--grid);
+}
+
+.fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--ink-3);
+}
+
+.fill.low {
+    background: var(--alarm);
+}
+
+/* process metrics */
+
+.current {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    gap: 4px 20px;
+    margin: 0 0 12px;
+}
+
+.current dt {
+    color: var(--ink-2);
+}
+
+.current dd {
+    margin: 0;
+}
+
+
+.process {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 28px;
+}
+
+@media (max-width: 900px) {
+    .process {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .system {
+        padding: 12px;
+    }
+
+    .bar-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+}
+
+/* ---- the three System pages ------------------------------------------------------------------ */
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 12px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.tabs a {
+    padding: 8px 14px;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+}
+
+.tabs a[aria-current="page"] {
+    color: var(--ink);
+    font-weight: 600;
+    border-bottom-color: var(--accent);
+}
+
+.tabs select {
+    margin-left: auto;
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink-3);
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.system h1 {
+    margin: 8px 0 4px;
+    font-size: 20px;
+}
+
+.verdicts {
+    list-style: none;
+    margin: 8px 0;
+    padding: 0;
+}
+
+.verdicts li {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--grid);
+}
+
+.verdicts .what {
+    font-weight: 600;
+}
+
+.status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+}
+
+.st {
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.st.ok {
+    color: var(--ink-2);
+}
+
+.st.warn {
+    color: var(--warn);
+}
+
+.st.bad {
+    color: var(--alarm);
+}
+
+.st.unknown {
+    color: var(--ink-3);
+    font-weight: 500;
+}
+
+.why {
+    color: var(--ink-2);
+    font-size: 13px;
+}
+
+.grid.plain tbody tr {
+    cursor: default;
+}
+
+.grid.plain td {
+    vertical-align: top;
+}
+
+.grid.plain th[colspan] {
+    padding-top: 14px;
+}
+
+.columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.qa {
+    margin: 0 0 12px;
+    font-size: 13px;
+}
+
+.qa dt {
+    font-weight: 600;
+}
+
+.qa dd {
+    margin: 0 0 6px;
+    color: var(--ink-2);
+    max-width: 75ch;
+}
+
+form.inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 8px 0;
+}
+
+form.inline label {
+    font-size: 13px;
+    color: var(--ink-2);
+}
+
+form.inline input,
+form.inline select {
+    font: inherit;
+    padding: 5px 8px;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink-3);
+    border-radius: 4px;
+}
+
+form.inline input[type="text"] {
+    min-width: 18rem;
+}
+
+form.inline button {
+    padding: 6px 14px;
+    font: inherit;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .verdicts li {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    form.inline button,
+    .hosts button.link {
+        min-height: 44px;
+    }
+}
+
+.grid.plain td.wrap {
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.grid.plain .num {
+    white-space: normal;
+}
+
+.grid.plain .pv {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+    .tabs a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .system button,
+    .system input,
+    .system select {
+        min-height: 44px;
+    }
+
+    .grid.plain td a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}
+
+dialog {
+    width: min(480px, calc(100vw - 32px));
+    padding: 20px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--ink-3);
+    border-radius: 6px;
+}
+
+dialog::backdrop {
+    background: rgba(0, 20, 26, 0.55);
+}
+
+dialog h2 {
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+}
+
+.dialog-actions {
+    display: flex;
+    gap: 18px;
+    margin-top: 12px;
+}
+
+.dialog-actions button {
+    padding: 6px 14px;
+    font: inherit;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.dialog-actions button.quiet {
+    color: var(--ink-2);
+    background: none;
+    border-color: transparent;
+}
+
+.muted {
+    color: var(--ink-2);
+    font-size: 13px;
+}

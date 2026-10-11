@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' http: https:; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <title>appliance archiver - Retrieval performance</title>
+    <link rel="stylesheet" href="comm/css/main.css" />
+    <link rel="stylesheet" href="comm/css/chart.css" />
+    <link rel="stylesheet" href="css/system.css" />
+    <script src="comm/js/vendor/d3.min.js" defer></script>
+    <script type="module" src="js/retrieval.js"></script>
+  </head>
+  <body>
+    <!-- @begin(site_header) -->
+    <div class="pageheader">
+      <span><img src="comm/img/archiverheader.svg" alt="Site header" /></span>
+    </div>
+    <!-- @end(site_header) -->
+
+    <!-- @begin(site_navbar) -->
+    <div class="navbar">
+      <div class="nav">
+        <ul class="mainmenu">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="reports.html">Reports</a></li>
+          <li><a href="metrics.html">Metrics</a></li>
+          <li><a href="storage.html">Storage</a></li>
+          <li><a href="appliance.html">Appliances</a></li>
+          <li><a href="integration.html">Integration</a></li>
+          <li><a href="api/index.html" id="help">Help</a></li>
+        </ul>
+      </div>
+    </div>
+    <!-- @end(site_navbar) -->
+
+    <main class="system">
+      <nav class="tabs" aria-label="System pages">
+        <a href="system.html" data-page="system.html">Overview</a>
+        <a href="operations.html" data-page="operations.html">Operations</a>
+        <a href="retrieval.html" data-page="retrieval.html" aria-current="page">Retrieval performance</a>
+        <select id="applianceChoice" aria-label="Appliance" hidden></select>
+      </nav>
+      <p id="problem" class="error" role="status"></p>
+
+      <h1>Retrieval performance</h1>
+      <p class="sub">
+        For a person whose data requests are slow or fail, and for the person helping them. It shows what the server can
+        say about reading and measures what this browser sees.
+      </p>
+
+      <section aria-labelledby="measureHeading">
+        <h2 id="measureHeading">Measure from this browser</h2>
+        <dl class="qa">
+          <dt>Question</dt>
+          <dd>How long does a data request take for me, now?</dd>
+          <dt>Slow is</dt>
+          <dd>More than about a second for the last hour of one PV, or a time that grows with the length of the range.</dd>
+          <dt>Then</dt>
+          <dd>
+            Compare with the server side below. A slow request while the retrieval heap floor is high or the ETL is
+            running points to the server; a slow request with a quiet server points to the network or to the size of the
+            request.
+          </dd>
+        </dl>
+        <form id="measureForm" class="inline">
+          <label for="measurePV">PV</label>
+          <input id="measurePV" type="text" autocomplete="off" spellcheck="false" required />
+          <label for="measureRange">Range</label>
+          <select id="measureRange">
+            <option value="1">Last hour</option>
+            <option value="24">Last day</option>
+            <option value="168">Last week</option>
+            <option value="720">Last 30 days</option>
+          </select>
+          <button type="submit">Measure</button>
+        </form>
+        <p id="measureError" class="error" role="status"></p>
+        <div class="scroll">
+          <table class="grid plain" id="measurements">
+            <thead>
+              <tr><th>When</th><th>PV</th><th>Range</th><th class="r">Samples</th><th class="r">Size</th><th class="r">First byte</th><th class="r">Complete</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="sub">
+          The measurement is one ordinary data request made by this page; nothing on the server changes. The results of
+          this visit are kept on the page only.
+        </p>
+        <p class="sub">
+          The whole answer is read into this page, at about 100 bytes per sample. For a PV that changes once a second,
+          a day is about 9 MB, a week about 60 MB and 30 days about 250 MB; a faster PV needs proportionally more. Start
+          with the last hour or the last day.
+        </p>
+      </section>
+
+      <section aria-labelledby="serverHeading">
+        <h2 id="serverHeading">What the server says</h2>
+        <dl class="qa">
+          <dt>A problem is</dt>
+          <dd>A retrieval process that is down.</dd>
+          <dt>Attention when</dt>
+          <dd>The heap floor climbs from day to day; the note under the heap chart says so.</dd>
+          <dt>Not a problem</dt>
+          <dd>An ETL pass that is running now. It is normal work and can make a request slower while it runs.</dd>
+        </dl>
+        <div class="columns">
+          <div>
+            <table class="grid plain" id="serverFacts"><tbody></tbody></table>
+            <p class="sub">The server counts requests and users but does not record how long a request took. That is why the measurement above is made in the browser.</p>
+          </div>
+          <div>
+            <h3>Retrieval heap</h3>
+            <div id="heapChart" class="chart"></div>
+            <p id="heapNote" class="sub"></p>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="dataHeading">
+        <h2 id="dataHeading">Data available for a PV</h2>
+        <form id="dataForm" class="inline">
+          <label for="dataPV">PV</label>
+          <input id="dataPV" type="text" autocomplete="off" spellcheck="false" required />
+          <button type="submit">Look up</button>
+        </form>
+        <p id="dataError" class="error" role="status"></p>
+        <table class="grid plain" id="dataFacts"><tbody></tbody></table>
+      </section>
+
+      <section aria-labelledby="storesHeading">
+        <h2 id="storesHeading">Where data lives</h2>
+        <p class="sub">
+          Data moves from the short term store through the medium term store to the long term store as it ages, at the
+          cadence of the ETL. Recent data is read from the short term store; a long range reads files of several stores,
+          and a policy may keep only reduced values in the long term store. This is why old data and long ranges are
+          slower than recent data. The policy of a PV is shown in its stores above.
+        </p>
+      </section>
+
+    </main>
+
+    <!-- @begin(site_footer) -->
+    <div class="pagefooter"></div>
+    <!-- @end(site_footer) -->
+  </body>
+</html>

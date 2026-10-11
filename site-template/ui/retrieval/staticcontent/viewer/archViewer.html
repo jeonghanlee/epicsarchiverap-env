@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <title>Archived data</title>
+    <link rel="stylesheet" href="../comm/css/main.css" />
+    <link rel="stylesheet" href="../comm/css/chart.css" />
+    <link rel="stylesheet" href="viewer.css" />
+    <script src="../comm/js/vendor/d3.min.js" defer></script>
+    <script type="module" src="viewer.js"></script>
+  </head>
+  <body class="viewer-page">
+    <header class="viewer-bar">
+      <h1>Archived data</h1>
+      <form id="addForm" class="add" autocomplete="off">
+        <label for="pvName" class="hint">Add a PV</label>
+        <input id="pvName" type="search" list="suggestions" placeholder="SR:C01:BPM1:X" spellcheck="false" />
+        <datalist id="suggestions"></datalist>
+        <button type="submit">Add</button>
+      </form>
+      <div class="ranges" id="ranges" role="group" aria-label="Time range">
+        <button type="button" data-minutes="10">10m</button>
+        <button type="button" data-minutes="60">1h</button>
+        <button type="button" data-minutes="360">6h</button>
+        <button type="button" data-minutes="1440">24h</button>
+        <button type="button" data-minutes="10080">7d</button>
+      </div>
+      <form id="spanForm" class="span">
+        <label>From <input id="fromTime" type="datetime-local" step="1" /></label>
+        <label>To <input id="toTime" type="datetime-local" step="1" /></label>
+        <button type="submit">Show</button>
+      </form>
+    </header>
+
+    <main class="viewer">
+      <ul id="chips" class="chips-list" aria-label="PVs shown"></ul>
+      <p id="message" class="message" role="status"></p>
+      <div id="charts"></div>
+      <p class="tools">
+        <button type="button" id="copyLink" class="plain">Copy link</button>
+        <button type="button" id="downloadCsv" class="plain">Download CSV</button>
+      </p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,701 @@
+/*
+ * Work page. The tokens (--ink, --rule, --accent, ...) come from the shared main.css.
+ * Ink goes to the data and to the one thing that needs attention. Regions are separated by
+ * whitespace and thin rules, not by boxes, fills or shadows.
+ */
+
+.work {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    gap: 24px;
+    max-width: 1560px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+@media (max-width: 900px) {
+    .work {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.work section {
+    min-width: 0;
+}
+
+.work h2 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+}
+
+.work h3 {
+    margin: 12px 0 2px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.work .area {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+}
+
+.work .sub,
+.work .hint,
+.work .muted {
+    color: var(--ink-2);
+    font-size: 12.5px;
+    margin: 0 0 6px;
+}
+
+.work .faint {
+    color: var(--ink-3);
+}
+
+.work .error {
+    color: var(--alarm);
+    margin: 4px 0;
+    min-height: 1em;
+    font-size: 12.5px;
+}
+
+.num,
+.pv {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.num {
+    white-space: nowrap;
+}
+
+/* A PV name stays on one line inside a table; the table scrolls instead of breaking it. */
+.scan td.pv,
+.stats td.pv {
+    overflow-wrap: normal;
+    white-space: nowrap;
+}
+
+.pv {
+    font-size: 12.5px;
+    overflow-wrap: anywhere;
+}
+
+/* finder */
+
+.search {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 15px;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid var(--ink-3);
+    border-radius: 0;
+    color: var(--ink);
+}
+
+.search:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+}
+
+.modes,
+.ranges,
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin: 8px 0;
+}
+
+.modes button,
+.ranges button,
+.chips button,
+.actions button {
+    background: none;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    padding: 2px 0;
+    margin: 0;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.modes button[aria-pressed="true"],
+.ranges button[aria-pressed="true"],
+.chips button[aria-pressed="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+}
+
+.ranges button {
+    font-family: var(--mono);
+    font-size: 12.5px;
+}
+
+.chips .n {
+    margin-left: 4px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+}
+
+#report {
+    width: 100%;
+    margin: 4px 0;
+    padding: 6px 8px;
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink-3);
+    border-radius: 4px;
+}
+
+.report-value {
+    font-size: 12px;
+    color: var(--ink-2);
+}
+
+.count {
+    margin: 8px 0 4px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.offer {
+    min-height: 1.4em;
+    font-size: 13px;
+}
+
+.offer button {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--accent);
+    border-bottom: 1px solid var(--accent);
+    cursor: pointer;
+    font: inherit;
+}
+
+.results {
+    position: relative;
+    max-height: min(60vh, 520px);
+    overflow-y: auto;
+    border-top: 1px solid var(--rule);
+}
+
+.results .spacer {
+    position: relative;
+}
+
+.results ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.results li {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 30px;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+    border-bottom: 1px solid var(--grid);
+    cursor: pointer;
+}
+
+.results li:hover,
+.results li[aria-selected="true"] {
+    background: var(--focus-bg);
+}
+
+.results:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.results:focus-visible li.active {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.scan tbody tr:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.results .pv {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tick {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--ink-3);
+    border-radius: 3px;
+}
+
+li[aria-selected="true"] .tick {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.state-word {
+    font-size: 12px;
+}
+
+.state-word.warn,
+.warn {
+    color: var(--warn);
+    font-weight: 600;
+}
+
+/* board */
+
+.bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.bar h2 {
+    margin: 0;
+}
+
+.limits {
+    margin-left: auto;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.scroll {
+    overflow-x: auto;
+}
+
+.scan,
+.stats {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.scan th,
+.stats th {
+    padding: 4px 8px 4px 0;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--rule);
+}
+
+.scan td,
+.stats td {
+    padding: 4px 8px 4px 0;
+    border-bottom: 1px solid var(--grid);
+    vertical-align: middle;
+}
+
+.scan .r,
+.stats th:not(:first-child),
+.stats td:not(:first-child) {
+    text-align: right;
+}
+
+.scan tbody tr {
+    cursor: pointer;
+}
+
+.scan tr[data-focus="true"] td {
+    background: var(--focus-bg);
+}
+
+.scan .empty {
+    color: var(--ink-2);
+    padding: 12px 0;
+}
+
+.stats td {
+    font-size: 12.5px;
+}
+
+/* distribution and scatter side by side */
+
+.pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 28px;
+}
+
+@media (max-width: 900px) {
+    .pair {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* detail */
+
+.detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 20px 28px;
+}
+
+@media (max-width: 1100px) {
+    .detail {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.status-big {
+    margin: 0 0 2px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.explain {
+    max-width: 60ch;
+}
+
+.facts {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 4px 16px;
+    margin: 8px 0;
+}
+
+.facts dt {
+    color: var(--ink-2);
+}
+
+.facts dd {
+    margin: 0;
+    font-size: 12.5px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin-top: 10px;
+}
+
+.actions button {
+    color: var(--accent);
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.actions button:hover {
+    border-bottom-color: var(--accent);
+}
+
+.actions .danger,
+button.danger {
+    color: var(--alarm);
+}
+
+.glossary {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin: 0;
+}
+
+.glossary dt {
+    margin-top: 6px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.glossary dd {
+    margin: 0;
+}
+
+/* dialogs */
+
+dialog {
+    max-width: min(440px, calc(100vw - 32px));
+    padding: 20px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--ink-3);
+    border-radius: 6px;
+}
+
+dialog::backdrop {
+    background: rgba(0, 20, 26, 0.55);
+}
+
+dialog h2 {
+    margin: 0 0 8px;
+}
+
+dialog label {
+    display: block;
+    margin: 12px 0 4px;
+    font-size: 13px;
+    color: var(--ink-2);
+}
+
+dialog label.check {
+    color: var(--ink);
+}
+
+dialog select,
+dialog input[type="number"] {
+    width: 100%;
+    padding: 6px 8px;
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink-3);
+    border-radius: 4px;
+}
+
+.dialog-actions {
+    display: flex;
+    gap: 18px;
+    margin-top: 16px;
+}
+
+.dialog-actions button {
+    padding: 6px 14px;
+    font: inherit;
+    cursor: pointer;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+}
+
+.dialog-actions button.danger {
+    color: var(--bg);
+    background: var(--alarm);
+    border-color: var(--alarm);
+}
+
+.dialog-actions button.quiet {
+    color: var(--ink-2);
+    background: none;
+    border-color: transparent;
+}
+
+.maintenance {
+    margin: 12px 0 0;
+}
+
+.maintenance summary {
+    cursor: pointer;
+    color: var(--ink-2);
+    font-size: 13px;
+}
+
+.facts.all {
+    max-height: 22rem;
+    overflow: auto;
+    grid-template-columns: minmax(10rem, 2fr) minmax(0, 3fr);
+}
+
+.facts.all dt,
+.facts.all dd {
+    overflow-wrap: anywhere;
+}
+
+.bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 18px;
+    margin: 8px 0 0;
+}
+
+/* The bulk, zoom and maintenance buttons read as the actions of the detail do: text, not a filled button. */
+.bulk button.plain,
+.zoombar button.plain,
+.maintenance button.plain {
+    background: none;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    padding: 4px 0;
+    margin: 0;
+    color: var(--accent);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.bulk button.plain:hover,
+.zoombar button.plain:hover,
+.maintenance button.plain:hover {
+    border-bottom-color: currentColor;
+}
+
+.bulk button.plain.danger {
+    color: var(--alarm);
+    background: none;
+}
+
+.zoombar button.plain:disabled {
+    color: var(--ink-3);
+    cursor: default;
+    border-bottom-color: transparent;
+}
+
+#maintainFields label {
+    display: block;
+    margin: 10px 0 3px;
+    font-size: 13px;
+    color: var(--ink-2);
+}
+
+#maintainFields input,
+#maintainFields select {
+    width: 100%;
+    max-width: 24rem;
+    font: inherit;
+    padding: 6px 8px;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink-3);
+    border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+    .maintenance summary {
+        display: list-item;
+        line-height: 44px;
+    }
+
+    .bulk button.plain,
+    .zoombar button.plain,
+    .maintenance button.plain {
+        min-height: 44px;
+    }
+
+    /* Controls are at least 44 px high so a thumb can hit them. */
+    label.check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+    }
+
+    .work button,
+    .work input,
+    .work select {
+        min-height: 44px;
+    }
+
+    .results li {
+        height: 44px;
+    }
+
+    /* A scan row becomes two lines: the name and the current value, then the trend and the state. */
+    .scan thead {
+        display: none;
+    }
+
+    .scan,
+    .scan tbody {
+        display: block;
+    }
+
+    .scan tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "pv now" "spark state";
+        align-items: center;
+        gap: 2px 12px;
+        padding: 8px 4px;
+        border-bottom: 1px solid var(--grid);
+    }
+
+    .scan tr[data-focus="true"] {
+        background: var(--focus-bg);
+    }
+
+    .scan tr[data-focus="true"] td {
+        background: transparent;
+    }
+
+    .scan td {
+        display: block;
+        padding: 0;
+        border: 0;
+    }
+
+    .scan td.pv {
+        grid-area: pv;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .scan td.now {
+        grid-area: now;
+        font-size: 18px;
+        text-align: right;
+    }
+
+    .scan td.spark-cell {
+        grid-area: spark;
+    }
+
+    .scan td.state {
+        grid-area: state;
+        text-align: right;
+    }
+
+    .scan td.last {
+        display: none;
+    }
+
+    .scan td.empty {
+        grid-column: 1 / -1;
+    }
+
+    .modes button,
+    .ranges button,
+    .chips button,
+    .actions button {
+        min-height: 44px;
+    }
+}
+
+.zoombar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 0 0 4px;
+}
+
+a.plain-link {
+    display: inline-block;
+    margin: 8px 0 0;
+    color: var(--accent);
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    a.plain-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}

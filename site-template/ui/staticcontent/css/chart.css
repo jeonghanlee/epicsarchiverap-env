@@ -1,0 +1,133 @@
+/* Time series and sparklines, shared by the management Work page and the data viewer. */
+
+svg .spark {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.2;
+}
+
+svg .spark-end {
+    fill: var(--accent);
+}
+
+svg .spark-end.alarm {
+    fill: var(--alarm);
+}
+
+/* distribution and scatter */
+
+.plot {
+    position: relative;
+    min-height: 60px;
+}
+
+.plot svg text {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--ink-3);
+}
+
+.plot svg .bar {
+    fill: var(--ink-3);
+}
+
+.plot svg .mean {
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+
+.plot svg .dot {
+    fill: var(--ink-3);
+    fill-opacity: 0.6;
+}
+
+/* chart */
+
+.chart {
+    position: relative;
+    min-height: 120px;
+}
+
+.chart svg text {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--ink-3);
+}
+
+.chart svg .grid {
+    stroke: var(--grid);
+    stroke-width: 1;
+}
+
+.chart svg .line {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+}
+
+.chart svg .line.quiet {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+    opacity: 0.5;
+}
+
+.chart svg .line.focus {
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+
+.chart svg .alarm {
+    fill: var(--alarm);
+}
+
+.chart svg .cross {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+}
+
+.chart svg .label {
+    fill: var(--ink-2);
+}
+
+.chart svg .label.focus {
+    fill: var(--accent);
+    font-weight: 600;
+}
+
+.tip {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    padding: 6px 8px;
+    background: var(--bg);
+    border: 1px solid var(--ink-3);
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.tip .alarm-text {
+    color: var(--alarm);
+}
+
+
+.chart svg .dot {
+    fill: var(--bg);
+    stroke: var(--ink-2);
+    stroke-width: 1.2;
+}
+
+.chart svg .dot.focus {
+    stroke: var(--accent);
+}
+
+.chart svg .brush {
+    fill: var(--accent);
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.chart svg {
+    cursor: crosshair;
+}
