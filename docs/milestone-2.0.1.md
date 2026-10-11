@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45 and M46 are Complete; all three external gates are Complete. M13 (management web interface rework) is assigned to this milestone by D45 and is In progress under an accepted plan; its information architecture is accepted by D49 and the interface is implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); open is the transfer to epicsarchiverap-maven (plan item 12, T6); D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) waits on M13 and is In progress. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification and the accepted eight-case VM run remain Pending. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. After M13, the next checks are current-pin source CI, complete Release Verification 2, release notes and matrix preparation, followed by the separately authorized VM run. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37.
+Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates are Complete. M13 (management web interface rework) is assigned to this milestone by D45 and is In progress under an accepted plan; its information architecture is accepted by D49 and the interface is implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); open is the transfer to epicsarchiverap-maven (plan item 12, T6); D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) waits on M13 and is In progress. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification and the accepted eight-case VM run remain Pending. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. After M13, the next checks are current-pin source CI, complete Release Verification 2, release notes and matrix preparation, followed by the separately authorized VM run. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37.
 
 ## Scope
 
@@ -35,7 +35,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Complete | No | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
 | UI | M13 | Rework the management web interface and its site skin | Milestone | In progress | No | D45, D46, D47, D48, D49, D50, D51, D52, D53, D54 | The management console pages, navigation, icons and explanatory text are redesigned and checked in the real appliance at desktop and mobile widths; the files owned by epicsarchiverap-maven are transferred to it; [detail](#m13---rework-the-management-web-interface-and-its-site-skin) |
-| UI | M50 | Replace the sample buffer capacity adjustment with the margin in seconds | Milestone | In progress | No | none | The environment writes `sampleBufferMarginSeconds` from `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS`, the Operations remedies name it, and `SRC_TAG` pins a source that reads it; [detail](#m50---replace-the-sample-buffer-capacity-adjustment-with-the-margin-in-seconds) |
+| UI | M50 | Replace the sample buffer capacity adjustment with the margin in seconds | Milestone | Complete | No | none | The environment writes `sampleBufferMarginSeconds` from `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS`, the Operations remedies name it, and `SRC_TAG` pins a source that reads it; [detail](#m50---replace-the-sample-buffer-capacity-adjustment-with-the-margin-in-seconds) |
 | Release | M44 | Verify and publish release 2.0.1 | Milestone | In progress | No | M43, M14, M10, M45, M46, M13, D31, D37, D39, D44, D45 | Released objects and required post-release checks pass; candidate `48724a2` published with source `162269e7`, final integration and VM acceptance Pending; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
@@ -1183,7 +1183,7 @@ server: `getMatchingPVsForThisAppliance` returns names for a glob or Java regex 
 Origin: 2.0.1 / M50
 Identity History: none
 GitHub Issue: [#60](https://github.com/jeonghanlee/epicsarchiverap-env/issues/60)
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1238,17 +1238,17 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none; the change is not committed yet.
+- Complete on 2026-10-11: the change landed in `3353b74` on `origin/release-2.0.1`, and the register update in `1ca64c6`; T1, T2 and T3 passed and #60 was closed as completed with its body synchronized and the five acceptance criteria checked.
 
 ##### GitHub Projection
 
 Title: Replace the sample buffer capacity adjustment with the margin in seconds
 Labels: enhancement
 GitHub Milestone: 2.0.1
-Observed State: OPEN
+Observed State: CLOSED
 Observed Labels: enhancement
 Observed Milestone: 2.0.1 / #7
-Last Compared: 2026-10-11 at 08:39 UTC, `gh issue view 60 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, milestone 2.0.1, assignee jeonghanlee
+Last Compared: 2026-10-11 at 08:49 UTC, `gh issue view 60 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-11T08:49:40Z, enhancement, milestone 2.0.1, assignee jeonghanlee; one closing comment; the live body equals the synchronized draft with the five acceptance criteria checked
 
 #### M44 - Verify and publish release 2.0.1
 
