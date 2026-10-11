@@ -7,15 +7,15 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45 and M46 are Complete and their issues are closed; M44 (release 2.0.1) is the only open Milestone row and is In progress. The release plan accepted and authorized on 2026-10-05 covers the changelog entry, local suite, release notes draft and matrix preparation. On 2026-10-07, D44 accepts and authorizes the candidate source pin `120d53fe43133c7699e4c9624dc948cc96b0ece2` and preliminary local verification before its Maven CI completes. Source CI and Release Verification 2 now pass at this pin; the release notes draft, matrix preparation and separately authorized eight-case VM run remain. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per operating system. Commit, push, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged; the cloud-provision species rename (`archiver-dev` to `archiver-dev-uds`, `archiver_dev_uds`, new `archiver-dev-tcp`, cloud-provision `796682c`) matters only when those pins move, which is not yet a register item. M41 remains Backlog under D37.
+Next session entry point: M10, M14, M43, M45 and M46 are Complete; all three external gates are Complete. M13 (management web interface rework) is assigned to this milestone by D45 and is In progress under an accepted plan; its information architecture is accepted by D49 and the interface is implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); open is the transfer to epicsarchiverap-maven (plan item 12, T6); D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) waits on M13 and is In progress. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification and the accepted eight-case VM run remain Pending. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. After M13, the next checks are current-pin source CI, complete Release Verification 2, release notes and matrix preparation, followed by the separately authorized VM run. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37.
 
 ## Scope
 
-The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration after the source contract is confirmed, real installation test automation. Heap measurement and guidance are excluded under D37 and retained in Backlog. The owner assigned these four candidates on 2026-09-29. D38 adds M45 on 2026-10-04, and the owner added M46 on 2026-10-04. The current proposed order is M43, M14, M10, then M44. G6 may be investigated while M43 is planned; its completion gates M14 and release readiness. The release sequence and remaining detailed plans await acceptance; M43 is accepted under D32.
+The 2.0.1 patch cycle covers backend isolation safeguards, removal of obsolete Ant integration, real installation test automation, and the committed local installation entrypoints and their configuration, readiness and optional PV checks. Heap measurement and guidance are excluded under D37 and retained in Backlog. M43, M14, M10, M45 and M46 and their external gates are Complete. M44 owns final verification and publication under the release plan accepted on 2026-10-05; individual execution actions retain their separate authorization requirements. M13 reworks the management web interface and its site skin under D45; the files that epicsarchiverap-maven owns are prepared in this repository while that repository runs its other tests and are then transferred to it.
 
-Out of scope: adding SQLite deletion, table-query, backup or restore support; changing the shipped heap default; UI skin changes; LTS pre-processing; data migration. Existing 2.0.0 release objects remain immutable. No next release after 2.0.1 is assigned.
+Out of scope: adding SQLite deletion, table-query, backup or restore support; changing the shipped heap default; LTS pre-processing; data migration. Existing 2.0.0 release objects remain immutable. No next release after 2.0.1 is assigned.
 
-Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag commit `386c91d74086313efe04e0b64eb5dacfd91f8389`, epicsarchiverap-maven pin `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Prior release results are historical evidence and do not satisfy 2.0.1 checks. Backend isolation work is Complete; VM test implementation is In progress and real runtime acceptance remains Pending.
+Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, published 2.0.0 tag commit `386c91d74086313efe04e0b64eb5dacfd91f8389`, epicsarchiverap-maven pin `d8a7813f40083c1bf7148e6c3b7bffd368d70ee0`. Prior release results are historical evidence and do not satisfy 2.0.1 checks. Implementation milestones are Complete at the refs recorded in their details; final combined-candidate integration and VM acceptance remain Pending.
 
 ## Milestone
 
@@ -34,7 +34,8 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Gate | G7 | ansible-provision reports the exact cause of the Rocky 8.10 journald gap | External gate | Complete | No | D38 | Cause established as a systemd 239 reader defect; the reproducer and scanner are shared for M45 / T1; [detail](#g7---ansible-provision-reports-the-exact-cause-of-the-rocky-810-journald-gap) |
 | Gate | G8 | epicsarchiverap-maven reports the exact cause of the CAJ search-port defect | External gate | Complete | No | D38 | Socket reproducer and engine-start counts confirm or refute the shared-port mechanism; [detail](#g8---epicsarchiverap-maven-reports-the-exact-cause-of-the-caj-search-port-defect) |
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Complete | No | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
-| Release | M44 | Verify and publish release 2.0.1 | Milestone | In progress | No | M43, M14, M10, M45, M46, D31, D37, D39, D44 | Released objects and required post-release checks pass; [detail](#m44---verify-and-publish-release-201) |
+| UI | M13 | Rework the management web interface and its site skin | Milestone | In progress | No | D45, D46, D47, D48, D49, D50, D51, D52, D53, D54 | The management console pages, navigation, icons and explanatory text are redesigned and checked in the real appliance at desktop and mobile widths; the files owned by epicsarchiverap-maven are transferred to it; [detail](#m13---rework-the-management-web-interface-and-its-site-skin) |
+| Release | M44 | Verify and publish release 2.0.1 | Milestone | In progress | No | M43, M14, M10, M45, M46, M13, D31, D37, D39, D44, D45 | Released objects and required post-release checks pass; candidate `48724a2` published with source `162269e7`, final integration and VM acceptance Pending; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
 
@@ -57,6 +58,16 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D39 | Run M10 acceptance on the latest epicsarchiverap-maven `modernize` commit that carries the current fixes and passes its CI, and keep following newly fixed commits instead of holding an older source. The next run uses `aa953a44bd2e6fb2a299224b97d365e7753a2fd8`, which carries the CAJ correction `7adc7d5a` and passed run 37249019863. The repository source pin `SRC_TAG` in `configure/RELEASE` follows the same commit, so the tested and released source stay equal. | 2026-10-04 |
 | D40 | Fix the false `wrong-java-executable` at start in both places: the launcher health reports a starting state for a PID that has not yet executed Java, and the VM verifier waits on that state and on `wrong-java-executable` within its bounded readiness deadline, failing when it persists. The owner chose this for system stability and reliability over the smaller verifier-only change, accepting the larger plan and later M10 run. | 2026-10-04 |
 | D44 | Adopt epicsarchiverap-maven `modernize` commit `120d53fe43133c7699e4c9624dc948cc96b0ece2` as the 2.0.1 candidate source pin and run preliminary local verification before its Maven CI finishes. This permits candidate preparation ahead of D39's CI condition; release readiness still requires passing source CI and new integrated and eight-case VM verification at the same pin. Preserve earlier results as evidence for their original commits. Commit, push, guest requests, the VM run and release objects remain separately authorized. | 2026-10-07 |
+| D45 | Assign M13 to the 2.0.1 Milestone and widen it from the site skin to the whole management web interface: page structure and navigation, visual design, icons, explanatory text and mobile browsing, together with the site skin. This supersedes the preservation of M13 as Backlog in D31 and the premise that the interface lives only in EPICS-Arche while the appliance stays on WARs. The work is prepared in epicsarchiverap-env while epicsarchiverap-maven runs its other tests, and the files that epicsarchiverap-maven owns are then transferred to it. Release verification of 2.0.1 runs after M13 and is carried out separately. Plan acceptance and implementation authorization stay separate records. | 2026-10-09 |
+| D46 | Set three M13 constraints. First, the web interface plots at most 100 PVs at once and places no other limit on the number of names that search handles or lists; the cap is set by a stepped measurement of 5, 10, 20, 50 and 100 PVs while the server load is watched, with 100 as the target, and the measured number replaces 100 if the measurement does not support it. Second, the interface needs no change to the server code for now, and server changes may be decided later in the cycle as a separate scope change. Third, the supported browsers are the current releases of Firefox, Microsoft Edge and Safari and of open-source browsers built on web standards; browsers of the Rocky Linux 8 operating hosts are not a target because those hosts run no browser GUI. The interface follows web standards and current browser security practice. The plotting cap of this decision is replaced by D47. | 2026-10-09 |
+| D47 | Size the plotting limits to what a person reads on one page and tune them by measurement. Initial values: five series per chart by default and at most eight with distinct line styles, four to six chart panels on one page, about 20 to 30 PVs in detail charts in total, and up to 100 PVs in a sparkline list that scans many PVs at a glance and promotes a chosen PV to a detail chart. The values are interface configuration adjusted from the T11 measurement and from use. Search, selection, status, actions and plots stay on one page. Response targets: feedback to panning and zooming within 0.1 s, and a new time window filled within 0.5 to 1 s, with a coarser resolution shown first. This replaces the plotting cap of D46. | 2026-10-10 |
+| D48 | Design the interface by the data-ink principle. Each view names the one thing it emphasizes and spends the most ink there; ink that carries no data is removed; color carries meaning only, with the accent for selection and a saturated color reserved for alarm, disconnection and anomaly; exact data points are shown on zoom and on hover; gaps are drawn as gaps and monitored samples as steps, never interpolated across missing data; many PVs are scanned as sparklines. | 2026-10-10 |
+| D49 | Accept the information architecture of the management interface: one Work page that holds finding PVs, a scan list of the selected PVs, detail charts and the detail with actions and the meaning of each state; a System page that merges metrics, storage and appliances; an Integration page; and Help. The report types become quick filters of the finder, the PV details and quick chart become the Inspect and Detail areas of the Work page, and the plot is replaced by the data browser of M13. Pages are written to this architecture. | 2026-10-10 |
+| D50 | Keep the list of archived PV names current in the browser by a snapshot and small updates, and never read the whole list at each visit. Archived names do not leave the list when their IOC goes down, so a change is almost always an addition. The page keeps a snapshot in IndexedDB, shows it at once with the time it is current to, checks the number of PVs every 15 s while the page is visible with `getApplianceMetrics`, merges new names from `getRecentlyAddedPVs`, and reads the whole list again when the number falls, when the snapshot is a day old, or when an addition may be incomplete. A name the snapshot lacks is looked up once on the server and kept. Above 500,000 names (confirmed by the owner 2026-10-10; T9 may propose a change) the list is not held in the browser and the server matching endpoint answers each search. No server code changes; a call that returns the names changed since a time is possible later because the metadata table keeps a modification time per PV. | 2026-10-10 |
+| D51 | Amend D49: the System section is three pages. Overview for everyone: three verdict lines and a summary table that says what each number means and links to the detail. Operations for the person who looks after the appliance: samples, dropped samples, write path, stores and ETL, processes and configuration, each with the question it answers, when it is a problem and what to do. Retrieval performance for a person whose requests are slow: what the server reports and a request measured in the browser. A percentage is used only where its denominator is the quantity's own limit; the heap is judged by its floor after collection, storage by days left, disconnected PVs by host and time of loss. The thresholds are starting values, shown on the page with their basis, and the server changes that would improve them are listed outside the plan and not made (D46). | 2026-10-10 |
+| D52 | Carry the PV operations of the old interface that remain useful into the new one, by conditions the server enforces. On the Work page: change of the sampling period and method (works on a running or a paused PV), the full details list, and pause, resume and stop for several selected PVs through the list form of the calls; in a folded maintenance area of the PV detail: rename, change of type and consolidation, each saying what it changes, with a backup confirmation for the type change; on Operations: pausing the PVs of a disconnected host group. Left out: the storage definition change (it can lose data), the policy text and the stores call (shown elsewhere), the cluster-wide storage report (replaced by the per-appliance report). Postponed: moving a PV to another appliance, aliases, extra meta fields and appending one PV to another. | 2026-10-10 |
+| D53 | Amend plan items 5 and 7 to what was built and measured. The interface uses no icon set: text carries every label and an icon would be ink without data (D48). Series are drawn as SVG paths with the reduction the server already offers (`mean_N`), not on a canvas and not reduced again in a worker, because the measured steps stay within the bounds (T11). The data viewer is opened from the Work page for the selected PVs and for the focused PV over the window of the chart, and its CSV download is the export; the state of the rows in view is read in one call so the list shows which names are paused or not archived. | 2026-10-10 |
+| D54 | Four rules found by the third review of the interface. A PV name is a base name with an optional `.FIELD`, as the server reads it, so a field PV can be archived, shown and opened in the viewer. A chart line breaks only at a connection loss the archiver recorded (`cnxlostepsecs`, `startup`, `connectionChange`), never after an elapsed time, because a monitored PV that changes rarely keeps its value. Values reduced to means are named as such on the Work page and in the viewer, the server is asked for `meanSample_N`, which leaves an interval without a sample empty (`mean_N` fills it with the previous value and drew a lost connection as a held line), and the CSV carries `interval_seconds`. An unchanged PV count is checked again for additions every fourth poll (D50 amended); a removed name stays until the count falls or the snapshot is a day old. | 2026-10-10 |
 
 ### Assignment History
 
@@ -70,6 +81,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | 265f580 / M42 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
 | 265f580 / G6 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
 | 265f580 / M41 | docs/milestone-2.0.1.md, Milestone | docs/milestone-2.0.1.md, Backlog | this synchronization commit | this synchronization commit; D37, 2026-10-01 |
+| 265f580 / M13 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D45, 2026-10-09 |
 
 ### Milestone Details
 
@@ -988,6 +1000,183 @@ Observed Labels: bug
 Observed Milestone: 2.0.1 / #7
 Last Compared: 2026-10-05 at 17:28 UTC, `gh issue view 59 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-05T17:27:00Z, bug, milestone 2.0.1, assignee jeonghanlee; the live title and body equal the final draft with the three Acceptance Criteria boxes checked, and the closing comment records the result.
 
+#### M13 - Rework the management web interface and its site skin
+
+Origin: 265f580 / M13
+Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; transferred from Backlog to Milestone on 2026-10-09 under D45; ID and Origin preserved
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+The management web interface is a set of pages built on jQuery 1.8.2 and jQuery UI 1.9.1: a fixed header, a navigation
+bar of Home, Reports, Metrics, Storage, Appliances and Integration, and tables whose statuses and columns carry no
+explanation in the interface. An operator enters signal names by hand and looks them up page by page.
+
+This work redesigns the interface as a whole: page structure and navigation, visual design, icons, explanatory text for
+statuses and tables, mobile browsing, signal search, and the data browser that plots archived data. The site skin in
+`site-template/siteid` is part of it.
+
+The pages, scripts and navigation are owned by epicsarchiverap-maven. While that repository runs its other tests they are
+prepared in this repository and then transferred to it. `site-template/siteid` stays owned by this repository.
+
+##### Scope
+
+- `site-template/siteid/{css,img,template_changes.html}` and the `copy.sitespecific` step in `configure/RULES_SRC`.
+- The page markup, scripts and navigation of the management interface that epicsarchiverap-maven owns, prepared in this
+  repository at a location the plan defines, with the procedure that builds and checks them here.
+- Signal search in the browser: an index of the archived PV names kept in the browser, with search, grouping by name
+  structure and filtering by status.
+- The data browser that opens from the management pages, replacing the vendored SVG viewer, keeping its
+  `ui/viewer/archViewer.html?pv=` address working.
+- The transfer of the prepared files to epicsarchiverap-maven after they are checked here.
+
+Out of scope: changes to the server code, its API contracts and appliance behavior (D46); the EPICS-Arche runtime;
+release verification of 2.0.1, which M44 owns.
+
+##### Completion Criteria
+
+- The redesigned pages render and operate in the real appliance built from the prepared files at desktop width and at a
+  390 px mobile width, including the status table, the dialogs, the reports, signal search and the data browser,
+  without horizontal page scrolling.
+- The detail charts and the sparkline list are capped at the values confirmed by T11 (D47), and the interface states a cap when it is reached.
+- Every view follows the data-ink rules of D48, checked by T12.
+- The pages work in the current releases of Firefox, of Edge and of WebKitGTK (the engine of Safari), use only
+  web-standard features, and pass the security checks of T8.
+- The files owned by epicsarchiverap-maven are transferred to it and its CI passes at the resulting commit, with the
+  commit recorded here.
+- This repository's site skin renders correctly on the transferred interface.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-10-09. D46 keeps the server code unchanged for now and names the supported browsers. D47 sets the
+  plotting limits and response targets, replacing the cap of D46, D48 sets the design principles, and D49
+  accepts the information architecture. D50 sets how the list of PV names is kept current in the browser. D51 splits the System section into three pages and sets how a status is judged. D52 keeps the PV operations that the T3 comparison found missing, as far as they are useful. D53 amends plan items 5 and 7 to what was built and measured. D54 sets four rules found by the third review: field names, line breaks at a recorded connection loss, labelled means, and a periodic check of additions. D45 assigns M13 from Backlog to Milestone, widens its scope to the whole management web
+  interface, and orders release verification after it. The owner directed the work to proceed in this repository the
+  same day. Plan acceptance and implementation authorization are separate records.
+- Decision Date: 2026-10-10. The owner accepted the plan and authorized its implementation in this repository; the status moves from Open to In progress.
+- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close.
+- Decision Date: 2026-09-22. Assigned from Backlog to Milestone for 2.0.0.
+- The earlier premise that the interface lives only in EPICS-Arche is replaced for 2.0.1 by D45. EPICS-Arche
+  (post-Phase-2 runtime, D11) remains the place to revisit the interface if it replaces the mgmt UI.
+- epicsarchiverap-maven owns template application and WAR packaging (D33). Files transferred to it follow its own
+  review and CI.
+- Contract inventory, observed 2026-10-10 at source `162269e7`: the management scripts and pages call 43 distinct `bpl/*` endpoints and read 38 element ids through `$("#id")`; the retrieval viewer takes the address parameters `pv` (repeatable), `from` and `to`. The list is retained in `work/ui-contract-inventory.txt` and is reproduced by `grep -h -o -E '(\.\./)?bpl/[A-Za-z0-9_]+' js/*.js *.html | sed 's|.*bpl/||' | sort -u` in `mgmt/staticcontent`.
+- The server injects values into two static files: `js/mgmt.js` carries the template markers `minimumSamplingPeriod` and `archivePVWorkflowBatchSize`, and `viewer/index.html` receives the retrieval address. A redesigned main script keeps the path `js/mgmt.js` and those markers, or obtains the values another way.
+- The installers refuse a source checkout with changes in its source inputs (`check_source`). The files that `site-template/ui` prepares are generated inputs like the site overlay: the source check names them one by one and permits only those, and the shared header, navigation and footer blocks of a prepared `index.html` stay equal to the source ones so the build's block synchronization changes no other page. A build leaves those prepared paths changed in `epicsarchiverap-maven-src`; building without `site-template/ui` needs that checkout restored first.
+- The Work page reads the configured `minimumSamplingPeriod` from the text of `js/mgmt.js`, which the server rewrites, because no endpoint serves it. A server change may replace that read later (D46).
+- The shared chart module, the sparkline module, the chart stylesheet and D3 7.9.0 (ISC license, npm package integrity recorded in `d3.SOURCE.txt`) live in `site-template/ui/staticcontent` and reach every web application as `ui/comm`; the Work page and the data viewer both use them. The replacement viewer is prepared as plain files under `retrieval/staticcontent/viewer`; `viewer.zip` stays in the WAR and is shadowed by those files.
+- The Integration page keeps the functions of the previous page on the same server calls: the configuration upload (the server redirects back to `integration.html?message=...`, so the page name stays), the external archiver data servers (list, add, remove) and the comparison with a Channel Archiver, which replaces `cacompare.html`; that file is prepared as a forward. The Channel Archiver functions are the oldest part of the interface; the owner decides after the design is complete whether they stay.
+- The System page replaces the Metrics, Storage and Appliances pages: those three files are prepared as forwards to `system.html`, and the shared navigation lists Work, System, Integration and Help. The report types of the previous Reports page are selections of the finder on the Work page (14 selections, each with the field it shows beside every PV, the ranked ones in the order of the server); `reports.html` and `pvdetails.html` are prepared as forwards, and `pvdetails.html?pv=` forwards to the Work page with that PV. `capacityUtilized` of `getApplianceMetrics` is a fixed "N/A" in the server code, so the System page computes storage use from `getStorageMetricsForAppliance` instead.
+- Keyboard and contrast: the PV list of the Work page is a listbox that takes the arrow keys, Home, End, Page keys, Space and Enter, and the rows of the scan list and of the System table take Enter and Space; the text colors were darkened so that every one reaches 4.5:1 (the faint level was 3.1:1). The browser automation of this host does not activate even a plain native button from a key, so button activation and the focus of a dialog are the browser's own behavior and were not observed.
+- `scripts/prepare-ui.bash` undoes the copy of the earlier run, using a list of the copied files kept in the source checkout's Git directory, before it copies again, so a file that left `site-template/ui` leaves the build.
+- `StaticContentServlet` serves a file at the exact path first and looks into a `<name>.zip` only when none is found, so a replacement viewer can ship as plain files under `ui/viewer/` beside `viewer.zip`.
+- The retrieval WAR serves the current viewer from the vendored `viewer.zip` (upstream svg_viewer v1.2.1, refresh
+  procedure in the source repository's `docs/svg-viewer.md`). Both the management pages and the retrieval WAR allow
+  cross-origin requests, so a management page can request archived data from the retrieval address.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-10-10; owner accepted the twelve-item plan and checks T1 to T12 after the information architecture mockup (D49)
+Implementation Authorization: 2026-10-10; owner authorized implementing the plan in this repository: the prepared files, the build step, the site skin, the tests and the local verification. Commits, pushes, pull requests, guest requests and release objects remain separately authorized.
+Superseded Plan Artifacts: none
+
+Premise recovered from the source: the Maven build copies `src/main/org/epics/archiverappliance/mgmt/staticcontent`
+into the stage; `SyncStaticContentHeadersFooters` copies the marker blocks (`@begin(...)` / `@end(...)`) of `index.html`
+into the other pages; `SiteOverlay` applies `template_changes.html`, `css/main.css`, `css/mgmt.css` and `img/` at the
+package phase. A page without the marker blocks receives no site header or navigation. Name lookup is done by the
+server: `getMatchingPVsForThisAppliance` returns names for a glob or Java regex with a default limit of 500, and the
+`Lookup` button only writes the returned names back into the input.
+
+1. Prepared-file location and build step. Add `site-template/ui/`, mirroring the layout of epicsarchiverap-maven
+   `mgmt/staticcontent`, and a `copy.ui` target in `configure/RULES_SRC` that copies it over the source tree before
+   Maven runs, as a prerequisite of every build target that has `copy.sitespecific`. With no files in
+   `site-template/ui` the step changes nothing. Verification: T2 and a Phase 1 logic check that the dry run orders
+   `copy.ui` before the Maven command.
+2. Contract inventory. From `mgmt.js`, `reporttable.js`, the pages and the viewer, list every server endpoint, request
+   parameter and response field the interface uses, every element id the scripts read, and every address parameter
+   `archViewer.html` accepts. This is the contract the redesign keeps; the server is not changed. Verification: the
+   list is reproduced by a command recorded in the detail and reviewed by the owner.
+3. Viewer serving. Recover how the retrieval WAR serves `ui/viewer/archViewer.html` from `viewer.zip`, and define how
+   the replacement is staged and packaged while keeping that address. Verification: T2 for the packaged files and T1
+   for the address.
+4. Information architecture proposal (owner decision). Propose the navigation and page structure that replace the six
+   top-level pages as one working view: search, selection, status and actions, and the data browser, plus where
+   metrics, storage, appliances and integration live, and the explanatory text of statuses and table columns. Present
+   it with static page mockups. No page is implemented before the owner accepts it. Verification: acceptance recorded
+   as a decision (D49).
+5. Visual system and icons. Replace `site-template/siteid/css/{main,mgmt}.css` and `template_changes.html` with the
+   accepted design, applying D48 (no ink without data, color only for meaning): color tokens that keep the brand colors, responsive layout, touch targets of at least 44 px, and
+   no icon set (amended by D53). Verification: T1, T5.
+6. Signal search. Build the name index in a Web Worker from `getAllPVs`, cache it in IndexedDB, and search it in the
+   browser: words in any order, case-insensitive, glob and regex modes, grouping by the `:`-separated name segments, and
+   filtering by status obtained through batched `getPVStatus` calls for the visible rows only. How the list is kept
+   current and when the server answers a search instead is D50. Verification: T9 for index speed with
+   generated names and for the refresh path, T1 and T3 against the real appliance.
+7. Data browser. Build the plot with D3 scales and axes and SVG drawing for the series (amended by D53): caps on the series per chart, the chart panels per page and the PVs
+   in the sparkline list (initial values in D47, confirmed by T11), a sparkline list for scanning many PVs, step lines
+   without interpolation across gaps, sample markers on zoom, the exact value on hover, time-range presets, panning and zooming that request data at the resolution of the visible window from the
+   existing retrieval data endpoint, caching per PV and window, a cap on concurrent
+   requests, and data export by opening the data viewer (amended by D53). Verification: T1 with PVs archived from a soft IOC, T3, T10, T11, T12.
+8. Page implementation. For each accepted page, write the markup and script in `site-template/ui` with the marker
+   blocks kept, native browser APIs only, no framework and no build tool, native `dialog` in place of jQuery UI, no
+   inline script, style or event-handler attribute, data inserted as text and never as markup, and the contract of
+   item 2 unchanged. Verification: T1, T3, T8.
+9. Static checks. Add a Bash test under `tests/`, called from `tests/phase1-logic.bash`, that fails when a prepared page
+   lacks a marker block, references jQuery UI or an external host, contains inline script or event-handler attributes,
+   or when a script reads an element id its page does not define. Verification: T4, and a deliberately broken copy is
+   rejected.
+10. Real appliance check. Build the four WARs through the Make build, run them with the isolated local launcher, and
+    drive every page in a browser at 1280 px and 390 px, including the dialogs, search and the data browser.
+    Verification: T1, T2, T3, T5, T7.
+11. Operator documentation. Update the operator and site-skin documentation and the changelog entry for the new
+    interface and the plotting cap. Verification: documentation matches the shipped file names and the Make target of
+    item 1.
+12. Transfer to epicsarchiverap-maven. In that repository, on a branch from the pinned source commit, move the
+    prepared files into `mgmt/staticcontent` and the retrieval static content with their tests, and update its
+    `docs/svg-viewer.md`; its CI passes `StaticContentBPLCallsTest` and `SiteOverlayTest`. After the commit, this
+    repository adopts the new source pin, removes `site-template/ui` and `copy.ui`, and keeps the site skin. Every
+    commit, push and pull request needs its own authorization. Verification: T6.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | UI | Build the four WARs through the Make build, start the appliance with the isolated launcher, and drive every page with a browser at 1280 px and 390 px: check status for names, open the sampling-period dialog, choose a report, search for names, plot selected PVs | Real appliance on isolated ports, PVs archived from a soft IOC | Every page renders and operates; dialogs show their full content and controls; no console errors; the plot shows the archived samples |
+| T2 | Build | Compare the prepared files and the site skin files with their copies inside the built WARs | Built WARs | The WARs carry the repository files byte for byte, except that a page may differ inside the three site blocks that the site template replaces |
+| T3 | Contract | Compare the endpoint list of the redesigned scripts with the inventory of the original scripts, then observe each endpoint answer during T1 | Real appliance | No endpoint outside the action list of the server (D46); an endpoint of the inventory that is no longer used is a decision (D52); each answers with its expected status |
+| T4 | Logic | Run `bash tests/run-all-tests.bash --local` with `AA_TEST_EPICS_BIN` set, including the new static test, and the same test against a deliberately broken copy | Local checkout | All checks pass; the broken copy fails |
+| T5 | UI | Measure at 390 px the document width against the viewport and the size of every interactive element | Real appliance, browser | No horizontal page scroll; interactive elements are at least 44 px high |
+| T6 | Transfer | Run epicsarchiverap-maven CI at the transfer commit, then build this repository from the new source pin without `site-template/ui` and compare the WAR files with the T2 copies | GitHub Actions; local build | CI passes; the WARs carry the same files |
+| T7 | Browser | Run the T1 scenario in Firefox, in Microsoft Edge (Chromium) and in WebKitGTK through `WebKitWebDriver`, which is the engine of Safari but not the Safari application; record Safari observations from the owner's machines when available | Current releases on this host: Firefox, Edge, WebKitGTK from the Debian 13 packages (`xvfb` and `webkitgtk-webdriver` installed by the owner) | Firefox, Edge and WebKitGTK pass; a failure in any of them is a defect to fix; a failure seen only in the Safari application is recorded as a finding |
+| T8 | Security | Check the served pages for inline script and event-handler attributes, external hosts, and unescaped data in markup, and load them under a restrictive content security policy | Real appliance, browser | No violation reported; names containing markup characters display as text |
+| T9 | Performance | Build and query the name index in a browser with generated names at the sizes the plan sets; with a real appliance, add and delete archived PVs and observe the requests the page makes (D50) | Browser on this host; real appliance | Search results update within the time the plan sets at each size; an unchanged list costs one count request per check, additions cost one report request, and only a falling count, a day-old snapshot or an incomplete report reads the whole list |
+| T10 | UI | Select PVs beyond the confirmed cap | Real appliance, browser | The first selection beyond the cap is refused with a message that states the cap |
+| T11 | Load | Plot 5, 10, 20, 50 and 100 PVs archived from soft IOCs in steps, as detail charts and as sparkline rows; at each step record the response time of every retrieval request, the CPU and heap of the retrieval and management JVMs, and the browser frame time and memory | Real appliance on isolated ports; browser on this host | Each cap is the largest step whose response times and server load stay within the bounds the owner approves; a step that exceeds them sets that cap at the step before it |
+| T12 | Design | Inspect every page against the D48 rules: the emphasized element of each view, borders, shadows, fills and gradients that carry no data, color use, gaps and step drawing, sample markers on zoom, the exact value on hover | Real appliance, browser | Each rule holds on every page; a deviation is recorded as a finding |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-10 15:15 to 15:45 PDT, final run on the built WARs | This host; built WARs; scratch appliance with 201 PVs from a soft IOC | Pass | Final run: one in-page scenario per page (Work: name list, search, report selection, selection of two PVs, chart, value on hover, drag zoom with the samples marked, sampling dialog, stop dialog, details list, archive offer and dialog; System, Operations, Retrieval performance, Integration and viewer: tables, forms and dialogs) with 47 checks over six pages (pan earlier and later of a zoomed window, the links to the viewer, the state of a listed PV that is not selected, the values of the details list and the stop-all button included) passed at 1280 px and 390 px in Edge 154 and in Firefox with the console read (no errors, no policy violation), and at 1280 px and 447 px in WebKitGTK (console not readable through that driver); 26 distinct server calls were observed and all answered 200. One run directly after an appliance restart missed the storage bars; two repeats passed. Earlier observations: Work page and data viewer at 1280 px and 390 px: names loaded, search, selection, status, scan rows with sparklines, three-series chart with hover values, archive dialog, viewer opened by the previous address form (`?pv=` with and without `from` and `to`), PV added through the form, preset range, one chart per unit with the unit shown as archived, no horizontal overflow, no console messages. The System page at 1280 px and 390 px: appliance row, storage notice, load table of 23 measures, process values, versions, forwards of the three old pages. The Integration page at 1280 px and 390 px: server list, add of an EPICS Archiver Appliance server, remove, error report of an unreachable server, comparison error, upload of a configuration file with the returned message, refusal of an empty upload. The distribution and the scatter of two PVs were drawn from three to four averaged samples per PV (the local appliance held few samples), at both widths, and followed the focused PV. The report selections of the Work page were each chosen against the real appliance (14 of 14 answered, five of them with rows); the storage bars and the process trends were not observed with data because the local appliance reported no storage devices and one process sample. Actions driven with real clicks in WebKitGTK through `WebKitWebDriver` (2026-10-10 11:55 to 12:15 PDT, scratch appliance, files copied from `site-template/ui`): Pause, Resume, Stop archiving with its dialog (Cancel, then confirm), Archive from the offer with the period check, Abort the request, Space and arrow keys in the result list, mode and range buttons, the upload check and the add-server dialog. Three defects were found and fixed in the same run: Stop archiving failed for a running PV because the archiver removes only a paused PV (now paused first, and the PV stays in the list when the removal fails); the detail never left Initial sampling or Paused because the status was read once (now read every 3 s while a request is unfinished or an action is recent, every 20 s otherwise, paused while the page is hidden); an action offered before the state was read (now none). System page against the existing local appliance, read only (2026-10-10 12:20 PDT; the page files from this repository were served by a forwarder that passed only seven GET status calls to it and answered a write call with 403; nothing on the appliance was changed): the appliance table, the three storage bars with used and total space, the load table and four one-day process trends rendered at 1280 px and 447 px without horizontal scrolling. Two defects were found and fixed: a direct label that was cut off at the right edge (a chart with one series now labels the end of its line with the value only) and axis labels at padded minimum, middle and maximum values with a negative floor for a percentage (now round ticks and a floor of zero for a series that is never negative). Disconnected PVs by host on the System page (2026-10-10 13:15 PDT, built WARs, two soft IOCs on different ports): after the second IOC stopped the page listed one group of 10 PVs, and 40 s later after the first stopped a second group of 183 PVs, each with host, count, time of loss and name prefixes; a real click on PVs listed the group's names and the link opened the Work page with the prefix and the Disconnected selection (120 of 193 PVs match). With the IOC running and only some PVs removed from its database the server report lists only the missing PVs, which the page cannot yet tell from a stopped IOC without a per-host report (work/ui-server-change-candidates.md, A11). System section as three pages (D51), 2026-10-10 13:25 to 13:45 PDT, built WARs, scratch appliance with 193 PVs from two soft IOCs and, read only, the existing local appliance through a forwarder that passed 20 listed GET status calls and no other request: Overview (three verdict lines, nine judged rows with links), Operations (samples, hosts, dropped samples, write path, stores and ETL, capacity plan, processes with the floor of each heap, configuration with the basis of every threshold) and Retrieval performance (server facts, retrieval heap floor, a request measured in the browser, PV lookup) rendered without horizontal scrolling at 1280 px and 447 px in WebKitGTK. In the scratch appliance the page flagged a real problem: 83,652 samples dropped from 190 PVs, which the appliance cannot write because the default store folders are the production ones (list C1). A measure the appliance does not report is shown as Not reported, never as Normal. Defects found and fixed in this run: the retrieval page's content security policy did not allow the retrieval address; a long store line overflowed at 447 px; a measure with no value was judged Normal. Maintenance and bulk actions of D52 on the Work page, built WARs, scratch appliance, real clicks in WebKitGTK (2026-10-10 14:15 to 14:25 PDT): change of sampling on a running and on a paused PV (the server settings changed to SCAN, 2.0 s); the details list (22 to 79 rows); consolidation into a store (paused first, the stores offered from the PV settings); rename (the selection took the new name, both names paused); change of type, refused without the backup box and accepted with it; pause and resume of three selected PVs in one call ("1 PV paused, 2 already in that state"); on Operations the pause of a disconnected host group of 178 PVs after a confirmation, which left the other 11 listed. A refusal shows the server's reason in the dialog and, when the PV was paused for it, says it is still paused (observed: AccessDeniedException for a PV whose store folder is the production one). Not driven: removing an external server (none configured), screen readers. After the third review (D54), rebuilt WARs, Edge 154: a PV with a field (`UI:TEST:X2.A`) opens in the viewer and gets an archive offer; a real IOC outage and an engine restart break the line exactly at the samples that carry `cnxlostepsecs` and `startup` (paths of 1, 24, 69 and 37 points equal the ones computed from the server answer); a PV with samples 60 s apart (answer supplied at the HTTP boundary) is one path of 118 segments; the viewer says that values are means and the CSV carries `interval_seconds`; with every call answered 500 the viewer says "2 of 2 could not be read."; with a second appliance row supplied at the HTTP boundary the nine overview links and the address after a change keep `?appliance=` and the `#fragment`; the count probe appears in the server log. A fourth review found that `mean_N` filled an 83-minute connection loss of `UI:ZOOM:P1` with 134 bins of the same value; with `meanSample_N` the answer has the 83-minute gap and the charts show gaps of 219 px (viewer) at a 6-hour range. The T1 scenario on these WARs (2026-10-10 21:20 PDT, four soft IOC databases, scratch appliance): Edge 154 at 1280 and 390 px, Firefox at 1280 and 390 px and WebKitGTK at 1280 px each passed all 47 checks (Work 26, System 4, Operations 7, Retrieval 4, Integration 4, viewer 2) with 28 or 29 distinct server calls, all answered 200, and no console error where readable. |
+| T2 | 2026-10-10 15:40 PDT | This host; WARs of the Make build | Pass | Of 45 comparisons of prepared files and site skin files with their copies in the mgmt and retrieval WARs, 40 are byte-identical and 5 pages (`index.html`, `system.html`, `operations.html`, `retrieval.html`, `integration.html`) are identical outside the three site blocks, whose first line the build re-indents; none differs or is missing. Earlier observations: the Work page files, the viewer files and the shared `comm` files are byte-identical in the built WARs. `index.html` differs only in the header and navigation blocks that the site template replaces, so the expected result needs that exception before T2 can pass. |
+| T3 | 2026-10-10 | This host; built WARs | Pass | The redesigned files use 44 server calls, all in the action list of the server; five are new (`getApplianceProperties`, `getAppliancesInCluster`, `getProcessMetrics`, `getSlowChangingPVsWithDroppedEvents`, `changeTypeForPV`); four of the original 43 are not used, by decision D52 (`getPolicyText`, `getStorageMetrics`, `getStoresForPV`, `reshardPV`). In the T1 run all 26 distinct calls it makes were answered 200. Earlier observations: `work/ui-contract-compare-20261010.txt`: the redesigned files use 38 server calls; 33 are in the original inventory and 5 are new reads that the server already provides (`getApplianceProperties`, `getAppliancesInCluster`, `getProcessMetrics`, `getSlowChangingPVsWithDroppedEvents`, and `test/compareWithChannelArchiver`, which the inventory listed as `test`); no call outside the server's action list. Eight original calls are no longer used: `changeArchivalParameters`, `consolidateDataForPV`, `renamePV`, `reshardPV`, `getStoresForPV`, `getPVDetails`, `getPolicyText`, `getStorageMetrics`. They are PV operations and the full details list of the old interface, so the contract is not kept until the owner decides whether the Work page carries them. Each endpoint's answer was observed during T1 only for the calls the new pages make. After D52 the Work page uses `changeArchivalParameters`, `renamePV`, `consolidateDataForPV`, `getPVDetails` and the new `changeTypeForPV` again; `getStoresForPV`, `getPolicyText` and `getStorageMetrics` are left out by decision and `reshardPV` is postponed. |
+| T4 | 2026-10-10 15:45 PDT | Local checkout, real Base binaries | Pass | `run-all-tests.bash --local` exit 0: Phase 1 250, Health 32, No Ant 22, Interface files 241, Phase 2 16; fourteen broken copies of the interface files are refused each for its own reason, among them a page that turns text into markup and a server call that is built from parts. Earlier observations: `run-all-tests.bash --local` exit 0: Phase 1 250, Health 32, No Ant 22, Phase 2 16, EPICS preflight resolved (last run after the Integration page); `prepare-ui.bash` and the installer source check are covered by new checks. `tests/ui-static.bash` (plan item 9) passes 197 checks on the prepared files, including the 4.5:1 contrast of every text color, and refuses nine copies with one defect each (missing marker block, inline script, event handler, jQuery reference, unknown element id, outside host, missing policy, missing script, faint text color) for the reason named. The evidence directory is under `/tmp` and is not retained. The T4 result stays Pending until the final run on the transferred state. |
+| T5 | 2026-10-10 15:40 PDT | This host; Edge 154 at 390 px with the cache disabled; built WARs | Pass | Six pages (the Work page with two PVs selected, so the maintenance summaries and the viewer links are in view): no horizontal scroll and no visible interactive element under 44 px high; the five dialogs measured while open fit inside the viewport with every control and every checkbox label at 44 px. The checkboxes themselves are 13 px inside a 44 px label. Earlier observations: The Work, Overview, Operations, Retrieval performance, Integration and viewer pages had no horizontal scroll and no visible interactive element under 44 px high (the first run found 38, 4, 5, 6, 5 and 13 such elements; the result list rows, the buttons and inputs of every page, the tab links and the site logo link were raised to 44 px). Not measured: the dialogs while open, and the table links inside rows, which count as inline text. |
+| T6 | Not run | GitHub Actions; this host | Pending | none |
+| T7 | 2026-10-10 15:15 to 15:45 PDT | This host; Firefox, Edge 154, WebKitGTK 2.54 (the Safari engine) | Pass | The T1 scenario passed in all three. The Safari application is not installed on this host, so its observations are not available; WebKitGTK is the engine only. Earlier observations: At 1280 px and 390 px the Work page listed 178 PVs with its snapshot saved in IndexedDB, filled the scan list and drew the chart for four selected PVs, and answered a search; the System, Integration and viewer pages rendered; no page scrolled horizontally; the only console message was a 404 for `favicon.ico` on the first load. Button activation, dialogs and the actions were not driven in Edge, WebKitGTK 2.54 (`MiniBrowser` through `WebKitWebDriver` under `xvfb`, user agent `AppleWebKit/605.1.15 Version/60.5 Safari/605.1.15`), 11:45 PDT, same four WARs: the same checks gave the same results at a viewport of 1280 px and of 447 px (the smallest window the driver gave; 390 px was not reached), with no horizontal scrolling; console messages cannot be read through this driver, so a policy violation is excluded only by the pages working. The Safari application itself is not installed on this host. |
+| T8 | 2026-10-10 15:45 PDT | This host; Edge and Firefox with the console read | Pass | No inline script, handler or style attribute, no outside host, no jQuery, no markup built from text (a rule of the static test, with a refused broken copy), a content security policy on every full page; no policy violation was reported in Edge or Firefox over the T1 scenario; names reach the page only through text nodes. Earlier observations: The static part runs in `tests/ui-static.bash`: no inline script, event-handler or style attribute, no outside host, a `script-src 'self'` policy on every full page. The browser enforced that policy in every run of the Work, System, Integration and viewer pages and reported no console message. A PV name that contains markup characters (`UI:<b>BOLD</b>:X`) is shown as text in the scan list, the detail and the archive offer, and creates no element. |
+| T9 | 2026-10-10 | This host; Firefox headless; the shipped names worker; a real appliance | Pass | Search times of the shipped worker are within the 0.1 s of D47 up to 500,000 names, the size the owner confirmed (D50); the refresh requests match the expected pattern. Not measured: the cost of the count call, of a merge and of a whole read at 500,000 or more names. Earlier observations: Load of the index: 11, 23, 52, 150, 327 and 807 ms for 10,000, 50,000, 100,000, 250,000, 500,000 and 1,000,000 names. A search (one word, two words, no match, glob, regex) took 5 ms or less up to 100,000 names, 12 ms or less at 250,000, 32 ms or less at 500,000 (65 ms with an empty query that returns 50,000 names), and 50 to 134 ms at 1,000,000 (160 ms with the empty query), so the 0.1 s of D47 holds up to 500,000 names and is exceeded in four of six cases at 1,000,000. The list of 1,000,000 names is 22 MB as JSON (2.8 MB gzipped) and parses in 77 ms; whether the server compresses `getAllPVs` was not measured. The owner confirmed 500,000 names as the size the browser holds (D50). Retained in `work/ui-index-measure-20261010.txt`. Refresh path of D50, observed 2026-10-10 10:50 to 11:02 PDT with the page behind a request-logging forwarder on the scratch appliance (124 to 179 PVs; the changed files were copied into its exploded web application, so the built WARs still have to be rechecked): a first visit made one count request and one whole-list read and showed the list in 246 ms; a reload with a snapshot showed it in 59 to 146 ms and then made only the count request, once per 15 s; 30 added PVs produced one `getRecentlyAddedPVs?limit=50` and 10 added PVs one `limit=30`, both without a whole-list read; one deleted PV produced one whole-list read; with the limit lowered to 100 in the shipped worker a search was answered by the server (contains and glob, partial flag set at the limit); a name removed from a seeded snapshot was found on the server, announced and saved. Not measured: cost of the count request, of a merge and of a whole-list read at 500,000 or more names, and the behavior with more than one appliance. |
+| T10 | 2026-10-10 06:50 PDT | This host; 120 PVs archived from soft IOC records | Pass | With 100 PVs in the scan list, Space on the 101st name left the count at 100 and showed "The scan list holds at most 100 PVs."; an address with 103 PVs showed 100 and said the first 100 are shown; the chart drew 5 of the 100 and stated the chart limit. Retained in `work/ui-load-measure-20261010.txt`. |
+| T11 | 2026-10-10 16:00 to 16:15 PDT | This host; four JVMs, 100 PVs at 1 Hz with about ten minutes of samples each, one browser, one user; built WARs | Pass | Bounds applied on the owner's instruction to set the limits (proposed by the assistant, to be vetoed if wrong): every row filled within 1 s, one retrieval request within 200 ms, no frame gap above 100 ms, no failure. Selecting 5, 10, 20, 50 and 100 PVs from a fresh page filled every scan row in 0.19, 0.26, 0.22, 0.34 and 0.65 s; the slowest request took 47 ms; the longest frame gap was 50 ms; no request failed; CPU of the retrieval JVM 1.4 s at 100 PVs, of management 0.3 s, of the engine 0.3 s; heap percentages before and after one run stayed within their normal collection range. The caps therefore stay at 100 PVs in the scan list and 5 series in a chart (D47). A first run needed 1.85 s at 100 PVs because the list and the chart were drawn once per answer; they are now drawn once per 60 ms, which gave 0.45 to 0.65 s. Not measured: browser memory, a week of samples per PV, several users, the retrieval of one hundred PVs at the 7 day and 30 day ranges. Earlier run: `work/ui-load-measure-20261010.txt`. |
+| T12 | 2026-10-10 15:30 PDT | This host; Edge with computed styles; WebKitGTK; built WARs | Pass | After the fixes: no gradient, no shadow, no color outside the token set on any page; saturated colors only for alert and attention; step lines, gaps and the value on hover observed on the Work chart; a drag zooms the chart and marks the samples when 200 or fewer are in view (observed on a PV sampled at 1 Hz). Panning of a zoomed window moves it by half its span and was observed. Earlier observations: Audit of the six pages at 1280 px: no gradient; one shadow, on the site navigation bar, removed; no color outside the token set except a white 14 % rule in the site header, and three hard-coded teal tints in the viewer, replaced by tokens; the saturated colors in use are the alert color and the attention color, both only for judgements and disconnections, and the accent for links and selection. The emphasized element of each page (the chart and the scan list on Work; the three verdict lines on Overview; the judged rows on Operations; the measured request on Retrieval performance) is stated in the page structure, not measured. Step drawing, gaps and the value on hover were observed during T1. Not covered: sample markers on zoom of the new charts. |
+
+##### Closure Evidence
+
+- none
+
 #### M44 - Verify and publish release 2.0.1
 
 Origin: 2.0.1 / M44
@@ -1013,15 +1202,18 @@ Out of scope: another release line, automatic security fixes, changing or deleti
 
 ##### Dependencies And Decisions
 
-- M43, M14, M10, M45, M46, D31, D37, D39 and D44. The Ant removal is part of this release and is complete (M14, G6).
-- The candidate source pin is `120d53fe43133c7699e4c9624dc948cc96b0ece2` under D44. Preliminary local verification may run while its Maven CI is pending; release readiness requires passing CI and new integrated and eight-case VM verification. Earlier results at `af2e734857dab01105576086adeca0d4f318d6ee` remain historical evidence. The tested and released source must stay equal. The pinned Ansible and cloud-provision inventory generator of the VM acceptance stay fixed for the matrix; the cloud-provision species rename does not block it.
-- Source CI observation: 2026-10-07 at 16:38 PDT, the public page of [Maven run 37698987276](https://github.com/jeonghanlee/epicsarchiverap-maven/actions/runs/37698987276) for `modernize` commit `120d53fe43133c7699e4c9624dc948cc96b0ece2` reports `Success`. The retained page is `work/rv2-120d53fe-20261007/source-ci.html`; the verification manifest records its SHA256. This satisfies the source CI condition, not VM acceptance.
+- M43, M14, M10, M45, M46, M13, D31, D37, D39, D44 and D45. The Ant removal is part of this release and is complete (M14, G6). M13 is a work-ordering dependency set by D45: release verification starts after M13 is complete. The release plan accepted on 2026-10-05 lists no M13 dependency, so its re-acceptance is pending.
+- Current committed candidate: epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, source pin `162269e7db97f527626ba0b387933a8c47e8bb57` (`Replace the archive request client with Bash`) in `configure/RELEASE`. D44 records the earlier `120d53fe` candidate; its results and the earlier `af2e7348` results remain evidence only for their original refs. Release readiness requires passing source CI, new integrated verification and eight-case VM verification at the final pin. The tested and released source must stay equal. The pinned Ansible and cloud-provision inventory generator of the VM acceptance stay fixed for the matrix; the cloud-provision species rename does not block it.
+- Historical source CI observation: 2026-10-07 at 16:38 PDT, the public page of [Maven run 37698987276](https://github.com/jeonghanlee/epicsarchiverap-maven/actions/runs/37698987276) for `modernize` commit `120d53fe43133c7699e4c9624dc948cc96b0ece2` reports `Success`. The retained page is `work/rv2-120d53fe-20261007/source-ci.html`; the verification manifest records its SHA256. This satisfies source CI only for that historical pin. No source CI result for `162269e7` is recorded here.
+- Candidate publication observation: 2026-10-09 at 22:32 UTC, after `git fetch`, `git status --short --branch` is clean and `git rev-parse HEAD '@{upstream}'` resolves both refs to `48724a28e0ce7a49f3c302f814b10116652b331e`. This confirms release-branch publication, not a merge, tag or GitHub release.
+- Committed local installation changes provide SQLite, MariaDB UDS and MariaDB TCP entrypoints with shared installation code, Tomcat reuse or backup/replacement, EPICS preparation before optional PV verification, component startup/UI/information URLs, and distinct process/storage inspection results. The optional PV path uses the source Bash archive client and CSV extraction client; pause/resume and IOC ownership are explicit. MariaDB setup selects the administrative socket and preserves existing backup files. Failure output retains successful checks and explains storage limits without deleting data or automatically restarting the appliance.
+- Local installer OS selection supports Debian 13, Rocky Linux 8.x, Rocky Linux 10.2, Ubuntu 24.04 LTS and Ubuntu 26.04 LTS. All five presets preserve a custom `JAVA_HOME`. Preset/package checks do not establish real installation on every OS. The accepted Release Verification 3 matrix remains Debian 13 and Rocky 8.10; adding OS cases requires a separate scope decision.
 
 ##### Implementation Plan
 
 Plan Status: accepted
 Plan Acceptance: 2026-10-05; owner accepted the revised release plan (dependencies M43, M14, M10, M45 and M46, source pin under D39, RV3 eight-case matrix, RV6 one SQLite case per operating system); 2026-10-07, owner accepted the candidate pin and preliminary verification before source CI completion under D44
-Implementation Authorization: 2026-10-05; owner authorized the changelog entry, the local suite on the release candidate, the release notes draft and the preparation of the eight-case matrix; 2026-10-07, owner authorized the D44 pin update and preliminary local verification; commit, push, every guest request, the VM run, and the release objects (merge, tag, GitHub release, milestone close) need separate authority
+Implementation Authorization: 2026-10-05; owner authorized the changelog entry, the local suite on the release candidate, the release notes draft and the preparation of the eight-case matrix; 2026-10-07, owner authorized the D44 pin update and preliminary local verification. Subsequent local installer changes and the current pin were committed and pushed through the separately delegated actions recorded below. On 2026-10-09, owner authorized this canonical status/evidence update only. Further commits, pushes, every guest request, the VM run, and the release objects (merge, tag, GitHub release, milestone close) need separate authority
 Superseded Plan Artifacts: draft written before the Ant removal and the two defect-containment items, carried by d3e16d54d05a57de281fb353802e24947187ca3f, docs/milestone-2.0.1.md, M44
 
 1. Accept this release plan and the work plans, commit the canonical plan, then project issues to GitHub.
@@ -1046,8 +1238,8 @@ Final observations are owned by Release Verification Results below.
 
 | Source Check | Re-run Trigger | Shared Surface | Release Verification Label | Expected Result | Result Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M43 / T1, M43 / T2 | Later Make, install, source schema or DB-helper changes | Backend command routing | Release Verification 2 | Rejections and supported behavior hold on final tree | Pass; local suite and real database integration at candidate `120d53fe`, recorded in Release Verification 2 |
-| M14 / T1, M14 / T3 | Later source-pin, site-input or Make changes | Build and installed WARs | Release Verification 2 | No Ant in the tracked tree; the shipped build passes with the site folder and fails when a site `build.xml` is put back | Pass; no-Ant checks, real ALS build, WAR payload checks and site `build.xml` rejection at candidate `120d53fe`, recorded in Release Verification 2 |
+| M43 / T1, M43 / T2 | Later Make, install, source schema or DB-helper changes | Backend command routing | Release Verification 2 | Rejections and supported behavior hold on final tree | Pending for `48724a2` / `162269e7`; current local checks below are partial evidence; historical integrated Pass at `120d53fe` retained |
+| M14 / T1, M14 / T3 | Later source-pin, site-input or Make changes | Build and installed WARs | Release Verification 2 | No Ant in the tracked tree; the shipped build passes with the site folder and fails when a site `build.xml` is put back | Pending for `48724a2` / `162269e7`; historical build, payload and rejection Pass at `120d53fe` retained |
 | M45 / T2, M46 / T1, M46 / T2 | Later launcher, verifier or health changes | Launcher health and VM verifier | Release Verification 3 | The starting verdict and the failure-evidence retention hold on the final tree | Pending |
 | M10 / T1 | Later install, build or configuration changes | Documented installation | Release Verification 3 | Real VM installation checks pass | Pending |
 
@@ -1063,16 +1255,16 @@ Final observations are owned by Release Verification Results below.
 | Field | File | Before | Planned After | Pre-check | Pre-check Label | Post-check | Post-check Label |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Changelog release heading | CHANGELOG.md | Newest dated release 2.0.0 | One dated 2.0.1 heading above preserved 2.0.0 | Read committed heading and working-tree diff | Release Verification 1 | Check date, uniqueness and actual shipped scope | Release Verification 4 |
-| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 before this cycle | Candidate `120d53fe43133c7699e4c9624dc948cc96b0ece2` under D44; source CI, integrated verification and a new matrix run must pass before release | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
+| SRC_TAG | configure/RELEASE | d8a7813f40083c1bf7148e6c3b7bffd368d70ee0 before this cycle | Candidate `162269e7db97f527626ba0b387933a8c47e8bb57`, committed in `48724a2`; source CI, integrated verification and a new matrix run must pass before release | Resolve committed Make value and source identity | Release Verification 1 | Resolve effective pin, build refs and source changes | Release Verification 4 |
 
-The source POM belongs to epicsarchiverap-maven. This cycle does not independently bump it. APPNAME, SRC_VERSION and install-path derivation remain checked for consistency; no environment numeric version field has been identified beyond the changelog and release objects.
+The source POM belongs to epicsarchiverap-maven. This cycle does not independently bump it. APPNAME, SRC_VERSION and install-path derivation remain checked for consistency; no environment numeric version field has been identified beyond the changelog and release objects. At `48724a2`, `CHANGELOG.md` has an unreleased 2.0.1 heading and still describes the earlier `120d53fe` pin. Release Verification 4 must reconcile the changelog pin and shipped scope, set the release date, and check the release notes before publication; this status update does not change those files.
 
 ##### Release Execution
 
 | Step | Action | Authorization | Expected Result | Evidence |
 | --- | --- | --- | --- | --- |
-| 1 | Planning and candidate commits on release-2.0.1 | Separate Commit/add scope | Only reviewed files committed | Pending |
-| 2 | Publish release-2.0.1 branch | Separate Push scope | Same-named branch and upstream verified | Pending |
+| 1 | Planning and candidate commits on release-2.0.1 | Separate Commit/add scope | Only reviewed files committed | Latest candidate `48724a28e0ce7a49f3c302f814b10116652b331e`, committed 2026-10-09 at 00:59 PDT; earlier installer commits `ac516f0`, `e875487`, `bcd34cc` and `482cf29`; later documentation or candidate changes still require their own commit authority |
+| 2 | Publish release-2.0.1 branch | Separate Push scope | Same-named branch and upstream verified | `48724a2` published; local HEAD and fetched origin/release-2.0.1 match, observed 2026-10-09 at 22:32 UTC; later changes still require their own push authority |
 | 3 | Merge verified release-2.0.1 into the default branch `maven` of this repository (not epicsarchiverap-maven) with a merge commit | Exact preview and separate Release authority | Reviewed merge commit becomes release candidate | Pending |
 | 4 | Publish branch `maven` | Separate Push scope or exact authorized release sequence | Remote candidate equals local | Pending |
 | 5 | Create annotated tag 2.0.1 on merge candidate | Exact preview and separate Release authority | Immutable tag object recorded | Pending |
@@ -1095,6 +1287,8 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 
 ##### Release Verification Results
 
+Results are specific to the environment and source refs in each row. The 2026-10-07 Release Verification 2 Pass is historical evidence at `120d53fe`, not acceptance of the current `48724a2` / `162269e7` candidate. The current candidate remains Pending for the complete integrated check.
+
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | Release Verification 1 | Not run | Planned environment above | Pending | none |
@@ -1105,6 +1299,13 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 | Release Verification 6 | Not run | Planned environment above | Pending | none |
 | Release Verification 7 | Not run | Planned environment above | Pending | none |
 
+Current-candidate checks below were executed before commit on the working-tree files subsequently committed as `48724a2`; retained logs were inspected on 2026-10-09. They supplement the final checks and do not complete Release Verification 2 or Release Verification 3.
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| Release Verification 2, local suite only | 2026-10-09 00:54 PDT | Local Debian 13; candidate files subsequently committed as `48724a2`, source pin `162269e7` | Partial; complete integrated check Pending | Shipped `tests/run-all-tests.bash --local` exits 0: Phase 1 238/0, health 23, starting health 32/0, no-Ant 22/0, database configuration 17, VM-driver local tests 36, Phase 2 build wrapper 13/0. Readiness output checks and all three installers' EPICS preparation rejection checks pass. Real Base binary resolution is SKIP because `AA_TEST_EPICS_BIN` is unset; no real IOC round trip is established by this suite. Phase 2 checks the build command, not a real Maven build. Evidence: `work/commit-local-install-local-tests.log`, SHA256 `ce0b7a209f2bf393227fbff7c5bd6bbb0a4fc7533fbf1b330ca0dbdc2af47da8`. Full real database integration, site-overlay build, payload and rejection checks remain Pending for this candidate. |
+| Release Verification 2, native readiness only | 2026-10-09 00:46 PDT | Local Debian 13, JDK 21, Tomcat 9.0.121, four real source `162269e7` WARs; isolated appliance using the candidate readiness functions and launcher | Pass for readiness path; host installation and Release Verification 3 Pending | Shipped `tests/local-install-readiness.bash` records successful four-JVM identity, real filesystem health, four startup APIs, UI and appliance information. It also passes inactive/failed/denied/missing unit diagnostics, early signal termination versus timeout, health recovery and retained observations, real storage-threshold failure, and missing-PID failure. Only privilege and systemd command boundaries are replaced; HTTP, JVM identity and filesystem inspection use the real appliance. Retained readiness functions match the shipped functions, and the launcher copy matches the shipped file. This does not verify package installation, host service/timer operation, PV acquisition or stored samples. Evidence: `work/review-second-readiness.PuLlWmiL.log`, SHA256 `57e537b916236ebf2f6f253cb435411ff3dbc929c569eb9c0333e7ac757d0dcf`; workspace `work/local-readiness.NEtllYVI`, including `pass.log`, SHA256 `430731e97227117b973c2b59b6cb719d0b60a2e8edd1f3a2161bf83d4d6e2772`, `storage-failure.log`, SHA256 `f5f589a753ccf65c608302dded8820ece4827edc9ce250e2ac5ead5c38e36048`, and `process-failure.log`, SHA256 `f29f7f802fbf26069c4274390139463db0ce250c241eec7aede9f1dd825fb658`. |
+
 ## Backlog
 
 ### Work
@@ -1113,7 +1314,6 @@ The source POM belongs to epicsarchiverap-maven. This cycle does not independent
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Runtime | M41 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D31, D35, D36, D37 | Event-based GC observations justify the documented heap guidance; deferred 2026-10-01 until a sufficient dedicated test disk is available; [detail](#m41---measure-per-component-heap-needs-by-archiving-load) |
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M43, D29, D31 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
-| UI | M13 | Site skin aligned with the rewritten mgmt UI | Milestone | Open | No | | Define the target interface and required epicsarchiverap-env skin changes; [detail](#m13---site-skin-aligned-with-the-rewritten-mgmt-ui) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
 
@@ -1456,75 +1656,6 @@ Labels: enhancement
 GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
-
-#### M13 - Site skin aligned with the rewritten mgmt UI
-
-Origin: 265f580 / M13
-Identity History: transferred from docs/milestone-2.0.0.md to docs/milestone-2.0.1.md on 2026-09-29; ID and Origin preserved
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The management web interface rewrite moved to the EPICS-Arche repository
-(the post-Phase-2 runtime, per D11). The epicsarchiverap-env repository carries only the
-site-specific skin (`site-template/siteid`: css, img, `template_changes.html`)
-copied into the WAR. While the appliance stays on WARs (Phase 2) the skin is
-unchanged; it is revisited only if EPICS-Arche replaces the mgmt UI.
-
-##### Scope
-
-- `site-template/siteid/{css,img,template_changes.html}` and the
-  `copy.sitespecific` step in `configure/RULES_SRC`.
-
-Out of scope: the interface itself (EPICS-Arche).
-
-##### Completion Criteria
-
-- After planning defines the EPICS-Arche interface and epicsarchiverap-env's role, the
-  resulting skin renders correctly on that interface. The current WAR skin
-  remains unchanged until that scope is defined.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-09-29. Transferred from Milestone to Backlog for the 2.0.0 cycle close. Existing status, scope, dependencies, plan and verification evidence are preserved; no next release is assigned.
-- Decision Date: 2026-09-22. Assigned from Backlog to Milestone. The target interface and the role of the epicsarchiverap-env skin remain to be defined. Status stays Open; assignment alone does not accept or authorize implementation.
-- EPICS-Arche repository (mgmt UI rewrite), post-Phase-2
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Define the implementation plan for the assigned work.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | UI | Define the actual interface and browser procedure during planning | Agreed target interface | Page renders with the site skin; no console errors |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Not run | This host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Align the site skin with the rewritten mgmt UI
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none
-Observed Labels: none
-Observed Milestone: none
-Last Compared: never
 
 #### M27 - LTS retrieval pre-processing (`pp`)
 
