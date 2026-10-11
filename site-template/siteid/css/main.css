@@ -1,129 +1,510 @@
+/*
+ * Site-wide styles for the management console.
+ * Brand colors are kept: dark teal #00313C and teal #007681.
+ * Element ids and class names used by the page markup and scripts are unchanged.
+ */
+
+:root {
+  --c-brand: #00313c;
+  --c-accent: #007681;
+  --c-accent-dark: #005a63;
+  --c-accent-soft: #e4f0f1;
+  --c-bg: #f3f6f7;
+  --c-surface: #ffffff;
+  --c-border: #d5dde0;
+  --c-border-strong: #b1b3b3;
+  --c-text: #17262b;
+  --c-muted: #5a6b70;
+  --c-danger: #b3261e;
+  --c-danger-soft: #fbeceb;
+  --c-stripe: #f7fafb;
+  --c-hover: #eaf4f5;
+  --radius: 6px;
+  --shadow-sm: 0 1px 2px rgba(0, 49, 60, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 49, 60, 0.18);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  /* Tokens of the Work page. They are defined from the tokens above so every page shares one palette. */
+  --bg: var(--c-bg);
+  --ink: var(--c-text);
+  --ink-2: #46585e;
+  --ink-3: var(--c-muted);
+  --rule: var(--c-border);
+  --grid: #e5ebed;
+  --accent: var(--c-accent);
+  --accent-ink: #ffffff;
+  --focus-bg: #e3f0f1;
+  --alarm: var(--c-danger);
+  --warn: #8f5f00;
+  --mono: var(--font-mono);
+  --sans: var(--font-sans);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html {
-  background: white;
   font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  background: var(--c-bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--c-text);
+  background: var(--c-bg);
+  text-align: left;
+}
+
+a {
+  color: var(--c-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  color: var(--c-accent-dark);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
 }
 
 /* site_header */
 
-body {
-    width: 98%; 
-    text-align: left;
-    margin: 0 auto;
-    font-family: 'Open Sans', sans-serif, Helvetica,Arial,'Liberation Sans',FreeSans,sans-serif;
-   	line-height: 1;
-    -moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box;
-    background: #ffffff;
-    background: -moz-linear-gradient(top,  #ffffff 0%, #fcfcfc 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#fcfcfc));
-    background: -webkit-linear-gradient(top,  #ffffff 0%,#fcfcfc 100%); 
-    background: -o-linear-gradient(top,  #ffffff 0%,#fcfcfc 100%);
-    background: -ms-linear-gradient(top,  #ffffff 0%,#fcfcfc 100%);
-    background: linear-gradient(bottom,  #ffffff 0%,#fcfcfc 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#fcfcfc',GradientType=0 );
-}
-
-.page {
-    min-height: 600px;
-}
-
 .pageheader {
-    height: 96px;
-    background-color: #00313C;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  min-height: 72px;
+  background-color: var(--c-brand);
+  color: #ffffff;
 }
-
 
 .apptitle {
-    padding-left: 1.2em;
-    padding-top: 1em;
-    font-family: 'Open Sans', sans-serif, Helvetica,sans-serif;
-    color: white;
-    font-size: 2em;
-    font-weight: 720 !important;
-    float:left;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: #ffffff;
 }
 
-#siteimages{
-    float: right;
+#siteimages {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+
+#siteimages a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+#siteimages img {
+  display: block;
+  height: 44px;
+  width: auto;
 }
 
 /* site_navbar */
 
-.navbar{
-    background-color: #00313C;
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--c-brand);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 3px solid var(--c-accent);
 }
 
 .nav {
-    border-top-style: solid;
-    border-top-color: #007681;
-    border-top-width: 0.01em;
-    border-bottom-style: solid;
-    border-bottom-color: #007681;
-    border-bottom-width: 0.01em;
+  padding: 0 1rem;
 }
 
 ul.mainmenu {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-/* Float the list items side by side */
 ul.mainmenu li {
-    float: left;
+  display: block;
 }
 
-/* Style the links inside the list items */
+ul.mainmenu li:last-child {
+  margin-left: auto;
+}
+
 ul.mainmenu li a {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 0.82em 0.74em;
-    font-weight: 680 !important;
-    text-decoration: none;
-    -moz-transition: all 0.6s ease-in-out;
-	-webkit-transition: all 0.6s ease-in-out;
-	transition: all 0.6s ease-in-out;
-    font-size: 1em;
+  display: block;
+  padding: 0.7rem 0.95rem;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-
-/* Change background color of links on hover */
-ul.mainmenu li a:hover {
-    background-color:#007681;
+ul.mainmenu li a:hover,
+ul.mainmenu li a:focus-visible {
+  background-color: var(--c-accent);
+  color: #ffffff;
 }
 
 ul.mainmenu li a.active {
-    border-style: solid;
-    border-color: white;
-    border-width: 0.01em;
+  border-bottom-color: #ffffff;
 }
 
-
-/* Hide the list item that contains the link that should open and close the topnav on small screens */
 ul.mainmenu li.icon {
-    display: none;
+  display: none;
 }
 
-    
+/* page body */
+
+.page {
+  max-width: 1440px;
+  min-height: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
 .page p {
-    font-size: 1em;
-    line-height: 1.25em;
-    margin: 1.25em 1.25em 1em 0em;
-    text-align: justify;
+  margin: 0 0 1rem 0;
+  max-width: 80ch;
 }
 
+.pagefooter {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.5rem;
+  color: var(--c-muted);
+  font-size: 0.8125rem;
+}
 
-/* .page p:first-letter { */
-/*     font-size: 3.5em; */
-/*     line-height: 1em; */
-/* } */
+/* form controls */
 
-/* .page p + p:first-letter { */
-/*     font-size: 1em; */
-/*     line-height: 1.25em; */
-/* } */
+input[type="text"],
+input[type="url"],
+input[type="number"],
+input[type="password"],
+input[type="file"],
+select,
+textarea {
+  font: inherit;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+}
 
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 0;
+  border-color: var(--c-accent);
+}
+
+textarea {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+input[type="button"],
+input[type="submit"],
+button {
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--c-accent);
+  border: 1px solid var(--c-accent);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.9rem;
+  margin: 0 0.25rem 0.25rem 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+input[type="button"]:hover,
+input[type="submit"]:hover,
+button:hover {
+  background: var(--c-accent-dark);
+  border-color: var(--c-accent-dark);
+}
+
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* destructive action on the home page */
+input#delete {
+  color: var(--c-danger);
+  background: var(--c-surface);
+  border-color: var(--c-danger);
+}
+
+input#delete:hover {
+  color: #ffffff;
+  background: var(--c-danger);
+  border-color: var(--c-danger);
+}
+
+/* jQuery UI dialogs */
+
+.ui-widget-overlay {
+  background: rgba(0, 25, 31, 0.55) none;
+  opacity: 1;
+  filter: none;
+}
+
+.ui-dialog {
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--c-text);
+  background: var(--c-surface) none;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: calc(100vw - 2rem);
+}
+
+.ui-dialog .ui-dialog-titlebar {
+  padding: 0.75rem 1rem;
+  background: var(--c-brand) none;
+  border: 0;
+  border-radius: 0;
+  color: #ffffff;
+}
+
+.ui-dialog .ui-dialog-title {
+  font-weight: 600;
+  margin: 0;
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+  border: 0;
+  background: transparent none;
+  border-radius: var(--radius);
+}
+
+.ui-dialog .ui-dialog-titlebar-close:hover {
+  background: rgba(255, 255, 255, 0.18) none;
+}
+
+/* The script fixes the content height inline; the content sizes itself and scrolls only when tall. */
+.ui-dialog .ui-dialog-content {
+  height: auto !important;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--c-surface) none;
+  color: var(--c-text);
+}
+
+.ui-dialog .ui-dialog-content div + div {
+  margin-top: 0.4rem;
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+  margin: 0;
+  padding: 0.6rem 1rem;
+  background: var(--c-stripe) none;
+  border: 0;
+  border-top: 1px solid var(--c-border);
+}
+
+.ui-dialog .ui-dialog-buttonpane button {
+  margin: 0 0 0 0.5rem;
+  padding: 0.4rem 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--c-accent) none;
+  border: 1px solid var(--c-accent);
+  border-radius: var(--radius);
+}
+
+.ui-dialog .ui-dialog-buttonpane button:hover {
+  background: var(--c-accent-dark) none;
+  border-color: var(--c-accent-dark);
+}
+
+.ui-dialog .ui-dialog-buttonpane button .ui-button-text {
+  padding: 0;
+}
+
+/* touch and notched screens */
+
+html {
+  -webkit-tap-highlight-color: rgba(0, 118, 129, 0.15);
+}
+
+.pageheader,
+.page,
+.pagefooter {
+  padding-left: max(1.5rem, env(safe-area-inset-left));
+  padding-right: max(1.5rem, env(safe-area-inset-right));
+}
+
+/* narrow screens */
+
+@media (max-width: 720px) {
+  body {
+    font-size: 1rem;
+  }
+
+  .pageheader,
+  .page,
+  .pagefooter {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+  }
+
+  .pageheader {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    min-height: 56px;
+  }
+
+  .apptitle {
+    font-size: 1.1rem;
+  }
+
+  #siteimages img {
+    height: 30px;
+  }
+
+  /* One scrollable row keeps the bar a constant height on a phone. */
+  .nav {
+    padding: 0;
+  }
+
+  ul.mainmenu {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  ul.mainmenu::-webkit-scrollbar {
+    display: none;
+  }
+
+  ul.mainmenu li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  ul.mainmenu li:last-child {
+    margin-left: 0;
+  }
+
+  ul.mainmenu li a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    white-space: nowrap;
+  }
+
+  .page {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  /* 16px controls stop mobile browsers from zooming on focus. */
+  input[type="text"],
+  input[type="url"],
+  input[type="number"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  input[type="button"],
+  input[type="submit"],
+  button {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+
+  /* Dialogs use the screen width; the script sets a fixed width and position inline. */
+  .ui-dialog {
+    width: calc(100vw - 1rem) !important;
+    max-width: none;
+    left: 0.5rem !important;
+  }
+
+  .ui-dialog .ui-dialog-content {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* A full-height touch target keeps the close icon centered in the title bar. */
+  .ui-dialog .ui-dialog-titlebar-close {
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ui-dialog .ui-dialog-titlebar-close .ui-icon {
+    margin: 0;
+  }
+
+  .ui-dialog .ui-dialog-buttonpane button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 380px) {
+  .apptitle {
+    font-size: 1rem;
+  }
+
+  #siteimages {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
