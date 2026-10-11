@@ -1,6 +1,6 @@
 # What the repository builds and installs
 
-The repository turns a pinned source commit and a set of site inputs into four WAR files, and it installs them as a systemd-managed appliance. This page lists the stages, in order, and the target that runs each one.
+The repository turns the source commit that `SRC_TAG` selects and a set of site inputs into four WAR files, and it installs them as a systemd-managed appliance. This page lists the stages, in order, and the target that runs each one.
 
 ## The stages of build and install
 

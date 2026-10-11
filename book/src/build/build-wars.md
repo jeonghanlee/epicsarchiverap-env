@@ -1,6 +1,6 @@
 # Fetch and build the web applications
 
-This page produces the four WAR files of the appliance from the source commit that the repository pins. The build skips the unit tests of the source repository; its CI runs them.
+This page produces the four WAR files of the appliance from the source commit that `SRC_TAG` selects. The build skips the unit tests of the source repository; its CI runs them.
 
 ## Prerequisites
 
@@ -18,18 +18,19 @@ This page produces the four WAR files of the appliance from the source commit th
 
    The command prints nothing when the clone exists.
 
-2. Check that the checkout is at the pinned commit.
+2. Check that the checkout is at the commit that `SRC_TAG` names.
 
    ```bash
    make -s print-SRC_TAG
-   git -C epicsarchiverap-maven-src rev-parse HEAD
+   git -C epicsarchiverap-maven-src rev-parse HEAD origin/modernize
    ```
 
-   Both commands print the same commit:
+   The first command prints the reference and the second prints the same commit twice. The commit is the tip of the branch on the day of the run:
 
    ```text
-   1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
-   1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
+   origin/modernize
+   9a0c9677a500e87310aa9218bf611f1d36dbb38b
+   9a0c9677a500e87310aa9218bf611f1d36dbb38b
    ```
 
 3. Generate the configuration files, apply the site inputs and the interface files, and build the WAR files. This form needs no `sudo`.
@@ -44,7 +45,7 @@ This page produces the four WAR files of the appliance from the source commit th
    [INFO] BUILD SUCCESS
    ```
 
-   The build of the pinned commit took about 24 seconds on the host of this book, with the Maven dependencies cached.
+   The build of the source took about 25 seconds on the host of this book, with the Maven dependencies cached.
 
 ## Verification
 
@@ -57,10 +58,10 @@ ls epicsarchiverap-maven-src/target/*.war
 The output has four lines, one for each component:
 
 ```text
-epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-engine.war
-epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-etl.war
-epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-mgmt.war
-epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-retrieval.war
+epicsarchiverap-maven-src/target/aa-20261011-9a0c9677-engine.war
+epicsarchiverap-maven-src/target/aa-20261011-9a0c9677-etl.war
+epicsarchiverap-maven-src/target/aa-20261011-9a0c9677-mgmt.war
+epicsarchiverap-maven-src/target/aa-20261011-9a0c9677-retrieval.war
 ```
 
 The name of a file is `aa-<build_date>-<short_commit>-<component>.war`.

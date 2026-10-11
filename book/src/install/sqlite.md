@@ -23,7 +23,7 @@ This page installs a systemd-managed appliance whose configuration database is a
    Before installation, offer the optional soft IOC test and validate exported EPICS_BASE, softIoc and caget.
    Repository: <checkout>
    OS: debian13
-   Source pin: 1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
+   Source pin: origin/modernize
    Install: /opt/epicsarchiverap-maven
    Backend: sqlite
    SQLite: /arch/config/archappl.sqlite
@@ -46,7 +46,7 @@ This page installs a systemd-managed appliance whose configuration database is a
    Run the soft IOC PV registration/storage/CSV test if selected before installation; unattended mode skips it.
    ```
 
-   The repository path and the operating system in your output are those of your host, and the source pin is the commit of `SRC_TAG`. If a Tomcat that the checkout owner cannot execute is installed, the plan also prints the two choices described in step 3.
+   The repository path and the operating system in your output are those of your host, and the source pin is the value of `SRC_TAG`. If a Tomcat that the checkout owner cannot execute is installed, the plan also prints the two choices described in step 3.
 
 2. Optional: set the storage, Tomcat and service-account values for this host in `CONFIG_SITE.local`, as in [Override a setting for one host](../configure/override-setting.md). Do this before the installation, because the installer reads the values then.
 

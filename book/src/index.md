@@ -11,7 +11,7 @@ The repository performs four jobs, each driven by a Make target:
 - It builds the four web applications of the appliance (`mgmt`, `engine`, `etl` and `retrieval`) as WAR files with the Maven Wrapper of the source.
 - It installs a local appliance with SQLite or with MariaDB over a Unix socket or over TCP, using the installers `install-local-sqlite.bash`, `install-local-mariadb-uds.bash` and `install-local-mariadb-tcp.bash` in `scripts/`.
 
-## Values the repository pins
+## Values that select the source and site
 
 The configuration files under `configure/` set the values that decide which source is built and where it is installed. To print a value, run `make -s print-<variable_name>`, for example `make -s print-SRC_TAG`.
 
@@ -19,7 +19,7 @@ The configuration files under `configure/` set the values that decide which sour
 | :--- | :--- | :--- |
 | `SRC_GITURL` | The source repository that is cloned | `configure/CONFIG_VARS` |
 | `SRC_PATH` | The folder, under the repository root, that holds the clone | `configure/CONFIG_VARS` |
-| `SRC_TAG` | The commit of the source that is built | `configure/RELEASE` |
+| `SRC_TAG` | The commit, tag or branch of the source that is built; the default `origin/modernize` is the tip of that branch | `configure/RELEASE` |
 | `ARCHAPPL_SITEID` | The name of the site folder that is applied to the source; its default is `als` | `configure/CONFIG_SITE` |
 | `AA_INSTALL_LOCATION` | The directory the appliance is installed into | `configure/CONFIG_SITE` |
 

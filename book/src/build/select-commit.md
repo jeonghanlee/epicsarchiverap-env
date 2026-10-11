@@ -9,16 +9,16 @@ The value `SRC_TAG` in `configure/RELEASE` names the commit, tag or branch of th
 
 ## Steps
 
-1. Print the commit that is in effect.
+1. Print the reference that is in effect.
 
    ```bash
    make -s print-SRC_TAG
    ```
 
-   The command prints the pinned commit:
+   The command prints the source reference:
 
    ```text
-   1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
+   origin/modernize
    ```
 
 2. Write the value into `configure/RELEASE.local`, which Git ignores. `configure/RELEASE` includes this file, and `../RELEASE.local` next to the checkout, at its end.
@@ -51,4 +51,4 @@ The value `SRC_TAG` in `configure/RELEASE` names the commit, tag or branch of th
 
 The command `git -C epicsarchiverap-maven-src rev-parse HEAD` prints the commit of that value. A one-time override without a file is the Make command-line form, for example `make -s SRC_TAG=<commit_or_branch> print-SRC_TAG`.
 
-To return to the pin, delete `configure/RELEASE.local`; `make -s print-SRC_TAG` prints the pinned commit again.
+To return to the default, delete `configure/RELEASE.local`; `make -s print-SRC_TAG` prints `origin/modernize` again.

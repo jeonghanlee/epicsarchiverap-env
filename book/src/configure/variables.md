@@ -13,7 +13,7 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `APPNAME` | `:=` | `epicsarchiverap-maven` |  |
 | `SRC_URL` | `=` | `https://github.com/jeonghanlee` | Where the Source repository SRC_URL/SRC_NAME |
 | `SRC_NAME` | `:=` | `${APPNAME}` |  |
-| `SRC_TAG` | `:=` | `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0` | Which the source tag / branch / hash id would like to use latest master Placeholder for the site-specific version control The release builds the pinned aa-maven commit below; a later source release changes only this value, and development may point at a branch instead. |
+| `SRC_TAG` | `:=` | `origin/modernize` | Which the source tag / branch / hash id would like to use latest master Placeholder for the site-specific version control SRC_TAG follows the remote-tracking branch of the source: the source update step fetches origin and checks out its tip. A bare branch name would keep an outdated local branch. A release that must build one fixed source sets a commit hash here instead. |
 | `SRC_VERSION` | `:=` | `$(SRC_TAG)` |  |
 
 ## Variables set in configure/CONFIG_SITE
