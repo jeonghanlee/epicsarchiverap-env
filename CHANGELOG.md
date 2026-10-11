@@ -23,9 +23,10 @@ changes to the environment repository.
 - `docs/README.interface.md` documents the pages, the judgements, the limits and the site skin tokens; `scripts/prepare-ui.bash`, `ARCHAPPL_UI_TEMPLATE_PATH` and `ARCHAPPL_UI_TARGET_PATH` implement the build step.
 
 ### Changed
+- `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS` (default 1.0, at least 1.0) is written to `archappl.properties` as `org.epics.archiverappliance.config.PVTypeInfo.sampleBufferMarginSeconds`, the seconds of write delay a sample buffer absorbs, and the remedy texts of the Operations page name it. It replaces the earlier multiplier of the buffer capacity; `SRC_TAG` pins jeonghanlee/epicsarchiverap-maven commit `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0`, which contains the commit `6c6b973a` that reads the key.
 - The management pages are rebuilt without jQuery and with a content security policy on every full page; `metrics.html`, `storage.html`, `appliance.html`, `reports.html`, `pvdetails.html` and `cacompare.html` forward to the page that replaced them.
 - The site skin (`css/main.css`, `css/mgmt.css`, `template_changes.html`) uses one set of color tokens, drops shadows and gradients, keeps every control at 44 px on a narrow screen, and names no jQuery include.
-- `SRC_TAG` pins jeonghanlee/epicsarchiverap-maven commit `120d53fe43133c7699e4c9624dc948cc96b0ece2`, whose Maven build applies the site template and copies the site assets; a site folder that still holds a `build.xml` stops the build; remove that file (see "Site inputs" in `docs/README.install.md`).
+- `SRC_TAG` pins jeonghanlee/epicsarchiverap-maven commit `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0`, whose Maven build applies the site template and copies the site assets; a site folder that still holds a `build.xml` stops the build; remove that file (see "Site inputs" in `docs/README.install.md`).
 - Every Maven call of `configure/RULES_SRC` passes `ARCHAPPL_SITEID` (default `als`) instead of a fixed `als`, so the copied site folder and the built site agree.
 - The VM verifier waits on `STARTING` and `wrong-java-executable` within its readiness deadline, fails when either persists, and keeps every retried health output with its elapsed time.
 

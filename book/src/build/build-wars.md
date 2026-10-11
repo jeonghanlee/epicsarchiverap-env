@@ -28,8 +28,8 @@ This page produces the four WAR files of the appliance from the source commit th
    Both commands print the same commit:
 
    ```text
-   162269e7db97f527626ba0b387933a8c47e8bb57
-   162269e7db97f527626ba0b387933a8c47e8bb57
+   1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
+   1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
    ```
 
 3. Generate the configuration files, apply the site inputs and the interface files, and build the WAR files. This form needs no `sudo`.
@@ -57,10 +57,10 @@ ls epicsarchiverap-maven-src/target/*.war
 The output has four lines, one for each component:
 
 ```text
-epicsarchiverap-maven-src/target/aa-20261011-162269e7-engine.war
-epicsarchiverap-maven-src/target/aa-20261011-162269e7-etl.war
-epicsarchiverap-maven-src/target/aa-20261011-162269e7-mgmt.war
-epicsarchiverap-maven-src/target/aa-20261011-162269e7-retrieval.war
+epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-engine.war
+epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-etl.war
+epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-mgmt.war
+epicsarchiverap-maven-src/target/aa-20261011-1f099b2f-retrieval.war
 ```
 
 The name of a file is `aa-<build_date>-<short_commit>-<component>.war`.

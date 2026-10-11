@@ -102,8 +102,9 @@ report is shown as Not reported and is never shown as Normal.
 | Dropped samples | None | Any PV in the four dropped-event reports | A dropped sample is lost data |
 | Components | Different versions | A component is not running | The appliance status and version reports |
 
-The remedies on the Operations page name the setting to change. The sample buffer capacity adjustment is
-`org.epics.archiverappliance.config.PVTypeInfo.sampleBufferCapacityAdjustment` in `archappl.properties`. The heap size of
+The remedies on the Operations page name the setting to change. The seconds of write delay a sample buffer
+absorbs are `org.epics.archiverappliance.config.PVTypeInfo.sampleBufferMarginSeconds` in `archappl.properties`, at least
+1.0; this environment sets it with `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS`. The heap size of
 a process is a property of the installation: in this environment it is `AA_JAVA_HEAPSIZE`, set in `CONFIG_SITE.local`
 and applied by a new installation (see "Memory budget for a test VM" in the installation guide).
 

@@ -123,7 +123,7 @@ export function judgeConnections(appliance, disconnected, neverConnected) {
 
 export const DROPPED_REPORTS = [
     { endpoint: "../bpl/getPVsByDroppedEventsTimestamp", label: "Timestamp problems", action: "The IOC sends times that go backwards or far into the future: fix the clock of the IOC." },
-    { endpoint: "../bpl/getPVsByDroppedEventsBuffer", label: "Buffer overflow", action: "The PV is faster than the engine can write: slow it down or raise the sample buffer capacity adjustment (PVTypeInfo.sampleBufferCapacityAdjustment in archappl.properties)." },
+    { endpoint: "../bpl/getPVsByDroppedEventsBuffer", label: "Buffer overflow", action: "Samples were lost before the engine could write them: slow the PV down or raise the seconds of write delay a buffer absorbs (PVTypeInfo.sampleBufferMarginSeconds in archappl.properties, at least 1.0)." },
     { endpoint: "../bpl/getPVsByDroppedEventsTypeChange", label: "Type change", action: "The IOC changed the type of the record: the PV needs a new archive request." },
     { endpoint: "../bpl/getSlowChangingPVsWithDroppedEvents", label: "Slow-changing PVs with dropped events", action: "A slow PV lost more events than it sent: look at its connection and at the write thread." },
 ];

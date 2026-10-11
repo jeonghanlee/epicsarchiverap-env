@@ -18,7 +18,7 @@ The value `SRC_TAG` in `configure/RELEASE` names the commit, tag or branch of th
    The command prints the pinned commit:
 
    ```text
-   162269e7db97f527626ba0b387933a8c47e8bb57
+   1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
    ```
 
 2. Write the value into `configure/RELEASE.local`, which Git ignores. `configure/RELEASE` includes this file, and `../RELEASE.local` next to the checkout, at its end.

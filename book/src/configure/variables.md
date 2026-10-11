@@ -13,7 +13,7 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `APPNAME` | `:=` | `epicsarchiverap-maven` |  |
 | `SRC_URL` | `=` | `https://github.com/jeonghanlee` | Where the Source repository SRC_URL/SRC_NAME |
 | `SRC_NAME` | `:=` | `${APPNAME}` |  |
-| `SRC_TAG` | `:=` | `162269e7db97f527626ba0b387933a8c47e8bb57` | Which the source tag / branch / hash id would like to use latest master Placeholder for the site-specific version control The release builds the pinned aa-maven commit below; a later source release changes only this value, and development may point at a branch instead. |
+| `SRC_TAG` | `:=` | `1f099b2f5fe7ecb714e4a055e8b895f267fb78e0` | Which the source tag / branch / hash id would like to use latest master Placeholder for the site-specific version control The release builds the pinned aa-maven commit below; a later source release changes only this value, and development may point at a branch instead. |
 | `SRC_VERSION` | `:=` | `$(SRC_TAG)` |  |
 
 ## Variables set in configure/CONFIG_SITE
@@ -76,7 +76,7 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `ARCHAPPL_LTS_GRANULARITY` | `:=` | `PARTITION_YEAR` |  |
 | `ARCHAPPL_MINIMUM_SAMPLING_PERIOD` | `:=` | `0.1` | archappl.properties We only have three variables for the space holder for the future expansion |
 | `ARCHAPPL_SECONDS_TO_BUFFER` | `:=` | `10` |  |
-| `ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT` | `:=` | `1.0` |  |
+| `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS` | `:=` | `1.0` | Seconds of write delay a sample buffer absorbs; the engine raises a value below 1.0 to 1.0 |
 | `ARCHAPPL_SINGLE_IDENTITY` | `=` | `appliance0` |  |
 | `ARCHAPPL_APPLIANCES` | `:=` | `appliances.xml` | The following three files will in $(AA_INSTALL_LOCATION) |
 | `ARCHAPPL_CONF` | `:=` | `archappl.conf` |  |

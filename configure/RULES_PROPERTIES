@@ -37,7 +37,7 @@ conf.properties: $(ARCHAPPL_PROPERTIES).in  | mkdir.sitesidpath
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_MINIMUM_SAMPLING_PERIOD@|$(ARCHAPPL_MINIMUM_SAMPLING_PERIOD)|g" \
 				-e "s|@ARCHAPPL_SECONDS_TO_BUFFER@|$(ARCHAPPL_SECONDS_TO_BUFFER)|g" \
-				-e "s|@ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT@|$(ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT)|g" \
+				-e "s|@ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS@|$(ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS)|g" \
                 < $< > $(basename $<)
 	rm -f $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(notdir $(basename $<))
 	$(QUIET)echo ">>> Copy $(basename $<) to $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)"

@@ -17,7 +17,7 @@ SRC_NAME:=${APPNAME}
 ## The release builds the pinned aa-maven commit below; a later source release
 ## changes only this value, and development may point at a branch instead.
 #SRC_TAG:=modernize
-SRC_TAG:=162269e7db97f527626ba0b387933a8c47e8bb57
+SRC_TAG:=1f099b2f5fe7ecb714e4a055e8b895f267fb78e0
 #
 SRC_VERSION:=$(SRC_TAG)
 #SRC_VERSION:=${SRC_TAG}-2022-08-08
