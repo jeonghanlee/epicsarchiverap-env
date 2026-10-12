@@ -64,6 +64,9 @@ context.xml
 test*
 !/tests/
 !/tests/**
+# The test chapter of the book is a tracked folder, not a test artifact.
+!/book/src/test/
+!/book/src/test/**
 *.service
 /site-template/systemd/*.timer
 override.conf
