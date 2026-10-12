@@ -1,15 +1,15 @@
-# How the four components fit together
+# Components of the appliance
 
 The appliance is four Java web applications that run side by side on an appliance host. This page names them, shows how each one is started and addressed, and explains how they find each other through `appliances.xml`.
 
 ## The four web applications
 
-The repository lists them in `ARCHAPPL_SERVICES`: `mgmt`, `engine`, `etl` and `retrieval`. The source builds each one as its own WAR file, and the installation puts each one in its own Tomcat instance.
+The repository lists them in `ARCHAPPL_SERVICES`: `mgmt`, `engine`, `etl` and `retrieval`. The source builds each one as its own web application archive (WAR) file, and the installation puts each one in its own Tomcat instance.
 
 | Component | Default port | Address path | What it does |
 | :--- | ---: | :--- | :--- |
 | `mgmt` | 17665 | `/mgmt/bpl` | Accepts management requests. Its `BPLServlet` registers every management action, and the package `archivepv` runs the archive request workflow. It also serves the management pages. |
-| `engine` | 17666 | `/engine/bpl` | Connects to the PVs, buffers their samples and writes them to the first store. `ArchiveEngine` creates the channels and pauses and resumes archiving. |
+| `engine` | 17666 | `/engine/bpl` | Connects to the process variables (PVs), buffers their samples and writes them to the first store. `ArchiveEngine` creates the channels and pauses and resumes archiving. |
 | `etl` | 17667 | `/etl/bpl` | Moves data from one store to the next (`ETLSource`, `ETLDest`, `ETLExecutor`). |
 | `retrieval` | 17668 | `/retrieval/bpl`, data at `/retrieval` | Serves stored data. `DataRetrievalServlet` is the single entry for data requests. |
 
@@ -53,4 +53,4 @@ The reader of `appliances.xml` in the source (`AppliancesList`) refuses two appl
 
 ## Settings the components share
 
-The file `archappl.conf`, generated from `archappl.conf.in` and installed into `AA_INSTALL_LOCATION`, holds the environment that every instance reads: the Java and Tomcat locations, the paths of `appliances.xml`, `policies.py` and `archappl.properties`, the appliance identity, the ports, the storage folders and the `EPICS_CA_*` settings of the Channel Access client.
+The file `archappl.conf` is generated from `archappl.conf.in` and installed into `AA_INSTALL_LOCATION`. It holds the environment that every instance reads: the Java and Tomcat locations, the paths of `appliances.xml`, `policies.py` and `archappl.properties`, the appliance identity, the ports, the storage folders and the `EPICS_CA_*` settings of the Channel Access client.

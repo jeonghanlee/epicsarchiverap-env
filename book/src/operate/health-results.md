@@ -4,11 +4,11 @@ This page lists every line that `archappl.bash health` prints, the reason that f
 
 ## Instance lines of the check
 
-A line has the form `<component> pid=<pid> <STATUS> <reason>`.
+A line has the form `<component> pid=<pid> <status> <reason>`, where `<status>` is one of the status words of the table.
 
 | Status | Exit | Reason | Meaning |
 | :--- | ---: | :--- | :--- |
-| `PRESENT` | 0 | `verified-process-presence` | The PID file names a live process that belongs to the instance |
+| `PRESENT` | 0 | `verified-process-presence` | The process identifier (PID) file names a live process that belongs to the instance |
 | `STARTING` | 1 | `run-script`, `catalina-script` | The process is in the start chain and younger than the starting bound |
 | `FAIL` | 1 | `missing-pid-file`, `invalid-pid-file` | The PID file is absent or does not hold a valid PID |
 | `FAIL` | 1 | `missing-process`, `dead-process` | The PID names no process, or a zombie or dead one |
@@ -20,7 +20,7 @@ A line has the form `<component> pid=<pid> <STATUS> <reason>`.
 
 ## Storage lines of the check
 
-A line has the form `storage path=<path> mount=<mount> use=<percent>% threshold=<percent>% <STATUS>`. The check reports the archive root and each of the three store folders.
+A line has the form `storage path=<path> mount=<mount> use=<percent>% threshold=<percent>% <status>`, with a `<status>` from the table. The check reports the archive root and each of the three store folders.
 
 | Status | Exit | Reason | Meaning |
 | :--- | ---: | :--- | :--- |

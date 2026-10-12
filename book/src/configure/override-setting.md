@@ -1,6 +1,6 @@
 # Override a setting for one host
 
-This page changes a repository setting for one host without editing a tracked file. It uses the heap size of the four JVMs, `AA_JAVA_HEAPSIZE`, as the example; the same steps apply to every variable that [Configuration variables and their defaults](variables.md) lists.
+This page changes a repository setting for one host without editing a tracked file. It uses the heap size of the four Java virtual machines (JVMs), `AA_JAVA_HEAPSIZE`, as the example; the same steps apply to every variable that [Configuration variables and their defaults](variables.md) lists.
 
 ## Prerequisites
 
@@ -23,8 +23,10 @@ This page changes a repository setting for one host without editing a tracked fi
 
 2. Write the value into `../CONFIG_SITE.local`, the file next to the checkout. Do not use `configure/CONFIG_SITE.local` for site values: the target `<os>.conf`, which every installer runs first, deletes that file and writes the include of the operating system file into it.
 
+   The command appends, so a file that already holds other settings keeps them. Check the file first when it exists.
+
    ```bash
-   printf 'AA_JAVA_HEAPSIZE="512M"\n' > ../CONFIG_SITE.local
+   printf 'AA_JAVA_HEAPSIZE="512M"\n' >> ../CONFIG_SITE.local
    ```
 
 3. Print the value again.
@@ -56,5 +58,3 @@ This page changes a repository setting for one host without editing a tracked fi
 ## Verification
 
 The commands of steps 3 and 4 print the value. After the reinstall, `AA_INSTALL_LOCATION/archappl.conf` carries it.
-
-Step 5 changes the host and was not run for this page; the commands of steps 1 to 4 were run as shown, with the file removed afterwards.

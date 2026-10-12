@@ -45,11 +45,7 @@ The installers expect the packages of the host operating system. The script `scr
 
    The output is one line per package. On Rocky Linux 8 it contains `java-21-openjdk`, `java-21-openjdk-devel`, `mariadb-server`, `sqlite` and `chrony`, among others.
 
-3. Install the packages with root privilege. The option `-f` (`--force`) skips the confirmation prompt, for unattended runs.
-
-   ```bash
-   sudo bash scripts/install_os_packages.bash
-   ```
+3. Install the packages with root privilege: run the script of step 1 with `sudo` and without `--list-only`. The option `-f` (`--force`) skips the confirmation prompt, for unattended runs.
 
 4. Optional: when the host provides the prerequisites, skip this page. The installers accept `--skip-packages` and use the host as it is.
 
@@ -61,11 +57,8 @@ Check that the Java installation that the repository uses is present and is vers
 $(make -s print-JAVA_HOME)/bin/java -version
 ```
 
-On the host of this book the output begins:
+The first line of the output names a Java 21 runtime, in this form:
 
 ```text
-openjdk version "21.0.12.1" 2026-08-18
-OpenJDK Runtime Environment (build 21.0.12.1+1-1-deb13u1-Debian)
+openjdk version "21.<update>" <release_date>
 ```
-
-Step 3 changes the host and was not run for this page; steps 1 and 2 and the verification were run as shown.

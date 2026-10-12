@@ -6,7 +6,7 @@ The `mgmt` application serves the management interface under `/mgmt/ui/`, and th
 
 | Page | Address | For | What it shows |
 | :--- | :--- | :--- | :--- |
-| Work | `/mgmt/ui/index.html` | Everyone | Find PVs by name, scan the selected ones, chart them, and act on them |
+| Work | `/mgmt/ui/index.html` | Everyone | Find process variables (PVs) by name, scan the selected ones, chart them, and act on them |
 | System: Overview | `/mgmt/ui/system.html` | Everyone | Three verdict lines and one row for each measure, with its meaning and a link to the detail |
 | System: Operations | `/mgmt/ui/operations.html` | The person who looks after the appliance | Samples, dropped samples, the write path, the stores and ETL, the processes and the configuration in effect |
 | System: Retrieval performance | `/mgmt/ui/retrieval.html` | A person whose data requests are slow | What the server reports about reading, and a data request measured in the browser |
@@ -17,13 +17,13 @@ The `mgmt` application serves the management interface under `/mgmt/ui/`, and th
 
 ## The Work page
 
-The page has two areas. The finder on the left has a search field with three modes (Contains, Glob, Regex), a list for selecting server reports, name groups and the result list. The board on the right shows the selected PVs: a Scan table, a time series chart with a distribution, a plot of two PVs against each other and a summary table, and the detail of the focused PV with the actions that apply to it. The state of the page is kept in the address, so a link reproduces the view.
+The page has two areas. The finder on the left has a search field with three modes (Contains, Glob, Regex), a list for selecting server reports, name groups and the result list. The board on the right shows the selected PVs: a Scan table, a time series chart with a distribution, a plot of two PVs against each other and a summary table. It also shows the detail of the focused PV with the actions that apply to it. The address keeps the state of the page, so a link reproduces the view.
 
 The task page [Find and pause a PV on the Work page](work-page.md) uses it.
 
 ## The System pages
 
-The three System pages share an appliance selector, which appears only when the cluster has more than one appliance, and a tab bar. Each page states, in a short block at the start of each section, the question the section answers, when the numbers are a problem and what to do. The judgements are listed in [What the System pages judge](judgements.md).
+The three System pages share an appliance selector, which appears only when the cluster has more than one appliance, and a tab bar. Each page states, in a short block at the start of each section, the question the section answers, when the numbers are a problem and what to do. The judgements are listed in [Judgements of the System pages](judgements.md).
 
 ## Older addresses that forward to a page
 

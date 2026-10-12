@@ -1,6 +1,6 @@
 # Find and pause a PV on the Work page
 
-This page finds an archived PV by part of its name, shows its state, and pauses it. A paused PV stays registered and keeps its data; the archiver stops sampling it until you resume it.
+This page finds an archived process variable (PV) by part of its name, shows its state, and pauses it. A paused PV stays registered and keeps its data; the archiver stops sampling it until you resume it.
 
 ## Prerequisites
 
@@ -25,20 +25,18 @@ This page finds an archived PV by part of its name, shows its state, and pauses 
 
 4. Look at the Detail area. It shows the state of the PV with an explanation and the actions that apply to that state.
 
+   | State | Actions in the Detail area |
+   | :--- | :--- |
+   | Being archived | Pause, Change sampling…, Stop archiving…, and a Maintenance section |
+   | Paused | Resume, Change sampling…, Stop archiving…, and a Maintenance section |
+   | Initial sampling, Appliance assigned | Abort the request |
+   | Not being archived | Archive… |
+
+   `Stop archiving…` pauses the PV first, because the archiver removes only a paused process variable. `Pause all selected…`, `Resume all selected…` and `Stop archiving all selected…` above the Scan table act on every selected PV.
+
 5. Click `Pause`. The state word of the PV changes to `Paused`, and the button becomes `Resume`.
 
 6. Optional: click `Resume` to sample the PV again.
-
-## Which actions apply
-
-| State | Actions in the Detail area |
-| :--- | :--- |
-| Being archived | Pause, Change sampling…, Stop archiving…, and a Maintenance section |
-| Paused | Resume, Change sampling…, Stop archiving…, and a Maintenance section |
-| Initial sampling, Appliance assigned | Abort the request |
-| Not being archived | Archive… |
-
-`Stop archiving…` pauses the PV first, because the archiver removes only a paused PV. `Pause all selected…`, `Resume all selected…` and `Stop archiving all selected…` above the Scan table act on every selected PV.
 
 ## Verification
 
@@ -48,6 +46,10 @@ The Scan row and the Detail area show the state `Paused`. The `getPVStatus` call
 curl -s "http://<appliance_host>:17665/mgmt/bpl/getPVStatus?pv=<pv_name>"
 ```
 
-The answer is a JSON array whose first element has `"pvName"` and `"status"`; after step 5 the status is `Paused`.
+The answer is a JSON array whose first element has `"pvName"` and `"status"`. For a PV that the appliance does not archive it reads:
 
-The steps were run in a browser against a scratch appliance during the checks of the interface; this page was not run again for the book.
+```text
+[{"pvName":"<pv_name>","status":"Not being archived"}]
+```
+
+After step 5 the status of the PV is `Paused`.

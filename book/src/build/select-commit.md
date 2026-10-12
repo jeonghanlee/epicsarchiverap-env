@@ -21,13 +21,13 @@ The value `SRC_TAG` in `configure/RELEASE` names the commit, tag or branch of th
    origin/modernize
    ```
 
-2. Write the value into `configure/RELEASE.local`, which Git ignores. `configure/RELEASE` includes this file, and `../RELEASE.local` next to the checkout, at its end.
+2. Write the value into `configure/RELEASE.local`, which Git ignores. `configure/RELEASE` includes this file, and `../RELEASE.local` next to the checkout, at its end. The command appends, so a file that already holds other settings keeps them.
 
    ```bash
-   printf 'SRC_TAG:=<commit_or_branch>\n' > configure/RELEASE.local
+   printf 'SRC_TAG:=<commit_or_branch>\n' >> configure/RELEASE.local
    ```
 
-   `<commit_or_branch>` is the commit hash, tag or branch name to build.
+   `<commit_or_branch>` is the commit hash, tag or branch name to build. Write a branch as `origin/<branch>`: a bare branch name keeps the older local branch of the clone, while `origin/<branch>` follows the fetched tip.
 
 3. Check that the value is in effect.
 
@@ -37,13 +37,14 @@ The value `SRC_TAG` in `configure/RELEASE` names the commit, tag or branch of th
 
    The command prints `<commit_or_branch>`.
 
-4. Update the source clone to that commit and its submodules.
+4. Fetch the source repository, then update the source clone to that reference and its submodules.
 
    ```bash
+   git -C epicsarchiverap-maven-src fetch origin
    make srcupdate
    ```
 
-   The target runs `git checkout <commit_or_branch>` and `git submodule update --init` in the clone.
+   The target runs `git checkout <commit_or_branch>` and `git submodule update --init` in the clone; without the fetch it can only reach what the clone already has.
 
 5. Build the web applications again, as in [Fetch and build the web applications](build-wars.md).
 

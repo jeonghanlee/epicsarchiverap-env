@@ -7,61 +7,62 @@ The control script reads or sets the level of one logger on one component of a r
 - A running appliance.
 - `curl` in `PATH`.
 - `ARCHAPPL_MGMT_PORT` in the `archappl.conf` next to the script.
+- A shell in the installation directory `AA_INSTALL_LOCATION`, which holds `archappl.bash` and `archappl.conf`.
 
 ## Steps
 
 1. Read the level of the root logger of a component. The component is one of `mgmt`, `engine`, `etl` and `retrieval`; the logger defaults to `root`.
 
    ```bash
-   bash /opt/epicsarchiverap-maven/archappl.bash loglevel <component>
+   bash archappl.bash loglevel engine
    ```
 
-2. Optional: read the level of a named logger.
+   The command prints the answer of the server:
+
+   ```text
+   {"component":"engine","level":"INFO","logger":"root"}
+   ```
+
+2. Optional: read the level of a named logger. A logger name holds letters, digits, `_`, `.` and `-`.
 
    ```bash
-   bash /opt/epicsarchiverap-maven/archappl.bash loglevel <component> <logger>
+   bash archappl.bash loglevel engine org.epics.archiverappliance.engine
    ```
 
-   `<logger>` holds letters, digits, `_`, `.` and `-`.
+   The command prints the level of that logger:
+
+   ```text
+   {"component":"engine","level":"INFO","logger":"org.epics.archiverappliance.engine"}
+   ```
 
 3. Set a level. The level is one of `OFF`, `FATAL`, `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE` and `ALL`, in upper or lower case.
 
    ```bash
-   bash /opt/epicsarchiverap-maven/archappl.bash loglevel <component> <logger> <level>
+   bash archappl.bash loglevel engine org.epics.archiverappliance.engine debug
    ```
 
-The script sends `getLogLevel` or `setLogLevel` to `http://localhost:<ARCHAPPL_MGMT_PORT>/mgmt/bpl/` and prints the answer of the server.
+   The answer names the level that the logger had before:
 
-## Exit status and messages
+   ```text
+   {"previousLevel":"INFO","component":"engine","level":"DEBUG","logger":"org.epics.archiverappliance.engine"}
+   ```
 
-| Exit | Meaning |
-| ---: | :--- |
-| 0 | The server answered with HTTP 200; the answer is printed |
-| 1 | The request failed or the server answered with another status |
-| 2 | An argument or the host is not valid; the request is not sent |
+## Verification
 
-The script checks the arguments before it sends anything. In a checkout these two commands were run as shown, and print:
+Read the level again with the command of step 2. It prints the level that you set:
+
+```text
+{"component":"engine","level":"DEBUG","logger":"org.epics.archiverappliance.engine"}
+```
+
+A level set this way applies to the running process only and is lost at the next start; the permanent level is `ARCHAPPL_ROOT_LOGGER_LEVEL`. The script sends `getLogLevel` or `setLogLevel` to `http://localhost:<mgmt_port>/mgmt/bpl/`. It exits with `0` when the server answers with HTTP 200, with `1` when the request fails or the server answers with another status, and with `2` when an argument or the host is not valid. The script checks the arguments before it sends anything, and an invalid component stops it with exit status `2`:
 
 ```bash
-bash scripts/archappl.bash loglevel bogus
+bash archappl.bash loglevel bogus
 ```
+
+The script prints the valid components:
 
 ```text
 loglevel: component must be one of: mgmt engine etl retrieval
 ```
-
-```bash
-bash scripts/archappl.bash loglevel mgmt "bad logger!"
-```
-
-```text
-loglevel: invalid logger name: bad logger!
-```
-
-(A checkout without `archappl.conf` also prints an error about the missing file before these lines.)
-
-## Verification
-
-Read the level again with step 1 after step 3; it prints the level that you set. A level set this way applies to the running process only and is lost at the next start; the permanent level is `ARCHAPPL_ROOT_LOGGER_LEVEL`.
-
-The requests of steps 1 to 3 were not run against an appliance for the book; the argument checks above were run as shown.

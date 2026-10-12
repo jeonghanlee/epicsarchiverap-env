@@ -4,10 +4,10 @@
 
 # Understand the appliance
 
-- [How the four components fit together](understand/components.md)
+- [Components of the appliance](understand/components.md)
 - [Storage tiers and the movement of data](understand/storage-tiers.md)
-- [What the repository builds and installs](understand/build-and-install.md)
-- [How a site changes the appliance](understand/site-changes.md)
+- [Build and install stages of the repository](understand/build-and-install.md)
+- [Ways a site changes the appliance](understand/site-changes.md)
 
 # Install and verify an appliance
 
@@ -33,24 +33,24 @@
 
 # Operate the appliance
 
-- [Start, stop and restart the appliance](operate/start-stop.md)
+- [Start and stop actions of the appliance](operate/start-stop.md)
 - [Check the health of the appliance](operate/health.md)
 - [Health check results](operate/health-results.md)
-- [Read the logs of the four components](operate/logs.md)
+- [Journal identifiers of the components](operate/logs.md)
 - [Change a log level at run time](operate/loglevel.md)
-- [Watch the storage use](operate/storage.md)
+- [Storage use reporting](operate/storage.md)
 
 # Use the management interface
 
 - [The pages of the management interface](interface/pages.md)
-- [What the System pages judge](interface/judgements.md)
+- [Judgements of the System pages](interface/judgements.md)
 - [Find and pause a PV on the Work page](interface/work-page.md)
 
 # Test the environment
 
 - [Run the local test suite](test/run-local.md)
-- [What each test phase checks](test/phases.md)
-- [Run the VM installation tests](test/vm.md)
+- [Test groups of the local suite](test/phases.md)
+- [VM verification operations](test/vm.md)
 
 # Appendices
 

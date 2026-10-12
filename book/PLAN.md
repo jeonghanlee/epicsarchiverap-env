@@ -18,10 +18,10 @@ Verification classes: **H** the commands run on this host as shown; **S** they r
 
 | Page | Type | Source in the code | Verification |
 | :--- | :--- | :--- | :--- |
-| How the four components fit together | concept | `site-template/appliances.xml.in`, `archappl.conf.in`, `mgmt.conf`, `engine.conf`, `etl.conf`, `retrieval.conf`, `configure/CONFIG_TOMCAT` | H: `make -s print-*`, the generated `appliances.xml` |
+| Components of the appliance | concept | `site-template/appliances.xml.in`, `archappl.conf.in`, `mgmt.conf`, `engine.conf`, `etl.conf`, `retrieval.conf`, `configure/CONFIG_TOMCAT` | H: `make -s print-*`, the generated `appliances.xml` |
 | Storage tiers and the movement of data | concept | `site-template/policies.py.in`, `configure/CONFIG_SITE` (`ARCHAPPL_*GRANULARITY`, hold, gather) | H: generated `policies.py` |
-| What the repository builds and installs | concept | `Makefile`, `configure/RULES*`, `make -n install` | H: `make -n` output |
-| How a site changes the appliance | concept | `configure/CONFIG_SITE`, `CONFIG_SITE.local`, `site-template/siteid`, `RULES_SRC` | H |
+| Build and install stages of the repository | concept | `Makefile`, `configure/RULES*`, `make -n install` | H: `make -n` output |
+| Ways a site changes the appliance | concept | `configure/CONFIG_SITE`, `CONFIG_SITE.local`, `site-template/siteid`, `RULES_SRC` | H |
 
 ### Part 2: Install and verify an appliance
 
@@ -55,19 +55,19 @@ Verification classes: **H** the commands run on this host as shown; **S** they r
 
 | Page | Type | Source in the code | Verification |
 | :--- | :--- | :--- | :--- |
-| Start, stop and restart the appliance | procedure | `scripts/archappl.bash`, `make sd_*` | S |
+| Start and stop actions of the appliance | procedure | `scripts/archappl.bash`, `make sd_*` | S |
 | Check the health of the appliance | procedure | `scripts/archappl.bash health`, `make sd_health_*` | S |
 | Health check results | reference | `scripts/archappl.bash` exit and `FAIL` names | S |
-| Read the logs of the four components | procedure | `configure/CONFIG_SYSTEMD`, `RULES_SYSTEMD` | S |
+| Journal identifiers of the components | procedure | `configure/CONFIG_SYSTEMD`, `RULES_SYSTEMD` | S |
 | Change a log level at run time | procedure | `scripts/archappl.bash loglevel` | S |
-| Watch the storage use | procedure | `scripts/archappl.bash storage`, `check_storage_placement.bash` | S |
+| Storage use reporting | procedure | `scripts/archappl.bash storage`, `check_storage_placement.bash` | S |
 
 ### Part 6: Use the management interface
 
 | Page | Type | Source in the code | Verification |
 | :--- | :--- | :--- | :--- |
 | The pages of the management interface | concept | `mgmt/staticcontent/*.html` of the selected source | S |
-| What the System pages judge | reference | `js/system/judge.js` `THRESHOLDS`; generated | S |
+| Judgements of the System pages | reference | `js/system/judge.js` `THRESHOLDS`; generated | S |
 | Find and pause a PV on the Work page | procedure | `js/work.js`, `index.html` | S |
 
 ### Part 7: Test the environment
@@ -75,8 +75,8 @@ Verification classes: **H** the commands run on this host as shown; **S** they r
 | Page | Type | Source in the code | Verification |
 | :--- | :--- | :--- | :--- |
 | Run the local test suite | procedure | `tests/run-all-tests.bash --local` | H |
-| What each test phase checks | concept | `tests/phase*.bash`, `tests/*.bash` | H |
-| Run the VM installation tests | procedure | `tests/vm/*`, `tests/phase4-vm.bash` | P |
+| Test groups of the local suite | concept | `tests/phase*.bash`, `tests/*.bash` | H |
+| VM verification operations | procedure | `tests/vm/*`, `tests/phase4-vm.bash` | P |
 
 ### Appendices
 

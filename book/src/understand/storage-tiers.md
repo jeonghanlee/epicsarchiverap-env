@@ -1,6 +1,6 @@
 # Storage tiers and the movement of data
 
-The appliance keeps every PV in up to three stores. Samples go to the first store, and the `etl` component moves them to the next store as they age. This page explains the stores, the parameters that describe them and the policies that choose them.
+The appliance keeps every process variable (PV) in up to three stores. Samples go to the first store, and the `etl` component moves them to the next store as they age. This page explains the stores, the parameters that describe them and the policies that choose them.
 
 ## The three stores
 
@@ -12,7 +12,7 @@ The appliance keeps every PV in up to three stores. Samples go to the first stor
 
 The folders come from `ARCHAPPL_STORAGE_TOP` (`/arch`) and the variables `ARCHAPPL_SHORT_TERM_FOLDER`, `ARCHAPPL_MEDIUM_TERM_FOLDER` and `ARCHAPPL_LONG_TERM_FOLDER`. The partitions come from `ARCHAPPL_STS_GRANULARITY`, `ARCHAPPL_MTS_GRANULARITY` and `ARCHAPPL_LTS_GRANULARITY`. All of them live in `configure/CONFIG_SITE`.
 
-A store is described by a URL of the `pb://` form. The template `site-template/policies.py.in` builds the three URLs and the generated `policies.py` carries them:
+A store is described by a uniform resource locator (URL) of the `pb://` form. The template `site-template/policies.py.in` builds the three URLs and the generated `policies.py` carries them:
 
 | Part of the URL | Meaning (from the storage plugin of the source) |
 | :--- | :--- |

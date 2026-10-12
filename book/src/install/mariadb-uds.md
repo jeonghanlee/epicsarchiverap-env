@@ -1,11 +1,11 @@
 # Install an appliance with MariaDB over a Unix socket
 
-This page installs a systemd-managed appliance whose configuration database is MariaDB, reached through a Unix domain socket. The installer `scripts/install-local-mariadb-uds.bash` builds the WAR files, prepares the database and its accounts, installs the appliance and starts it.
+This page installs a systemd-managed appliance whose configuration database is MariaDB, reached through a Unix domain socket. The installer `scripts/install-local-mariadb-uds.bash` builds the web application archive (WAR) files, prepares the database and its accounts, installs the appliance and starts it.
 
 ## Prerequisites
 
 - A host prepared as in [Prepare the host for the appliance](prepare-host.md); the package list includes `mariadb-server`.
-- An ordinary user that owns the checkout and may use `sudo`.
+- An ordinary user that owns the checkout and can use `sudo`.
 - The passwords of the database accounts, set in `CONFIG_SITE.local`: `DB_ADMIN_PASS` for the administrative account and `DB_USER_PASS` for the application account. The defaults in `configure/CONFIG_SITE` are fixed values of the repository; set your own.
 - The service account (`tomcat` by default) must be able to read and write the socket. The installer checks this with `sudo -n -u tomcat test -S` and `test -w`.
 
@@ -40,6 +40,4 @@ This page installs a systemd-managed appliance whose configuration database is M
 
 ## Verification
 
-The installer waits up to 180 seconds for the process health, the four startup states and the `getApplianceInfo` call of `mgmt`, and then prints the health result and the appliance information. The database objects exist when `sql.show`, the step before the installation, lists the tables of the configured database (`DB_NAME`).
-
-Step 3 changes the host and was not run for this page; step 1 was run as shown.
+The installer ends with the health result and the appliance information, as [Check the health of the appliance](../operate/health.md) describes. The database objects exist when the `sql.show` step before the installation lists the tables of the configured database (`DB_NAME`).

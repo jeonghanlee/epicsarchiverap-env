@@ -1,13 +1,13 @@
 # Install an appliance with SQLite
 
-This page installs a systemd-managed appliance whose configuration database is a SQLite file. The installer `scripts/install-local-sqlite.bash` builds the WAR files from the pinned source, installs them and starts the appliance.
+This page installs a systemd-managed appliance whose configuration database is a SQLite file. The installer `scripts/install-local-sqlite.bash` builds the web application archive (WAR) files from the source that `SRC_TAG` selects, installs them and starts the appliance.
 
 ## Prerequisites
 
 - A host that runs a supported operating system, prepared as in [Prepare the host for the appliance](prepare-host.md).
-- An ordinary user that owns the checkout and that may use `sudo`; the installer runs privileged steps with `sudo` itself.
+- An ordinary user that owns the checkout and that can use `sudo`; the installer runs privileged steps with `sudo` itself.
 - Source inputs without local changes. The generated `als` site and ignored build outputs are allowed.
-- Optional: an exported `EPICS_BASE` with `softIoc` and `caget`, for the soft IOC test that the installer offers before the installation.
+- Optional: an exported `EPICS_BASE` with `softIoc` and `caget`, for the soft input/output controller (IOC) test that the installer offers before the installation.
 
 ## Steps
 
@@ -56,6 +56,4 @@ This page installs a systemd-managed appliance whose configuration database is a
 
 ## Verification
 
-The installer prints the health result and the appliance information as its last step. A successful installation ends with the appliance running under systemd as `epicsarchiverap-maven.service`.
-
-Step 3 changes the host and was not run for this page; step 1 was run as shown, and the lines that step 4 describes are the lines that the plan prints.
+The installer ends with the health result and the appliance information, as [Check the health of the appliance](../operate/health.md) describes. A successful installation leaves the appliance running under systemd as `epicsarchiverap-maven.service`.

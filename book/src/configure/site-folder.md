@@ -1,14 +1,14 @@
 # Site folder layout
 
-The site folder holds the inputs that the build applies to the source tree for one site. This page lists its contents as the repository ships them and what each entry becomes. The folder is `site-template/siteid`, and `ARCHAPPL_SITEID` (default `als`) names the destination `src/sitespecific/<ARCHAPPL_SITEID>` of the source tree.
+The site folder holds the inputs that the build applies to the source tree for one site. This page lists its contents as the repository ships them and what each entry becomes. The folder is `site-template/siteid`, and the value of `ARCHAPPL_SITEID` (default `als`) is the `<site_id>` of the destination `src/sitespecific/<site_id>` in the source tree.
 
 ## Contents of the site folder
 
 | Path | Content | Used by |
 | :--- | :--- | :--- |
-| `classpathfiles/appliances.xml` | The appliance identity and the addresses of the components | Packed into every WAR by the source build |
+| `classpathfiles/appliances.xml` | The appliance identity and the addresses of the components | Packed into every web application archive (WAR) by the source build |
 | `classpathfiles/archappl.properties` | The properties of the engine and the retrieval | Packed into every WAR by the source build |
-| `classpathfiles/policies.py` | The storage policies and the store URLs | Packed into every WAR by the source build |
+| `classpathfiles/policies.py` | The storage policies and the store uniform resource locators (URLs) | Packed into every WAR by the source build |
 | `css/main.css` | The shared stylesheet, defined by color, font and spacing tokens | Copied over `staticcontent/css/main.css` |
 | `img/` | The site logo `LBNLLogo.png` and the browser icon `als.ico` | Copied over `staticcontent/img` |
 | `template_changes.html` | The header, navigation and footer blocks | Merged into the management pages |

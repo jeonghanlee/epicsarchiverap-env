@@ -9,8 +9,8 @@ This page lists what `make install` puts on the host, and where each file comes 
 | `archappl.conf` | Shared environment of the four instances | `site-template/archappl.conf.in` |
 | `appliances.xml` | Identity and addresses of the components | `site-template/appliances.xml.in` |
 | `archappl.properties` | Engine and retrieval properties | `site-template/archappl.properties.in` |
-| `policies.py` | Storage policies and store URLs | `site-template/policies.py.in` |
-| `archappl.bash` | The control script: `startup`, `shutdown`, `restart`, `status`, `storage`, `health`, `loglevel` | `scripts/archappl.bash` |
+| `policies.py` | Storage policies and store uniform resource locators (URLs) | `site-template/policies.py.in` |
+| `archappl.bash` | The control script: `startup`, `shutdown`, `restart`, `service`, `status`, `storage`, `health`, `loglevel`, `help` | `scripts/archappl.bash` |
 | `<component>/` | One Tomcat instance for each of `mgmt`, `engine`, `etl` and `retrieval` | `site-template/skel` and the rules below |
 
 The files `archappl.properties` and `policies.py` belong to the service account (`AA_USERID`, default `tomcat`).
@@ -27,7 +27,7 @@ For each component the installer creates the folder with `conf`, `logs`, `webapp
 | `bin/startup.sh`, `bin/shutdown.sh`, `bin/run.sh`, `bin/setenv.sh` | Start and stop scripts of the instance, generated from the `.in` files of `site-template` |
 | `log4j/` | `log4j2-tomcat.xml`, the logging configuration of the instance, and the log4j JAR files that `scripts/install-payload.bash` copies there |
 | `policy/catalina.policy` | Tomcat security policy file |
-| `webapps/<component>/` | The web application: the exploded WAR of the component, which `scripts/install-payload.bash` replaces from the WAR in `target/` of the source |
+| `webapps/<component>/` | The web application: the exploded web application archive (WAR) of the component, which `scripts/install-payload.bash` replaces from the WAR in `target/` of the source |
 
 ## The systemd service files
 

@@ -1,14 +1,14 @@
-# What the repository builds and installs
+# Build and install stages of the repository
 
-The repository turns the source commit that `SRC_TAG` selects and a set of site inputs into four WAR files, and it installs them as a systemd-managed appliance. This page lists the stages, in order, and the target that runs each one.
+The repository turns the source commit that `SRC_TAG` selects and a set of site inputs into four web application archive (WAR) files, and it installs them as a systemd-managed appliance. This page lists the stages, in order, and the target that runs each one.
 
 ## The stages of build and install
 
 | Stage | Target | What it does |
 | :--- | :--- | :--- |
-| 1. Fetch the source | `make init` | Runs `clone`, which clones `SRC_GITURL` into `SRC_PATH` at the commit `SRC_TAG`, and `update`, which runs `git submodule update --init`. |
+| 1. Fetch the source | `make init` | Runs `clone`, which clones `SRC_GITURL` into `SRC_PATH` and checks out the reference `SRC_TAG`, and `update`, which runs `git submodule update --init`. |
 | 2. Generate the configuration | `make conf` | Runs `conf.archapplproperties` and `conf.storage`. It writes `appliances.xml`, `archappl.properties` and `policies.py` from their `.in` templates and prepares the storage folders. |
-| 3. Apply the site inputs | `copy.sitespecific` | Replaces `src/sitespecific/<ARCHAPPL_SITEID>` of the source tree with `site-template/siteid`. |
+| 3. Apply the site inputs | `copy.sitespecific` | Replaces `src/sitespecific/<site_id>` of the source tree with `site-template/siteid`, where `<site_id>` is the value of `ARCHAPPL_SITEID`. |
 | 4. Build the WARs | `make build.mvn` | Runs `mvnw clean package -DskipTests` in the source tree with `ARCHAPPL_SITEID` set. |
 | 5. Install | `make install` | Stops the health monitor, installs the four instances, the generated configuration files and the systemd units, and enables the service. |
 
@@ -22,11 +22,11 @@ The three generated files are copied into `site-template/siteid/classpathfiles`.
 | :--- | :--- | :--- |
 | `appliances.xml` | `appliances.xml.in` | The identity and the addresses of the components |
 | `archappl.properties` | `archappl.properties.in` | The engine and the retrieval properties, for example the minimum sampling period |
-| `policies.py` | `policies.py.in` | The storage policies and the store URLs |
+| `policies.py` | `policies.py.in` | The storage policies and the store uniform resource locators (URLs) |
 
 `conf.storage` runs with `sudo`: it creates `ARCHAPPL_STORAGE_TOP` and the three store folders. The target `conf.archapplproperties` generates the files without `sudo`; `make conf.archapplproperties build.mvn` therefore builds the WAR files without touching the storage folders.
 
-## What stage 6 installs
+## What stage 5 installs
 
 The dry run `make -n install` lists the steps, in order:
 
