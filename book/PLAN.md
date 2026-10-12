@@ -2,6 +2,10 @@
 
 This plan fixes the structure of the book in `book/src`. It is not rendered. Every page is written from the code, the configuration and commands run on a host; the earlier README files of `docs/` are not a source.
 
+## Tool versions
+
+The workflow `.github/workflows/book.yml` builds the book with mdBook 0.5.4 and checks the SHA-256 of the downloaded archive. Build locally with the same version so that a page renders as it is published. The job `generated` runs `make init` and `book/scripts/check-generated.bash`, so a generated page that differs from its generator is reported on every push and pull request that changes the code it reads.
+
 ## Rules of the book
 
 - One page has one type: concept, procedure, reference or tutorial. The title form follows the type: a noun phrase for concept and reference, an imperative for procedure and tutorial.
