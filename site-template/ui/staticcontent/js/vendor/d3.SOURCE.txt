@@ -1,2 +1,0 @@
-D3 7.9.0, npm package d3, tarball integrity sha512-e1U46jVP+w7Iut8Jt8ri1YsPOvFpg46k+K8TpCb0P+zjCkjkPnV7WzfDJzMHy1LnA+wj5pLT1wjO901gLXeEhA==
-d3.min.js is dist/d3.min.js of that tarball, SHA-256 f2094bbf6141b359722c4fe454eb6c4b0f0e42cc10cc7af921fc158fceb86539

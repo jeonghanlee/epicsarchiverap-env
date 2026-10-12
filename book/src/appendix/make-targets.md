@@ -17,11 +17,11 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `archapplshell.install` | `archappl.bash` |  |
 | `archapplshell.show` | `archappl.bash` |  |
 | `build` | `conf build.mvn` | Conf and Build |
-| `build.mvn` | `info.mvn copy.sitespecific copy.ui` | Build (tests skipped -- CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite) |
-| `build.mvn2` | `info.mvn copy.sitespecific copy.ui` | Build 2 |
-| `build.mvn3` | `info.mvn copy.sitespecific copy.ui` | Build 3 |
-| `build.mvndeps` | `info.mvn copy.sitespecific copy.ui` | Build 4 |
-| `build.war` | `info.mvn copy.sitespecific copy.ui` | Build 4 |
+| `build.mvn` | `info.mvn copy.sitespecific` | Build (tests skipped -- CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite) |
+| `build.mvn2` | `info.mvn copy.sitespecific` | Build 2 |
+| `build.mvn3` | `info.mvn copy.sitespecific` | Build 3 |
+| `build.mvndeps` | `info.mvn copy.sitespecific` | Build 4 |
+| `build.war` | `info.mvn copy.sitespecific` | Build 4 |
 | `centos7.conf` | `rocky8.conf` |  |
 | `centos8.conf` | `rocky8.conf` |  |
 | `checkout` |  |  |
@@ -55,7 +55,6 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `conf.systemd0` | `epicsarchiverap-maven.service.in` |  |
 | `conf.systemd0.show` | `epicsarchiverap-maven.service.in` |  |
 | `copy.sitespecific` | `\| FORCE` |  |
-| `copy.ui` | `\| FORCE` | Copy the prepared interface files over the source tree |
 | `db.addAdmin` | `mariadb_setup.bash db.conf` |  |
 | `db.conf` | `mariadb.conf.in` |  |
 | `db.conf.show` |  |  |

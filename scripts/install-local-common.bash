@@ -202,27 +202,51 @@ function read_settings {
     mgmt_url="http://$host:$port/mgmt/bpl/getApplianceInfo"
 }
 
-# Pathspecs for the interface files that site-template/ui prepares inside the source checkout.
-# They are generated inputs, like the site overlay, and are named one by one, never by directory.
+# Pathspecs for the files that an earlier build of this checkout copied over the source tree, read
+# from the list kept in the Git directory of the source. They are tolerated until the source
+# update restores them.
 function prepared_ui_excludes {
-    local ui="$REPO/site-template/ui" file relative gitdir manifest
-    local prefix='src/main/org/epics/archiverappliance'
-    if [[ -d "$ui" ]]; then
-        while IFS= read -r -d '' file; do
-            printf '%s\0' ":(exclude,literal)$prefix/${file#"$ui/"}"
-        done < <(find "$ui" -type f -print0)
-    fi
-    # The files of the earlier copy stay generated inputs until the next build undoes them.
+    local gitdir manifest relative
     gitdir=$(git -C "$source_path" rev-parse --absolute-git-dir 2>/dev/null) || return 0
     manifest="$gitdir/aa-ui-prepared.list"
-    if [[ -f "$manifest" ]]; then
-        while IFS= read -r relative; do
-            [[ -n "$relative" ]] && printf '%s\0' ":(exclude,literal)$prefix/$relative"
-        done < "$manifest"
-    fi
+    [[ -f "$manifest" ]] || return 0
+    while IFS= read -r relative; do
+        [[ -n "$relative" ]] && printf '%s\0' ":(exclude,literal)src/main/org/epics/archiverappliance/$relative"
+    done < "$manifest"
 }
 
-# Requires clean source inputs while permitting the generated site, the prepared interface files and ignored build output.
+# Restores the files that an earlier build of this checkout copied over the source tree. The
+# list of that copy is kept in the Git directory of the source; the interface is part of the
+# source now, so the copied files are replaced by the source's own content and the list is removed.
+function restore_prepared_ui {
+    local gitdir manifest relative file
+    local prefix='src/main/org/epics/archiverappliance'
+    [[ -e "$source_path" ]] || return 0
+    gitdir=$(git -C "$source_path" rev-parse --absolute-git-dir 2>/dev/null) || return 0
+    manifest="$gitdir/aa-ui-prepared.list"
+    [[ -f "$manifest" ]] || return 0
+    while IFS= read -r relative; do
+        [[ -n "$relative" ]] || continue
+        file="$prefix/$relative"
+        if git -C "$source_path" ls-files --error-unmatch -- "$file" > /dev/null 2>&1; then
+            git -C "$source_path" checkout -- "$file"
+        else
+            rm -f -- "$source_path/$file"
+        fi
+    done < "$manifest"
+    rm -f -- "$manifest"
+}
+
+# The management interface is part of the selected source; an older source does not carry it.
+function require_interface_sources {
+    local page
+    for page in mgmt/staticcontent/index.html retrieval/staticcontent/viewer/archViewer.html; do
+        [[ -f "$source_path/src/main/org/epics/archiverappliance/$page" ]] \
+            || die "The selected source does not carry the management interface: missing $page"
+    done
+}
+
+# Requires clean source inputs while permitting the generated site, the files of an earlier copy and ignored build output.
 function check_source {
     local top pending item
     local -a prepared=()
@@ -750,6 +774,7 @@ function main {
         check_source
     fi
     stage='source selection'
+    if (( ! plan )); then restore_prepared_ui; fi
     run_make init
     run git -C "$source_path" fetch origin
     run_make srcupdate
@@ -757,6 +782,7 @@ function main {
         actual=$(git -C "$source_path" rev-parse HEAD)
         expected=$(git -C "$source_path" rev-parse "$source_pin^{commit}")
         [[ "$actual" == "$expected" ]] || die 'Source HEAD does not match the configured pin'
+        require_interface_sources
         check_source
     fi
     stage='Tomcat preparation'

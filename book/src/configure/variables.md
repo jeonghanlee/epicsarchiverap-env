@@ -55,7 +55,6 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `ARCHAPPL_VERSION` | `:=` | `$(SRC_VERSION)-$(ARCHAPPL_SITEID)` |  |
 | `ARCHAPPL_WARS_TARGET_PATH` | `=` | `$(TOP)/$(SRC_PATH)/target` |  |
 | `ARCHAPPL_SITEID_TEMPATE_PATH` | `=` | `$(AA_SITE_TEMPLATE_PATH)/siteid` |  |
-| `ARCHAPPL_UI_TEMPLATE_PATH` | `=` | `$(AA_SITE_TEMPLATE_PATH)/ui` | Interface files prepared in this repository for epicsarchiverap-maven; the layout mirrors src/main/org/epics/archiverappliance of the source tree. |
 | `ARCHAPPL_SITEID_CLASSPATHFILES_PATH` | `=` | `$(ARCHAPPL_SITEID_TEMPATE_PATH)/classpathfiles` |  |
 | `MAVEN_FLAGS` | `:=` | `(empty)` | Maven command-line flags, such as -B or -gs /absolute/path/settings.xml. MAVEN_OPTS is Maven's JVM-options environment variable, not this Make hook. |
 | `AA_JAVA_HEAPSIZE` | `=` | `"256M"` | Per-instance defaults for VM testing; CONFIG_SRC uses the heap for Xms and Xmx. Four instances: 4 * 256 MiB heap = 1 GiB; metaspace caps add another 1 GiB. The combined 2 GiB is not a process-memory cap; allow additional memory for JVM native allocations, MariaDB and the OS. Validate with the intended PV load. Override AA_JAVA_HEAPSIZE in ../CONFIG_SITE.local for the measured workload. |
@@ -192,7 +191,6 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `ARCHAPPL_DATA_RETRIEVAL_URL` | `:=` | `http://$(ARCHAPPL_HOST_IPADDR):$(ARCHAPPL_RETRIEVAL_PORT)/retrieval` |  |
 | `ARCHAPPL_RETRIEVAL_URL` | `:=` | `$(ARCHAPPL_DATA_RETRIEVAL_URL)/bpl` |  |
 | `ARCHAPPL_SITEID_TARGET_PATH` | `:=` | `$(TOP)/$(SRC_PATH)/src/sitespecific/$(ARCHAPPL_SITEID)` |  |
-| `ARCHAPPL_UI_TARGET_PATH` | `:=` | `$(TOP)/$(SRC_PATH)/src/main/org/epics/archiverappliance` |  |
 | `CATALINA_OPTS` | `=` | `"-XX:MaxMetaspaceSize=$(AA_JAVA_MAXMETASPACE)"` |  |
 | `CATALINA_OPTS` | `+=` | `"-Xms$(AA_JAVA_HEAPSIZE)"` |  |
 | `CATALINA_OPTS` | `+=` | `"-Xmx$(AA_JAVA_HEAPSIZE)"` |  |

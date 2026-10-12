@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Static checks of the interface files that site-template/ui prepares for epicsarchiverap-maven.
+# Static checks of the management interface files that epicsarchiverap-maven carries.
 # A management page keeps the marker blocks the site template replaces, every full page carries a content
 # security policy, no page has an inline script, an event-handler or style attribute, no file refers to jQuery
 # or to an outside host, and every element id that a script reads exists in its page.
+# The files are read from the source checkout that SRC_TAG selects (override: AA_SOURCE_CLONE); the list of
+# files is tests/ui-files.list. Without a source checkout the checks are skipped with a message.
 
 set -euo pipefail
 
@@ -14,10 +16,41 @@ source "${TOP}/tests/lib/common.bash"
 
 phase_header "Interface files: markers, content security, inline code and element ids"
 
-# The tree under test; a mutation run points this at another copy of the repository.
-ROOT="${UI_STATIC_TREE_UNDER_TEST:-${TOP}}"
+# The tree under test; a mutation run points this at another tree with the layout below.
+if [[ -n "${UI_STATIC_TREE_UNDER_TEST:-}" ]]; then
+    ROOT="${UI_STATIC_TREE_UNDER_TEST}"
+else
+    clone="${AA_SOURCE_CLONE:-}"
+    if [[ -z "${clone}" ]]; then
+        src_path=$(make -C "${TOP}" --no-print-directory -s print-SRC_PATH | tail -1)
+        clone="${TOP}/${src_path}"
+    fi
+    if [[ ! -d "${clone}/src/main/org/epics/archiverappliance" ]]; then
+        printf '  [SKIP] No source checkout at %s; run make init to check the interface files.\n' "${clone}"
+        phase_pass "Interface files: markers, content security, inline code and element ids"
+        exit 0
+    fi
+    # Gather the listed files into the layout the checks use: <root>/site-template/ui/<relative path>,
+    # next to the site skin that this repository keeps in site-template/siteid.
+    ROOT="${WORKSPACE}/interface-tree"
+    mkdir -p "${ROOT}/site-template/siteid"
+    cp -a "${TOP}/site-template/siteid/css" "${ROOT}/site-template/siteid/css"
+    cp -a "${TOP}/site-template/siteid/template_changes.html" "${ROOT}/site-template/siteid/template_changes.html"
+    missing=""
+    while IFS= read -r relative; do
+        [[ -n "${relative}" ]] || continue
+        source_file="${clone}/src/main/org/epics/archiverappliance/${relative}"
+        if [[ -f "${source_file}" ]]; then
+            mkdir -p "$(dirname "${ROOT}/site-template/ui/${relative}")"
+            cp -a "${source_file}" "${ROOT}/site-template/ui/${relative}"
+        else
+            missing+="${relative} "
+        fi
+    done < "${TOP}/tests/ui-files.list"
+    assert_empty "${missing}" "The source checkout carries every interface file of tests/ui-files.list"
+fi
 UI="${ROOT}/site-template/ui"
-assert_dir "${UI}" "The prepared interface folder exists"
+assert_dir "${UI}" "The interface folder exists"
 
 # Third-party code is checked by its integrity record, not by these rules.
 function own_files {
@@ -168,7 +201,7 @@ while IFS= read -r page; do
         if [[ -f "${UI}/${resolved}" || -f "${UI}/${shared}" || "${SOURCE_FILES}" == *" ${reference_key} "* ]]; then
             _record_pass "${name} finds ${reference}"
         else
-            _record_fail "${name} finds ${reference}" "no such file in site-template/ui and not a known source file"
+            _record_fail "${name} finds ${reference}" "no such file in the interface files and not a known source file"
         fi
     done < <(grep -o -E '(src|href)="[^"]+\.(js|css|svg)"' "${page}" | sed -E 's/^(src|href)="//; s/"$//')
 done < <(find "${UI}" -type f -name '*.html' | LC_ALL=C sort)
