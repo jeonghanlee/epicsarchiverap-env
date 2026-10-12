@@ -442,7 +442,12 @@ class Guest:
                     check((self.install / name).read_bytes() == generated.read_bytes(),
                           "Installed global classpath configuration mismatch")
                 site = self.source / "src/sitespecific/als"
-                assets = list((site / "img").rglob("*")) + [site / "css/main.css"]
+                if service in ("mgmt", "retrieval"):
+                    assets = list((site / "img").rglob("*")) + [site / "css/main.css"]
+                else:
+                    # engine and etl serve no page and carry only the version file.
+                    assets = []
+                    check("ui/comm/version.txt" in names, "Missing shared version file")
                 for asset in assets:
                     if asset.is_file():
                         relative = str(asset.relative_to(site))
