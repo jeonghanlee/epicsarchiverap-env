@@ -116,7 +116,7 @@ sd_health_clean: sd_health_disable
 
 ## Show current monitor state; journal and ExecMainStatus distinguish skips from checks.
 sd_health_status:
-	$(QUIET)systemctl status --no-pager $(SYSTEMD_HEALTH_TIMER) $(SYSTEMD_HEALTH_SERVICE)
+	$(QUIET)systemctl status --no-pager $(SYSTEMD_HEALTH_TIMER) $(SYSTEMD_HEALTH_SERVICE) || test $$? -eq 3
 #
 #	
 sd_status:
