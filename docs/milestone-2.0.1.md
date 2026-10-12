@@ -1394,7 +1394,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Deferred | No | D55 | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner chose the stop in D55 and scheduled it for the release after 2.0.1; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 | UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
-| Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | none | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written and build, the publication is not; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
+| Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | none | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
 
 ### Backlog Details
 
@@ -2053,7 +2053,7 @@ Status: In progress
 
 - The pages listed in `book/src/SUMMARY.md`, the generators and the generated-page check.
 - The commit of the pages and of the `.gitignore` exception that keeps `book/src/test/` tracked.
-- A GitHub Actions workflow that runs `make init`, builds the book and publishes it.
+- A GitHub Actions workflow that checks the generated pages after `make init`, builds the book with a pinned mdBook release and publishes it from the default branch.
 - Commands on the install and operate pages that this host could not run as shown, run on a disposable appliance or VM and recorded as real output.
 
 Out of scope: the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately and verifies again after the documents are written; the `docs/*.md` guides, which stay as they are.
@@ -2080,7 +2080,7 @@ Superseded Plan Artifacts: none
 
 1. Write the pages and the generators, and review them against the page types (done).
 2. Record real output on a disposable appliance or VM for the pages that could not run here.
-3. Add the publishing workflow and verify the published site.
+3. Add the publishing workflow (done) and verify the published site after its first run on the default branch.
 
 ##### Test Plan
 
@@ -2090,7 +2090,10 @@ Superseded Plan Artifacts: none
 | T2 | Local | `bash book/scripts/check-generated.bash` with `AA_SOURCE_CLONE` set to a fresh clone of the source branch | Local host | Every generated page is current |
 | T3 | Review | Second-person review of the whole book against the technical-writing checklist | Local host | Findings applied and a final pass without findings |
 | T4 | VM | Run the install and operate commands that need `sudo`, systemd or an installed appliance, as shown | Disposable VM of the accepted matrix | Each command runs as shown; the output matches the page |
-| T5 | CI | The publishing workflow on the branch | GitHub Actions | The site builds from a clean checkout after `make init` and equals a local build |
+| T5 | CI | The publishing workflow on the default branch: the jobs `generated`, `build` and `deploy` | GitHub Actions | All three jobs pass and the published site equals a local build |
+| T6 | Local | `mdbook build book` with mdBook 0.5.4, the release that the workflow installs, in a fresh copy of the tree | Local host | Exit 0 and no warning |
+| T7 | Local | In a shallow fresh clone: `make init`, then `bash book/scripts/check-generated.bash` | Local host | Every generated page is current |
+| T8 | Operate | `storage`, `make sd_status`, `make sd_health_status`, `health` as the service account and as an ordinary user, and `journalctl` of the service unit | Installed appliance of the local host | Each output matches its page |
 
 ##### Verification Results
 
@@ -2101,6 +2104,9 @@ Superseded Plan Artifacts: none
 | T3 | 2026-10-12 | Local host | Pass | whole-book pass, applied-findings pass, technical-writing pass and a final pass; the final pass found nothing to change |
 | T4 | Not run | none | Pending | none |
 | T5 | Not run | none | Pending | none |
+| T6 | 2026-10-12 | Local host; fresh copy of the tree of `92b2aa7` | Pass | mdBook 0.5.4 (archive SHA-256 `3f28de05dafca9d0f2eab99c662116b0e37b89b1d96a08f8f430b9eeae958cd7`) exit 0 with no warning; before the generator fix it warned about an unclosed `<os>` tag in `configure/variables.md`, which the browser would have hidden |
+| T7 | 2026-10-12 | Local host; shallow clone (depth 1) of the tree of `92b2aa7`; selected source `992d8ac4` | Pass | `make init` exit 0 in about 52 s; `check-generated.bash` exit 0 with all five generated pages current |
+| T8 | 2026-10-12 | Installed appliance of the local host | Pass | `storage` printed the three store folders and the total; `make sd_status` showed the service active with the four instances; `make sd_health_status` exits `0` after the fix and printed `Error 3` before it; `health` as the service account printed all four components `PRESENT` and exit `0`, as an ordinary user `unreadable-process-executable` for each and exit `2`; `journalctl -u` as root printed the instance lines, as an ordinary user outside the journal groups `-- No entries --` with exit `0` |
 
 ##### Closure Evidence
 
