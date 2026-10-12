@@ -32,6 +32,7 @@ changes to the environment repository.
 - Every Maven call of `configure/RULES_SRC` passes `ARCHAPPL_SITEID` (default `als`) instead of a fixed `als`, so the copied site folder and the built site agree.
 - The VM verifier waits on `STARTING` and `wrong-java-executable` within its readiness deadline, fails when either persists, and keeps every retried health output with its elapsed time.
 - The site folder follows the contract of the source: only `img/`, `css/main.css`, `template_changes.html` and `classpathfiles/` are applied, and a `css/mgmt.css` of a site is reported as not applied. The `engine` and `etl` WARs carry only `ui/comm/version.txt` of the shared static content, so the VM verifier compares the site images and `css/main.css` in the `mgmt` and `retrieval` WARs.
+- The VM driver names the species of the current provisioners: the inventory generator of cloud-provision receives `archiver-dev-uds`, `archiver-dev-tcp` or `archiver-dev-sqlite`, and the species playbooks of ansible-provision are `archiver_dev_uds`, `archiver_dev_tcp` and `archiver_dev_sqlite`. The generator no longer accepts `archiver-dev`.
 
 ### Fixed
 - MariaDB client configuration is created and replaced with mode 0600, and account creation output excludes password hashes.

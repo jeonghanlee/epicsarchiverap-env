@@ -27,6 +27,12 @@ SCHEMA = 1
 OS_NAMES = ("debian13", "rocky8")
 BACKENDS = ("socket", "tcp", "sqlite")
 POSITIVE = tuple(f"{os_name}-{backend}" for os_name in OS_NAMES for backend in BACKENDS)
+# Species of the provisioners by case backend: the inventory generator of
+# cloud-provision and the species playbook of ansible-provision.
+CLOUD_SPECIES = {"socket": "archiver-dev-uds", "tcp": "archiver-dev-tcp",
+                 "sqlite": "archiver-dev-sqlite"}
+ANSIBLE_SPECIES = {"socket": "archiver_dev_uds", "tcp": "archiver_dev_tcp",
+                   "sqlite": "archiver_dev_sqlite"}
 NEGATIVE = tuple(f"{os_name}-build-failure" for os_name in OS_NAMES)
 MATRIX = POSITIVE + NEGATIVE
 DEFAULT_BOUNDS = {"vm": 1800, "build": 2700, "application": 300, "samples": 180,
@@ -546,8 +552,8 @@ class Driver:
                 self.config["ssh"]["key"]).resolve():
             raise Invalid("SSH key must match the existing cloud tool's first default key")
         for tool, files in (("cloud", ("bin/generate_ansible_inventory.bash",)),
-                            ("ansible", ("playbooks/species/archiver_dev.yml",
-                                         "playbooks/species/archiver_dev_sqlite.yml"))):
+                            ("ansible", tuple(f"playbooks/species/{name}.yml"
+                                              for name in ANSIBLE_SPECIES.values()))):
             path = self.config[tool]["path"]
             head = self.command(["git", "-C", path, "rev-parse", "HEAD"])[1].strip()
             if head != self.config[tool]["ref"]:
@@ -638,7 +644,7 @@ class Driver:
         }
         path = self.root / (case["name"] + "-variables.json")
         save(path, variables)
-        play = "archiver_dev_sqlite" if case["backend"] == "sqlite" else "archiver_dev"
+        play = ANSIBLE_SPECIES[case["backend"]]
         return self.command(["ansible-playbook", "-i", cfg["ansible"]["inventory"],
                              "-i", str(self.root / (case["name"] + ".ini")), "--limit", case["vm_name"],
                              "-e", "@" + str(path), str(Path(cfg["ansible"]["path"]) /
@@ -834,8 +840,8 @@ class Driver:
         os_name = case["os"]
         generator = Path(self.config["cloud"]["path"]) / "bin/generate_ansible_inventory.bash"
         _, inventory = self.command(["bash", str(generator), "--os-type", os_name + "-archiver-dev",
-                                      "--species", "archiver-dev-sqlite" if case["backend"] == "sqlite"
-                                      else "archiver-dev", "--vm-name", case["vm_name"],
+                                      "--species", CLOUD_SPECIES[case["backend"]],
+                                      "--vm-name", case["vm_name"],
                                       "--address", case["address"],
                                       "--ansible-user", self.config["ssh"]["user"]])
         (self.root / (case["name"] + ".ini")).write_text(inventory)

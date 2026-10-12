@@ -38,11 +38,11 @@ vCPUs, 4 GiB of memory, and a 20 GiB disk.
 
 | Case | OS | Backend and transport | Ansible species | Required checks |
 | --- | --- | --- | --- | --- |
-| `debian13-socket` | Debian 13 | MariaDB, local socket | `archiver_dev` | T3-T12 |
-| `debian13-tcp` | Debian 13 | MariaDB, local TCP | `archiver_dev` | T3-T12 |
+| `debian13-socket` | Debian 13 | MariaDB, local socket | `archiver_dev_uds` | T3-T12 |
+| `debian13-tcp` | Debian 13 | MariaDB, local TCP | `archiver_dev_tcp` | T3-T12 |
 | `debian13-sqlite` | Debian 13 | SQLite | `archiver_dev_sqlite` | T3-T13 |
-| `rocky8-socket` | Rocky 8.10 | MariaDB, local socket | `archiver_dev` | T3-T12 |
-| `rocky8-tcp` | Rocky 8.10 | MariaDB, local TCP | `archiver_dev` | T3-T12 |
+| `rocky8-socket` | Rocky 8.10 | MariaDB, local socket | `archiver_dev_uds` | T3-T12 |
+| `rocky8-tcp` | Rocky 8.10 | MariaDB, local TCP | `archiver_dev_tcp` | T3-T12 |
 | `rocky8-sqlite` | Rocky 8.10 | SQLite | `archiver_dev_sqlite` | T3-T13 |
 | `debian13-build-failure` | Debian 13 | SQLite | `archiver_dev_sqlite` | T3, T14 |
 | `rocky8-build-failure` | Rocky 8.10 | SQLite | `archiver_dev_sqlite` | T3, T14 |
@@ -84,7 +84,9 @@ retains its command, exit status, and output digest.
 Initialization records the run-start baseline: every libvirt domain and every
 live and persistent DHCP reservation on the configured network. A guest present
 in the baseline can never become a case guest, and cleanup verification must
-find every baseline domain and reservation unchanged.
+find every baseline domain and reservation unchanged. The baseline is recorded
+after the local suite of the candidate has passed, so request the guests only
+after `--init` has finished; a guest created earlier is refused at its handoff.
 
 The tool origin check reads the stored `remote.origin.url` of each tool
 checkout. It does not use `git remote get-url`, because a user's `insteadOf`
@@ -172,11 +174,12 @@ A recorded failure returns 1. Anything missing returns 77.
 
 ## Guest handoff
 
-cloud-provision reports each guest it creates in a private markdown handoff.
-The operator writes the driver's handoff JSON file from that report; the driver
-rechecks each value against live state. `schema` is the JSON integer `1`; every
-other value is a JSON string. `tool_ref` is the full commit that the `Tool tree`
-line names.
+The driver reads one handoff JSON file for each guest. When cloud-provision
+supplies that file, use it as received; otherwise the operator writes it from
+the private markdown handoff that cloud-provision reports for the guest. The
+driver rechecks each value against live state. `schema` is the JSON integer `1`;
+every other value is a JSON string. `tool_ref` is the full commit that the
+`Tool tree` line of the markdown handoff names.
 
 | Field | Content | cloud-provision handoff line |
 | --- | --- | --- |
