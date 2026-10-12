@@ -13,7 +13,7 @@ changes to the environment repository.
 - Failure evidence in the VM verifier: a failed health check keeps the health unit entries and a copy of the journal files; a failed channel access data check keeps the engine JVM's UDP sockets and the management view of the test PV and the disconnected PVs.
 - `ARCHAPPL_HEALTH_STARTING_SECONDS` (default 10, valid 1 to 59) bounds how long `archappl.bash health` reports an instance as starting.
 - `tests/health-starting.bash` runs the shipped launcher chain under the real health check, and `tests/no-ant.bash` keeps Ant out of the tracked tree and checks the site id of every Maven call.
-- `docs/README.install.md` documents the site folder inputs (`img/`, `css/main.css`, `css/mgmt.css`, `template_changes.html`, `classpathfiles/`) and the variables `ARCHAPPL_SITEID` and `ARCHAPPL_SITEID_TEMPATE_PATH`.
+- `docs/README.install.md` documents the site folder inputs (`img/`, `css/main.css`, `template_changes.html`, `classpathfiles/`) and the variables `ARCHAPPL_SITEID` and `ARCHAPPL_SITEID_TEMPATE_PATH`.
 
 - The management interface rework (developed here and now part of the source repository, jeonghanlee/epicsarchiverap-maven): a Work page that finds PVs (search words, glob, regular expression, the server reports as selections), scans up to 100 selected PVs as sparkline rows, charts up to 5 of one unit with D3, zooms and pans a window, shows the state of a PV with its explanation and the actions that apply, and keeps the name list as a browser snapshot that follows the appliance every 15 s.
 - System pages for everyone and for the operator: Overview with three verdict lines and a meaning for every measure, Operations with the questions, thresholds and remedies of samples, dropped samples, write path, stores, ETL and processes, and Retrieval performance with a request measured in the browser; disconnected PVs are grouped by host and time of loss.
@@ -31,6 +31,7 @@ changes to the environment repository.
 - The source of `modernize` packages the MariaDB JDBC driver 3.5.10 instead of 3.3.3, which closes the four published advisories of the older driver; the four WARs carry 43 runtime jars instead of 46 (`waffle-jna`, `caffeine` and `checker-qual` are gone), and `jna` stays for the Unix domain socket path.
 - Every Maven call of `configure/RULES_SRC` passes `ARCHAPPL_SITEID` (default `als`) instead of a fixed `als`, so the copied site folder and the built site agree.
 - The VM verifier waits on `STARTING` and `wrong-java-executable` within its readiness deadline, fails when either persists, and keeps every retried health output with its elapsed time.
+- The site folder follows the contract of the source: only `img/`, `css/main.css`, `template_changes.html` and `classpathfiles/` are applied, and a `css/mgmt.css` of a site is reported as not applied. The `engine` and `etl` WARs carry only `ui/comm/version.txt` of the shared static content, so the VM verifier compares the site images and `css/main.css` in the `mgmt` and `retrieval` WARs.
 
 ### Fixed
 - MariaDB client configuration is created and replaced with mode 0600, and account creation output excludes password hashes.

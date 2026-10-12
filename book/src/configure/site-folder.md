@@ -13,7 +13,7 @@ The site folder holds the inputs that the build applies to the source tree for o
 | `img/` | The site logo `LBNLLogo.png` and the browser icon `als.ico` | Copied over `staticcontent/img` |
 | `template_changes.html` | The header, navigation and footer blocks | Merged into the management pages |
 
-The three files of `classpathfiles/` are written by `make conf`; the other entries are tracked in the repository. The folder carries no `css/mgmt.css`: the management pages link only `css/main.css`. A site that wants its own `mgmt.css` can add the file, and the build copies it over `mgmt/staticcontent/css/mgmt.css`.
+The three files of `classpathfiles/` are written by `make conf`; the other entries are tracked in the repository. The management pages link only `css/main.css`. A `css/mgmt.css` in the site folder is not applied, and the build reports it as `Not applied`.
 
 ## The tokens of main.css
 

@@ -23,7 +23,6 @@ The variable `ARCHAPPL_SITEID` names the site, and its default is `als`. The fol
 | :--- | :--- |
 | `img/` | Copied with its subfolders over the shared images of `staticcontent/img`, replacing the defaults |
 | `css/main.css` | Copied over the shared stylesheet `staticcontent/css/main.css` |
-| `css/mgmt.css` | Copied over `mgmt/staticcontent/css/mgmt.css` |
 | `template_changes.html` | Merged into the staged management pages by `SyncStaticContentHeadersFooters`; the repository's file supplies the header, navigation and footer blocks |
 | `classpathfiles/` | Holds `appliances.xml`, `archappl.properties` and `policies.py`; the WAR build packs the folder, the overlay does not apply it |
 
