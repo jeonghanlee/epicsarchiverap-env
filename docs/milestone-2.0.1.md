@@ -1391,7 +1391,8 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
 | Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Complete | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Open | No | none | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner has not chosen; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
-| UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | In progress | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
+| UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
+| UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | In progress | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
 
 ### Backlog Details
 
@@ -1896,7 +1897,7 @@ Last Compared: none
 Origin: 2.0.1 / M51
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1952,7 +1953,80 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none; the change is not committed yet.
+- Complete on 2026-10-11: the removal, the installer changes and the check transition landed in `a1aab5a`, the documentation in `582eba2` and the register in `c6a05b9` on `origin/release-2.0.1`; T1 to T3 passed (T3: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14, run against a fresh clone of `modernize` at `0097bc2d`). The row has no GitHub issue and stays in the Backlog because the owner has not assigned it to a milestone.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M52 - Remove the stylesheet rules, images and screenshots that nothing uses
+
+Origin: 2.0.1 / M52
+Identity History: none
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+`site-template/siteid/css/main.css` held 17 jQuery UI dialog rules (117 lines), and the site folder carried `css/mgmt.css` (641 lines) and 45 more images (about 2.3 MB with `dome.png`) that the old home page used; the documents carried screenshots of the old pages. None of the 35 interface files uses a `.ui-*` class or links `mgmt.css`; the five management pages link only `comm/css/main.css`. jeonghanlee/epicsarchiverap-maven removed the same rules from its copy of `main.css`.
+
+##### Scope
+
+- Remove the `.ui-*` rules from `css/main.css`; the result equals the source repository's `main.css` byte for byte (blob `3ca0ae78`).
+- Remove the 45 images of `site-template/siteid/img` that no page, template or stylesheet names, with `convert.sh`, `nav-bar-bg.xcf`, `README.md` and `LICENSE.FeatherIcons`; the site folder keeps `img/LBNLLogo.png` and `img/als.ico`.
+- Remove the screenshots of the old pages in `docs/technicaldocs/images` with `README.screenshots.md`, and the screenshot of the old home page in `README.md`.
+- Remove `site-template/siteid/css/mgmt.css`; a site can still supply one, and the source keeps its own `mgmt.css`.
+- Remove the comparison of `mgmt.css` from the VM verifier; the check of `main.css` and the images stays.
+- Declare the browser icon in `template_changes.html` as `image/x-icon`, which is what `als.ico` is.
+- Update the interface guide, the install guide, the book and the changelog.
+
+Out of scope: the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately and verifies again after the documents are written; the source repository's own static files (`mgmt.css`, `archclient.js`, `testjson.css`), which its owner decides.
+
+##### Completion Criteria
+
+- `css/main.css` has no `.ui-` rule and keeps the tokens and the contrast of the shared stylesheet.
+- A WAR built from a fresh clone carries `ui/comm/css/main.css`, `ui/comm/img/LBNLLogo.png` and `ui/comm/img/als.ico` equal to the site folder's files, `ui/css/mgmt.css` equal to the source's own file, and every image that a management page names.
+- No tracked file names a removed image, the removed notes or the removed screenshots outside the changelog and the registers.
+- `bash tests/run-all-tests.bash --local` passes.
+
+##### Dependencies And Decisions
+
+- Depends on the removal of the interface copy step (M51). Decision of the owner on 2026-10-11: delete what no page uses, keep the stylesheet the pages link and the inputs that a site overlays.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-11
+Implementation Authorization: the owner started the work on 2026-10-11
+Superseded Plan Artifacts: none
+
+1. Remove the rules and the file.
+2. Remove the VM check of `mgmt.css` and update the documents.
+3. Build on a fresh clone and run the full local suite.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `tests/ui-static.bash` with the contrast check; `git hash-object` of `css/main.css` against the source's file | Local host | 244 checks pass; the blob equals the source's |
+| T2 | Local | `make conf.archapplproperties build.mvn` on a fresh clone; compare `ui/comm/css/main.css` and `ui/css/mgmt.css` of `mgmt.war` | Local host | Equal to the site folder's `main.css` and to the source's `mgmt.css` |
+| T3 | Local | The full local suite | Local host with real Base binaries | Exit 0 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-11 | Local host | Pass | 244 checks pass, including the contrast of at least 4.5:1; the blob of `css/main.css` is `3ca0ae7898dc263b31882fcbc2cfc9651bf3ef99`, the source's |
+| T2 | 2026-10-11 | Local host; fresh clone of `modernize` at `0097bc2d` | Pass | BUILD SUCCESS in about 24 s; `ui/comm/css/main.css`, `ui/comm/img/LBNLLogo.png` and `ui/comm/img/als.ico` equal the site folder's files, `ui/css/mgmt.css` equals the source's file, and the source's default images (`archiverheader.svg`, `nav-bar-bg.gif`, `sort_*.png`) are present; a search of the tracked files finds no name of a removed file |
+| T3 | 2026-10-11 | Local checkout, real Base binaries, `AA_SOURCE_CLONE` set to the fresh clone | Pass | `run-all-tests.bash --local` exit 0: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14 |
+
+##### Closure Evidence
+
+- none; the change is not committed yet. The VM verifier change was checked for syntax only: it runs on a VM that this host does not have.
 
 ##### GitHub Projection
 
