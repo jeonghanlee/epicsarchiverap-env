@@ -62,7 +62,7 @@ function usage {
         '' \
         'Install a systemd-managed appliance on Debian 13, Rocky 8, Rocky 10.2 or Ubuntu 24.04/26.04.' \
         'Run as the ordinary checkout owner; sudo is used for privileged steps.' \
-        'The selected source pin and site configuration come from Make settings.' \
+        'The selected source and site configuration come from Make settings.' \
         'Existing appliance payloads are replaced; database contents and stores remain.' \
         '' \
         '  --plan             Print the steps without installing or starting anything' \
