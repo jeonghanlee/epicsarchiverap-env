@@ -1,6 +1,6 @@
 # The pages of the management interface
 
-The `mgmt` application serves the management interface under `/mgmt/ui/`, and the `retrieval` application serves the data viewer under `/retrieval/ui/viewer/`. This page names each page, says who it is for, and lists the older addresses that forward to a page. The pages are static files; their source is `site-template/ui` in this repository.
+The `mgmt` application serves the management interface under `/mgmt/ui/`, and the `retrieval` application serves the data viewer under `/retrieval/ui/viewer/`. This page names each page, says who it is for, and lists the older addresses that forward to a page. The pages are static files; their source is the interface of the source repository that `SRC_TAG` selects, under `src/main/org/epics/archiverappliance`.
 
 ## The pages and their addresses
 

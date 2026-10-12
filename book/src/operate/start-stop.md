@@ -49,8 +49,10 @@ Each instance writes to the journal through its own `systemd-cat` with the ident
 
 The control script can also start and stop the instances without systemd, with `archappl.bash startup`, `archappl.bash shutdown` and `archappl.bash restart`. The targets `make start` and `make stop` call `startup` and `shutdown` of the installed script. Do not use them while the systemd unit manages the appliance.
 
+The three actions report a failed instance in their exit status. `startup` and `shutdown` run all four instance scripts, print `startup ERROR <component> status=<n>` or `shutdown ERROR <component> status=<n>` on standard error for each one that failed, and exit non-zero when any failed. A failed `shutdown` leaves the `temp/<component>.pid` file of that component in place. `restart` starts nothing when its shutdown failed and prints `restart ERROR shutdown failed; no instance was started`. `startup`, `shutdown`, `restart` and `service` stop before they run an instance when `archappl.conf` next to the script is missing or is not valid shell, and print `ERROR: <path>/archappl.conf is missing or is not valid shell; no instance was touched`.
+
 ## Verification
 
 Run the health check of the script after the start. A started appliance prints `health PRESENT all-four-processes-verified; application-readiness-not-checked`, as [Check the health of the appliance](health.md) explains.
 
-The commands of this page were not run for the book: the appliance of the host that wrote it serves a live archive. The orders and the timeout come from `scripts/archappl.bash`, `configure/RULES_SYSTEMD` and `configure/CONFIG_SYSTEMD`.
+The commands of this page were not run against an appliance for the book: the appliance of the host that wrote it serves a live archive. The orders and the timeout come from `scripts/archappl.bash`, `configure/RULES_SYSTEMD` and `configure/CONFIG_SYSTEMD`. The exit statuses and messages of the control script actions come from the launcher checks of `tests/phase1-logic.bash`, which run the shipped script from a copy beside instance scripts that record their calls and exit with a chosen status.

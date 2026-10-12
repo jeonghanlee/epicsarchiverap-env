@@ -66,7 +66,7 @@ Verification classes: **H** the commands run on this host as shown; **S** they r
 
 | Page | Type | Source in the code | Verification |
 | :--- | :--- | :--- | :--- |
-| The pages of the management interface | concept | `site-template/ui/mgmt/staticcontent/*.html` | S |
+| The pages of the management interface | concept | `mgmt/staticcontent/*.html` of the selected source | S |
 | What the System pages judge | reference | `js/system/judge.js` `THRESHOLDS`; generated | S |
 | Find and pause a PV on the Work page | procedure | `js/work.js`, `index.html` | S |
 
@@ -102,7 +102,7 @@ The book has no tutorial. A tutorial would repeat "Install an appliance with SQL
 ## Open decisions for the owner
 
 - Pages of class P show only `--plan` output or read-only output; say whether a disposable VM may be used later to run the install steps for real.
-- The management interface chapters describe `site-template/ui` as it is built today. After the interface moves to the source repository, the Part 3 build page changes.
+- The interface is part of the source repository; the book describes it as the selected source carries it, and the judgements page is generated from that source's `judge.js` (`AA_SOURCE_CLONE` overrides the clone).
 
 ## Status
 
@@ -128,4 +128,4 @@ Found while writing, outside the book:
 
 - Run the S class pages against a disposable appliance and add the captured output.
 - Run the install steps of the P class pages on a disposable VM.
-- GitHub Actions deployment, last.
+- GitHub Actions deployment, last. The workflow runs `make init` first: the generated judgements page and its check read the source clone.

@@ -9,11 +9,10 @@ The repository turns the source commit that `SRC_TAG` selects and a set of site 
 | 1. Fetch the source | `make init` | Runs `clone`, which clones `SRC_GITURL` into `SRC_PATH` at the commit `SRC_TAG`, and `update`, which runs `git submodule update --init`. |
 | 2. Generate the configuration | `make conf` | Runs `conf.archapplproperties` and `conf.storage`. It writes `appliances.xml`, `archappl.properties` and `policies.py` from their `.in` templates and prepares the storage folders. |
 | 3. Apply the site inputs | `copy.sitespecific` | Replaces `src/sitespecific/<ARCHAPPL_SITEID>` of the source tree with `site-template/siteid`. |
-| 4. Apply the interface files | `copy.ui` | Copies `site-template/ui` over `src/main/org/epics/archiverappliance` of the source tree. |
-| 5. Build the WARs | `make build.mvn` | Runs `mvnw clean package -DskipTests` in the source tree with `ARCHAPPL_SITEID` set. |
-| 6. Install | `make install` | Stops the health monitor, installs the four instances, the generated configuration files and the systemd units, and enables the service. |
+| 4. Build the WARs | `make build.mvn` | Runs `mvnw clean package -DskipTests` in the source tree with `ARCHAPPL_SITEID` set. |
+| 5. Install | `make install` | Stops the health monitor, installs the four instances, the generated configuration files and the systemd units, and enables the service. |
 
-`make build` runs stage 2 and then stage 5, which runs stages 3 and 4 first, so one target covers everything up to the WAR files. `make install` does not build.
+`make build` runs stage 2 and then stage 4, which runs stage 3 first, so one target covers everything up to the WAR files. `make install` does not build.
 
 ## What stage 2 writes
 

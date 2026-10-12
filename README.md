@@ -20,7 +20,7 @@ This repository provides a set of `Makefiles` and scripts to automate the setup 
 ## Prerequisites
 * **JDK 21**: required by the local installation scripts. The package step installs `openjdk-21-jdk-headless` on Debian 13 or Ubuntu 24.04/26.04, and `java-21-openjdk-devel` on Rocky Linux 8 or 10.2.
 * **Apache Maven**: none to install. The source repository ships the Maven Wrapper (`./mvnw`), which downloads its pinned Maven version on the first build.
-* **Git**: Required to clone and select the pinned application source.
+* **Git**: Required to clone and select the application source.
 * **Operating System**:
     * Core build (JARs/WARs) is generally OS-agnostic.
 
@@ -32,7 +32,7 @@ provides three entry scripts: `scripts/install-local-sqlite.bash`,
 `scripts/install-local-mariadb-tcp.bash`. Run the selected script as the ordinary
 checkout owner; it uses `sudo` for privileged steps. Each supports `--plan`.
 
-These scripts install packages, select the configured source pin, build the
+These scripts install packages, select the source that `SRC_TAG` names, build the
 appliance, prepare its database, replace its payload, and start its systemd
 service and health timer. MariaDB account preparation also sets configured
 passwords and grants on existing accounts; use `--existing-db` to preserve

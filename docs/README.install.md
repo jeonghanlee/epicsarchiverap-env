@@ -14,7 +14,7 @@ prerequisites and accounts.
 
 The three entry scripts share `scripts/install-local-common.bash` and install
 a systemd-managed appliance with the `als` site configuration. They use the
-source pin and installation paths resolved from Make settings.
+source that `SRC_TAG` selects and the installation paths resolved from Make settings.
 
 Prerequisites:
 
@@ -26,7 +26,7 @@ Prerequisites:
 - Network access for OS packages, source Git fetches, Tomcat downloads, and Maven dependencies.
 - Storage, Tomcat, service-account, and database settings in
   `../CONFIG_SITE.local`, as described in [configuration variable placement](#configuration-variable-placement).
-  Select a different source pin through the supported RELEASE overrides.
+  Select a different source through the supported RELEASE overrides.
 - A clean source checkout, if one exists. Tracked or staged changes and
   untracked files stop preflight. Generated `src/sitespecific/als` files and
   ignored build outputs are allowed; ignored inputs under `src` or `.mvn` are rejected.
@@ -72,7 +72,7 @@ Prerequisites:
    ```
 
    Packages and the OS preset are prepared first. The script selects the source
-   pin, prepares Tomcat 9, generates configuration, and builds before stopping an
+   that `SRC_TAG` names, prepares Tomcat 9, generates configuration, and builds before stopping an
    installed appliance when reusing Tomcat. Tomcat replacement stops the appliance
    earlier, before moving the shared Tomcat directory. The installer requires the appliance to be stopped before database
    preparation and payload replacement, then starts the appliance and health timer.
@@ -153,8 +153,8 @@ The choice is made before installation. Selecting the test requires an exported
 before installing packages and asks the user to source their EPICS environment
 setup file in the same terminal, then rerun. The installer never sources that
 file itself. The selected test runs after appliance startup succeeds.
-The test registers the PV using Bash and `curl`, then uses the selected source
-pin's `getDataToCsv.bash` to check stored samples against actual CA observations.
+The test registers the PV using Bash and `curl`, then uses the selected source's
+`getDataToCsv.bash` to check stored samples against actual CA observations.
 See [soft IOC verification](../scripts/README.md#verify-one-changing-pv) for
 EPICS prerequisites, retained evidence, the keep/stop choice, and unattended use.
 Skipping the test leaves acquisition, storage, and retrieval marked `NOT CHECKED`.
@@ -268,10 +268,14 @@ the intended database. Database passwords are rendered as XML attribute data
 and quoted shell values; shell metacharacters remain literal. In Make override
 files, use `$$` for a literal dollar and `\#` for a literal hash.
 
-- `configure/RELEASE.local`: `SRC_TAG` — the source pin for
-  https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
+- `configure/RELEASE.local`: `SRC_TAG` — the source reference for
+  https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). The default is
+  `origin/modernize`, the tip of the source branch: the source update step fetches origin and checks
+  out that tip. A release that must build one fixed source sets a commit hash. `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
   is overridden here only when the source is hosted elsewhere. This file is not
-  rewritten by the per-OS config targets. A pinned `SRC_TAG` must be at or after
+  rewritten by the per-OS config targets. The selected source must carry the management interface,
+  which it does from `d0932d1b`; the installers stop with `The selected source does not carry the
+  management interface` otherwise. It must also be at or after
   `67be91d7`: from `9bbd69bf` the build writes `target/tomcat-log4j`, which
   `make install` requires and stops without, and from `67be91d7` every WAR
   carries the `log4j2.xml` that formats application lines. An older source
@@ -386,15 +390,11 @@ operator-supplied one named by `ARCHAPPL_SITEID_TEMPATE_PATH`.
 
 ### Interface files
 
-The folder `site-template/ui` holds the management pages and the data viewer, laid out
-like the source tree. Every build target runs `make copy.ui` after
-`make copy.sitespecific`; it copies the folder over
-`src/main/org/epics/archiverappliance` of the source checkout and removes first what
-an earlier copy put there. `ARCHAPPL_UI_TEMPLATE_PATH` names the folder; without it the
-step changes nothing. A copy prints `>>> We are copying the prepared interface files to`
-followed by that path, and leaves the list of the copied files in
-`aa-ui-prepared.list` in the git directory of the source checkout. The pages, their
-judgements and their limits are described in [the interface guide](./README.interface.md).
+The management pages and the data viewer are part of the source that `SRC_TAG` selects, and a build packages them
+with the site skin of the site folder. This repository copies no interface files. A checkout that built with an earlier
+version of this repository has the files of that copy in its source clone, listed in `aa-ui-prepared.list` in the git
+directory of the clone; the installers restore those files from the source before they select the source commit. The
+pages, their judgements and their limits are described in [the interface guide](./README.interface.md).
 
 ## Reinstall and upgrade
 
@@ -573,7 +573,7 @@ Record these inputs with the test evidence before starting:
 
 | Input | Requirement |
 | --- | --- |
-| Environment and source | Exact aa-env release commit or tag and pinned aa-maven commit |
+| Environment and source | Exact aa-env release commit or tag and the aa-maven commit that `SRC_TAG` resolved to |
 | IOC address | A reachable real IOC endpoint selected for the test; retain internal addresses only in private evidence |
 | Test PVs | Three scalar numeric PVs that change at least once per second; record their names and expected changes; the IOC operator supplies and keeps them running |
 | Appliance endpoints | Management and retrieval base URLs using the configured host and ports; defaults are 17665 and 17668 |

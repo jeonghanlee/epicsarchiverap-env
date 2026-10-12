@@ -31,6 +31,4 @@ The overlay reports a site folder that does not exist or that holds a `build.xml
 
 ## The interface files
 
-The folder `site-template/ui` holds the management pages and the data viewer, laid out like the source tree. `copy.ui` runs `scripts/prepare-ui.bash`, which first undoes the copy of the earlier run through a manifest in the git directory of the source checkout and then copies the folder. When `site-template/ui` is absent, the source tree stays as the source repository has it.
-
-The variables `ARCHAPPL_UI_TEMPLATE_PATH` and `ARCHAPPL_UI_TARGET_PATH` name the folder and the target.
+The management pages and the data viewer are part of the source that `SRC_TAG` selects; this repository copies no interface files over the source tree. A site changes how the pages look through the site folder: `css/main.css`, `css/mgmt.css` and `template_changes.html` of `site-template/siteid`. A source older than commit `d0932d1b` of the source repository builds with the earlier pages, and the installers stop with `The selected source does not carry the management interface`.
