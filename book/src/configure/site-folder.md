@@ -10,12 +10,10 @@ The site folder holds the inputs that the build applies to the source tree for o
 | `classpathfiles/archappl.properties` | The properties of the engine and the retrieval | Packed into every WAR by the source build |
 | `classpathfiles/policies.py` | The storage policies and the store URLs | Packed into every WAR by the source build |
 | `css/main.css` | The shared stylesheet, defined by color, font and spacing tokens | Copied over `staticcontent/css/main.css` |
-| `css/mgmt.css` | The stylesheet of the management pages | Copied over `mgmt/staticcontent/css/mgmt.css` |
-| `img/` | Images, with the site logo | Copied over `staticcontent/img` |
+| `img/` | The site logo `LBNLLogo.png` and the browser icon `als.ico` | Copied over `staticcontent/img` |
 | `template_changes.html` | The header, navigation and footer blocks | Merged into the management pages |
-| `README.md`, `LICENSE.FeatherIcons` | Notes and a license | Not applied |
 
-The three files of `classpathfiles/` are written by `make conf`; the other entries are tracked in the repository.
+The three files of `classpathfiles/` are written by `make conf`; the other entries are tracked in the repository. The folder carries no `css/mgmt.css`: the management pages link only `css/main.css`. A site that wants its own `mgmt.css` can add the file, and the build copies it over `mgmt/staticcontent/css/mgmt.css`.
 
 ## The tokens of main.css
 

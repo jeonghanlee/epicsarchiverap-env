@@ -110,11 +110,6 @@ Then run storage preparation, installation, and startup as root, in that order. 
 
 For an existing installation, follow the [reinstall procedure](docs/README.install.md#reinstall-and-upgrade), including the appliance stop before replacement. Complete the install guide's [verification checks](docs/README.install.md#health-check) to confirm process health and application operation.
 
-### Home Screenshot
-![Archiver Appliance Home Screen](docs/technicaldocs/images/home-2025-06-05.png)
-
-*Figure 1 — Archiver Appliance Home Screen*
-
 ### Switch between different source commits
 To build against a different version of the source code:
 
