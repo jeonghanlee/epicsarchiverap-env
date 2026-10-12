@@ -1391,6 +1391,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
 | Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Complete | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Open | No | none | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner has not chosen; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
+| UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | In progress | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 
 ### Backlog Details
 
@@ -1888,6 +1889,77 @@ Title: The operating system target rewrites `configure/CONFIG_SITE.local` and th
 Labels: bug
 GitHub Milestone: none
 Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M51 - Remove the interface copy step now that the source carries the management interface
+
+Origin: 2.0.1 / M51
+Identity History: none
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+The management interface was developed in `site-template/ui` and copied over the source tree by `make copy.ui` before every Maven build. jeonghanlee/epicsarchiverap-maven carries the same 35 files since `d0932d1b`, so the copy only repeats them. The site skin of `site-template/siteid` stays here.
+
+##### Scope
+
+- Remove `site-template/ui`, the `copy.ui` rule and its prerequisite in the `build.*` targets, `scripts/prepare-ui.bash`, `ARCHAPPL_UI_TEMPLATE_PATH` and `ARCHAPPL_UI_TARGET_PATH`.
+- The installers restore the files of an earlier copy from the source clone, stop when the selected source does not carry the interface files, and no longer tolerate a copied tree.
+- `tests/ui-static.bash` keeps its checks and reads the files from the selected source clone through `tests/ui-files.list`; without a clone it skips with a message.
+- `docs/README.interface.md` becomes a short pointer to the description in the source repository; the book and `CHANGELOG.md` follow; the judgements page of the book is generated from the selected source and fails without a clone.
+
+Out of scope: the site skin and the site folder inputs; the source repository's own checks; a change of the interface itself.
+
+##### Completion Criteria
+
+- No tracked file names `copy.ui`, `prepare-ui.bash` or `ARCHAPPL_UI_*` outside `CHANGELOG.md`, the registers, the book's history, and the check of `tests/phase2-compile.bash` and its description in `tests/README.md` that the rendered build has no copy step.
+- `make conf.archapplproperties build.mvn` on a fresh clone of the source builds four WARs whose `mgmt.war` carries every `mgmt` file of `tests/ui-files.list` under `ui/`.
+- `tests/ui-static.bash` passes against that clone, reports the missing files of a source without the interface, and skips without a clone.
+- `bash tests/run-all-tests.bash --local` passes.
+
+##### Dependencies And Decisions
+
+- Depends on jeonghanlee/epicsarchiverap-maven carrying the interface (`d0932d1b`, on `modernize`). Decisions of the owner on 2026-10-11: the static checks stay here and run against the selected source; the interface guide stays as a short pointer; the checks and the book generator behave as recommended without a clone (the checks skip, the generator fails); the release pin is a `modernize` commit at or after `d0932d1b`.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-11 with the decisions above
+Implementation Authorization: the owner started the work on 2026-10-11
+Superseded Plan Artifacts: none
+
+1. Remove the rule, variables, script and folder; adjust the installers.
+2. Retarget `tests/ui-static.bash` and remove the copy checks of `tests/phase1-logic.bash`, `phase2-compile.bash` and `database-config.py`.
+3. Update the interface guide, the book, `tests/README.md` and `CHANGELOG.md`.
+4. Build on a fresh clone and run the full local suite.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `make conf.archapplproperties build.mvn` on a fresh clone of the source at the branch tip; list `mgmt.war` | Local host | No copy output; BUILD SUCCESS; every `mgmt` file of `tests/ui-files.list` under `ui/` |
+| T2 | Local | `tests/ui-static.bash` against the fresh clone, against a source at `162269e7`-era content without the files, and without a clone | Local host | Passes with 244 checks; reports the missing files; skips with a message |
+| T3 | Local | The full local suite with the fresh clone | Local host with real Base binaries | Exit 0 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-11 | Local host; clone of `modernize` at `0097bc2d` | Pass | BUILD SUCCESS in about 24 s, no `copying the prepared interface files` line, `ui/index.html` present and no `mgmt` file of the list missing |
+| T2 | 2026-10-11 | Local host | Pass | 244 checks pass against the fresh clone; a source without the files fails the check that names the missing files; without a clone the checks print a skip message and exit 0 |
+| T3 | 2026-10-11 | Local checkout, real Base binaries, `AA_SOURCE_CLONE` set to the fresh clone | Pass | `run-all-tests.bash --local` exit 0: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14 |
+
+##### Closure Evidence
+
+- none; the change is not committed yet.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
 Last Compared: none
 
 #### M27 - LTS retrieval pre-processing (`pp`)
