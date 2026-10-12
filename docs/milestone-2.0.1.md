@@ -1392,7 +1392,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Complete | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Open | No | none | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner has not chosen; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
-| UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | In progress | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
+| UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
 
 ### Backlog Details
 
@@ -1968,7 +1968,7 @@ Last Compared: none
 Origin: 2.0.1 / M52
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -2026,7 +2026,7 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none; the change is not committed yet. The VM verifier change was checked for syntax only: it runs on a VM that this host does not have.
+- Complete on 2026-10-11: the site folder cleanup landed in `ac04a08`, the documents in `f5a18f2` and the register in `bb19781` on `origin/release-2.0.1`; T1 to T3 passed (T3: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14, run against a fresh clone of `modernize` at `0097bc2d`). The VM verifier change was checked for syntax only: it runs on a VM that this host does not have, and the release verification runs it. The row has no GitHub issue and stays in the Backlog because the owner has not assigned it to a milestone.
 
 ##### GitHub Projection
 
