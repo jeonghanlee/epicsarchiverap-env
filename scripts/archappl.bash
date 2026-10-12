@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
 #  author  : Jeong Han Lee
-#  email   : jeonghan.lee@gmail.com
 #  version : 0.0.3
 
 
