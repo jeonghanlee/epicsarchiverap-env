@@ -4,7 +4,7 @@ The appliance is one systemd service, `epicsarchiverap-maven.service`, that owns
 
 ## Actions through systemd
 
-Each target runs `systemctl` with `sudo`, from the repository checkout that installed the appliance.
+Each target runs from the repository checkout that installed the appliance. The targets `sd_start`, `sd_stop` and `sd_restart` run `systemctl` with `sudo`; `sd_status` runs `systemctl status` without it.
 
 | Target | What it does |
 | :--- | :--- |
@@ -12,6 +12,23 @@ Each target runs `systemctl` with `sudo`, from the repository checkout that inst
 | `make sd_stop` | Stops the service; the unit waits up to `SYSTEMD_TIMEOUT_STOP_SECONDS` (300 seconds by default) for the ordered stop of the four instances, which includes the consolidation of data that the ETL component performs on shutdown. The health timer keeps running, and its scheduled check skips the stopped appliance with `SKIP appliance-inactive` |
 | `make sd_restart` | Restarts the service and starts the health timer again |
 | `make sd_status` | Shows the state of the service |
+
+## Output of the status target
+
+The following lines are an excerpt of `make sd_status` on a running appliance. The Java command lines of the four instances and the resource lines are left out:
+
+```text
+● epicsarchiverap-maven.service - EPICS Archiver Appliance for als
+     Loaded: loaded (/opt/epicsarchiverap-maven/archappl.bash; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-09-12 21:34:29 PDT; 2 days ago
+   Main PID: 34519 (bash)
+     CGroup: /system.slice/epicsarchiverap-maven.service
+             ├─34519 /bin/bash /opt/epicsarchiverap-maven/archappl.bash service
+             ├─37602 /bin/cat
+             ├─86316 /usr/lib/jvm/java-21-openjdk-amd64/bin/java ...
+```
+
+The service runs `archappl.bash service` as its main process. Each of the four instances is one `java` process in the same control group, started with its own `/bin/cat` helper process.
 
 ## The order of the instances
 

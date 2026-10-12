@@ -5,7 +5,7 @@ The control script verifies that the four Java virtual machine (JVM) processes b
 ## Prerequisites
 
 - An installed appliance.
-- A shell on the appliance host, as the service account (`tomcat` by default) or as root. A user that cannot read the instance directories gets `ERROR inaccessible-instance-directory` lines. The scheduled check runs as the service account.
+- A shell on the appliance host, as the service account (`tomcat` by default) or as root. A user that cannot read the instance directories gets `ERROR inaccessible-instance-directory` lines. An ordinary user that is neither the service account nor root gets `ERROR unreadable-process-executable` for each running instance, then `health ERROR inspection-incomplete` and exit status `2`, because the check cannot read `/proc/<pid>/exe` of the process. The scheduled check runs as the service account.
 
 ## Steps
 
@@ -26,6 +26,26 @@ The control script verifies that the four Java virtual machine (JVM) processes b
    retrieval pid=- ERROR unreadable-or-invalid-configuration
    storage path=- ERROR unreadable-or-invalid-configuration
    health ERROR inspection-incomplete
+   ```
+
+   On an installed and started appliance, run the action as the service account. The command below exits with `0`:
+
+   ```bash
+   sudo -u tomcat bash <install_location>/archappl.bash health
+   ```
+
+   The action prints one line for each component and one line for the archive root and each store, with `<pid>` standing for the process id and `<storage_top>` for `ARCHAPPL_STORAGE_TOP`:
+
+   ```text
+   mgmt pid=<pid> PRESENT verified-process-presence
+   engine pid=<pid> PRESENT verified-process-presence
+   etl pid=<pid> PRESENT verified-process-presence
+   retrieval pid=<pid> PRESENT verified-process-presence
+   storage path=<storage_top> mount=/ use=33% threshold=85% PRESENT
+   storage path=<storage_top>/sts/ArchiverStore mount=/ use=33% threshold=85% PRESENT
+   storage path=<storage_top>/mts/ArchiverStore mount=/ use=33% threshold=85% PRESENT
+   storage path=<storage_top>/lts/ArchiverStore mount=/ use=33% threshold=85% PRESENT
+   health PRESENT all-four-processes-verified; application-readiness-not-checked
    ```
 
 2. Read the verdict line. The page [Health check results](health-results.md) lists every line and its reason.
