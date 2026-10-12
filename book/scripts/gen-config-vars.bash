@@ -22,6 +22,7 @@ HEADER
         awk -v file="${file}" '
             function clean(s) { gsub(/^#+[ \t]*/, "", s); gsub(/[ \t]+$/, "", s); return s }
             function esc(s) { gsub(/\|/, "\\|", s); return s }
+            function esc_text(s) { s = esc(s); gsub(/</, "\\&lt;", s); gsub(/>/, "\\&gt;", s); return s }
             BEGIN { n = 0; comment = "" }
             /^[ \t]*$/ { comment = ""; next }
             /^[ \t]*#/ {
@@ -42,7 +43,7 @@ HEADER
                 sub(/^[ \t]*/, "", value)
                 gsub(/[ \t]+$/, "", value)
                 if (length(comment) > 420) { comment = substr(comment, 1, 417) "..." }
-                rows[n++] = "| `" name "` | `" op "` | `" esc(value == "" ? "(empty)" : value) "` | " esc(comment) " |"
+                rows[n++] = "| `" name "` | `" op "` | `" esc(value == "" ? "(empty)" : value) "` | " esc_text(comment) " |"
                 comment = ""
                 next
             }

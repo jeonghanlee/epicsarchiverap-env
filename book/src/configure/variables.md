@@ -20,7 +20,7 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 
 | Variable | Operator | Value as written | Comment above it |
 | :--- | :--- | :--- | :--- |
-| `JAVA_HOME` | `=` | `/usr/lib/jvm/java-21-openjdk-amd64` | Toolchain paths (overridable via CONFIG_SITE.local or configure/os/*.mk) The JDK is the distro package from configure/os/<os>.pkgs; Maven comes from the source repository's Maven Wrapper (see MAVEN_CMD in CONFIG_SRC). |
+| `JAVA_HOME` | `=` | `/usr/lib/jvm/java-21-openjdk-amd64` | Toolchain paths (overridable via CONFIG_SITE.local or configure/os/*.mk) The JDK is the distro package from configure/os/&lt;os&gt;.pkgs; Maven comes from the source repository's Maven Wrapper (see MAVEN_CMD in CONFIG_SRC). |
 | `TOMCAT_MAJOR_VER` | `:=` | `9` |  |
 | `TOMCAT_INSTALL_LOCATION` | `=` | `$(AA_INSTALL_PATH)/tomcat$(TOMCAT_MAJOR_VER)` |  |
 | `TOMCAT_HOME` | `=` | `$(TOMCAT_INSTALL_LOCATION)` |  |
@@ -99,11 +99,11 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | :--- | :--- | :--- | :--- |
 | `EPICS_CA_ADDR_LIST` | `=` | `localhost` | The following EPICS Environment Variables are used for the epics archiver appliance internally, it uses the slightly different default values in several varialbes Reserved the following EPICS variables according to src/main/org/epics/archiverappliance/engine/epics/JCAConfigGen.java Don't need to use ", please see the examples below |
 | `EPICS_CA_AUTO_ADDR_LIST` | `=` | `YES` | 1.2.3.255 : default to EPICS_CA_SERVER_PORT 4.5.6.255 : EPICS_CA_SERVER_PORT=10000 in Server (Note that Arachappl is a client.) YES or NO |
-| `EPICS_CA_MAX_ARRAY_BYTES` | `=` | `16384` | It determines the maximum array that it will send or receive. 16384 byte network  buffers i >= 16384 	Default [EPICS/Archiver] 16384/30.0 |
-| `EPICS_CA_CONN_TMO` | `=` | `30.0` | Reserved the following EPICS variables according to src/main/org/epics/archiverappliance/engine/epics/JCAConfigGen.java Disconnect Time Out Interval For efficient operation it is recommended that EPICS_CA_CONN_TMO be set to no less than twice the value specified for EPICS_CA_BEACON_PERIOD. r > 0.1 seconds 	Default [EPICS/Archiver] 30.0/30.0 |
-| `EPICS_CA_BEACON_PERIOD` | `=` | `15.0` | r > 0.1 seconds 	Default [EPICS/Archiver] 15.0/30 |
-| `EPICS_CA_REPEATER_PORT` | `=` | `5065` | CA Beacons (sent to CA repeater daemon) i > 5000 	Default [EPICS/Archiver] 5065/5065 |
-| `EPICS_CA_SERVER_PORT` | `=` | `5064` | CA Server i > 5000 	Default [EPICS/Arvhier] 5064/5064 |
+| `EPICS_CA_MAX_ARRAY_BYTES` | `=` | `16384` | It determines the maximum array that it will send or receive. 16384 byte network  buffers i &gt;= 16384 	Default [EPICS/Archiver] 16384/30.0 |
+| `EPICS_CA_CONN_TMO` | `=` | `30.0` | Reserved the following EPICS variables according to src/main/org/epics/archiverappliance/engine/epics/JCAConfigGen.java Disconnect Time Out Interval For efficient operation it is recommended that EPICS_CA_CONN_TMO be set to no less than twice the value specified for EPICS_CA_BEACON_PERIOD. r &gt; 0.1 seconds 	Default [EPICS/Archiver] 30.0/30.0 |
+| `EPICS_CA_BEACON_PERIOD` | `=` | `15.0` | r &gt; 0.1 seconds 	Default [EPICS/Archiver] 15.0/30 |
+| `EPICS_CA_REPEATER_PORT` | `=` | `5065` | CA Beacons (sent to CA repeater daemon) i &gt; 5000 	Default [EPICS/Archiver] 5065/5065 |
+| `EPICS_CA_SERVER_PORT` | `=` | `5064` | CA Server i &gt; 5000 	Default [EPICS/Arvhier] 5064/5064 |
 
 ## Variables set in configure/CONFIG_SYSTEMD
 
