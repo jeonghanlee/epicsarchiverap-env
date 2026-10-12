@@ -1394,6 +1394,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Deferred | No | D55 | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner chose the stop in D55 and scheduled it for the release after 2.0.1; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 | UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
+| Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | none | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written and build, the publication is not; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
 
 ### Backlog Details
 
@@ -2028,6 +2029,82 @@ Superseded Plan Artifacts: none
 ##### Closure Evidence
 
 - Complete on 2026-10-11: the site folder cleanup landed in `ac04a08`, the documents in `f5a18f2` and the register in `bb19781` on `origin/release-2.0.1`; T1 to T3 passed (T3: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14, run against a fresh clone of `modernize` at `0097bc2d`). The VM verifier change was checked for syntax only: it runs on a VM that this host does not have, and the release verification runs it. The row has no GitHub issue and stays in the Backlog because the owner has not assigned it to a milestone.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M53 - Write the appliance book of the repository (`book/`)
+
+Origin: 2.0.1 / M53
+Identity History: none
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+`book/` holds an mdBook for the appliance: concepts, install and operate procedures, reference tables and a glossary, written from the code, the configuration and commands run on a host. Five reference pages (`configure/variables.md`, `appendix/make-targets.md`, `appendix/script-options.md`, `configure/policy-parameters.md`, `interface/judgements.md`) are printed by `book/scripts/gen-*.bash` from the code, and `book/scripts/check-generated.bash` fails when one differs from its generator. The structure and the page rules are in `book/PLAN.md`; the page types and title forms follow the owner's technical-writing skill.
+
+##### Scope
+
+- The pages listed in `book/src/SUMMARY.md`, the generators and the generated-page check.
+- The commit of the pages and of the `.gitignore` exception that keeps `book/src/test/` tracked.
+- A GitHub Actions workflow that runs `make init`, builds the book and publishes it.
+- Commands on the install and operate pages that this host could not run as shown, run on a disposable appliance or VM and recorded as real output.
+
+Out of scope: the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately and verifies again after the documents are written; the `docs/*.md` guides, which stay as they are.
+
+##### Completion Criteria
+
+- Every page has one type and the title form of that type, and `SUMMARY.md` reaches every page.
+- `bash book/scripts/check-generated.bash` reports every generated page current.
+- `mdbook build book` passes on a clean clone of the branch with no warning.
+- A page shows a command only when it ran as shown; a page whose commands need `sudo`, systemd or an installed appliance says so in its introduction until the VM verification runs them.
+- A workflow publishes the built book, and the published site equals a local build.
+
+##### Dependencies And Decisions
+
+- Owner rules of 2026-10-11: the book lives in `book/`, is written from the code and from commands run, never from the existing `docs/*.md`; it holds no working history and no host-specific values; deployment by GitHub Actions comes last.
+- The VM verification of 2.0.1 (M44) is the run that can record real output for the pages that need `sudo`, systemd or an installed appliance.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-12
+Implementation Authorization: the owner directed the work on 2026-10-11
+Superseded Plan Artifacts: none
+
+1. Write the pages and the generators, and review them against the page types (done).
+2. Record real output on a disposable appliance or VM for the pages that could not run here.
+3. Add the publishing workflow and verify the published site.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `mdbook build book` in a fresh clone of the branch | Local host | Exit 0, no warning, and the pages of `book/src/test/` are not empty |
+| T2 | Local | `bash book/scripts/check-generated.bash` with `AA_SOURCE_CLONE` set to a fresh clone of the source branch | Local host | Every generated page is current |
+| T3 | Review | Second-person review of the whole book against the technical-writing checklist | Local host | Findings applied and a final pass without findings |
+| T4 | VM | Run the install and operate commands that need `sudo`, systemd or an installed appliance, as shown | Disposable VM of the accepted matrix | Each command runs as shown; the output matches the page |
+| T5 | CI | The publishing workflow on the branch | GitHub Actions | The site builds from a clean checkout after `make init` and equals a local build |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-12 | Local host; fresh clone at `d04de37` | Pass | `mdbook build book` exit 0 with no warning or error; the three pages of `book/src/test/` build from the clone with 13.8 to 15.5 KB of HTML each |
+| T2 | 2026-10-12 | Local checkout at `d04de37`; fresh clone of `modernize` at `0097bc2d` | Pass | exit 0; all five generated pages current |
+| T3 | 2026-10-12 | Local host | Pass | whole-book pass, applied-findings pass, technical-writing pass and a final pass; the final pass found nothing to change |
+| T4 | Not run | none | Pending | none |
+| T5 | Not run | none | Pending | none |
+
+##### Closure Evidence
+
+- none
 
 ##### GitHub Projection
 
