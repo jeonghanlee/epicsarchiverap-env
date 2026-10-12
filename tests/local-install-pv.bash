@@ -9,6 +9,7 @@ readonly EPICS_BIN="${AA_TEST_EPICS_BIN:?Set AA_TEST_EPICS_BIN to EPICS Base bin
 readonly PORT="${AA_TEST_PORT_BASE:-28665}"
 [[ "$PORT" =~ ^[0-9]{1,5}$ ]] || exit 1
 (( PORT >= 1024 && PORT <= 65530 )) || exit 1
+mkdir -p "$TOP/work"
 workspace=$(mktemp -d "$TOP/work/local-pv-integration.XXXXXXXX")
 mkdir -p "$workspace/scripts/fixtures"
 cp "$TOP/scripts/verify-local-pv.bash" "$workspace/scripts/verify-local-pv.bash"

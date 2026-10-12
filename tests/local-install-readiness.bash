@@ -8,6 +8,7 @@ readonly TOMCAT="${AA_TEST_TOMCAT_HOME:?Set AA_TEST_TOMCAT_HOME to readable Tomc
 readonly PORT="${AA_TEST_PORT_BASE:-28665}"
 [[ "$PORT" =~ ^[0-9]{1,5}$ ]] || exit 1
 (( PORT >= 1024 && PORT <= 65530 )) || exit 1
+mkdir -p "$TOP/work"
 workspace=$(mktemp -d "$TOP/work/local-readiness.XXXXXXXX")
 launcher=''
 function finish {

@@ -3,6 +3,7 @@
 set -euo pipefail
 TOP=$(realpath -- "${BASH_SOURCE[0]%/*}/..")
 readonly TOP
+mkdir -p "$TOP/work"
 workspace=$(mktemp -d "$TOP/work/local-install-output.XXXXXXXX")
 mkdir -p "$workspace/scripts" "$workspace/boundary"
 # The entrypoint is omitted; every shipped function is sourced without modification.
