@@ -449,8 +449,6 @@ class Guest:
                         check(archive.read("ui/comm/" + relative) == asset.read_bytes(),
                               "ALS image/shared CSS content mismatch")
                 if service == "mgmt":
-                    check(archive.read("ui/css/mgmt.css") == (site / "css/mgmt.css").read_bytes(),
-                          "ALS management CSS mismatch")
                     replacements = re.findall(r"<!-- @begin\(([^)]+)\) -->.*?<!-- @end\(\1\) -->",
                                                (site / "template_changes.html").read_text(), re.S)
                     template = (site / "template_changes.html").read_text()

@@ -276,90 +276,6 @@ input#delete:hover {
   border-color: var(--c-danger);
 }
 
-/* jQuery UI dialogs */
-
-.ui-widget-overlay {
-  background: rgba(0, 25, 31, 0.55) none;
-  opacity: 1;
-  filter: none;
-}
-
-.ui-dialog {
-  padding: 0;
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  color: var(--c-text);
-  background: var(--c-surface) none;
-  border: 1px solid var(--c-border);
-  border-radius: 10px;
-  overflow: hidden;
-  max-width: calc(100vw - 2rem);
-}
-
-.ui-dialog .ui-dialog-titlebar {
-  padding: 0.75rem 1rem;
-  background: var(--c-brand) none;
-  border: 0;
-  border-radius: 0;
-  color: #ffffff;
-}
-
-.ui-dialog .ui-dialog-title {
-  font-weight: 600;
-  margin: 0;
-}
-
-.ui-dialog .ui-dialog-titlebar-close {
-  border: 0;
-  background: transparent none;
-  border-radius: var(--radius);
-}
-
-.ui-dialog .ui-dialog-titlebar-close:hover {
-  background: rgba(255, 255, 255, 0.18) none;
-}
-
-/* The script fixes the content height inline; the content sizes itself and scrolls only when tall. */
-.ui-dialog .ui-dialog-content {
-  height: auto !important;
-  max-height: 70vh;
-  overflow-y: auto;
-  padding: 1rem;
-  background: var(--c-surface) none;
-  color: var(--c-text);
-}
-
-.ui-dialog .ui-dialog-content div + div {
-  margin-top: 0.4rem;
-}
-
-.ui-dialog .ui-dialog-buttonpane {
-  margin: 0;
-  padding: 0.6rem 1rem;
-  background: var(--c-stripe) none;
-  border: 0;
-  border-top: 1px solid var(--c-border);
-}
-
-.ui-dialog .ui-dialog-buttonpane button {
-  margin: 0 0 0 0.5rem;
-  padding: 0.4rem 0.9rem;
-  font-weight: 600;
-  color: #ffffff;
-  background: var(--c-accent) none;
-  border: 1px solid var(--c-accent);
-  border-radius: var(--radius);
-}
-
-.ui-dialog .ui-dialog-buttonpane button:hover {
-  background: var(--c-accent-dark) none;
-  border-color: var(--c-accent-dark);
-}
-
-.ui-dialog .ui-dialog-buttonpane button .ui-button-text {
-  padding: 0;
-}
-
 /* touch and notched screens */
 
 html {
@@ -457,39 +373,6 @@ html {
     min-height: 44px;
     padding: 0.5rem 1rem;
     font-size: 1rem;
-  }
-
-  /* Dialogs use the screen width; the script sets a fixed width and position inline. */
-  .ui-dialog {
-    width: calc(100vw - 1rem) !important;
-    max-width: none;
-    left: 0.5rem !important;
-  }
-
-  .ui-dialog .ui-dialog-content {
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-
-  /* A full-height touch target keeps the close icon centered in the title bar. */
-  .ui-dialog .ui-dialog-titlebar-close {
-    top: 0;
-    right: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  .ui-dialog .ui-dialog-titlebar-close .ui-icon {
-    margin: 0;
-  }
-
-  .ui-dialog .ui-dialog-buttonpane button {
-    min-height: 44px;
   }
 }
 
