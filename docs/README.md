@@ -10,6 +10,7 @@ Detailed guides covering installation, storage architecture, policy configuratio
 | [Management interface](./README.interface.md) | Where the pages of the management interface are described, and what this repository keeps: the site skin and the static checks. | Operating the appliance through its pages, or skinning them for a site. |
 | [Storage & Policy Configuration Guide](./README.policies.md) | Reference for storage tiers (STS/MTS/LTS), URL-style parameters (`partitionGranularity`, `hold`, `gather`), data processing operators, and `policies.py`. | Setting up policies, choosing math operators, tuning sampling rates. |
 | [The Data Journey](./README.DataJourney.md) | Conceptual ETL timeline (T1–T6) showing how data physically moves through the system over time. | Understanding why data is or is not yet in MTS, visualizing how `hold` and `gather` interact. |
+| [Appliance book](../book/src/index.md) | mdBook written from the code: components, install and operate procedures, reference tables and a glossary. Render it with `mdbook build book`. | Learning the appliance end to end and looking up variables, targets and options. |
 
 ## Quick Lookup
 

@@ -21,6 +21,7 @@ changes to the environment repository.
 - Maintenance of a PV from the page: change of sampling, rename, change of type and consolidation, each pausing the PV first and saying what it changes; pause, resume and stop for several selected PVs; pause of a disconnected host group.
 - `tests/ui-static.bash`, run by `tests/phase1-logic.bash` against the interface files of the selected source (`tests/ui-files.list`): marker blocks, content security policy, no inline code, outside host, jQuery or text turned into markup, referenced files, element ids and text contrast, each with a broken copy that must be refused.
 - `docs/README.interface.md` points to the description of the management interface in the source repository and names what this repository keeps: the site skin and the static checks.
+- An mdBook of the appliance in `book/`, written from the code and from commands run: concepts, install and operate procedures, reference pages that `book/scripts/gen-*.bash` print from the code, and a glossary. `mdbook build book` renders it to `book/site/`.
 
 ### Changed
 - `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS` (default 1.0, at least 1.0) is written to `archappl.properties` as `org.epics.archiverappliance.config.PVTypeInfo.sampleBufferMarginSeconds`, the seconds of write delay a sample buffer absorbs, and the remedy texts of the Operations page name it. It replaces the earlier multiplier of the buffer capacity; the source commit `6c6b973a` of jeonghanlee/epicsarchiverap-maven that reads the key is contained in every `modernize` commit that `SRC_TAG` follows.
@@ -38,6 +39,7 @@ changes to the environment repository.
 - The build-failure check recognizes the absent-commit message of git 2.47 (`unable to read tree`).
 - `archappl.bash startup`, `shutdown` and `restart` exit non-zero when an instance script fails and name the instance on stderr; `restart` starts nothing when its shutdown failed. Every action that runs instances (`startup`, `shutdown`, `restart`, `service`) refuses to run when `archappl.conf` is missing or is not valid shell.
 - `archappl.bash shutdown` keeps `temp/<component>.pid` when the instance's `bin/shutdown.sh` failed; `status` takes its address from the `src` field of the route and falls back to the host name, and no longer prints `Verified` before the health check; the usage names `health --systemd`, `storage all` and `help`, spells `possible`, and no longer lists the `h` argument, which is now an unknown argument like any other.
+- `make sd_health_status` ends with exit status `0` when the health service is inactive between two runs; an absent unit still fails the target.
 
 ### Removed
 - The files of the old homepage that no management page uses: `site-template/siteid/css/mgmt.css` and the jQuery UI dialog rules of `css/main.css`, 45 unused images of `site-template/siteid/img` (toolbar icons, favicons, logos, `dome.png`) with their notes and license, and the screenshots of the old pages under `docs/technicaldocs`. The site folder keeps `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`; a site can still supply `css/mgmt.css`, and the VM verifier no longer compares it.
