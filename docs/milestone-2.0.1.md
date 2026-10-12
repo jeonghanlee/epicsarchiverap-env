@@ -69,6 +69,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D52 | Carry the PV operations of the old interface that remain useful into the new one, by conditions the server enforces. On the Work page: change of the sampling period and method (works on a running or a paused PV), the full details list, and pause, resume and stop for several selected PVs through the list form of the calls; in a folded maintenance area of the PV detail: rename, change of type and consolidation, each saying what it changes, with a backup confirmation for the type change; on Operations: pausing the PVs of a disconnected host group. Left out: the storage definition change (it can lose data), the policy text and the stores call (shown elsewhere), the cluster-wide storage report (replaced by the per-appliance report). Postponed: moving a PV to another appliance, aliases, extra meta fields and appending one PV to another. | 2026-10-10 |
 | D53 | Amend plan items 5 and 7 to what was built and measured. The interface uses no icon set: text carries every label and an icon would be ink without data (D48). Series are drawn as SVG paths with the reduction the server already offers (`mean_N`), not on a canvas and not reduced again in a worker, because the measured steps stay within the bounds (T11). The data viewer is opened from the Work page for the selected PVs and for the focused PV over the window of the chart, and its CSV download is the export; the state of the rows in view is read in one call so the list shows which names are paused or not archived. | 2026-10-10 |
 | D54 | Four rules found by the third review of the interface. A PV name is a base name with an optional `.FIELD`, as the server reads it, so a field PV can be archived, shown and opened in the viewer. A chart line breaks only at a connection loss the archiver recorded (`cnxlostepsecs`, `startup`, `connectionChange`), never after an elapsed time, because a monitored PV that changes rarely keeps its value. Values reduced to means are named as such on the Work page and in the viewer, the server is asked for `meanSample_N`, which leaves an interval without a sample empty (`mean_N` fills it with the previous value and drew a lost connection as a held line), and the CSV carries `interval_seconds`. An unchanged PV count is checked again for additions every fourth poll (D50 amended); a removed name stays until the count falls or the snapshot is a day old. | 2026-10-10 |
+| D55 | Make the installers stop, before they change anything, when `configure/CONFIG_SITE.local` holds a line other than the include of its operating system file, and name `../CONFIG_SITE.local` as the place for site values. The target keeps writing the one line, so the file stays generated. The change is scheduled for the release after 2.0.1, which has no milestone yet; it is not part of 2.0.1. | 2026-10-11 |
 
 ### Assignment History
 
@@ -1390,7 +1391,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
 | Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Complete | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
-| Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Open | No | none | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner has not chosen; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
+| Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Deferred | No | D55 | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner chose the stop in D55 and scheduled it for the release after 2.0.1; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 | UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
 
@@ -1830,7 +1831,7 @@ Last Compared: 2026-10-11 at 18:37 UTC, `gh issue view 61 --repo jeonghanlee/epi
 Origin: 2.0.1 / M49
 Identity History: none
 GitHub Issue: none
-Status: Open
+Status: Deferred
 
 ##### Summary
 
@@ -1838,11 +1839,11 @@ The targets `<os>.conf` (`debian13.conf`, `rocky8.conf` and the others in `confi
 
 Observed 2026-10-11 on the author's host. `make -n debian13.conf` prints `rm -f <checkout>/configure/CONFIG_SITE.local` and `echo "include \$(TOP)/configure/os/debian13.mk" > <checkout>/configure/CONFIG_SITE.local`. The plan of `bash scripts/install-local-sqlite.bash --plan --skip-packages` lists `make ... debian13.conf` as its first make step. Recheck with those two commands.
 
-The row is Open because the owner has not set its priority or chosen among the options in Scope.
+The row is Deferred by D55 (2026-10-11): the owner chose the stop and scheduled it for the release after 2.0.1, which has no milestone yet.
 
 ##### Scope
 
-- Choose one behavior: the target keeps the existing lines and only ensures the include line, or the installer stops when `configure/CONFIG_SITE.local` holds other lines and names `../CONFIG_SITE.local`.
+- The installers stop, before they change anything, when `configure/CONFIG_SITE.local` holds a line other than the include of its operating system file, print those lines and name `../CONFIG_SITE.local` (D55). The target keeps writing the one line.
 - Keep the documented place for site values, `../CONFIG_SITE.local`.
 
 Out of scope: changing the content of the operating system files `configure/os/*.mk`.
@@ -1854,7 +1855,7 @@ Out of scope: changing the content of the operating system files `configure/os/*
 
 ##### Dependencies And Decisions
 
-- No dependency. A dated owner decision on the option is required before it can become Not started.
+- D55 (2026-10-11): the stop is the chosen behavior and the work belongs to the release after 2.0.1. It becomes Not started when that release has a milestone and the row is assigned to it.
 
 ##### Implementation Plan
 
