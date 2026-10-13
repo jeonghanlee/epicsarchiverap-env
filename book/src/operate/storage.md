@@ -14,7 +14,13 @@ The `storage` actions need `sudo` rights, because `du` runs as root. [Health che
 
 ## Output of the storage action
 
-The following lines are an excerpt of `bash scripts/archappl.bash storage`, with `ARCHAPPL_STORAGE_TOP` shown as `<storage_top>` and the folders below the store roots left out:
+The action reads the `archappl.conf` next to the script, so it runs from the installed location and not from a checkout. The folder `<install_location>` is `AA_INSTALL_LOCATION`, which holds `archappl.bash` and `archappl.conf`. The following command prints the report:
+
+```bash
+bash <install_location>/archappl.bash storage
+```
+
+The following lines are an excerpt of its output, with `ARCHAPPL_STORAGE_TOP` shown as `<storage_top>` and the folders below the store roots left out:
 
 ```text
 >>>> Storage Status at 2610120125

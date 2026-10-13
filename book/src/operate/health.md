@@ -28,10 +28,10 @@ The control script verifies that the four Java virtual machine (JVM) processes b
    health ERROR inspection-incomplete
    ```
 
-   On an installed and started appliance, run the action as the service account. The command below exits with `0`:
+   On an installed and started appliance, run the action as the service account, shown as `<service_account>` below (`tomcat` by default, set by `AA_USERID`). The folder `<install_location>` is `AA_INSTALL_LOCATION`, which holds `archappl.bash` and `archappl.conf`. The command below exits with `0`:
 
    ```bash
-   sudo -u tomcat bash <install_location>/archappl.bash health
+   sudo -u <service_account> bash <install_location>/archappl.bash health
    ```
 
    The action prints one line for each component and one line for the archive root and each store, with `<pid>` standing for the process id and `<storage_top>` for `ARCHAPPL_STORAGE_TOP`:
