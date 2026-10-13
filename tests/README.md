@@ -9,7 +9,7 @@ Tests execute in strict order, from least to most privilege:
 
 | Phase | Validates | Setup cost |
 | :--- | :--- | :--- |
-| 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; installed Java for PID cases; JDK compiler for unrelated-JVM negative |
+| 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; installed Java for PID cases; JDK compiler for unrelated-JVM negative; optional real EPICS Base binaries, see [Real EPICS Base binaries](#real-epics-base-binaries) |
 | 2. Build wrapper | Real `make -n build`: configuration, site-overlay copy, Maven package command and ordering | none; no source checkout, JDK or network required |
 | 3. Installation | Handed-off fresh VM, actual Ansible/Make/Maven install and payload checks | Initialized run; cloud-provision guest and handoff; pinned ansible-provision checkout; libvirt, SSH |
 | 4. Runtime acceptance | Same VM: genuine JVMs, scheduled health, HTTP identity, CA acquisition/retrieval and persistence | The same case invocation; real systemd, EPICS IOC and selected database |
