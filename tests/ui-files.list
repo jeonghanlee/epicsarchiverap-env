@@ -1,3 +1,4 @@
+mgmt/staticcontent/analyzer.html
 mgmt/staticcontent/appliance.html
 mgmt/staticcontent/cacompare.html
 mgmt/staticcontent/css/integration.css
@@ -5,8 +6,10 @@ mgmt/staticcontent/css/system.css
 mgmt/staticcontent/css/workspace.css
 mgmt/staticcontent/index.html
 mgmt/staticcontent/integration.html
+mgmt/staticcontent/js/analyzer-forward.js
 mgmt/staticcontent/js/forward.js
 mgmt/staticcontent/js/integration.js
+mgmt/staticcontent/js/menu.js
 mgmt/staticcontent/js/operations.js
 mgmt/staticcontent/js/retrieval.js
 mgmt/staticcontent/js/system.js
@@ -27,6 +30,9 @@ retrieval/staticcontent/viewer/archViewer.html
 retrieval/staticcontent/viewer/viewer.css
 retrieval/staticcontent/viewer/viewer.js
 staticcontent/css/chart.css
+staticcontent/css/main.css
+staticcontent/img/sitelogo.svg
+staticcontent/img/wordmark.svg
 staticcontent/js/aa/chart.js
 staticcontent/js/aa/plots.js
 staticcontent/js/aa/spark.js

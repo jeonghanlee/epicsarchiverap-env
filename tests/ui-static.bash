@@ -34,7 +34,10 @@ else
     # next to the site skin that this repository keeps in site-template/siteid.
     ROOT="${WORKSPACE}/interface-tree"
     mkdir -p "${ROOT}/site-template/siteid"
-    cp -a "${TOP}/site-template/siteid/css" "${ROOT}/site-template/siteid/css"
+    # The site folder may carry no stylesheet; the one of the source then applies.
+    if [[ -d "${TOP}/site-template/siteid/css" ]]; then
+        cp -a "${TOP}/site-template/siteid/css" "${ROOT}/site-template/siteid/css"
+    fi
     cp -a "${TOP}/site-template/siteid/template_changes.html" "${ROOT}/site-template/siteid/template_changes.html"
     missing=""
     while IFS= read -r relative; do
@@ -207,8 +210,17 @@ while IFS= read -r page; do
 done < <(find "${UI}" -type f -name '*.html' | LC_ALL=C sort)
 
 # ---- text colors keep a contrast of at least 4.5:1 -------------------------------------------------
-# The tokens are read from the shared stylesheet; a token that points to another one is followed.
-contrast=$(python3 -I - "${ROOT}/site-template/siteid/css/main.css" <<'PY'
+# The tokens are read from the stylesheet that applies: the one of the site folder when it carries one, and the
+# shared stylesheet of the source otherwise. A token that points to another one is followed.
+if [[ -f "${ROOT}/site-template/siteid/css/main.css" ]]; then
+    STYLESHEET="${ROOT}/site-template/siteid/css/main.css"
+    STYLESHEET_RELATIVE="siteid/css/main.css"
+else
+    STYLESHEET="${UI}/staticcontent/css/main.css"
+    STYLESHEET_RELATIVE="ui/staticcontent/css/main.css"
+fi
+assert_file "${STYLESHEET}" "The stylesheet that applies exists"
+contrast=$(python3 -I - "${STYLESHEET}" <<'PY'
 import re, sys
 text = open(sys.argv[1]).read()
 tokens = dict(re.findall(r'^\s*(--[a-z0-9-]+):\s*([^;]+);', text, re.M))
@@ -243,7 +255,9 @@ function expect_rejected {
     local tree="${WORKSPACE}/mutation-${description// /-}" output status=0
     mkdir -p "${tree}/site-template/siteid"
     cp -a "${UI}" "${tree}/site-template/ui"
-    cp -a "${ROOT}/site-template/siteid/css" "${tree}/site-template/siteid/css"
+    if [[ -d "${ROOT}/site-template/siteid/css" ]]; then
+        cp -a "${ROOT}/site-template/siteid/css" "${tree}/site-template/siteid/css"
+    fi
     cp -a "${ROOT}/site-template/siteid/template_changes.html" "${tree}/site-template/siteid/template_changes.html"
     F="${tree}/site-template/${relative}" bash -c "${snippet}"
     output=$(UI_STATIC_TREE_UNDER_TEST="${tree}" bash "${BASH_SOURCE[0]}" 2>&1) || status=$?
@@ -286,7 +300,7 @@ if [[ -z "${UI_STATIC_TREE_UNDER_TEST:-}" ]]; then
     expect_rejected "a vendored chart library that differs from its record" "matches the SHA-256 recorded" \
         ui/staticcontent/js/vendor/d3.min.js "printf '\\n' >> \"\$F\""
     expect_rejected "a faint text color below the contrast limit" "contrast of at least 4.5:1" \
-        siteid/css/main.css "sed -i 's|--ink-3: var(--c-muted);|--ink-3: #9aa9ae;|' \"\$F\""
+        "${STYLESHEET_RELATIVE}" "sed -i 's|--ink-3: var(--c-muted);|--ink-3: #9aa9ae;|' \"\$F\""
 fi
 
 phase_pass "Interface files: markers, content security, inline code and element ids"

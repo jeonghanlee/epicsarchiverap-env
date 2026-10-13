@@ -10,7 +10,7 @@ the limits it keeps and the browsers it supports are described there:
 
 | Item | Where |
 | :--- | :--- |
-| The site skin: color tokens, header, footer and layout | `site-template/siteid/css/main.css` and `template_changes.html`; the tokens are defined at the top of `main.css` |
+| The site logo and favicon of the header | `site-template/siteid/template_changes.html`, the `site_logo` block; the header frame, the header logo, the menu and the stylesheet come from the source |
 | The site folder inputs and how a build applies them | [Interface files and site inputs](./README.install.md) |
 | Static checks of the interface files | `bash tests/ui-static.bash`; the files come from the source checkout that `SRC_TAG` selects, listed in `tests/ui-files.list` |
 

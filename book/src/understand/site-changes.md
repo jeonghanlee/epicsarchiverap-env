@@ -22,12 +22,12 @@ The variable `ARCHAPPL_SITEID` names the site, and its default is `als`. The fol
 | Path in the site folder | Effect |
 | :--- | :--- |
 | `img/` | Copied with its subfolders over the shared images of `staticcontent/img`, replacing the defaults |
-| `css/main.css` | Copied over the shared stylesheet `staticcontent/css/main.css` |
-| `template_changes.html` | Merged into the staged management pages by `SyncStaticContentHeadersFooters`; the repository's file supplies the header, navigation and footer blocks |
+| `css/main.css` | Optional; copied over the shared stylesheet `staticcontent/css/main.css`. The shipped folder has none |
+| `template_changes.html` | Merged into the staged management pages by `SyncStaticContentHeadersFooters`; the repository's file supplies the `site_logo` block; the source supplies the header frame, the header logo and the menu |
 | `classpathfiles/` | Holds `appliances.xml`, `archappl.properties` and `policies.py`; the WAR build packs the folder, the overlay does not apply it |
 
 The overlay reports a site folder that does not exist or that holds a `build.xml`, and it stops the build. Any other file under `css/`, and any folder other than `img`, `css` and `classpathfiles`, only produces a warning. A site builds with another site folder by setting `ARCHAPPL_SITEID` and `ARCHAPPL_SITEID_TEMPATE_PATH` (the spelling of the second variable is as the configuration writes it).
 
 ## The interface files
 
-The management pages and the data viewer are part of the source that `SRC_TAG` selects; this repository copies no interface files over the source tree. A site changes how the pages look through the site folder: `css/main.css` and `template_changes.html` of `site-template/siteid`; the management pages link `css/main.css` only. A source that does not carry the interface files builds with the pages it holds. Any source older than commit `d0932d1b` of the source repository is such a source, and the installers stop with `The selected source does not carry the management interface`.
+The management pages and the data viewer are part of the source that `SRC_TAG` selects; this repository copies no interface files over the source tree. A site changes how the pages look through the site folder: its `site_logo` block in `template_changes.html` and, when it sets its own tokens, an optional `css/main.css` of `site-template/siteid`; the management pages link `css/main.css` only. A source that does not carry the interface files builds with the pages it holds. Any source older than commit `d0932d1b` of the source repository is such a source, and the installers stop with `The selected source does not carry the management interface`.
