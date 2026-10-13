@@ -2,7 +2,8 @@
 # Static checks of the management interface files that epicsarchiverap-maven carries.
 # A management page keeps the marker blocks the site template replaces, every full page carries a content
 # security policy, no page has an inline script, an event-handler or style attribute, no file refers to jQuery
-# or to an outside host, and every element id that a script reads exists in its page.
+# or to an outside host (the target of a navigation link, which the user follows and the page does not request,
+# may name one), and every element id that a script reads exists in its page.
 # The files are read from the source checkout that SRC_TAG selects (override: AA_SOURCE_CLONE); the list of
 # files is tests/ui-files.list. Without a source checkout the checks are skipped with a message.
 
@@ -111,8 +112,18 @@ while IFS= read -r file; do
     assert_eq "${jquery}" "" "${name} does not refer to jQuery"
     markup=$(grep -n -E 'innerHTML|outerHTML|insertAdjacentHTML|document\.write|[^a-zA-Z]eval\(|new Function' "${file}" || true)
     assert_eq "${markup}" "" "${name} does not turn text into markup or run text as code"
-    # The SVG namespace is an identifier, not an address that is requested.
-    hosts=$(sed 's|http://www\.w3\.org/2000/svg||g' "${file}" | grep -n -E 'https?://' || true)
+    # The SVG namespace is an identifier, not an address that is requested. The target of a link that the user
+    # follows is not requested either; every other address, of a script, a style, an image or a data call, is.
+    hosts=$(python3 -I - "${file}" <<'PY'
+import re, sys
+text = open(sys.argv[1], encoding="utf-8").read().replace("http://www.w3.org/2000/svg", "")
+text = re.sub(r'<a\b[^>]*?\bhref\s*=\s*"https?://[^"]*"',
+              lambda m: "<a" + "\n" * m.group(0).count("\n"), text, flags=re.S)
+for number, line in enumerate(text.splitlines(), 1):
+    if re.search(r'https?://', line):
+        print("%d:%s" % (number, line))
+PY
+) || true
     assert_eq "${hosts}" "" "${name} does not refer to an outside host"
 done < <(own_files)
 
@@ -132,7 +143,7 @@ PAIRS=(
     "mgmt/staticcontent/system.html:mgmt/staticcontent/js/system.js"
     "mgmt/staticcontent/operations.html:mgmt/staticcontent/js/operations.js"
     "mgmt/staticcontent/retrieval.html:mgmt/staticcontent/js/retrieval.js"
-    "mgmt/staticcontent/integration.html:mgmt/staticcontent/js/integration.js"
+    "mgmt/staticcontent/external.html:mgmt/staticcontent/js/external.js"
     "retrieval/staticcontent/viewer/archViewer.html:retrieval/staticcontent/viewer/viewer.js"
 )
 for pair in "${PAIRS[@]}"; do
@@ -270,19 +281,44 @@ function expect_rejected {
     esac
 }
 
+# The counterpart of expect_rejected: a rule that is narrowed must still accept what it was narrowed for.
+function expect_accepted {
+    local description="$1" relative="$2" snippet="$3"
+    local tree="${WORKSPACE}/mutation-${description// /-}" output status=0
+    mkdir -p "${tree}/site-template/siteid"
+    cp -a "${UI}" "${tree}/site-template/ui"
+    if [[ -d "${ROOT}/site-template/siteid/css" ]]; then
+        cp -a "${ROOT}/site-template/siteid/css" "${tree}/site-template/siteid/css"
+    fi
+    cp -a "${ROOT}/site-template/siteid/template_changes.html" "${tree}/site-template/siteid/template_changes.html"
+    F="${tree}/site-template/${relative}" bash -c "${snippet}"
+    output=$(UI_STATIC_TREE_UNDER_TEST="${tree}" bash "${BASH_SOURCE[0]}" 2>&1) || status=$?
+    if [[ "${status}" -eq 0 ]]; then
+        _record_pass "A copy with ${description} is accepted"
+    else
+        _record_fail "A copy with ${description} is accepted" "the checks failed: ${output}"
+    fi
+}
+
 if [[ -z "${UI_STATIC_TREE_UNDER_TEST:-}" ]]; then
     expect_rejected "a page without its navigation block" "marker block site_navbar" \
         ui/mgmt/staticcontent/system.html "sed -i '/@begin(site_navbar)/d' \"\$F\""
     expect_rejected "an inline script" "has no inline script" \
         ui/mgmt/staticcontent/system.html "printf '<script>alert(1)</script>\\n' >> \"\$F\""
     expect_rejected "an event handler" "has no event-handler attribute" \
-        ui/mgmt/staticcontent/integration.html "sed -i '0,/<button/s//<button onclick=\"go()\"/' \"\$F\""
+        ui/mgmt/staticcontent/external.html "sed -i '0,/<button/s//<button onclick=\"go()\"/' \"\$F\""
     expect_rejected "a jQuery reference" "does not refer to jQuery" \
         ui/mgmt/staticcontent/js/work.js "printf '// jQuery\\n' >> \"\$F\""
     expect_rejected "an unknown element id" "no element for: noSuchElement" \
         ui/mgmt/staticcontent/js/work.js "printf 'document.getElementById(\"noSuchElement\");\\n' >> \"\$F\""
     expect_rejected "an outside host" "does not refer to an outside host" \
         ui/retrieval/staticcontent/viewer/viewer.js "printf '// https://example.invalid/x.js\\n' >> \"\$F\""
+    expect_rejected "a script from an outside host" "does not refer to an outside host" \
+        ui/mgmt/staticcontent/system.html "printf '<script src=\"https://example.invalid/x.js\"></script>\\n' >> \"\$F\""
+    expect_rejected "a stylesheet from an outside host" "does not refer to an outside host" \
+        ui/mgmt/staticcontent/system.html "printf '<link rel=\"stylesheet\" href=\"https://example.invalid/x.css\">\\n' >> \"\$F\""
+    expect_accepted "a navigation link to an outside host" \
+        ui/mgmt/staticcontent/system.html "printf '<a href=\"https://example.invalid/manual\">Manual</a>\\n' >> \"\$F\""
     expect_rejected "no content security policy" "carries a content security policy" \
         ui/mgmt/staticcontent/index.html "sed -i '/Content-Security-Policy/d' \"\$F\""
     expect_rejected "a script that is not there" "finds js/missing.js" \
