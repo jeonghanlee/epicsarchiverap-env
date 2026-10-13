@@ -372,6 +372,71 @@ IOC database, and CSV client, replacing only HTTP transport.
 menu, and IOC exit during resume. Menu fixtures verify lifecycle handling;
 the real appliance round trip establishes sample storage and retrieval.
 
+### Real EPICS Base binaries
+
+Some local checks need the binaries of a real EPICS Base: `softIoc` and `caget`.
+`AA_TEST_EPICS_BIN` names the `bin/<host_arch>` folder of that Base: an absolute path whose last two components
+are `bin` and the host architecture, for example `linux-x86_64`, and which holds executable `softIoc` and `caget`.
+A tree of a distribution has the form `<release>/<os>/<base_version>/base/bin/<host_arch>`, for example
+`<epics_install>/1.3.0/debian-13/7.0.10/base/bin/linux-x86_64`, where `<epics_install>` is the top folder that
+holds the release folders. A Base that was built by hand can be anywhere, for example
+`/usr/local/epics/base-7.0.10/bin/linux-x86_64`.
+
+- `<os>` is the `ID` and the `VERSION_ID` of `/etc/os-release` joined by a hyphen, for example `debian-13` or
+  `rocky-8.10`.
+- `<host_arch>` is the `EPICS_HOST_ARCH` of the build, for example `linux-x86_64`.
+
+The checks that read the variable are `local-install-epics.py`, which Phase 1 runs, and `local-install-pv.bash`
+with the three checks it runs, `local-install-pv-signals.py`, `local-install-pv-range.py` and
+`local-install-pv-menu.py`.
+
+- `local-install-epics.py` resolves the real binaries through the installers' EPICS preflight in three ways
+  (`EPICS_BASE`, `EPICS_BASE` with `EPICS_HOST_ARCH`, and `--epics-bin`) and rejects an unknown architecture.
+  Without the variable it prints `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.` and the
+  remaining checks of the file run. A relative path, a folder that is not a `bin/<host_arch>` folder, and a folder
+  without an executable `softIoc` or `caget` fail with `EPICS binary directory must contain executable softIoc
+  and caget` inside a Python traceback.
+- `local-install-pv.bash` needs `AA_TEST_TOMCAT_HOME`, a Tomcat 9 installation as the readiness check above
+  describes, and `AA_TEST_EPICS_BIN`. The account that runs the check must be able to read the whole installation,
+  `conf` included; an installation of another account that it cannot read fails with `Explicit Tomcat home is not
+  a usable Tomcat 9`. The check stops at once and names the first of the two variables that is unset. A complete
+  run starts four JVMs and takes about ten minutes; one run measured 568 seconds.
+
+Look for a tree in these places, in this order:
+
+1. `/opt/epics`
+2. a clone of the [EPICS-env-distribution](https://github.com/jeonghanlee/EPICS-env-distribution) repository,
+   which carries a tree for each release and operating system
+3. a clone of the internal distribution repository of a site, which has the same layout
+4. an EPICS Base build below the user's source directory; the `bin/<host_arch>` folder of its install folder
+5. `~/epics`
+
+The following command lists the trees of one place; replace `<place>` and `<host_arch>`. The option `-L` makes it
+follow a place that is a symbolic link, which otherwise lists nothing:
+
+```bash
+find -L <place> -maxdepth 9 -type f -name softIoc -path '*/bin/<host_arch>/*'
+```
+
+A tree of a distribution ends as `<release>/<os>/<base_version>/base/bin/<host_arch>/softIoc`. Any other build
+ends as `<base>/bin/<host_arch>/softIoc` and carries no release number; in a work folder of EPICS-env the `<base>`
+is its `install` folder. Keep the trees of a distribution whose `<os>` is the operating system of the host and take
+the one with the highest release number.
+Compare the numbers field by field, as `sort -V` does, so that `1.10.0` is higher than `1.9.0`. When two places hold
+the same release, take the earlier place of the list. A tree without a release number ranks after every tree that
+has one. When no tree is found, leave the variable unset; the real-binary part is then skipped and reported.
+
+A `--local` run that prints the SKIP line has not run the real-binary part. Set the variable to include it, and
+filter the long output for the one line that tells which case ran; other checks print their own SKIP lines, so the
+pattern names this one:
+
+```bash
+AA_TEST_EPICS_BIN=<epics_bin_dir> bash tests/run-all-tests.bash --local 2>&1 | grep -E 'EPICS preflight|SKIP: real Base'
+```
+
+The line `PASS: EPICS preflight resolves the supplied real Base binaries.` shows that the real binaries were used;
+the line `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.` shows that they were not.
+
 ### Phase 2 — Build wrapper
 
 - The real `make -n build` target parses and generates commands successfully.
