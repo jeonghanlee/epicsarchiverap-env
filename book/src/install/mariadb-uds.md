@@ -34,7 +34,7 @@ This page installs a systemd-managed appliance whose configuration database is M
 
 2. Set the passwords and, when the socket is not at the default path, `DB_SOCKET` in `CONFIG_SITE.local`, as in [Override a setting for one host](../configure/override-setting.md).
 
-3. Install the appliance. Run the command of step 1 without `--plan`. The installer starts `mariadb.service`, creates or updates the configured database and accounts, and loads the schema. Existing administrative and application accounts receive the configured passwords and grants.
+3. Install the appliance. Run the command of step 1 without `--plan`. The installer starts `mariadb.service`, creates or updates the configured database and accounts, and loads the schema. Existing administrative and application accounts receive the configured passwords and grants. When a step fails, the installer prints `Installation stopped during <stage> (exit <status>)`, with the failed stage and its exit status, keeps the data and the build files, and neither rolls back nor starts the service again. Correct the cause and run the installer again.
 
 4. Optional: when the database and its accounts exist, add `--existing-db`. The installer then skips the account preparation and only loads the schema. `DB_USER_PASS` must match the password of the existing application account.
 

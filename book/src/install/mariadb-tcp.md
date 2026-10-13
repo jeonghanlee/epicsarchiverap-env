@@ -7,7 +7,7 @@ This page installs a systemd-managed appliance whose configuration database is M
 - A host prepared as in [Prepare the host for the appliance](prepare-host.md).
 - An ordinary user that owns the checkout and can use `sudo`.
 - The passwords of the database accounts, set in `CONFIG_SITE.local`: `DB_ADMIN_PASS` and `DB_USER_PASS`.
-- `DB_HOST_NAME` set to `127.0.0.1`. The installer clears `DB_SOCKET` and uses `DB_HOST_PORT`, which is `3306` by default, and it prepares the administrative account at `127.0.0.1`.
+- `DB_HOST_NAME` set to `127.0.0.1`, which is its default in `configure/CONFIG_SITE`. Write it without quotes when you set it in `../CONFIG_SITE.local`. The installer clears `DB_SOCKET` and uses `DB_HOST_PORT`, which is `3306` by default, and it prepares the administrative account at `127.0.0.1`.
 - Local root socket authentication for MariaDB, unless `--existing-db` is used. The installer requires the port of the local server to match the TCP port before it prepares accounts.
 
 ## Steps
@@ -32,7 +32,7 @@ This page installs a systemd-managed appliance whose configuration database is M
 
 2. Set the passwords and the TCP values in `CONFIG_SITE.local`, as in [Override a setting for one host](../configure/override-setting.md).
 
-3. Install the appliance. Run the command of step 1 without `--plan`. The installer starts `mariadb.service`, prepares the accounts with `scripts/mariadb_setup.bash`, creates the database, loads the schema and installs the appliance.
+3. Install the appliance. Run the command of step 1 without `--plan`. The installer starts `mariadb.service`, prepares the accounts with `scripts/mariadb_setup.bash`, creates the database, loads the schema and installs the appliance. When a step fails, the installer prints `Installation stopped during <stage> (exit <status>)`, with the failed stage and its exit status, keeps the data and the build files, and neither rolls back nor starts the service again. Correct the cause and run the installer again.
 
 4. Optional: add `--existing-db` when the accounts exist. The installer then skips the account preparation and only loads the schema.
 

@@ -25,6 +25,8 @@ This page changes a repository setting for one host without editing a tracked fi
 
    The command appends, so a file that already holds other settings keeps them. Check the file first when it exists.
 
+   Write each value in the form that `configure/CONFIG_SITE` uses for the variable. The file is read by `make`, which keeps quote characters as part of a value: `DB_HOST_NAME="127.0.0.1"` reaches the database client with its quotes and fails, while `DB_HOST_NAME=127.0.0.1` works.
+
    ```bash
    printf 'AA_JAVA_HEAPSIZE="512M"\n' >> ../CONFIG_SITE.local
    ```
