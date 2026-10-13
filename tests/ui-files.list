@@ -18,6 +18,7 @@ mgmt/staticcontent/js/retrieval.js
 mgmt/staticcontent/js/system.js
 mgmt/staticcontent/js/system/api.js
 mgmt/staticcontent/js/system/judge.js
+mgmt/staticcontent/js/system/treemap.js
 mgmt/staticcontent/js/system/view.js
 mgmt/staticcontent/js/work.js
 mgmt/staticcontent/js/work/api.js
