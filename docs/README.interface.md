@@ -1,6 +1,6 @@
 # Management Interface
 
-The management web interface of the appliance (the Work page, the System pages and the data viewer) is part of the
+The management web interface of the appliance (the Browse PVs page, the Archive PVs page, the System pages and the data viewer) is part of the
 source repository `jeonghanlee/epicsarchiverap-maven`. Its pages, what each judgement shows and its starting values,
 the limits it keeps and the browsers it supports are described there:
 

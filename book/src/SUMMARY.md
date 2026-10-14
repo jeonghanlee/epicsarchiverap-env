@@ -44,7 +44,7 @@
 
 - [The pages of the management interface](interface/pages.md)
 - [Judgements of the System pages](interface/judgements.md)
-- [Find and pause a PV on the Work page](interface/work-page.md)
+- [Find and pause a PV on the Browse PVs page](interface/browse-page.md)
 
 # Test the environment
 

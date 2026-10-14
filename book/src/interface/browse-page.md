@@ -1,4 +1,4 @@
-# Find and pause a PV on the Work page
+# Find and pause a PV on the Browse PVs page
 
 This page finds an archived process variable (PV) by part of its name, shows its state, and pauses it. A paused PV stays registered and keeps its data; the archiver stops sampling it until you resume it.
 
@@ -9,7 +9,7 @@ This page finds an archived process variable (PV) by part of its name, shows its
 
 ## Steps
 
-1. Open the Work page.
+1. Open the Browse PVs page.
 
    ```text
    http://<appliance_host>:17665/mgmt/ui/index.html
