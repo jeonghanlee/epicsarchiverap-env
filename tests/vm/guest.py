@@ -15,6 +15,7 @@ import re
 import shlex
 import signal
 import shutil
+import socket
 import subprocess
 import sys
 import threading
@@ -366,6 +367,9 @@ class Guest:
                 raw = response.read()
         except urllib.error.URLError:
             raise
+        except socket.timeout as error:
+            # A stalled read raises socket.timeout, which is not a TimeoutError before Python 3.10.
+            raise TimeoutError(str(error)) from error
         try:
             value = json.loads(raw)
         except ValueError as error:
