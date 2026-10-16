@@ -451,6 +451,7 @@ the line `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.` shows 
 
 - cloud-provision prepares and ansible-provision installs only the handed-off fresh VM at the requested appliance commits.
 - All four exploded WAR trees, Tomcat logging JARs, generated inputs, effective units and ownership match the real guest build and selected backend/site.
+- The `WEB-INF/lib` folder of each WAR and of each installed tree holds exactly the two shipped JDBC drivers, `org.mariadb.jdbc.Driver` and `org.sqlite.JDBC`, each from one JAR, and no other JAR whose name looks like a database driver. The version of the MariaDB driver read from the installed JAR (`Bundle-Version`) equals the version in its file name and the version that `pom.xml` of the source declares. The version is retained in the `jdbc_drivers` evidence of the run.
 - The selected configuration database has the four application tables and is usable through the same account and transport as the appliance.
 
 ### Phase 4 - Runtime assertions

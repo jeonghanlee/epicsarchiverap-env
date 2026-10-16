@@ -4,6 +4,7 @@ import http.server
 import json
 import hashlib
 import importlib.util
+import io
 import os
 from pathlib import Path
 import re
@@ -18,6 +19,7 @@ import time
 import unittest
 import unittest.mock
 import xml.etree.ElementTree as ET
+import zipfile
 
 TOP = Path(__file__).resolve().parents[2]
 DRIVER = TOP / 'tests/vm/driver.py'
@@ -127,6 +129,63 @@ class GuestFactsTests(unittest.TestCase):
                 remaining = '\n'.join(lines[:start] + lines[end:]) + '\n'
                 with self.assertRaises(driver.Failed):
                     driver.parse_guest_facts(remaining)
+
+
+class JdbcDriverTests(unittest.TestCase):
+    """The library folder of each WAR holds the two shipped JDBC drivers and no other."""
+
+    POM = "<dependency><artifactId>mariadb-java-client</artifactId><version>3.5.10</version></dependency>"
+
+    @staticmethod
+    def jar(driver=None, version=None):
+        content = io.BytesIO()
+        with zipfile.ZipFile(content, "w") as archive:
+            if driver:
+                archive.writestr("META-INF/services/java.sql.Driver", driver + "\n")
+            archive.writestr("META-INF/MANIFEST.MF", "Manifest-Version: 1.0\n" +
+                             ("Bundle-Version: " + version + "\n" if version else ""))
+        return content.getvalue()
+
+    def shipped(self):
+        return {"mariadb-java-client-3.5.10.jar": self.jar("org.mariadb.jdbc.Driver", "3.5.10"),
+                "sqlite-jdbc-3.53.4.0.jar": self.jar("org.sqlite.JDBC", "3.53.4.0"),
+                "log4j-api-2.25.0.jar": self.jar()}
+
+    def refused(self, jars, pom=POM):
+        guest = load_guest()
+        with self.assertRaises(guest.CheckError) as raised:
+            guest.check_jdbc_drivers(jars, pom)
+        return str(raised.exception)
+
+    def test_the_two_shipped_drivers_pass_and_report_the_version(self):
+        result = load_guest().check_jdbc_drivers(self.shipped(), self.POM)
+        self.assertEqual(result["mariadb_version"], "3.5.10")
+
+    def test_another_driver_with_a_service_entry_is_refused(self):
+        jars = self.shipped()
+        jars["mysql-connector-j-8.4.0.jar"] = self.jar("com.mysql.cj.jdbc.Driver", "8.4.0")
+        self.assertIn("Unexpected set of JDBC driver classes", self.refused(jars))
+
+    def test_a_driver_looking_jar_without_a_service_entry_is_refused(self):
+        jars = self.shipped()
+        jars["legacy-connector.jar"] = self.jar()
+        self.assertIn("looks like a database driver", self.refused(jars))
+
+    def test_two_mariadb_jars_are_refused(self):
+        jars = self.shipped()
+        jars["mariadb-java-client-3.4.0.jar"] = self.jar("org.mariadb.jdbc.Driver", "3.4.0")
+        self.assertIn("more than one JAR", self.refused(jars))
+
+    def test_the_version_must_match_the_file_name_the_jar_and_the_pom(self):
+        self.assertIn("version mismatch", self.refused(self.shipped(), self.POM.replace("3.5.10", "3.5.9")))
+        jars = self.shipped()
+        jars["mariadb-java-client-3.5.10.jar"] = self.jar("org.mariadb.jdbc.Driver", "3.5.9")
+        self.assertIn("version mismatch", self.refused(jars))
+
+    def test_a_missing_driver_is_refused(self):
+        jars = self.shipped()
+        del jars["sqlite-jdbc-3.53.4.0.jar"]
+        self.assertIn("Unexpected set of JDBC driver classes", self.refused(jars))
 
 
 class JournalBoundTests(unittest.TestCase):

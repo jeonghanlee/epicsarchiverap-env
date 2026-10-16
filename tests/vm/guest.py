@@ -5,6 +5,7 @@ import datetime as dt
 from decimal import Decimal
 import hashlib
 import grp
+import io
 import json
 import math
 import os
@@ -33,6 +34,9 @@ HEALTH_UNIT = "epicsarchiverap-maven-health.service"
 HEALTH_TIMER = "epicsarchiverap-maven-health.timer"
 JOURNAL_DIRECTORIES = ("/var/log/journal", "/run/log/journal")
 SAFE_NAME = re.compile(r"[A-Za-z0-9_.-]+")
+JDBC_DRIVER_CLASSES = {"org.mariadb.jdbc.Driver", "org.sqlite.JDBC"}
+MARIADB_JAR = re.compile(r"^mariadb-java-client-(.+)\.jar$")
+DRIVER_JAR_HINT = re.compile(r"mysql|maria|postgres|jdbc|connector|oracle|ojdbc|derby|h2|hsql", re.I)
 CA_LINE = re.compile(r"^\S+\s+(\d{4}-\d\d-\d\d)\s+(\d\d:\d\d:\d\d)(\.\d+)\s+([-+0-9.eE]+)")
 COMMANDS = []
 
@@ -70,6 +74,48 @@ def hash_file(path):
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             value.update(block)
     return value.hexdigest()
+
+
+def jar_description(data):
+    """Return the JDBC driver classes and the bundle version that one JAR declares."""
+    with zipfile.ZipFile(io.BytesIO(data)) as jar:
+        names = set(jar.namelist())
+        drivers = []
+        if "META-INF/services/java.sql.Driver" in names:
+            lines = jar.read("META-INF/services/java.sql.Driver").decode("utf-8", "replace").splitlines()
+            drivers = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+        version = None
+        if "META-INF/MANIFEST.MF" in names:
+            found = re.search(r"^Bundle-Version:\s*(\S+)", jar.read("META-INF/MANIFEST.MF").decode("utf-8", "replace"),
+                              re.M)
+            version = found.group(1) if found else None
+    return {"drivers": sorted(drivers), "version": version}
+
+
+def check_jdbc_drivers(jars, pom_text):
+    """Fail unless the library folder holds exactly the two shipped JDBC drivers, each from one JAR.
+
+    jars maps the file name of each JAR of WEB-INF/lib to its bytes. The MariaDB driver version read from
+    the JAR itself must equal the version in its file name and the version the pom declares.
+    """
+    inventory = {name: jar_description(data) for name, data in jars.items()}
+    providers = {}
+    for name, info in inventory.items():
+        for driver in info["drivers"]:
+            providers.setdefault(driver, []).append(name)
+    check(set(providers) == JDBC_DRIVER_CLASSES, "Unexpected set of JDBC driver classes in WEB-INF/lib")
+    check(all(len(names) == 1 for names in providers.values()), "A JDBC driver class comes from more than one JAR")
+    mariadb = [name for name in inventory if MARIADB_JAR.match(name)]
+    check(len(mariadb) == 1, "Not exactly one MariaDB driver JAR in WEB-INF/lib")
+    check(providers["org.mariadb.jdbc.Driver"] == mariadb, "The MariaDB driver class is not in the MariaDB driver JAR")
+    sqlite = providers["org.sqlite.JDBC"]
+    suspect = sorted(name for name in inventory if DRIVER_JAR_HINT.search(name))
+    check(suspect == sorted(mariadb + sqlite), "Another JAR that looks like a database driver is present")
+    jar_version = MARIADB_JAR.match(mariadb[0]).group(1)
+    declared = re.search(r"<artifactId>mariadb-java-client</artifactId>\s*<version>([^<]+)</version>", pom_text)
+    check(declared is not None, "The pom declares no MariaDB driver version")
+    check(declared.group(1) == jar_version == inventory[mariadb[0]]["version"], "MariaDB driver version mismatch")
+    return {"mariadb_version": jar_version, "jars": sorted(inventory)}
 
 
 def sqlite_service_units(systemctl=("systemctl",)):
@@ -429,6 +475,14 @@ class Guest:
                 names = {entry.filename for entry in archive.infolist() if not entry.is_dir()}
                 actual = {str(path.relative_to(root)) for path in root.rglob("*") if path.is_file()}
                 check(actual == names, "Exploded WAR file set mismatch")
+                library = "WEB-INF/lib/"
+                pom_text = (self.source / "pom.xml").read_text()
+                from_war = check_jdbc_drivers({name[len(library):]: archive.read(name) for name in names
+                                               if name.startswith(library) and name.endswith(".jar")}, pom_text)
+                from_install = check_jdbc_drivers({path.name: path.read_bytes() for path in
+                                                   (root / "WEB-INF/lib").glob("*.jar")}, pom_text)
+                check(from_war == from_install, "Installed JDBC driver set differs from the WAR")
+                self.evidence.setdefault("jdbc_drivers", {})[service] = from_install
                 for name in names:
                     path = root / name
                     check(not path.is_symlink() and path.read_bytes() == archive.read(name),
