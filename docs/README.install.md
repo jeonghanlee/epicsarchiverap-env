@@ -173,12 +173,13 @@ reported failure before repeating installation or starting the service.
 
 ## Architecture
 
-- aa-env clones the source repository (https://github.com/jeonghanlee/epicsarchiverap-maven) and drives its Maven Wrapper build, then
+- This repository, `epicsarchiverap-env` (aa-env in this guide), clones the source repository (https://github.com/jeonghanlee/epicsarchiverap-maven) and drives its Maven Wrapper build, then
   installs four Tomcat instances under a single systemd service: `mgmt` (17665),
   `engine` (17666), `etl` (17667), `retrieval` (17668).
-- The source WARs are built for the `als` site. Keep `ARCHAPPL_SITEID=als`.
-  The site overlay is copied into the source tree automatically before the
-  build, so each WAR carries the `als` site `classpathfiles`.
+- The source WARs are built for the `als` site by default (`ARCHAPPL_SITEID=als`). The local installers fix `ARCHAPPL_SITEID=als` on every Make command line, so
+  they install only that site; for another site, run the [ordered sequence](#ordered-sequence) with the settings of
+  [Site inputs](#site-inputs). The site overlay is copied into the source tree automatically before the
+  build, so each WAR carries the `classpathfiles` of the selected site.
 - The runtime uses the shared Tomcat as a read-only `CATALINA_HOME`; each
   instance is a writable `CATALINA_BASE` under the install location.
 
@@ -284,6 +285,9 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   `AA_GROUPID`, `DB_NAME`, `DB_USER`, `DB_USER_PASS`, `DB_HOST_NAME` (`127.0.0.1`),
   `DB_HOST_PORT`, and any `ARCHAPPL_*` overrides. This file is included first and
   survives the per-OS config target that rewrites `configure/CONFIG_SITE.local`.
+  Write each value in the form that `configure/CONFIG_SITE` uses for it: `make` keeps quote characters
+  as part of a value, so `DB_HOST_NAME="127.0.0.1"` makes `db.create` fail with `ERROR 2005` and
+  `DB_HOST_NAME=127.0.0.1` works.
 - Configuration database: `DB_BACKEND` is `mariadb` (default) or `sqlite`, set
   in `../CONFIG_SITE.local`; any other value stops step 3
   (`make conf.archapplproperties`), so the sequence goes no further, and
@@ -321,9 +325,10 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   also replaces the WARs), then start it after installation succeeds.
   `DB_SOCKET` is ignored for `sqlite`.
 - Toolchain: `JAVA_HOME` is set through the OS preset
-  (`make <os>.conf`, with `<os>` one of `debian13`, `debian12`, `rocky8`, `rocky10`, `ubuntu24` and `ubuntu26`,
+  (`make <os>.conf`, with `<os>` one of `debian13`, `rocky8`, `rocky10`, `ubuntu24` and `ubuntu26`, the five
+  local-install systems, or `debian12`, which has a preset but no package list,
   writes `configure/CONFIG_SITE.local` to include `configure/os/<os>.mk`), or
-  set in `../CONFIG_SITE.local`. All five supported local-install presets
+  set in `../CONFIG_SITE.local`. The five local-install presets
   preserve a custom `JAVA_HOME`; `JAVA_PATH` follows it unless overridden.
   `--skip-packages` does not skip the preset. `TOMCAT_HOME` defaults to
   `TOMCAT_INSTALL_LOCATION`, which follows `AA_INSTALL_PATH` unless explicitly
@@ -392,7 +397,9 @@ file of the source again whenever the source changes.
 reaches Maven through every build and clean target. `ARCHAPPL_SITEID_TEMPATE_PATH`
 (spelled as in the configuration) names the folder that is copied. To build another
 site, set both in `../CONFIG_SITE.local`, or pass them as Make command-line
-overrides, with the site folder laid out as in the table.
+overrides, with the site folder laid out as in the table. Run the [ordered sequence](#ordered-sequence) for it:
+the three local entry scripts fix `ARCHAPPL_SITEID=als` on their Make command lines, which wins over the
+setting in `../CONFIG_SITE.local`.
 
 A site folder that contains a `build.xml` fails the build with the message
 `A site build.xml is no longer run. Remove <site folder>/build.xml and use img/, css/
@@ -403,14 +410,18 @@ operator-supplied one named by `ARCHAPPL_SITEID_TEMPATE_PATH`.
 ### Interface files
 
 The management pages and the data viewer are part of the source that `SRC_TAG` selects, and a build packages them
-with the site skin of the site folder. This repository copies no interface files. A checkout that built with an earlier
-version of this repository has the files of that copy in its source clone, listed in `aa-ui-prepared.list` in the git
-directory of the clone; the installers restore those files from the source before they select the source commit. The
+with the site skin of the site folder. This repository copies no interface files. When the git directory of the
+source clone holds a list `aa-ui-prepared.list`, the installers restore each file that it names from the source (or
+remove the file when the source does not track it), delete the list, and only then select the source commit; the
+preflight does not count the listed files as local changes before that. The
 pages, their judgements and their limits are described in [the interface guide](./README.interface.md).
 
 ## Reinstall and upgrade
 
-Build and generate the configuration before the maintenance window. Stop the
+Build and generate the configuration before the maintenance window: run steps 1
+to 4 of the [ordered sequence](#ordered-sequence) (`make init`, `make db.conf`,
+`make conf.archapplproperties`, `make build.mvn`). Without step 4, `make install`
+replaces the payload with the WARs that already sit in `target`. Stop the
 appliance before replacing its files; Tomcat must not load classes while the
 WAR and logging libraries are being replaced. From the aa-env checkout,
 stop the appliance, install as root, and start only after installation succeeds.
@@ -585,7 +596,7 @@ Record these inputs with the test evidence before starting:
 
 | Input | Requirement |
 | --- | --- |
-| Environment and source | Exact aa-env release commit or tag and the aa-maven commit that `SRC_TAG` resolved to |
+| Environment and source | Exact aa-env release commit or tag and the source commit that `SRC_TAG` resolved to |
 | IOC address | A reachable real IOC endpoint selected for the test; retain internal addresses only in private evidence |
 | Test PVs | Three scalar numeric PVs that change at least once per second; record their names and expected changes; the IOC operator supplies and keeps them running |
 | Appliance endpoints | Management and retrieval base URLs using the configured host and ports; defaults are 17665 and 17668 |
@@ -636,7 +647,8 @@ Record these inputs with the test evidence before starting:
    timestamp no more than 15 seconds before the request's upper bound.
 7. Repeat the process health check and save its exit status. After a scheduled
    health check has run, record that service's actual execution time,
-   `Result=success` and `ExecMainStatus=0`; an inactive oneshot alone does not
+   `Result=success` and `ExecMainStatus=0`, read with `systemctl show
+   epicsarchiverap-maven-health.service -p Result -p ExecMainStatus -p ExecMainStartTimestamp`; an inactive oneshot alone does not
    establish success. Record completion time and Pass only when all checks
    above succeed. Otherwise record Fail with the responses and failed step.
 

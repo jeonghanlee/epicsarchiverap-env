@@ -204,11 +204,11 @@ systemd unit. Each action returns structured evidence for the case.
 
 | Action | Checks | Labels |
 | --- | --- | --- |
-| `installation` | Guest commits, WAR, JAR, and configuration bytes, site assets, ports, units, ownership, database schema and transport | T5, T6 |
+| `installation` | Guest commits, WAR, JAR, and configuration bytes, the JDBC drivers and the MariaDB driver version of each WAR and installed tree, site assets, ports, units, ownership, database schema and transport | T5, T6 |
 | `runtime` | JVM identities, launcher health, three scheduled health runs, HTTP identity, IOC load, CA-to-retrieval data, restart persistence | T7-T11 |
 | `snapshot` | Stored history and current JVM identities before reapply | T12 |
 | `unchanged` | Unchanged JVM identities and history after an unchanged Ansible apply | T12 |
-| `reinstalled` | Payload, schema, health, history, and fresh data after a forced reinstall | T5-T9, T12 |
+| `reinstalled` | Payload including the JDBC drivers, schema, health, history, and fresh data after a forced reinstall | T5-T9, T12 |
 | `negative` | Wrong-instance PID detection and IOC-loss detection with recovery | T13 |
 | `stop` | Stops the owned test IOC | none |
 

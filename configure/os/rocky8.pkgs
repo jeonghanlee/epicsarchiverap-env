@@ -1,5 +1,5 @@
-# Rocky Linux 8 packages (first-pass port; JDK raised to 21 for the
-# maven.compiler target). One package per line; "#" starts a comment.
+# Rocky Linux 8 packages (JDK 21 for the maven.compiler target).
+# One package per line; "#" starts a comment.
 gcc
 libgcc
 wget

@@ -305,8 +305,8 @@ The loading process is managed by `ConfigService.java` and `DefaultConfigService
 
 ### 5.2 Runtime vs. Build Time
 It is important to distinguish between the software build and the configuration application.
-* **Build Time**: The web application archives (WAR files: `mgmt.war`, `engine.war`, `etl.war`, `retrieval.war`) are created during the build process.
-* **Startup Time**: The services run with the WAR files unzipped. The `policies.py` file is read from the external file system when the service starts, not baked into the build.
+* **Build Time**: One web application archive (WAR file) for each of `mgmt`, `engine`, `etl` and `retrieval` is created during the build process. Each WAR carries a copy of `policies.py` on its classpath as a default.
+* **Startup Time**: The services run with the WAR files unzipped. A service reads the file that `ARCHAPPL_POLICIES` names when it starts; only when that variable is unset does it use the copy inside the WAR. The installed appliance sets the variable to the installed `policies.py`.
 * **Conclusion**: Policies are applied at service startup, allowing for configuration changes without rebuilding the software.
 
 ### 5.3 Configuration Path
@@ -324,7 +324,7 @@ Since the policy file is loaded only at initialization, changes to `policies.py`
 ### 5.5 Store Settings as Build Variables
 `site-template/policies.py.in` takes the partition granularity and ETL hold of each tier from Make variables, so a host changes them in `../CONFIG_SITE.local` (one directory above the checkout top) without editing the shipped template. `make conf.policies` renders them into `policies.py`.
 
-On a new host, set the values before step 3 of the install sequence in `README.install.md`: `make conf.archapplproperties` includes `conf.policies`, and `make install` installs the rendered `policies.py`. On a host that is already installed, follow the order in section 5.4: stop the services with `make sd_stop`, change the values and run those two targets again, then start the services with `make sd_start`.
+On a new host, set the values before step 3 of the install sequence in `README.install.md`: `make conf.archapplproperties` includes `conf.policies`, and `make install` installs the rendered `policies.py`. On a host that is already installed, follow the order in section 5.4: stop the services with `make sd_stop`, change the values and run `make conf.archapplproperties` and `sudo make install` again, then start the services with `make sd_start`.
 
 | Variable | Default | Tier setting |
 | --- | --- | --- |
@@ -354,32 +354,32 @@ The selection of `partitionGranularity`, `hold`, and `gather` should be optimize
 ### 6.1 SATA Disk (Local Storage)
 * **STS Configuration**:
     * Recommended for RAM file systems or high-RAM environments (64GB+).
-    * `partitionGranularity`: `HOUR`
+    * `partitionGranularity`: `PARTITION_HOUR`
     * `hold`: 5
     * `gather`: 1
 * **MTS Configuration**:
-    * `partitionGranularity`: `DAY`
+    * `partitionGranularity`: `PARTITION_DAY`
     * `hold`: 2
     * `gather`: 1
 * **LTS Configuration**:
-    * `partitionGranularity`: `MONTH`
+    * `partitionGranularity`: `PARTITION_MONTH`
 
 ### 6.2 NVMe (M.2) Storage
 * **STS Configuration**:
-    * `partitionGranularity`: `DAY`
+    * `partitionGranularity`: `PARTITION_DAY`
     * `hold`: 2
     * `gather`: 1
 * **MTS Configuration**:
-    * `partitionGranularity`: `MONTH`
+    * `partitionGranularity`: `PARTITION_MONTH`
     * `hold`: 2
     * `gather`: 1
 * **LTS Configuration**:
-    * `partitionGranularity`: `YEAR` (Live data)
+    * `partitionGranularity`: `PARTITION_YEAR` (Live data)
     * Recommendation: Move to recovery storage after 1, 3, or 5 years depending on the experiment requirements.
 
-### 6.3 Final Recommended Default Policy
-For a standard robust deployment, the following parameters are recommended to ensure reliability and performance:
+### 6.3 Recommended Default Policy
+For a standard robust deployment, the following parameters are recommended to ensure reliability and performance. They are a recommendation; the shipped `policies.py` differs on LTS, as the last item states:
 
 * **STS**: `PARTITION_HOUR`, `hold=2`, `gather=1`, `consolidateOnShutdown=true`
 * **MTS**: `PARTITION_DAY`, `hold=2`, `gather=1`
-* **LTS**: `PARTITION_YEAR`, `pp=mean_3600`
+* **LTS**: `PARTITION_YEAR`, `pp=mean_3600`. The shipped `policies.py` sets no `pp` on LTS: the Default and VerySlow policies keep the raw data there, and the VeryFast, Fast, Medium and Slow policies reduce it with `reducedata`. A tier takes `pp` or `reducedata`, not both (section 3.2); add `pp` to a tier only where it holds no `reducedata`.
