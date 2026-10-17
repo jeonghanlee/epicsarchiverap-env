@@ -32,6 +32,10 @@ phase_pass() {
     printf '\n[PASS] %s (passed=%d failed=%d)\n\n' "$1" "${PASS_COUNT}" "${FAIL_COUNT}"
 }
 
+phase_skip() {
+    printf '\n[SKIP] %s (nothing was checked)\n\n' "$1"
+}
+
 phase_fail() {
     printf '\n[FAIL] %s (passed=%d failed=%d)\n' "$1" "${PASS_COUNT}" "${FAIL_COUNT}" >&2
     exit 1

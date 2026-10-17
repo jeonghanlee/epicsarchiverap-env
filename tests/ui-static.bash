@@ -28,7 +28,7 @@ else
     fi
     if [[ ! -d "${clone}/src/main/org/epics/archiverappliance" ]]; then
         printf '  [SKIP] No source checkout at %s; run make init to check the interface files.\n' "${clone}"
-        phase_pass "Interface files: markers, content security, inline code and element ids"
+        phase_skip "Interface files: markers, content security, inline code and element ids"
         exit 0
     fi
     # Gather the listed files into the layout the checks use: <root>/site-template/ui/<relative path>,

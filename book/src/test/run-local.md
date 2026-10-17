@@ -66,7 +66,7 @@ The exit status is `0` and the last lines show a `[PASS]` for each group, in thi
 [PASS] Phase 2: Build wrapper (passed=<n> failed=0)
 ```
 
-The number of checks changes when a check is added; the status of each group and `failed=0` are what matter. On a host without the source clone, the interface files group prints a skip message and reports `passed=0`.
+The number of checks changes when a check is added; the status of each group and `failed=0` are what matter. On a host without the source clone, the interface files group prints a skip message and ends with `[SKIP] Interface files: markers, content security, inline code and element ids (nothing was checked)` in place of its `[PASS]` line; a skipped group is not verification.
 
 Whether the real binary check ran shows in one line. The following command runs the suite again and filters the output for that line:
 
