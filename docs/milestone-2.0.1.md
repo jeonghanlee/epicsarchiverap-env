@@ -73,6 +73,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D56 | Hold release 2.0.1 until the epicsarchiverap-maven work in progress is finished, and set no source pin now. epicsarchiverap-env tests the latest commit of `origin/modernize` as development continues, which follows D39 for the time before the pin. The owner names the source commit for 2.0.1 when that work is finished, with its Maven workflow result, and the eight-case VM run is repeated at that commit. This replaces the pin plan of D44 for the time being. | 2026-10-12 |
 | D57 | Keep in the site folder `site-template/siteid` only the files that carry the site's own values: `img/LBNLLogo.png`, `img/als.ico`, `classpathfiles/` and a `template_changes.html` that fills a site-logo block of the source header. The header logo, its narrow-screen wordmark, the logo sizing and the shared stylesheet come from the source repository's own files, so the site folder keeps no copy of them. The block name and the header markup are set by epicsarchiverap-maven; the change in this repository follows its landing, and the contrast check of `tests/ui-static.bash` then reads the source's stylesheet. | 2026-10-12 |
 | D58 | Let the interface check accept the target of a navigation link (`<a href="https://...">`) that names an outside host, and keep refusing an outside address of a script, a style, an image or a data call. The manual link of the help page of the source repository is the first outside address in the interface files; a link is followed by the user and not requested by the page, so the appliance stays usable without internet access. A link of another form is decided when it appears. | 2026-10-13 |
+| D59 | Record the findings on the storage and policy guide (`docs/README.policies.md`) that the review of `docs/README.DataJourney.md` produced as Backlog work M54, and change the guide only after the owner decides. The Data Journey document and its figures are corrected separately. | 2026-10-17 |
 
 ### Assignment History
 
@@ -1410,6 +1411,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 | UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
 | Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | none | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
+| Docs | M54 | Align the storage and policy guide with the ETL pass schedule | Milestone | Open | No | D59 | Every statement of `docs/README.policies.md` about when a file moves, how long a file stays in a tier and how `policies.py` is changed matches `docs/README.DataJourney.md` and the code; [detail](#m54---align-the-storage-and-policy-guide-with-the-etl-pass-schedule) |
 
 ### Backlog Details
 
@@ -2122,6 +2124,78 @@ Superseded Plan Artifacts: none
 | T6 | 2026-10-12 | Local host; fresh copy of the tree of `92b2aa7` | Pass | mdBook 0.5.4 (archive SHA-256 `3f28de05dafca9d0f2eab99c662116b0e37b89b1d96a08f8f430b9eeae958cd7`) exit 0 with no warning; before the generator fix it warned about an unclosed `<os>` tag in `configure/variables.md`, which the browser would have hidden |
 | T7 | 2026-10-12 | Local host; shallow clone (depth 1) of the tree of `92b2aa7`; selected source `992d8ac4` | Pass | `make init` exit 0 in about 52 s; `check-generated.bash` exit 0 with all five generated pages current |
 | T8 | 2026-10-12 | Installed appliance of the local host | Pass | `storage` printed the three store folders and the total; `make sd_status` showed the service active with the four instances; `make sd_health_status` exits `0` after the fix and printed `Error 3` before it; `health` as the service account printed all four components `PRESENT` and exit `0`, as an ordinary user `unreadable-process-executable` for each and exit `2`; `journalctl -u` as root printed the instance lines, as an ordinary user outside the journal groups `-- No entries --` with exit `0` |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M54 - Align the storage and policy guide with the ETL pass schedule
+
+Origin: 2.0.1 / M54
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The review of `docs/README.DataJourney.md` ran the scenario of that document through the real ETL pass scheduler, the real ETL job and the real storage plugins with a simulated clock. The ETL does not run when a partition ends. Each transition has a fixed schedule: the cadence is the source partition length (at most 8 hours), the offset is 5 minutes times (transition number + 1), and every job uses the pass start minus 60 seconds as its current time. A file with partition start `S` leaves its tier in the first pass whose start is at least `S + (hold + 1) * P + 60 s` for `gather=1`. Four reader reviews of the Data Journey document compared `docs/README.policies.md` with these rules and found the points below. The guide is not changed yet.
+
+1. Section 2.3.3 (example: "an ETL run at each partition boundary") and section 2.3.5 Scenario A ("as soon as the partition boundary is reached") say that the ETL runs when a partition ends. The passes start at fixed times, and the first pass after the partition is over moves the file.
+2. Section 2.3.1 (Trigger: the oldest sample "is older than `hold` partitions") and the example of section 2.3.2 ("about six hours old" for `PARTITION_HOUR` and `hold=6`) understate the age by up to one partition. A file moves when `hold + 1` partition lengths have passed since its partition began.
+3. Section 2.3.2 and Scenario A say "in the first pass after that time". For a source of `PARTITION_5MIN` the pass starts coincide with the boundary times, and a pass that starts at the boundary uses a current time 60 seconds earlier, so the move waits for the next pass: the condition is the first pass that starts at least 60 seconds after that time.
+4. Section 5.5 says that `gather=1` stays in the template "on STS". The template fixes `gather=1` on STS and on MTS, so `gather` cannot be changed through the Make variables.
+5. Section 5.4 tells the operator to edit the installed `policies.py`. `make install` copies over it the file that `make conf` rendered from `site-template/policies.py.in`, so the edit is lost. The durable edit is in the template, followed by `make conf`.
+6. Section 2.3.1 has no pointer to the pass schedule and the timeline in `docs/README.DataJourney.md` (sections 2 and 4).
+7. Information only: section 2.1.1 says the file is moved "after the time elapses, according to the `partitionGranularity` setting" without the `hold` rule or the schedule.
+
+##### Scope
+
+- Correct the statements of items 1 to 6 in `docs/README.policies.md`, checking each against the code and the recorded run of the scenario.
+- Decide with the owner whether item 7 changes.
+
+Out of scope: any change to `docs/README.DataJourney.md` and its figures, which the review of that document corrects; any change to the policy template or to the ETL code; making `gather` settable through a Make variable.
+
+##### Completion Criteria
+
+- The statements about when a file moves, how old it is when it moves and how the installed `policies.py` is changed agree with `docs/README.DataJourney.md`, with `ETLPassDriver` and `PlainPBStoragePlugin.getETLStreams`, and with the recorded run (every table row of the Data Journey scenario).
+- A second-person review of the changed guide by a reader who calculates the move times of a shipped-policy host and of a host with `PARTITION_5MIN` finds nothing above the severity floor.
+- Every link and anchor that the changed passages contain resolves.
+
+##### Dependencies And Decisions
+
+- D59 records the findings and defers the change to the owner. A dated owner decision is required before this row becomes Not started.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After the owner decision, correct items 1 to 6 in `docs/README.policies.md` one section at a time and add the pointer of item 6.
+2. Run the second-person review of the Test Plan and apply the findings above the floor.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Review | Second-person review of the changed guide by readers that compute the move times for the shipped policy and for `PARTITION_5MIN`, and check each statement against `ETLPassDriver`, `getETLStreams` and the recorded run | Local host; source of the checked commit | No finding above the severity floor |
+| T2 | Local | Check every link and anchor of the changed passages and run `git diff --check` | Local host | All targets exist; no whitespace error |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Local host | Pending | none |
+| T2 | Pending | Local host | Pending | none |
 
 ##### Closure Evidence
 
