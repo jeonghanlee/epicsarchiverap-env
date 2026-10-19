@@ -152,7 +152,7 @@ The operators are the post-processors that the source registers; they are based 
 ### 3.2 Policy-Based Processing (ETL Configuration)
 This section explains how to apply the operators from Section 3.1 permanently or for caching via `policies.py`.
 
-**Constraint**: Do not set `reducedata` and `pp` on the same storage tier. The source accepts both without an error: the reduced data is stored first, and the `pp` files are then computed from the reduced files instead of the raw data, which the class comment of `PlainPBStoragePlugin` calls unpredictable.
+**Constraint**: Do not set `reducedata` and `pp` on the same storage tier. The source accepts both without an error: the reduced data is stored first, and the `pp` files are then computed from the reduced files instead of the raw data, which the class comment of `PlainPBStoragePlugin` calls unpredictable ([epicsarchiverap-maven#50](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/50)).
 
 #### 3.2.1 Storage Optimization (`reducedata`)
 The `reducedata` parameter applies operators to **permanently replace** raw data during the ETL process.
@@ -161,7 +161,7 @@ The `reducedata` parameter applies operators to **permanently replace** raw data
 * **Control Modes**:
     1.  Interval Time (e.g., `mean_300`): Divides data into fixed time blocks.
         * Calculation (1-hour query): $3600 \div 300 = 12$ data points.
-    2.  Data Count (e.g., `optimized_500`): fixes the number of points of a retrieval. It is accepted without an error but does not apply in `reducedata`: one hour of 1 Hz data stored with `reducedata=optimized_500` gives 4 samples (bins of 900 seconds), not 500. Use an interval operator such as `mean_300` in `reducedata`.
+    2.  Data Count (e.g., `optimized_500`): fixes the number of points of a retrieval. It is accepted without an error but does not apply in `reducedata`: one hour of 1 Hz data stored with `reducedata=optimized_500` gives 4 samples (bins of 900 seconds), not 500 ([epicsarchiverap-maven#49](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/49)). Use an interval operator such as `mean_300` in `reducedata`.
 * **Performance Trade-offs**:
     * Low Cost: `Min`, `Mean`, `Variance`, `Jitter`, `Count` (uses incremental `SummaryStatistics`).
     * High Cost: `Median`, `Kurtosis`, `Skewness`, `Linear`, `Loess` (requires storing full lists in memory).
@@ -174,7 +174,7 @@ The `pp` (Post-Processor) parameter uses operators to **pre-calculate** results 
 * **Advanced Configuration**:
     * Several operators: `pp=ignoreflyers_30_3&pp=mean_60` creates one file for each operator. Only parameters named `pp` are read, so a bare `&mean_60` is ignored without an error, and each file is computed from the `.pb` file of the partition (the raw file when `reducedata` is not set), not chained from the other.
     * Statistical Optimization (`stats`): `pp=stats_60` pre-calculates `{mean, std, min, max, count}` in one file.
-* **Lifecycle**: `pp` files are created in the store that carries the `pp` parameter, next to the raw files. ETL moves only the `.pb` files: when the `.pb` file of a partition moves to the next store, the pp file of the source store stays in it, and the next store computes its own pp file if it carries a `pp` parameter.
+* **Lifecycle**: `pp` files are created in the store that carries the `pp` parameter, next to the raw files. ETL moves only the `.pb` files: when the `.pb` file of a partition moves to the next store, the pp file of the source store stays in it ([epicsarchiverap-maven#51](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/51)), and the next store computes its own pp file if it carries a `pp` parameter.
 
 #### 3.2.3 Summary Comparison
 
