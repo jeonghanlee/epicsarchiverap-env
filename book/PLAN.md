@@ -24,6 +24,7 @@ Verification classes: **H** the commands run on this host as shown; **S** they r
 | :--- | :--- | :--- | :--- |
 | Components of the appliance | concept | `site-template/appliances.xml.in`, `archappl.conf.in`, `mgmt.conf`, `engine.conf`, `etl.conf`, `retrieval.conf`, `configure/CONFIG_TOMCAT` | H: `make -s print-*`, the generated `appliances.xml` |
 | Storage tiers and the movement of data | concept | `site-template/policies.py.in`, `configure/CONFIG_SITE` (`ARCHAPPL_*GRANULARITY`, hold, gather) | H: generated `policies.py` |
+| The data journey of a file from STS to LTS | concept | `etl/common/ETLPassDriver`, `ETLPassTicker`, `PBThreeTierETLPVLookup`, `ETLJob` and `PlainPBStoragePlugin.getETLStreams` of the selected source; `site-template/policies.py.in` | H: runs of the real classes under a simulated clock, listed on the page |
 | Build and install stages of the repository | concept | `Makefile`, `configure/RULES*`, `make -n install` | H: `make -n` output |
 | Ways a site changes the appliance | concept | `configure/CONFIG_SITE`, `CONFIG_SITE.local`, `site-template/siteid`, `RULES_SRC` | H |
 

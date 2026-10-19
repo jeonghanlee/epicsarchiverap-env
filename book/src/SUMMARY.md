@@ -6,6 +6,7 @@
 
 - [Components of the appliance](understand/components.md)
 - [Storage tiers and the movement of data](understand/storage-tiers.md)
+- [The data journey of a file from STS to LTS](understand/data-journey.md)
 - [Build and install stages of the repository](understand/build-and-install.md)
 - [Ways a site changes the appliance](understand/site-changes.md)
 

@@ -19,12 +19,12 @@ A store is described by a uniform resource locator (URL) of the `pb://` form. Th
 | `name` | Identifies the plugin: `STS`, `MTS` or `LTS`. |
 | `rootFolder` | The folder that holds the files of the store. |
 | `partitionGranularity` | The time span of one file. With `PARTITION_HOUR` a file covers one hour of data. |
-| `hold` | Number of partitions kept in the store before ETL starts (this repository sets `2` for STS and MTS). |
-| `gather` | Number of partitions moved at one time (this repository sets `1` for STS and MTS). |
+| `hold` | How many further partitions of the store must elapse after the partition of a file before the file can move out (this repository sets `2` for STS and MTS). |
+| `gather` | Sets the boundary for the files that move after the oldest candidate that holds a sample has satisfied `hold`; every candidate at or before that boundary moves (this repository sets `1` for STS and MTS). |
 | `consolidateOnShutdown` | Whether ETL pushes data to the next store when the application stops. STS sets it to `true`. |
 | `reducedata` | Reduces the data as it moves into the store; only the reduced data is kept. |
 
-With the defaults, ETL does not start for a partition of STS until the oldest event is older than two partitions, then moves one partition at a time.
+With the defaults, a file of STS leaves STS in the first pass that starts at least three partitions and one minute after the start of its partition. The passes of STS start at 5 minutes past each hour, so the file of 10:00 leaves at 13:05 UTC.
 
 ## The policies of the template
 
@@ -42,4 +42,4 @@ A name that contains `Controlled` sets the control PV `EPICS:ArchiverAppliance:E
 
 For a record type, `policies.py` also lists the fields archived with the PV. For `ai` and `calc`, for example, they are `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR` and `HOPR`.
 
-The page [Storage policy parameters](../configure/policy-parameters.md) lists every parameter that a store URL accepts.
+The page [Storage policy parameters](../configure/policy-parameters.md) lists every parameter that a store URL accepts. The page [The data journey of a file from STS to LTS](data-journey.md) explains when ETL moves a file and what `hold` and `gather` select.
