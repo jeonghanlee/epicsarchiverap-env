@@ -1,8 +1,8 @@
 ---
 title: EPICS Archiver Appliance Storage & Policy Configuration Guide
 author: Sangil Lee & Jeong Han Lee
-date: 2026-01-02
-version: 1.0
+date: 2026-10-18
+version: 1.1
 ---
 # EPICS Archiver Appliance Storage & Policy Configuration Guide
 
@@ -33,7 +33,7 @@ The following settings are used to define URL-style strings.
 * `STS`: Short Term Storage. Used for temporary files before ETL processing.
 * `MTS`: Middle Term Storage. Used for temporary files staged between STS and permanent storage.
 * `LTS`: Long Term Storage. The final destination for permanent files.
-* **Note on "Temporary"**: This indicates that the `.pb` file will be moved to the next destination by the ETL service after the time elapses, according to the `partitionGranularity` setting.
+* **Note on "Temporary"**: This indicates that the `.pb` file will be moved to the next destination by the ETL service in the first pass after its partition is over and the `hold` setting is satisfied by the oldest file that holds a sample (section 2.3 and [The Data Journey](./README.DataJourney.md)).
 
 #### 2.1.2 Storage Location (`rootFolder`)
 * Specifies the location of the top-level folder where each storage area is saved.
@@ -60,7 +60,7 @@ The following settings are used to define URL-style strings.
         * `LTS` (`PARTITION_MONTH`): `ApplTest/AN/F/Analog10:2025_10.pb`
 
 ### 2.2 Data File States (.pb)
-In the Archiver Appliance, data is stored in `.pb` (Protocol Buffer) files. Before understanding how data moves (ETL), it is crucial to understand that these files exist in two distinct states based on the `partitionGranularity`.
+In the Archiver Appliance, data is stored in `.pb` (Protocol Buffer) files. Before understanding how data moves (ETL), it is crucial to understand that these files exist in two states based on the `partitionGranularity`: Active and Completed. In MTS a file can also be partial, which section 2.2.2 describes.
 
 #### 2.2.1 Active State
 * This state refers to the `.pb` file that is currently being written to.
@@ -68,41 +68,43 @@ In the Archiver Appliance, data is stored in `.pb` (Protocol Buffer) files. Befo
 * The time duration defined by `partitionGranularity` for this file has not yet elapsed.
 
 #### 2.2.2 Completed State
-* This state refers to a `.pb` file that has completely stored data for the entire duration defined by `partitionGranularity`.
-* Once the time elapses, the file is closed and considered a complete archive unit.
-* **Important**: Only files in this completed state are subject to the `hold` parameter and subsequent ETL migration. The `hold` boundary is applied to these fully formed, archived data files waiting to be moved.
+* In STS, this state refers to a `.pb` file whose partition defined by `partitionGranularity` is over. In MTS, it refers to a file that is full: it has received all STS files of its partition.
+* An STS file is closed and considered a complete archive unit once its time elapses. An MTS file can become full after its partition is over, when the last STS file of the partition arrives.
+* **Important**: Only files whose partition is over are subject to the `hold` parameter and subsequent ETL migration. The `hold` boundary is applied to these archived data files waiting to be moved.
+* **Exception in MTS**: a partial file, which has received only some of the STS files of its partition, is not Completed, yet it is a candidate too (a candidate is a file that a pass considers for a move). ETL compares times only and does not check that a file is full ([The Data Journey](./README.DataJourney.md), Fullness).
 
 ### 2.3 ETL Flow Control
-These parameters manage the movement of data between storage tiers. This process primarily interacts with files in the **Completed State**.
+These parameters manage the movement of data between storage tiers. This process primarily interacts with files in the **Completed State**. When a pass runs and which files it moves is described in [The Data Journey](./README.DataJourney.md); this section defines the parameters.
 
 #### 2.3.1 Definition of ETL Cycle
-* The ETL Cycle is the specific operation where the ETL service moves a batch of data files (`.pb`) from one storage tier to the next (e.g., `STS` → `MTS`).
+* The ETL Cycle, also called an ETL pass, is one run of the ETL jobs of the PVs that share a transition (e.g., `STS` → `MTS`) and a cadence (the interval between scheduled passes, defined under Pass schedule below). It moves a batch of data files (`.pb`) from one storage tier to the next.
 * It is dynamically defined by the interaction of three key parameters:
     1.  **Unit**: The size of a single file, defined by `partitionGranularity`.
-    2.  **Trigger**: The cycle starts when the oldest sample still in the tier is older than `hold` partitions.
-    3.  **Batch Size**: The transfer boundary is set by `gather`, which commonly moves `gather` partitions per cycle.
+    2.  **Trigger**: A file moves in the first ETL pass whose processing time is at least `hold + 1` partition lengths after the start of the partition of the file (with `gather=1`). The processing time is the start of the pass minus 60 seconds, and the passes start at fixed times, not when a partition ends. The rule is exact for `PARTITION_5MIN` to `PARTITION_DAY`; `PARTITION_MONTH` and `PARTITION_YEAR` are calendar months and years, and the rule counts them as 31 and 366 days. The oldest file of the tier must also satisfy the rule ([The Data Journey](./README.DataJourney.md), What one pass moves).
+    3.  **Batch Size**: The transfer boundary is set by `gather`; a pass that runs on schedule moves the files of `gather` partitions, and a late pass can move more.
+* **Pass schedule**: The cadence of a transition is the partition length of its source tier, at most 8 hours. A pass starts at a multiple of the cadence counted from the Unix epoch plus 5 minutes times (transition number + 1); `STS` → `MTS` is transition 0 and `MTS` → `LTS` is transition 1. The first pass after the ETL starts, a scheduled time that falls inside a running pass, and a pass that waits for another pass are the exceptions described in The Data Journey. With the shipped partitions the passes from STS to MTS start at 5 minutes past each hour, and the passes from MTS to LTS start at 00:10, 08:10 and 16:10 UTC. A pass of the second transition waits for a running pass of the first, so when two start together the second starts at the first check after the first pass ends, 5 seconds later when that pass takes less than one check; the check is a timer that runs every 5 seconds ([The Data Journey](./README.DataJourney.md), When the ETL runs).
 
 #### 2.3.2 Retention Period (`hold`)
 * This parameter is directly related to the `partitionGranularity` setting.
-* Specifies an **age**, not a file count: the implementation subtracts `hold` times the approximate partition duration from the ETL evaluation time and takes the last second of the preceding partition as the boundary. A file becomes eligible when its first sample is at or before that boundary.
-* Example: with `partitionGranularity=PARTITION_HOUR` and `hold=6`, data becomes eligible to leave once its oldest sample is about six hours old. A gap in the data does not postpone this; eligibility follows the oldest available sample's age, not how many files have accumulated.
+* Specifies an **age**, not a file count: the implementation subtracts `hold` times the approximate partition duration from the processing time and takes the last second of the preceding partition as the boundary. A file becomes eligible when its first sample is at or before that boundary.
+* Example: with `partitionGranularity=PARTITION_HOUR` and `hold=6`, the file of the partition that starts at 10:00 becomes eligible when the processing time reaches 17:00, seven partition lengths after the start of its partition. With `PARTITION_HOUR` on STS the passes from STS to MTS start at 5 minutes past each hour, so it moves in the pass at 17:05 (with `gather=1`; derived from the rule above and not run with this combination). A gap in the data does not postpone this; eligibility follows the oldest available sample's age, not how many files have accumulated.
 
 #### 2.3.3 Batch Move Size (`gather`)
 * This parameter is related to both the `partitionGranularity` and `hold` settings.
 * The implementation computes a second boundary at `hold - (gather - 1)` partition durations and selects the files whose first samples are at or before it.
-* Example: with `hold=6` and `gather=4`, continuous data and an ETL run at each partition boundary commonly moves 4 partitions. A delayed run can select more; missing partitions can yield fewer.
+* Example: with `hold=6` and `gather=4`, continuous data and passes on schedule move 4 partitions in each move. A late pass can select more; missing partitions can yield fewer.
 
 #### 2.3.4 Flow Constraints (`hold` vs. `gather`)
 * Use nonnegative values with `hold >= gather`. Equality is allowed: the implementation rejects only `gather > hold`.
 * `setHoldETLForPartions` and `setGatherETLinPartitions` throw an `IOException` when `hold - gather` would be negative.
-* Both default to zero. With `hold=0` and `gather=0` the implementation skips these boundaries and takes the available candidates before the current partition.
+* Both default to zero. With `hold=0` and `gather=0` the implementation skips these boundaries and takes the available candidates before the current partition. A file that has a header but no sample stops the job of its PV in this case ([The Data Journey](./README.DataJourney.md), Files without samples).
 
 #### 2.3.5 Configuration Strategies and Impact
 The behavior of the Archiver Appliance varies significantly based on how `hold` and `gather` are configured.
 
 * **Scenario A: Without `hold` and `gather` (Unconfigured)**
-    * No retention delay: both parameters default to zero, so the implementation skips the hold and gather boundaries and moves the available candidates out as soon as the partition boundary is reached.
-    * File generation is unaffected: partitioning still follows `partitionGranularity`. Leaving these settings out does not by itself make file creation irregular; it removes the delay before ETL takes the completed files.
+    * No retention delay: both parameters default to zero, so the implementation skips the hold and gather boundaries and moves every available candidate in the first pass whose processing time is at or after the end of its partition (for example the 10:00 file of a 15-minute STS partition at 10:20).
+    * File generation is unaffected: partitioning follows `partitionGranularity`. Leaving these settings out does not by itself make file creation irregular; it removes the delay before ETL takes the completed files.
 
 * **Scenario B: With `hold` & `gather` (Custom Configuration)**
     * Consistency: Both data movement and data visualization become consistent and predictable.
@@ -135,56 +137,22 @@ Users can request processed data directly through the retrieval URL without modi
     * Example: For `mean_3600`, all samples within 0-3599s form one bin, 3600-7199s form the next.
 
 #### 3.1.2 Available Operators
-These operators are based on the **Apache Commons Math** library. For detailed mathematical definitions and usage examples, please refer to the following documentation:
+The operators are the post-processors that the source registers; they are based on the **Apache Commons Math** library. The page [Retrieving data](https://jeonghanlee.github.io/epicsarchiverap-maven/retrieval.html#post-processing) of the source documentation lists each operator with its arguments and its result per bin, and is the reference. In summary:
 
+* **Sampling**: `firstSample`, `lastSample`, `firstFill`, `lastFill`, `nth`.
+* **Statistics**: `mean`, `min`, `max`, `count`, `ncount`, `std`, `variance`, `popvariance`, `rms`, `jitter`, `median`, `kurtosis`, `skewness`, `stats` (mean, standard deviation, minimum, maximum and count together) and `errorbar`. `median`, `kurtosis`, `skewness`, `linear` and `loess` keep all values of a bin in memory and use more resources.
+* **Filtering**: `ignoreflyers` and `flyers` (second argument: number of standard deviations, default 3), `deadBand`.
+* **Reduction to a number of points**: `optimized` and `optimLastSample` (default 1000 points). If the range holds no more events than that number, the raw events are returned.
+* **Other**: `caplotbinning`, and the interpolations `linear` and `loess`, which evaluate at the centre of each bin.
+* **Empty bins**: the statistics operators, `linear`, `loess` and `optimized` fill an empty bin with the previous value, except that `count` gives 0; `optimLastSample` fills it with the last recorded sample (mean, minimum and maximum equal to it, standard deviation and count 0). The variant with `Sample` appended (for example `meanSample`) leaves the bin empty.
 * **References**:
     * [Apache Commons Math: StatisticalSummary](https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/org/apache/commons/math3/stat/descriptive/StatisticalSummary.html)
     * [Apache Commons Math: DescriptiveStatistics](https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/org/apache/commons/math3/stat/descriptive/DescriptiveStatistics.html)
-    * [EPICS Archiver User Guide: Retrieving Data](https://epicsarchiver.readthedocs.io/en/latest/user/userguide.html#retrieving-data-using-cs-studio-archive-viewer-and-matlab)
-
-* **Sampling & Gap Handling**
-    * `firstSample`: Returns the first sample in a bin (Default sparsification).
-    * `lastSample`: Returns the last sample in a bin.
-    * `firstFill`: Similar to `firstSample` but alters timestamp to middle of bin. Copies previous bin's value if current bin is empty (LOCF).
-    * `lastFill`: Similar to `firstFill` but uses the last sample for filling.
-    * `nth`: Returns every N-th value.
-
-* **Statistical Summary (Interval Compression)**
-    * `mean`: Arithmetic average.
-    * `min` / `max`: Minimum / Maximum value in the bin.
-    * `count`: Number of samples in the bin.
-    * `ncount`: Total number of samples in the selected time span.
-    * `std`: Standard deviation.
-    * `variance` / `popvariance`: Variance / Population variance.
-    * `jitter`: Measures noise. Calculated as the standard deviation divided by the mean of a bin (`std / mean`).
-    * `errorbar`: Returns `mean`, but adds `std` (standard deviation) as an extra column for visualization.
-
-* **Advanced Statistics (Distribution Analysis)**
-    * `median`: Returns the 50th percentile. Robust against outliers.
-    * `kurtosis`: Returns the kurtosis (measure of peakedness) of a bin.
-    * `skewness`: Returns the skewness (measure of asymmetry) of a bin.
-    * *Note: These operators utilize `DescriptiveStatistics`, which requires storing all values in memory, resulting in higher resource usage.*
-
-* **Filtering & Cleaning**
-    * `ignoreflyers`: Removes outliers defined as `N` standard deviations from the mean (Default 3.0).
-        * Formula: `Math.abs(val - mean) <= numDeviations * std`.
-    * `flyers`: Opposite of `ignoreflyers`. Returns *only* the outliers that exceed the deviation threshold.
-
-* **Optimization & Visualization**
-    * `optimized`: Returns a summary (`mean`, `std`, `min`, `max`, `count`) as a single sample.
-        * Gap Behavior (Stepwise): When encountering a data gap, it copies all the statistical information from the previous interval. This creates a staircase-like appearance in the graph.
-    * `optimLastSample`: Variation of optimized for better gap handling.
-        * Gap Behavior (Horizontal): When encountering a data gap, it retrieves the last recorded actual sample value. It sets the `mean`, `min`, and `max` to this value, while `std` and `count` are set to zero. This creates a horizontal line in the graph (LOCF), clearly indicating that the last state is maintained without new data.
-    * `caplotbinning`: Approximates ChannelArchiver plot binning algorithm.
-
-* **Interpolation**
-    * `linear`: Linear arithmetic mean interpolation.
-    * `loess`: LOcally Estimated Scatterplot Smoothing (LOESS).
 
 ### 3.2 Policy-Based Processing (ETL Configuration)
 This section explains how to apply the operators from Section 3.1 permanently or for caching via `policies.py`.
 
-**Constraint**: The `reducedata` and `pp` properties are **mutually exclusive**. They cannot be configured simultaneously for the same storage tier (e.g., you cannot set both for MTS).
+**Constraint**: Do not set `reducedata` and `pp` on the same storage tier. The source accepts both without an error: the reduced data is stored first, and the `pp` files are then computed from the reduced files instead of the raw data, which the class comment of `PlainPBStoragePlugin` calls unpredictable.
 
 #### 3.2.1 Storage Optimization (`reducedata`)
 The `reducedata` parameter applies operators to **permanently replace** raw data during the ETL process.
@@ -193,23 +161,20 @@ The `reducedata` parameter applies operators to **permanently replace** raw data
 * **Control Modes**:
     1.  Interval Time (e.g., `mean_300`): Divides data into fixed time blocks.
         * Calculation (1-hour query): $3600 \div 300 = 12$ data points.
-    2.  Data Count (e.g., `optimized_500`): Forces result to a fixed number of points (e.g., 500).
-        * Dynamic Binning: Bin size changes based on query duration ($3600 \div 500 = 7.2s$).
+    2.  Data Count (e.g., `optimized_500`): fixes the number of points of a retrieval. It is accepted without an error but does not apply in `reducedata`: one hour of 1 Hz data stored with `reducedata=optimized_500` gives 4 samples (bins of 900 seconds), not 500. Use an interval operator such as `mean_300` in `reducedata`.
 * **Performance Trade-offs**:
     * Low Cost: `Min`, `Mean`, `Variance`, `Jitter`, `Count` (uses incremental `SummaryStatistics`).
-    * High Cost: `Median`, `Kurtosis`, `Skewness`, `Loess` (requires storing full lists in memory).
+    * High Cost: `Median`, `Kurtosis`, `Skewness`, `Linear`, `Loess` (requires storing full lists in memory).
 
 #### 3.2.2 Retrieval Optimization (`pp`)
 The `pp` (Post-Processor) parameter uses operators to **pre-calculate** results and save them in **separate files**.
 
 * **Core Purpose**: Accelerates retrieval speed for heavy queries while preserving raw data.
-* **Mechanism**: Creates an auxiliary file (e.g., `.mean_60.pb`). The system serves this file directly when requested.
+* **Mechanism**: Creates an auxiliary file per partition, named like the `.pb` file of the partition with the operator in place of `pb` (for example `ApplTest/AN/F/Analog10:2025_10_25_06.mean_60`). An operator with a decimal argument carries it as written by the source: `pp=ignoreflyers_30_3` creates `…:2025_10_25_06.ignoreflyers_30_3.0`. The system serves this file when a request names exactly that operator: with the raw file deleted, a request for `mean_60` is answered from the pp file and a request for `mean_30` finds no data.
 * **Advanced Configuration**:
-    * Chained Processing: `pp=ignoreflyers_30_3&mean_60`
-        * Logic: Filter outliers (3-sigma, 30s interval) → Calculate mean (60s interval).
-    * Statistical Optimization (`stats`): `pp=stats_60`
-        * Logic: Pre-calculates `{mean, std, min, max, count}` in one pass. Essential for efficient `errorbar` or `optimized` plotting.
-* **Lifecycle**: `pp` files are managed alongside raw data in `MTS`/`LTS` but do not trigger independent ETL moves.
+    * Several operators: `pp=ignoreflyers_30_3&pp=mean_60` creates one file for each operator. Only parameters named `pp` are read, so a bare `&mean_60` is ignored without an error, and each file is computed from the `.pb` file of the partition (the raw file when `reducedata` is not set), not chained from the other.
+    * Statistical Optimization (`stats`): `pp=stats_60` pre-calculates `{mean, std, min, max, count}` in one file.
+* **Lifecycle**: `pp` files are created in the store that carries the `pp` parameter, next to the raw files. ETL moves only the `.pb` files: when the `.pb` file of a partition moves to the next store, the pp file of the source store stays in it, and the next store computes its own pp file if it carries a `pp` parameter.
 
 #### 3.2.3 Summary Comparison
 
@@ -220,7 +185,7 @@ The `pp` (Post-Processor) parameter uses operators to **pre-calculate** results 
 | **Raw Data Status** | **Lost** (Overwritten) | **Preserved** (Kept Intact) |
 | **Storage Consumption** | Significantly Decreased | Increased (Raw + Processed) |
 | **File Architecture** | Single reduced file | Multiple files (Raw + Processed) |
-| **Exclusivity** | Cannot coexist with `pp` | Cannot coexist with `reducedata` |
+| **Exclusivity** | Not meant to be combined with `pp` | Not meant to be combined with `reducedata` |
 
 ## 4. Archiving Policies
 The `policies.py` script defines the logic for how different Process Variables (PVs) are sampled, structured in storage tiers, and how their data is reduced for long-term storage.
@@ -229,7 +194,7 @@ The `policies.py` script defines the logic for how different Process Variables (
 The system provides a set of predefined policies mapped to specific sampling rates and storage strategies. The policy is determined by the `determinePolicy` function.
 
 #### 4.1.1 Monitor-Based Policies
-These policies use the `MONITOR` sampling method, meaning data is archived whenever the PV value changes (within the sampling period limit).
+These policies use the `MONITOR` sampling method, meaning every value change that the IOC sends is archived; a value with a time stamp that is not newer than the last one or lies outside the accepted time window is dropped, and when the sample buffer is full the oldest buffered sample is dropped. The accepted time window starts at 1991-01-01 and ends 1800 seconds after the engine clock; a time stamp more than 1800 seconds before the engine clock is dropped too, except for the first sample after a start, a reconnect or a write error; the installation property `org.epics.archiverappliance.engine.epics.server_ioc_drift_seconds`, which is set in `archappl.properties`, sets the 1800 seconds. A sample whose data type differs from the buffered ones is dropped too. The sampling period only sizes the sample buffer; it does not limit the rate.
 
 * **Default**
     * Sampling: 1.0 second (1 Hz)
@@ -295,19 +260,20 @@ Motor records require velocity and readback information in addition to standard 
 #### 4.3.4 Global Stream Fields
 The system defines a default set of fields considered part of every PV stream structure.
 * **Default List**: `HIHI`, `HIGH`, `LOW`, `LOLO`, `LOPR`, `HOPR`, `DRVH`, `DRVL`.
+* The groups above list the fields that a record type adds in `policies.py`. A record type that none of the groups names, for example `bi`, `mbbi` or `waveform`, gets no field list from the shipped template.
 
 ## 5. Policy Application & Lifecycle
-The archiving logic defined in `policies.py` is integrated into the system during the service initialization phase.
+The archiving logic defined in `policies.py` is applied when a PV is archived.
 
 ### 5.1 Loading Mechanism
-The policy script is loaded into the Java environment when each specific service (Management, Engine, ETL, Retrieval) starts up.
-The loading process is managed by `ConfigService.java` and `DefaultConfigService.java` within the `archiverappliance` source code.
+The policy script is run by an embedded Jython interpreter in the services that need it. `mgmt` reads it to compute the policy of an archive request, to list the policies and to return the policy text; `retrieval` reads it when a request names a PV that has no type information, names no `retiredPVTemplate` parameter, and the installation property `org.epics.archiverappliance.retrieval.SearchStoreForRetiredPvs`, which is set in `archappl.properties`, is enabled (it is disabled by default); the type information is the record of a PV in the configuration database. `engine` and `etl` do not read it: they use the stores that the type information of each PV holds.
+The loading process is managed by `ConfigService.java` and `DefaultConfigService.java` within the `archiverappliance` source code; `ExecutePolicy.java` runs the script, and `retrieval` runs it in its own interpreter.
 
 ### 5.2 Runtime vs. Build Time
 It is important to distinguish between the software build and the configuration application.
 * **Build Time**: One web application archive (WAR file) for each of `mgmt`, `engine`, `etl` and `retrieval` is created during the build process. Each WAR carries a copy of `policies.py` on its classpath as a default.
-* **Startup Time**: The services run with the WAR files unzipped. A service reads the file that `ARCHAPPL_POLICIES` names when it starts; only when that variable is unset does it use the copy inside the WAR. The installed appliance sets the variable to the installed `policies.py`.
-* **Conclusion**: Policies are applied at service startup, allowing for configuration changes without rebuilding the software.
+* **Runtime**: A service that reads the policy reads the file that `ARCHAPPL_POLICIES` names (the Java system property of that name first, then the environment variable); only when neither is set does it use the copy inside the WAR. The installed appliance sets the variable to the installed `policies.py`. `mgmt` keeps the executed policy for one minute, so it reads a replaced file again at the first request that needs the policy after that minute; the list of policies is read from the file at every request.
+* **Conclusion**: A change of the installed `policies.py` applies without rebuilding the software and without a restart; it applies to the PVs that are archived afterwards (section 5.4) and, in `retrieval`, to the next request for a PV that has no type information.
 
 ### 5.3 Configuration Path
 The system locates the policy script using a specific environment variable.
@@ -316,15 +282,14 @@ The system locates the policy script using a specific environment variable.
 * **Example**: `ARCHAPPL_POLICIES="/opt/epicsarchiverap-maven/policies.py"`
 
 ### 5.4 Update Workflow
-Since the policy file is loaded only at initialization, changes to `policies.py` are not applied dynamically.
-1.  **Shutdown**: Stop the Archiver Appliance services.
-2.  **Modification**: Edit or replace the `policies.py` file at the path defined by `ARCHAPPL_POLICIES`.
-3.  **Startup**: Start the services to load and apply the new logic.
+A change of `policies.py` reaches only the PVs that are archived after the change. When a PV is archived, its store URLs, with their `partitionGranularity`, `hold` and `gather`, are stored with its type information (in the SQLite or MariaDB database), and ETL builds the sources and destinations of the PV from them. A PV that was archived before the change keeps its stored URLs. This guide does not describe how the stores of an archived PV are changed.
+1.  **Modification**: Edit or replace the `policies.py` file at the path defined by `ARCHAPPL_POLICIES`. `mgmt` reads the file again at the first request after about a minute; a restart of the services (`make sd_stop`, `make sd_start`) applies it at once.
+2.  **Durability**: `make install` copies the file that `make conf.archapplproperties` rendered from `site-template/policies.py.in` over the installed `policies.py`, so an edit of the installed file is lost at the next `make install`. `make install` does not render the template: after a change in the template or in the variables of section 5.5, run `make conf.archapplproperties` first, otherwise the copy rendered at the last run is installed.
 
 ### 5.5 Store Settings as Build Variables
 `site-template/policies.py.in` takes the partition granularity and ETL hold of each tier from Make variables, so a host changes them in `../CONFIG_SITE.local` (one directory above the checkout top) without editing the shipped template. `make conf.policies` renders them into `policies.py`.
 
-On a new host, set the values before step 3 of the install sequence in `README.install.md`: `make conf.archapplproperties` includes `conf.policies`, and `make install` installs the rendered `policies.py`. On a host that is already installed, follow the order in section 5.4: stop the services with `make sd_stop`, change the values and run `make conf.archapplproperties` and `sudo make install` again, then start the services with `make sd_start`.
+On a new host, set the values before step 3 of the install sequence in `README.install.md`: `make conf.archapplproperties` includes `conf.policies`, and `make install` installs the rendered `policies.py`. On an installed host, stop the services with `make sd_stop`, change the values and run `make conf.archapplproperties` and `sudo make install` again (the install replaces the web applications and the configuration files), then start the services with `make sd_start`.
 
 | Variable | Default | Tier setting |
 | --- | --- | --- |
@@ -334,7 +299,7 @@ On a new host, set the values before step 3 of the install sequence in `README.i
 | `ARCHAPPL_MTS_HOLD` | `2` | MTS `hold` |
 | `ARCHAPPL_LTS_GRANULARITY` | `PARTITION_YEAR` | LTS `partitionGranularity` |
 
-`gather=1` and `consolidateOnShutdown=true` on STS, and the `reducedata` operators on LTS, stay in the template. `conf.policies` stops before writing `policies.py` when a granularity is not one of the seven `PartitionGranularity` names in section 2.1 or a hold is not a positive integer; a hold of at least 1 keeps `hold - gather` non-negative with the fixed `gather=1`. It does not check that the tiers run from finer to coarser; the operator writing the values keeps that order.
+`gather=1` on STS and on MTS, `consolidateOnShutdown=true` on STS (ETL pushes the data of the store to the next store when the appliance stops), and the `reducedata` operators on LTS stay in the template. `conf.policies` stops before writing `policies.py` when a granularity is not one of the seven `PartitionGranularity` names in section 2.1 or a hold is not a positive integer; a hold of at least 1 keeps `hold - gather` non-negative with the fixed `gather=1`. It does not check that the tiers run from finer to coarser; the operator writing the values keeps that order.
 
 A test host that wants to watch samples move through all three tiers within hours sets, in `../CONFIG_SITE.local`:
 
@@ -346,7 +311,7 @@ ARCHAPPL_MTS_HOLD:=2
 ARCHAPPL_LTS_GRANULARITY:=PARTITION_DAY
 ```
 
-With these values a partition becomes eligible for ETL out of STS about ten minutes after it closes and out of MTS about two hours after it closes; the actual move waits for the next ETL pass, so it lands later than that. The shipped defaults stay for real deployments.
+With these values a partition becomes eligible for ETL out of STS about ten minutes after it closes and out of MTS about two hours after it closes (derived from the rule in section 2.3, not run with this combination); the actual move waits for the next ETL pass, so it lands later than that. The shipped defaults stay for real deployments.
 
 ## 6. Storage Media & Hardware Recommendations
 The selection of `partitionGranularity`, `hold`, and `gather` should be optimized based on the physical storage media being used.
