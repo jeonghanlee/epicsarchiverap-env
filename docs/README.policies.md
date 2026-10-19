@@ -87,7 +87,7 @@ These parameters manage the movement of data between storage tiers. This process
 #### 2.3.2 Retention Period (`hold`)
 * This parameter is directly related to the `partitionGranularity` setting.
 * Specifies an **age**, not a file count: the implementation subtracts `hold` times the approximate partition duration from the processing time and takes the last second of the preceding partition as the boundary. A file becomes eligible when its first sample is at or before that boundary.
-* Example: with `partitionGranularity=PARTITION_HOUR` and `hold=6`, the file of the partition that starts at 10:00 becomes eligible when the processing time reaches 17:00, seven partition lengths after the start of its partition. With `PARTITION_HOUR` on STS the passes from STS to MTS start at 5 minutes past each hour, so it moves in the pass at 17:05 (with `gather=1`; derived from the rule above and not run with this combination). A gap in the data does not postpone this; eligibility follows the oldest available sample's age, not how many files have accumulated.
+* Example: with `partitionGranularity=PARTITION_HOUR` and `hold=6`, the file of the partition that starts at 10:00 becomes eligible when the processing time reaches 17:00, seven partition lengths after the start of its partition. With `PARTITION_HOUR` on STS the passes from STS to MTS start at 5 minutes past each hour, so it moves in the pass at 17:05 (with `gather=1`; run on the ETL classes with `hold=6`, STS `PARTITION_HOUR` and MTS `PARTITION_DAY`: the 10:00 file left STS at 17:05, the 11:00 file at 18:05). A gap in the data does not postpone this; eligibility follows the oldest available sample's age, not how many files have accumulated.
 
 #### 2.3.3 Batch Move Size (`gather`)
 * This parameter is related to both the `partitionGranularity` and `hold` settings.
@@ -311,7 +311,7 @@ ARCHAPPL_MTS_HOLD:=2
 ARCHAPPL_LTS_GRANULARITY:=PARTITION_DAY
 ```
 
-With these values a partition becomes eligible for ETL out of STS about ten minutes after it closes and out of MTS about two hours after it closes (derived from the rule in section 2.3, not run with this combination); the actual move waits for the next ETL pass, so it lands later than that. The shipped defaults stay for real deployments.
+With these values a partition becomes eligible for ETL out of STS about ten minutes after it closes and out of MTS about two hours after it closes (run on the ETL classes: the STS file of 10:00 left at 10:20, the MTS file of 10:00 at 13:10); the actual move waits for the next ETL pass, so it lands later than that. The shipped defaults stay for real deployments.
 
 ## 6. Storage Media & Hardware Recommendations
 The selection of `partitionGranularity`, `hold`, and `gather` should be optimized based on the physical storage media being used.
