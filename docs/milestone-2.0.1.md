@@ -74,6 +74,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D57 | Keep in the site folder `site-template/siteid` only the files that carry the site's own values: `img/LBNLLogo.png`, `img/als.ico`, `classpathfiles/` and a `template_changes.html` that fills a site-logo block of the source header. The header logo, its narrow-screen wordmark, the logo sizing and the shared stylesheet come from the source repository's own files, so the site folder keeps no copy of them. The block name and the header markup are set by epicsarchiverap-maven; the change in this repository follows its landing, and the contrast check of `tests/ui-static.bash` then reads the source's stylesheet. | 2026-10-12 |
 | D58 | Let the interface check accept the target of a navigation link (`<a href="https://...">`) that names an outside host, and keep refusing an outside address of a script, a style, an image or a data call. The manual link of the help page of the source repository is the first outside address in the interface files; a link is followed by the user and not requested by the page, so the appliance stays usable without internet access. A link of another form is decided when it appears. | 2026-10-13 |
 | D59 | Record the findings on the storage and policy guide (`docs/README.policies.md`) that the review of `docs/README.DataJourney.md` produced as Backlog work M54, and change the guide only after the owner decides. The Data Journey document and its figures are corrected separately. | 2026-10-17 |
+| D60 | Add to the book one page that adapts the verified Data Journey document: the statements stay as the document makes them, and only the form follows the book (headings, links to sections and to book pages, copied figures). This is the one exception to the owner rule of 2026-10-11 that the book is never written from a `docs/*.md` document, because every statement of that document comes from a run of the real ETL code and the document lists the runs. | 2026-10-18 |
 
 ### Assignment History
 
@@ -1410,7 +1411,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Deferred | No | D55 | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner chose the stop in D55 and scheduled it for the release after 2.0.1; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 | UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
-| Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | none | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
+| Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | D60 | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
 | Docs | M54 | Align the storage and policy guide with the ETL pass schedule | Milestone | Open | No | D59 | Every statement of `docs/README.policies.md` about when a file moves, how long a file stays in a tier and how `policies.py` is changed matches `docs/README.DataJourney.md` and the code; [detail](#m54---align-the-storage-and-policy-guide-with-the-etl-pass-schedule) |
 
 ### Backlog Details
@@ -2072,8 +2073,9 @@ Status: In progress
 - The commit of the pages and of the `.gitignore` exception that keeps `book/src/test/` tracked.
 - A GitHub Actions workflow that checks the generated pages after `make init`, builds the book with a pinned mdBook release and publishes it from the default branch.
 - Commands on the install and operate pages that this host could not run as shown, run on a disposable appliance or VM and recorded as real output.
+- The page `book/src/understand/data-journey.md` and its figures, adapted from `docs/README.DataJourney.md` under D60.
 
-Out of scope: the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately and verifies again after the documents are written; the `docs/*.md` guides, which stay as they are.
+Out of scope: any change of the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately; the `docs/*.md` guides, which stay as they are.
 
 ##### Completion Criteria
 
@@ -2087,6 +2089,7 @@ Out of scope: the data journey document and its figures (`docs/README.DataJourne
 
 - Owner rules of 2026-10-11: the book lives in `book/`, is written from the code and from commands run, never from the existing `docs/*.md`; it holds no working history and no host-specific values; deployment by GitHub Actions comes last.
 - The VM verification of 2.0.1 (M44) is the run that can record real output for the pages that need `sudo`, systemd or an installed appliance.
+- D60 lets the page of the data journey be adapted from its `docs/` document; the other pages stay written from the code and from commands run.
 
 ##### Implementation Plan
 
@@ -2116,12 +2119,12 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | 2026-10-12 | Local host; fresh clone at `d04de37` | Pass | `mdbook build book` exit 0 with no warning or error; the three pages of `book/src/test/` build from the clone with 13.8 to 15.5 KB of HTML each |
+| T1 | 2026-10-18 | Local host; fresh clone of the pushed branch at `ae46c35`, mdBook 0.5.4 | Pass | `mdbook build book` exit 0 with no warning or error; 37 pages, among them `understand/data-journey.html` with its six figures; `test/vm.html` builds with 27.7 KB. The run of 2026-10-12 at `d04de37` passed too |
 | T2 | 2026-10-12 | Local checkout at `d04de37`; fresh clone of `modernize` at `0097bc2d` | Pass | exit 0; all five generated pages current |
 | T3 | 2026-10-12 | Local host | Pass | whole-book pass, applied-findings pass, technical-writing pass and a final pass; the final pass found nothing to change |
 | T4 | 2026-10-13 00:58 to 01:05 PDT | Debian 13 guest of the one-case run below (env `c4beb5d`, source `514be155`, service account `mid-srv`) | Pass for the operate, verify and install pages; the next guest run repeats them after the page fixes | Commands of `operate/health.md`, `logs.md`, `loglevel.md`, `storage.md`, `start-stop.md` and `install/verify-pv.md` run as shown with the placeholders replaced, and the outputs equal the pages in form (loglevel byte for byte; values such as process ids and use percentages differ). Two commands did not run as the pages showed them: `sudo -u tomcat` of the health page (the guest account is `mid-srv`; the page now uses `<service_account>`) and `bash scripts/archappl.bash storage` in a checkout (it needs the `archappl.conf` next to the installed script; the page now uses `<install_location>`). The corrected commands exit 0 on the guest. The install pages need a checkout owned by an ordinary user, and the checkout of this guest belongs to root, so they were not run there. They ran on a second fresh Debian 13 guest, 2026-10-13 02:30 to 03:00 PDT (env `148cae1`, source `74258cc7`, ordinary user with `sudo`, checkout cloned from the public repository): `prepare-host.md` (package lists as shown, 17 packages installed, Java 21), `sqlite.md` (installer exit 0, health, four startup APIs and appliance information PASS), `verify-pv.md` (`PV acquisition, storage and retrieval: PASS`, 4 stored samples, EPICS Base copied from the host), `reinstall.md` (exit 0, service active, the registered PV kept in the database), `mariadb-uds.md` and `mariadb-tcp.md` (exit 0, same checks PASS). Three differences from the pages were found and the pages carry the correction: the SQLite plan on a host without Tomcat lists three more lines (`tomcat.get`, the SHA-512 verification and `tomcat.install`); a quoted `DB_HOST_NAME="127.0.0.1"` in `../CONFIG_SITE.local` makes `db.create` fail with `ERROR 2005` because `make` keeps the quote characters (the unquoted value passes); a failed installer leaves the service stopped by design, which the three installer pages now state |
 | T5 | Not run | none | Pending | none |
-| T6 | 2026-10-12 | Local host; fresh copy of the tree of `92b2aa7` | Pass | mdBook 0.5.4 (archive SHA-256 `3f28de05dafca9d0f2eab99c662116b0e37b89b1d96a08f8f430b9eeae958cd7`) exit 0 with no warning; before the generator fix it warned about an unclosed `<os>` tag in `configure/variables.md`, which the browser would have hidden |
+| T6 | 2026-10-18 | Local host; fresh clone of the pushed branch at `ae46c35` | Pass | mdBook 0.5.4 (archive SHA-256 `3f28de05dafca9d0f2eab99c662116b0e37b89b1d96a08f8f430b9eeae958cd7`, checked against the value that the workflow pins) exit 0 with no warning. The run of 2026-10-12 at `92b2aa7` passed after a generator fix; before it the build warned about an unclosed `<os>` tag in `configure/variables.md`, which the browser would have hidden |
 | T7 | 2026-10-12 | Local host; shallow clone (depth 1) of the tree of `92b2aa7`; selected source `992d8ac4` | Pass | `make init` exit 0 in about 52 s; `check-generated.bash` exit 0 with all five generated pages current |
 | T8 | 2026-10-12 | Installed appliance of the local host | Pass | `storage` printed the three store folders and the total; `make sd_status` showed the service active with the four instances; `make sd_health_status` exits `0` after the fix and printed `Error 3` before it; `health` as the service account printed all four components `PRESENT` and exit `0`, as an ordinary user `unreadable-process-executable` for each and exit `2`; `journalctl -u` as root printed the instance lines, as an ordinary user outside the journal groups `-- No entries --` with exit `0` |
 
@@ -2155,6 +2158,7 @@ The review of `docs/README.DataJourney.md` ran the scenario of that document thr
 5. Section 5.4 tells the operator to edit the installed `policies.py`. `make install` copies over it the file that `make conf` rendered from `site-template/policies.py.in`, so the edit is lost. The durable edit is in the template, followed by `make conf`.
 6. Section 2.3.1 has no pointer to the pass schedule and the timeline in `docs/README.DataJourney.md` (sections 2 and 4).
 7. Information only: section 2.1.1 says the file is moved "after the time elapses, according to the `partitionGranularity` setting" without the `hold` rule or the schedule.
+8. Information only: the generated page `book/src/configure/policy-parameters.md` repeats the class comment of `PlainPBStoragePlugin` of the selected source (`SRC_TAG`). The comment gives the age at which a file moves as `hold` partitions and the files kept as at least `hold - gather`. The source commit `a02f9ce9` corrects the comment (`hold + 1` partitions counted from the start of the partition; `hold - gather + 1` completed files remain after a pass on schedule), and the page follows when `SRC_TAG` selects a commit that contains it.
 
 ##### Scope
 
@@ -2172,6 +2176,7 @@ Out of scope: any change to `docs/README.DataJourney.md` and its figures, which 
 ##### Dependencies And Decisions
 
 - D59 records the findings and defers the change to the owner. A dated owner decision is required before this row becomes Not started.
+- The generated page of item 8 changes only when D56 sets the source pin that contains the corrected comment.
 
 ##### Implementation Plan
 
