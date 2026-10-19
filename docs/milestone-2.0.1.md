@@ -75,6 +75,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D58 | Let the interface check accept the target of a navigation link (`<a href="https://...">`) that names an outside host, and keep refusing an outside address of a script, a style, an image or a data call. The manual link of the help page of the source repository is the first outside address in the interface files; a link is followed by the user and not requested by the page, so the appliance stays usable without internet access. A link of another form is decided when it appears. | 2026-10-13 |
 | D59 | Record the findings on the storage and policy guide (`docs/README.policies.md`) that the review of `docs/README.DataJourney.md` produced as Backlog work M54, and change the guide only after the owner decides. The Data Journey document and its figures are corrected separately. | 2026-10-17 |
 | D60 | Add to the book one page that adapts the verified Data Journey document: the statements stay as the document makes them, and only the form follows the book (headings, links to sections and to book pages, copied figures). This is the one exception to the owner rule of 2026-10-11 that the book is never written from a `docs/*.md` document, because every statement of that document comes from a run of the real ETL code and the document lists the runs. | 2026-10-18 |
+| D61 | Align every statement of the documents, the explanatory comments and the test messages of this repository about policies, storage tiers and ETL with the code, in the scope and order of M54. History records stay as they were. A defect of the code goes to the owner of the code, and the document does not follow it. | 2026-10-18 |
 
 ### Assignment History
 
@@ -1412,7 +1413,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 | UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
 | Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | D60 | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
-| Docs | M54 | Align the storage and policy guide with the ETL pass schedule | Milestone | Open | No | D59 | Every statement of `docs/README.policies.md` about when a file moves, how long a file stays in a tier and how `policies.py` is changed matches `docs/README.DataJourney.md` and the code; [detail](#m54---align-the-storage-and-policy-guide-with-the-etl-pass-schedule) |
+| Docs | M54 | Align the documents and comments about policies, storage tiers and ETL with the code | Milestone | In progress | No | D59, D61 | Every statement of the documents, comments and test messages in scope about policies, storage tiers and ETL is listed with its code source and is a match, or is corrected, or goes to the owner of the code; the statements about when a file moves come from a run; [detail](#m54---align-the-documents-and-comments-about-policies-storage-tiers-and-etl-with-the-code) |
 
 ### Backlog Details
 
@@ -2140,67 +2141,84 @@ GitHub Milestone: none
 Observed State: none; no issue exists
 Last Compared: none
 
-#### M54 - Align the storage and policy guide with the ETL pass schedule
+#### M54 - Align the documents and comments about policies, storage tiers and ETL with the code
 
 Origin: 2.0.1 / M54
 Identity History: none
 GitHub Issue: none
-Status: Open
+Status: In progress
 
 ##### Summary
 
-The review of `docs/README.DataJourney.md` ran the scenario of that document through the real ETL pass scheduler, the real ETL job and the real storage plugins with a simulated clock. The ETL does not run when a partition ends. Each transition has a fixed schedule: the cadence is the source partition length (at most 8 hours), the offset is 5 minutes times (transition number + 1), and every job uses the pass start minus 60 seconds as its current time. A file with partition start `S` leaves its tier in the first pass whose start is at least `S + (hold + 1) * P + 60 s` for `gather=1`. Four reader reviews of the Data Journey document compared `docs/README.policies.md` with these rules and found the points below. The guide is not changed yet.
+The review of `docs/README.DataJourney.md` ran the scenario of that document through the real ETL pass scheduler, the real ETL job and the real storage plugins with a simulated clock. The ETL does not run when a partition ends. Each transition has a fixed schedule: the cadence is the source partition length (at most 8 hours), the offset is 5 minutes times (transition number + 1), and every job uses the pass start minus 60 seconds as its current time. A file with partition start `S` leaves its tier in the first pass whose start is at least `S + (hold + 1) * P + 60 s` for `gather=1`. D61 widens the work from the guide `docs/README.policies.md` to every statement of the documents, comments and test messages of the repository about policies, storage tiers and ETL. The findings known on 2026-10-18 are below; the statement list of the plan adds the rest.
 
-1. Section 2.3.3 (example: "an ETL run at each partition boundary") and section 2.3.5 Scenario A ("as soon as the partition boundary is reached") say that the ETL runs when a partition ends. The passes start at fixed times, and the first pass after the partition is over moves the file.
+1. Section 2.3.3 (example: "an ETL run at each partition boundary") and section 2.3.5 Scenario A ("as soon as the partition boundary is reached") say that the ETL runs when a partition ends. The passes start at fixed times (the Data Journey document, section 2).
 2. Section 2.3.1 (Trigger: the oldest sample "is older than `hold` partitions") and the example of section 2.3.2 ("about six hours old" for `PARTITION_HOUR` and `hold=6`) understate the age by up to one partition. A file moves when `hold + 1` partition lengths have passed since its partition began.
-3. Section 2.3.2 and Scenario A say "in the first pass after that time". For a source of `PARTITION_5MIN` the pass starts coincide with the boundary times, and a pass that starts at the boundary uses a current time 60 seconds earlier, so the move waits for the next pass: the condition is the first pass that starts at least 60 seconds after that time.
+3. Withdrawn on 2026-10-18: the sentence "in the first pass after that time" that this item quoted is not in the guide, and section 5.5 already says that the actual move waits for the next ETL pass.
 4. Section 5.5 says that `gather=1` stays in the template "on STS". The template fixes `gather=1` on STS and on MTS, so `gather` cannot be changed through the Make variables.
 5. Section 5.4 tells the operator to edit the installed `policies.py`. `make install` copies over it the file that `make conf` rendered from `site-template/policies.py.in`, so the edit is lost. The durable edit is in the template, followed by `make conf`.
 6. Section 2.3.1 has no pointer to the pass schedule and the timeline in `docs/README.DataJourney.md` (sections 2 and 4).
 7. Information only: section 2.1.1 says the file is moved "after the time elapses, according to the `partitionGranularity` setting" without the `hold` rule or the schedule.
 8. Information only: the generated page `book/src/configure/policy-parameters.md` repeats the class comment of `PlainPBStoragePlugin` of the selected source (`SRC_TAG`). The comment gives the age at which a file moves as `hold` partitions and the files kept as at least `hold - gather`. The source commit `a02f9ce9` corrects the comment (`hold + 1` partitions counted from the start of the partition; `hold - gather + 1` completed files remain after a pass on schedule), and the page follows when `SRC_TAG` selects a commit that contains it.
+9. Section 5.4 does not say that a changed `policies.py` reaches only the PVs that are archived afterwards. The store URLs of a PV are stored with its type information (checked with a SQLite and a MariaDB database), so a PV that was archived before the change keeps its `hold` and its partitions. The guide does not say how the stores of an archived PV are changed; the source has actions for it that no document of this repository names, and none was run.
+10. Section 2.2.2 says that only completed files are subject to `hold`. A file of MTS that has received only some of its parts is a candidate too, and it moves when its boundary is met, as the runs of the Data Journey document show.
+11. Section 2.3.4 states that two setters throw an `IOException` when `gather` exceeds `hold`. This was read from the code and not run.
 
 ##### Scope
 
-- Correct the statements of items 1 to 6 in `docs/README.policies.md`, checking each against the code and the recorded run of the scenario.
-- Decide with the owner whether item 7 changes.
+- List every statement about policies, storage tiers and ETL in: `docs/README.policies.md`, `docs/README.install.md`, `docs/technicaldocs/`, `docs/README.vmtests.md`, `tests/README.md`, the pages of `book/src` that are not generated, the explanatory comments of `configure/`, `site-template/` and `scripts/`, and the messages and comments of `tests/`.
+- Compare each statement with its code source and class it as match, mismatch or unverifiable. Correct a mismatch in the document or comment. Run a statement about when or how a file moves on the real classes before it is written.
+- Report a defect of the code to the owner of the code instead of making the document follow it.
 
-Out of scope: any change to `docs/README.DataJourney.md` and its figures, which the review of that document corrects; any change to the policy template or to the ETL code; making `gather` settable through a Make variable.
+Out of scope: history records (`CHANGELOG.md`, `docs/milestone-*.md`, `docs/reports/`, GitHub issues); `docs/README.DataJourney.md`, its book page and the figures, which change only when a finding requires it; the generated book pages, which follow the selected source (D56); any change of the behavior of the code of this repository or of the source repository.
 
 ##### Completion Criteria
 
-- The statements about when a file moves, how old it is when it moves and how the installed `policies.py` is changed agree with `docs/README.DataJourney.md`, with `ETLPassDriver` and `PlainPBStoragePlugin.getETLStreams`, and with the recorded run (every table row of the Data Journey scenario).
-- A second-person review of the changed guide by a reader who calculates the move times of a shipped-policy host and of a host with `PARTITION_5MIN` finds nothing above the severity floor.
-- Every link and anchor that the changed passages contain resolves.
+- The statement list covers every in-scope file; each statement names its code source and its class.
+- Every mismatch is corrected, or reported to the owner of the code, or recorded as unverifiable with the check that would settle it.
+- Every statement about when or how a file moves was run on the real classes or on an installed guest.
+- A second-person review of each corrected group by a reader who calculates the move times for the shipped policy and for `PARTITION_5MIN` finds nothing above the severity floor.
+- Every link and anchor of the corrected passages resolves, `git diff --check` is clean, the book builds with the pinned mdBook release, and the generated pages are current.
 
 ##### Dependencies And Decisions
 
-- D59 records the findings and defers the change to the owner. A dated owner decision is required before this row becomes Not started.
-- The generated page of item 8 changes only when D56 sets the source pin that contains the corrected comment.
+- D59 records the first findings. D61, dated 2026-10-18, widens the scope and orders the work.
+- The generated page `book/src/configure/policy-parameters.md` changes only when D56 sets the source pin that contains the corrected comment of the source (commit `a02f9ce9`).
+- Statements of `docs/README.policies.md` are changed under the direction of D61; the guide names Sangil Lee and Jeong Han Lee as authors.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-18
+Implementation Authorization: the owner directed the work on 2026-10-18
+Superseded Plan Artifacts: the draft plan of D59
 
-1. After the owner decision, correct items 1 to 6 in `docs/README.policies.md` one section at a time and add the pointer of item 6.
-2. Run the second-person review of the Test Plan and apply the findings above the floor.
+1. Build the statement list for each file group: `docs/README.policies.md`; the install and service documents; the pages of the book; the comments of `configure/`, `site-template/` and `scripts/`; `tests/`. The list is a working file under `work/`.
+2. Verify each statement: read the code; run the `make` statements in a copy of the repository with the install path set to a scratch folder; run the statements about files on the real classes or on a retained guest.
+3. Correct the documents and comments group by group, one commit per group, and withdraw or correct the findings of this detail that the list shows wrong.
+4. Report the defects of the code to its owner.
+5. Review each corrected group with the second-person review and apply the findings above the floor.
+6. Record the observed results and close the item when the criteria hold.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Review | Second-person review of the changed guide by readers that compute the move times for the shipped policy and for `PARTITION_5MIN`, and check each statement against `ETLPassDriver`, `getETLStreams` and the recorded run | Local host; source of the checked commit | No finding above the severity floor |
-| T2 | Local | Check every link and anchor of the changed passages and run `git diff --check` | Local host | All targets exist; no whitespace error |
+| T1 | Local | Compare the statement list with `git ls-files` of the in-scope paths | Local host | Every in-scope file appears in the list or is named as without statements |
+| T2 | Run | Run each statement about when or how a file moves on the real classes or on a retained guest | Local host; retained guest | Each statement is confirmed by the observed run or corrected |
+| T3 | Local | Run each `make` statement in a copy of the repository with the install path set to a scratch folder | Local host | Each statement is confirmed by the output or corrected |
+| T4 | Review | Second-person review of each corrected group by readers that compute the move times for the shipped policy and for `PARTITION_5MIN` | Local host | No finding above the severity floor |
+| T5 | Local | Check every link and anchor of the corrected passages, run `git diff --check`, build the book with the pinned mdBook release and run `book/scripts/check-generated.bash` | Local host | All targets exist; no whitespace error; no warning; every generated page current |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Local host | Pending | none |
-| T2 | Pending | Local host | Pending | none |
+| T1 | 2026-10-18 | Local host | Pass | `git ls-files` of the in-scope paths (160 files, UI folder and binaries excluded) swept for ETL, STS, MTS, LTS, hold, gather, `policies.py`, `partitionGranularity` and the store names; every file with a hit is either in the four reader lists (`work/statements-policy-domain.md`, not tracked) or was read in this sweep (glossary, health, storage, components, install pages, `archappl.properties.in`, `tests/health-starting.bash`, scripts); no further mismatch |
+| T2 | 2026-10-18 | Local host; retained guest | Pass | Real `PBThreeTierETLPVLookup`, `ETLPassTicker`, `ETLPassDriver`, `ETLJob` and `PlainPBStoragePlugin` with a simulated clock for hold 0 to 6, gather 0 to 4, header-only and zero-byte files, post-processing, reload and stored URLs; pass schedule and a 70-minute real-clock ETL run and the MariaDB persistence case on a guest. The hold 6 `PARTITION_HOUR` example (move at 17:05) is derived from the rule and not run; the MTS part of the 5-minute test host example is derived too |
+| T3 | 2026-10-18 | Local host | Pass | `make conf.policies` and the `make -n` targets run in a scratch copy with the install path, `SUDO` and the user overrides set; Phase 1 `passed=273 failed=0` (`work/phase1-policy-align.log`, before the last comment edit of `policies.py.in`) |
+| T4 | 2026-10-18 | Local host | Pass | Five readers (P1 to P5, a new seat each) audited the guide and the other changed files against the code and the run logs; every item above the floor is applied. P5 found the Completed State definition against partial MTS files (section 2.2.2 now defines Completed per tier and names the partial file as an exception) and the time window of the MONITOR sentence; both corrected. Edits after P5 are the wording of section 2.2 and 5.1 and of two property locations, read back by the author only |
+| T5 | 2026-10-18 21:25 PDT | Local host | Pass | `git diff --check` exit 0; pinned mdBook 0.5.4 build exit 0 with no warning; `book/scripts/check-generated.bash` all five pages current after `configure/variables.md` was regenerated; the links of the guide resolved in the third reader audit |
 
 ##### Closure Evidence
 
