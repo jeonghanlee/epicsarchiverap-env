@@ -17,7 +17,7 @@ conf.archapplproperties: $(conf_properties_RULES)
 conf.archapplproperties.show: $(show_properties_RULES)
 
 conf.appliances: $(ARCHAPPL_APPLIANCES).in | mkdir.sitesidpath
-	$(QUIET)echo ">>> Generate $(call classpathfile_output, $<) from $<"
+	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_SINGLE_IDENTITY@|$(ARCHAPPL_SINGLE_IDENTITY)|g" \
 	            -e "s|@ARCHAPPL_CLUSTER_INETPORT@|$(ARCHAPPL_CLUSTER_INETPORT)|g" \
 	            -e "s|@ARCHAPPL_MGMT_URL@|$(ARCHAPPL_MGMT_URL)|g" \
@@ -66,7 +66,7 @@ conf.policies: $(ARCHAPPL_POLICIES).in  | mkdir.sitesidpath
 	$(call check_store_granularity,ARCHAPPL_LTS_GRANULARITY,$(ARCHAPPL_LTS_GRANULARITY))
 	$(call check_store_hold,ARCHAPPL_STS_HOLD,$(ARCHAPPL_STS_HOLD))
 	$(call check_store_hold,ARCHAPPL_MTS_HOLD,$(ARCHAPPL_MTS_HOLD))
-	$(QUIET) echo ">>> Generate $(call classpathfile_output, $<) from $<"
+	$(QUIET) echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)sed -e "s|@ARCHAPPL_HOST_IPADDR@|$(ARCHAPPL_HOST_IPADDR)|g" \
 				-e "s|@ARCHAPPL_SHORT_TERM_FOLDER@|$(ARCHAPPL_SHORT_TERM_FOLDER)|g" \
 				-e "s|@ARCHAPPL_MEDIUM_TERM_FOLDER@|$(ARCHAPPL_MEDIUM_TERM_FOLDER)|g" \

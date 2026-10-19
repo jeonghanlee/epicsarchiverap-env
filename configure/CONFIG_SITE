@@ -80,7 +80,7 @@ AA_JAVA_OPTS=""
 AA_USERID:=tomcat
 AA_GROUPID:=$(AA_USERID)
 
-## appliances.xml
+## Storage folders, rendered into $(ARCHAPPL_POLICIES) and archappl.conf
 #
 ARCHAPPL_STORAGE_TOP=/arch
 ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore
@@ -112,12 +112,12 @@ ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS:=1.0
 
 
 ARCHAPPL_SINGLE_IDENTITY=appliance0
-## The following three files will in $(AA_INSTALL_LOCATION)
+## Files that are installed into $(AA_INSTALL_LOCATION). The three files that are
+## rendered into the classpathfiles folder (appliances.xml, archappl.properties and
+## policies.py) are also packed into WEB-INF/classes of every WAR file as defaults.
 #
 ARCHAPPL_APPLIANCES:=appliances.xml
 ARCHAPPL_CONF:=archappl.conf
-## WAR/WEB-INF/classes
-## RULES_INSTALL
 ARCHAPPL_POLICIES:=policies.py
 ARCHAPPL_PROPERTIES:=archappl.properties
 ## Root level of the WAR and Tomcat log4j2 configurations, exported to the

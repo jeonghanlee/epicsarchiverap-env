@@ -27,9 +27,10 @@ archapplconf.show: $(ARCHAPPL_CONF)
 	$(QUIET)echo ">>> Show the installed $(AA_INSTALL_LOCATION)/$(patsubst $(AA_SITE_TEMPLATE_PATH)/%,%,$<) "
 	$(QUIET)cat -bs $(AA_INSTALL_LOCATION)/$(patsubst $(AA_SITE_TEMPLATE_PATH)/%,%,$<)
 
-# Three files are moved into $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)
-# before the Maven build. So these files are located in the war files automatically.
-# Thus, we don't need them
+# Three files (appliances.xml, archappl.properties and policies.py) are copied into
+# $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH) before the Maven build, so every WAR file
+# carries them as defaults. The installed copies below are the files that the
+# services read: archappl.conf sets ARCHAPPL_POLICIES and the other paths to them.
 appliances.install: $(ARCHAPPL_APPLIANCES)
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
 	$(QUIET)$(SUDO) install $< $(AA_INSTALL_LOCATION)/
