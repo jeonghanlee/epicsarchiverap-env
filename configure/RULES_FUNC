@@ -104,10 +104,6 @@ define buildrules_BUILDER
 $(foreach dir, $(4), $(eval $(call a_service_BUILDER,$(1),$(2),$(3),$(dir),$(5))))
 endef
 
-define classpathfile_output
-$(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/$(notdir $(basename $(1)))
-endef
-
 ### Exclude the following variables to display
 VARS_EXCLUDES+=make_p0_patch
 VARS_EXCLUDES+=%patch_src

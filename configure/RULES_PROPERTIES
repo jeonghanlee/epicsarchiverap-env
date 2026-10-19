@@ -44,7 +44,6 @@ conf.properties: $(ARCHAPPL_PROPERTIES).in  | mkdir.sitesidpath
 	$(QUIET)$(INSTALL_DATA)	$(basename $<) $(ARCHAPPL_SITEID_CLASSPATHFILES_PATH)/
 
 conf.properties.show: $(ARCHAPPL_PROPERTIES).in
-#	@cat -b $(call classpathfile_output, $<)
 	@cat -b $(basename $<)
 
 # Store settings rendered into the policy: each granularity must be a
