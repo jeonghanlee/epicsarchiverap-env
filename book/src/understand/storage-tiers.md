@@ -28,7 +28,7 @@ With the defaults, a file of STS leaves STS in the first pass that starts at lea
 
 ## The policies of the template
 
-The function `determinePolicy` in `policies.py` returns the sampling and the stores for a PV from the policy name in its request. The template defines ten policies; the five names without `Controlled` set the following values.
+The function `determinePolicy` in `policies.py` returns the sampling and the stores for a PV from the policy name in its request. The template defines eleven policies: `Default`, the five names `VeryFast`, `Fast`, `Medium`, `Slow` and `VerySlow`, and the same five names with the suffix `Controlled`. The five names without `Controlled` set the following values.
 
 | Policy | Sampling | Method | Reduction into LTS |
 | :--- | ---: | :--- | :--- |
