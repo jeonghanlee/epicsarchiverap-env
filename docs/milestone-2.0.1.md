@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates are Complete. M13 (management web interface rework) is assigned to this milestone by D45 and is In progress under an accepted plan; its information architecture is accepted by D49 and the interface is implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); open is the transfer to epicsarchiverap-maven (plan item 12, T6); D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) waits on M13 and is In progress. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37.
+Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates are Complete. M13 (management web interface rework) is assigned to this milestone by D45 and is In progress under an accepted plan; its information architecture is accepted by D49 and the interface is implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); open is the transfer to epicsarchiverap-maven (plan item 12, T6); D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) waits on M13 and is In progress. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37. M54 (policy documents) is In progress and waits for the issue numbers and the document corrections of epicsarchiverap-maven; M55 (Backlog, Blocked on the Open gate G9) is a draft plan with every owner choice recorded; the next action is that the owner accepts the plan of M55 in `docs/milestone-2.0.1.md` and authorizes the guest request of G9. M56 and M57 (Backlog) follow M55.
 
 ## Scope
 
@@ -1413,7 +1413,11 @@ Current-candidate checks below were executed before commit on the working-tree f
 | UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
 | UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
 | Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | D60 | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
-| Docs | M54 | Align the documents and comments about policies, storage tiers and ETL with the code | Milestone | In progress | No | D59, D61 | Every statement of the documents, comments and test messages in scope about policies, storage tiers and ETL is listed with its code source and is a match, or is corrected, or goes to the owner of the code; the statements about when a file moves come from a run; [detail](#m54---align-the-documents-and-comments-about-policies-storage-tiers-and-etl-with-the-code) |
+| Docs | M54 | Align the documents and comments about policies, storage tiers and ETL with the code | Milestone | Complete | No | D59, D61 | Every statement of the documents, comments and test messages in scope about policies, storage tiers and ETL is listed with its code source and is a match, or is corrected, or goes to the owner of the code; the statements about when a file moves come from a run; [detail](#m54---align-the-documents-and-comments-about-policies-storage-tiers-and-etl-with-the-code) |
+| Runtime | M55 | Measure the stop time of the appliance with data in the short term store | Milestone | Blocked | No | G9 | The stop times of the unit for three PV stages and two data conditions on the 5-minute short term store partition, one validation cell on the shipped partition, and the law of the stop time over the PV count and the files show how many PVs the stop timeout (300 seconds by default) allows; [detail](#m55---measure-the-stop-time-of-the-appliance-with-data-in-the-short-term-store) |
+| Gate | G9 | A guest with the disk capacity that the stop time measurements need is available | External gate | Open | No | none | The owner authorizes a guest request that names the disk size of the estimate in M55 (20 GB), and the provider session confirms a fresh Debian 13 guest of that size; [detail](#g9---a-guest-with-the-disk-capacity-that-the-stop-time-measurements-need-is-available) |
+| Runtime | M56 | Measure the stop time over the PV count with the 15-minute short term store partition | Milestone | Not started | No | M55, G9 | The matrix of M55 is run once with the partition `PARTITION_15MIN` (one stop for each cell), and its table is compared with the prediction of the law of M55; [detail](#m56---measure-the-stop-time-over-the-pv-count-with-the-15-minute-short-term-store-partition) |
+| Runtime | M57 | Measure the stop time over the PV count with the shipped short term store partition | Milestone | Not started | No | M55, G9 | The matrix of M55 is run once with the shipped partition `PARTITION_HOUR` (one stop for each cell), and its table is compared with the prediction of the law of M55; [detail](#m57---measure-the-stop-time-over-the-pv-count-with-the-shipped-short-term-store-partition) |
 
 ### Backlog Details
 
@@ -2146,7 +2150,7 @@ Last Compared: none
 Origin: 2.0.1 / M54
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -2222,7 +2226,10 @@ Superseded Plan Artifacts: the draft plan of D59
 
 ##### Closure Evidence
 
-- none
+- Closed on 2026-10-19 after the criteria held. Commits on `release-2.0.1`: `08dc331` (comments and messages of the rendering rules), `02c910f` (policy guide), `c201ec2` (storage tiers page and plan rows), `777724f`, `ed7505d`, `66f4516`, `81f6949`, `eee2723`, `c305587`, `8cb926b`, `ee052de` and `ef49d3a` (register, generated page, example runs, interface check list, test README count and unused macro); the commit that carries this closure adds the references of the guide to the issues below.
+- Defects of the code, reported to its owner and filed in epicsarchiverap-maven: [#49](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/49) (`optimized_N` as `reducedata` ignores N), [#50](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/50) (`reducedata` together with `pp`), [#51](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/51) (pp files of a moved partition stay in the source store). The documentation corrections of epicsarchiverap-maven are `8b8a0ae3` (hold and gather row, policy re-read) and `41c33cdf` (pass driver, 60 second margin).
+- The local source checkout follows the tip of `origin/modernize`; the generated policy parameters page was regenerated at `6554440f`, which contains `a02f9ce9`.
+- Verification Results above hold the observed runs and reviews. After the last review, the edits were the example runs, the unused macro and the issue references; the issue references were read by the author only.
 
 ##### GitHub Projection
 
@@ -2311,3 +2318,336 @@ Observed State: none
 Observed Labels: none
 Observed Milestone: none
 Last Compared: never
+
+#### M55 - Measure the stop time of the appliance with data in the short term store
+
+Origin: 2.0.1 / M55
+Identity History: none
+GitHub Issue: none
+Status: Blocked
+
+##### Summary
+
+`make sd_stop` stops the four instances in the order engine, retrieval, etl and mgmt. The unit waits up to `SYSTEMD_TIMEOUT_STOP_SECONDS` (300 seconds by default).
+
+When the ETL component receives the stop, it waits for the running jobs of every transition, up to the property `org.epics.archiverappliance.etl.common.ETLPassStopWaitSeconds` (60 seconds by default). It interrupts the worker threads and waits once more up to the same value. It then runs one job for each PV whose store sets `consolidateOnShutdown`, one after the other and without a time limit of its own. Each job uses a processing time one year ahead, so the hold keeps no file back (`PBThreeTierETLPVLookup`). The shipped policies set the option on the short term store only.
+
+The unit kills the processes that run when `TimeoutStopSec` (`SYSTEMD_TIMEOUT_STOP_SECONDS`) ends (`KillMode=mixed`). A PV that the loop has not reached by then leaves no line in the log. The error line "PVs left unconsolidated", written after the whole loop, counts only the PVs whose job runs after the wait and the PVs that the skip environment variable names. The lines of the individual jobs are written at debug level, and the shipped root level is info (`ARCHAPPL_ROOT_LOGGER_LEVEL`).
+
+The duration of the stop grows with the number of PVs and with the data in the short term store. No measurement of it exists, and the code does not show whether 300 seconds suffice. The property `ETLPassStopWaitSeconds` is not documented in the templates or documents of this repository.
+
+##### Scope
+
+Terms
+
+- A pass is one run of the ETL jobs of the PVs that share a transition and a cadence ([The Data Journey](README.DataJourney.md)). The cadence of the first transition is the partition length of the short term store; a pass starts at the start of a partition grid time plus 5 minutes, except the start-up pass that runs once when the ETL component starts and the passes that wait for a running pass.
+- The hold is the setting of the store that keeps files back; a file moves in the first pass at or after the start of its partition plus (hold + 1) partitions plus 60 seconds ([policy guide](README.policies.md), section 2.3).
+- A cell is one stage with one condition. The matrix is the six cells of three stages and two conditions. The validation cell is one more cell on the shipped partition. A stop is one stop of the unit; a cell has one or three stops.
+- Condition A uses the hold of the shipped policy, 2. Condition B uses the hold of 5. The unit is `epicsarchiverap-maven.service` (`SYSTEMD_FILENAME`).
+- The evidence members are the retained files of the runs: journal cuts, unit results, listings, frozen configuration. The replay rebuilds the table from copies of the members.
+
+Target and environment
+
+- Measure the stop of the installed appliance on one Debian 13 guest (G9) with the documented install sequence. A real `softIoc` of the EPICS Base binaries serves the PVs.
+- `AA_TEST_EPICS_BIN` is the absolute `bin/<host_arch>` folder with `softIoc` and `caget`. The plan records how the binaries reach the guest and the value of `EPICS_CA_ADDR_LIST` in `archappl.conf`, through which the engine finds the IOC.
+- The owner defers Rocky Linux 8.10 to a separate item after the Debian 13 result. The register records that the journal reader of systemd 239 hides lines (G7, M45), which matters for a measurement that reads the journal.
+- The IOC (owner choice of 2026-10-19): the stage of N PVs has scalar double PVs that change once per second, of which about 12 percent change ten times per second (12, 61 and 110 PVs in the stages of 100, 500 and 903 PVs). The stage of 903 PVs includes eight waveforms of 1000 doubles that change once per second, so it has 895 scalar PVs (785 at 1 Hz and 110 at 10 Hz).
+- M41 recovers workload definitions of the same sizes. Until then this item keeps its own IOC database with the evidence.
+- Keep the shipped log level (info), so that the logging does not change the stop time. Keep `ETLPassStopWaitSeconds` at its default of 60 seconds, which is not in the installed `archappl.properties`, and record that. The two waits take up to 120 seconds of the 300 seconds of the unit.
+
+Cells
+
+- Matrix: three stages (100, 500 and 903 PVs) and two conditions on the short term store partition `PARTITION_5MIN`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest. Condition B sets `ARCHAPPL_STS_HOLD` to 5. Each cell is stopped three times, 18 stops in all.
+- The partitions of the medium and the long term store stay as shipped, because only the short term store consolidates at the stop.
+- Validation cell: the stage of 903 PVs on the shipped values (partition `PARTITION_HOUR`, hold 2), stopped once. A 5-minute partition holds twelve times less data than the shipped partition in the same number of files. The stop times of the matrix are therefore not the stop times of the shipped state, and the validation cell tests the step to the shipped file size.
+- M56 and M57 run the matrix with the partitions `PARTITION_15MIN` and `PARTITION_HOUR`, one stop for each cell. They are separate items. The cell of M57 with 903 PVs and condition A repeats the validation cell on the shipped values, and the table of M57 shows both stops.
+
+Order, reset and policy changes
+
+- Render the settings of condition A (`PARTITION_5MIN`, hold 2) before the first install, so that the first archiving uses them.
+- Order of the runs: the cells of condition A (stages of 100, 500 and 903 PVs), then the cells of condition B, then the validation cell. The policy changes twice after the first install.
+- A policy change reaches only the PVs that are archived afterwards, because the store URLs with the hold are stored in the type information of each PV (policy guide, section 5.4). At each change stop the appliance, set `ARCHAPPL_STS_GRANULARITY` and `ARCHAPPL_STS_HOLD`, run `make conf.archapplproperties` and `make install`, start the appliance, and archive the PVs on a database that holds no URL of the other condition. Check the rendered `policies.py` and the stored URL of one PV before the run.
+- Between stages use a fresh database and empty stores; a stage is not grown by adding PVs. The rehearsal fixes the exact reset procedure from the documented targets and records its effect on the files of the stores.
+- Between the stops of one cell the PVs stay archived. After a stop start the appliance, wait for the partition boundary, accumulate, and stop.
+
+Accumulation and the phase of the stop
+
+- Passes run at fixed times, and a file moves in the first pass at or after the start of its partition plus (hold + 1) partitions plus 60 seconds. With the cadence equal to the partition length, the first transition runs its pass 5 minutes after each partition boundary. For the 5-minute partition that is the next boundary, so the pass and the boundary coincide.
+- Every stop takes place with hold + 2 files of each PV in the short term store (4 files in condition A, 7 in condition B). At the boundary that ends the (hold + 1)-th partition of data the first file has not moved, and the new partition has just opened its file, which gives hold + 2 files.
+- Rule: start archiving at a partition boundary, and stop within 90 seconds after the boundary that ends the (hold + 1)-th partition. For the 15-minute and hourly partitions this lies before the pass at 5 minutes past the boundary. For the 5-minute partition stop within 60 seconds after the pass that coincides with the boundary. The listing must show hold + 2 files of every PV; the listing decides.
+- The accumulation of a stop is (hold + 1) partitions plus the wait for the boundary: 15 and 30 minutes with the 5-minute partition, 45 and 90 minutes with the 15-minute partition, and 3 and 6 hours with the hour partition.
+- Check overlap for every stop. The launcher line `archappl-etl: stopping pid` gives the time at which the ETL instance receives its stop. A stop overlaps a pass when that time is after the start of the next scheduled pass. An overlapping stop is marked and reported apart. A wait of the ETL component on a running job that the journal shows is recorded in the same way.
+- The rehearsal measures the stop times of engine and retrieval. The ETL instance receives its stop after both have stopped. The rule keeps the margin if the stop start plus these two times stays before the next pass; the table of the matrix shows whether it held at 903 PVs.
+- The start-up pass runs once when the ETL component starts after each restart. It finds an empty short term store and moves nothing.
+
+Measurement
+
+- Stop the unit with `sudo systemctl stop <unit>`, which is what `make sd_stop` runs with its exit status ignored; keep the exit status. Take the stop duration from the monotonic properties of the unit, `InactiveEnterTimestampMonotonic` minus `ActiveExitTimestampMonotonic` (`systemctl show -p ...`), so that both values come from one clock. Take the UTC stamps from `ActiveExitTimestamp` and `InactiveEnterTimestamp`. Read `systemctl show -p Result` before the next start, because a start resets it.
+- The launcher prints one line `archappl-<service>: stopping pid <pid>` for each instance to the unit journal and no end line. The stop time of an instance is the gap to the next such line, and the stop time of mgmt is the gap to the end of the unit.
+- Take a journal cursor before the stop (`journalctl -u <unit> --show-cursor -n 0 -q`). Cut the journal with it (`journalctl -u <unit> --after-cursor=<cursor> -o short-precise`) and add the lines of the identifier `archappl-etl`. The ETL log lines are in the journal; no log file exists.
+- The shipped level shows only the error lines. The consolidated PVs and the left PVs therefore come from the listing of the three stores before and after the stop.
+- Check the completeness of the journal: the four launcher lines per stop, the first and the last line of the cut, the retention setting (`SystemMaxUse`) and the size of the journal after a stage. A missing required line makes the stop Incomplete. The exception is a stop that the unit ended with SIGKILL, where the lines of the instances that are not stopped are absent by design and the result `timeout` is the observed outcome.
+- Freeze for every stop the rendered `policies.py`, `../CONFIG_SITE.local`, the installed `archappl.properties` and `archappl.conf`, the refs of this repository and of the source, the kernel and the JDK.
+- At the start of each run publish the stage, the condition, the start time and the intended end in a status file on the guest and in the terminal of the run, and keep the checkpoints in the evidence. No fault is injected in this test; a stop that the unit ends is an observed outcome.
+
+Expectation, law and criterion
+
+- Expectation. A cell with N PVs and f files of each PV has the expected duration a0 + N * (b0 + c0 * f). a0 is the fixed time of the stop (the stop times of engine, retrieval and mgmt and the JVM stop of the ETL instance). b0 is the time that the ETL jobs spend on one PV. c0 is the extra time for each file of a PV.
+- The rehearsal measures a0, b0 and c0 from four stops: 25 and 100 PVs, each with f = 4 (hold 2) and f = 7 (hold 5). Four stops give three parameters with one degree of freedom left. The expectations of all cells are written down from them before the cells run.
+- The symbols a, b and c below are the parameters of the fit on the matrix; a0, b0 and c0 are the rehearsal values.
+- Criterion of a cell (owner choice of 2026-10-19): a stop suffices when the unit result is `success`, the duration is at most the value of `SYSTEMD_TIMEOUT_STOP_SECONDS`, and no PV is left. A cell suffices when all its stops suffice. A cell does not suffice when the unit ended any stop or any stop left a PV. No margin class exists.
+- Law of the stop time. The model of the main result pools both conditions: duration = a + N * (b + c * f), with f the files of each PV that the listing shows at the stop. The design has six design points (three values of N and two of f, 4 and 7) and 18 stops. The fit has three parameters, three degrees of freedom for the lack of fit and 12 for the pure error.
+- Report the fit, the residuals, the lack-of-fit test with the statement that its power is low, and the raw duration of every stop with its time after the boundary. Report a second fit over the bytes of the short term store apart. Its coefficient rests on the stage of 903 PVs, the only stage with waveforms, so the bytes effect is not separable from the PV count inside a condition.
+- A stop that ended with `timeout` is a value cut at the timeout. Leave it out of the fit, report it apart, and state that the fitted law is a lower bound for that cell. A stop marked as overlapping is reported apart in the same way.
+- Read from the law, for each condition, the PV count at which the predicted duration reaches the value of `SYSTEMD_TIMEOUT_STOP_SECONDS` and the PV count at which it reaches 80 percent of it. The law holds for this IOC and the 5-minute partition. A prediction beyond 903 PVs is an extrapolation, and the report says so.
+- Validation. Before the validation cell runs, write down its prediction from the law and the 95 percent prediction interval. The cell agrees when its stop time lies inside the interval. A disagreement is reported as a difference that the file size, the pass cadence, the store ages or the page cache may explain, without assigning one cause. One cell gives agreement or a flag, not an uncertainty of the law.
+
+Rehearsal, tooling and evidence
+
+- Rehearse before the matrix. Run the cells of 25 and 100 PVs through installation, archiving, accumulation with the rule, the stop, the final capture of logs, journal and listings, the building of the table and its replay from copies. Measure a0, b0 and c0 with the four stops above, measure the stop times of engine and retrieval, prove the measurement commands of this Scope, and fix the reset procedure. Repair what blocks capture or judgment before the matrix. The rehearsal counts for no cell.
+- Exercise the tools of the table and the replay once on the retained evidence of the rehearsal, copied to the member count and size of the largest stage (903 PVs, 7 files of each PV, 19 stops). This tests the tools only and supports no claim about the appliance.
+- Declare the volume of the evidence: the number of journal lines and of listed files of the largest stage, the size of the journal, and its retention setting.
+- Disk estimate. This is an assumption that the rehearsal replaces with the measured sample size. The stage of 903 PVs produces 785 samples per second from the slow scalars, 1100 from the fast ones and 8 waveform samples. A scalar sample takes about 25 bytes in a plain file and a waveform sample about 8 kB (packed doubles), which gives about 111 kB per second or 400 MB per hour.
+- The largest cells hold about 3 hours of data (validation cell, 1.2 GB) and, in M57, about 6 hours (2.4 GB) in the short term store, and the consolidated data of the same size in the medium term store. With the evidence of the runs, 20 GB covers M55, M56 and M57 with a factor of about four.
+
+Total time
+
+- Accumulation and waits: condition A 9 stops of up to 20 minutes, condition B 9 stops of up to 35 minutes, the validation cell up to 4 hours; about 12 hours. With the starts, stops, resets and checks of 19 stops the run takes about 15 hours without the rehearsal.
+
+Out of scope: a change of the default of `SYSTEMD_TIMEOUT_STOP_SECONDS`, of the ETL code or of the policies of the repository (the raised `ARCHAPPL_STS_HOLD` and the changed partition are settings of the guest only); a change of `docs/README.install.md` or the systemd reference (a change follows the result and needs its own plan item and authority); heap sizing (M41); any run on the production appliance (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`); a run on Rocky Linux 8.10.
+
+##### Completion Criteria
+
+- A table lists for every stop of the matrix and the validation cell: the number of PVs, the files of each PV, the files and bytes of the short term store, the time after the boundary, the stop duration of the unit and of each instance, the unit result, the consolidated PVs and the left PVs. It names the refs, the kernel, the JDK, the policy values and the value of `ETLPassStopWaitSeconds`. A stop that the unit ended or that overlapped a pass is marked.
+- The journal cuts, the unit results, the listings and the frozen configuration reproduce the table. Their hashes and the identities of the rebuilding tools are frozen before the replay. The replay runs on copies, and the originals are unchanged.
+- A coverage table lists every cell and every stop with its result: observed stop, ended by the unit (SIGKILL, result `timeout`), overlapping a pass, Incomplete (a required record is missing), not run or interrupted. A cell or a stop that did not run is not counted as passed.
+- A statement gives the law with its fit, residuals and lack-of-fit test, the bytes fit apart, and the PV counts for each condition at which the law reaches the stop timeout and 80 percent of it. It lists the cells that suffice and that do not, and the result of the validation cell against its written interval. The statement does not change the documents. It records what a change of the documents needs and the limits of the data.
+
+##### Dependencies And Decisions
+
+- G9: the guest. The work is Blocked while G9 is Open, and resumes as Not started when G9 is Complete. The disk size of the request comes from the estimate in the Scope. G9 does not wait for the acceptance of the plan, and the plan does not wait for G9.
+- Owner choices of 2026-10-19, taken before the acceptance of the plan: the stages of 100, 500 and 903 PVs; the IOC of the Scope; the hold of 5 for condition B; Debian 13, with Rocky Linux 8.10 deferred; the partition `PARTITION_5MIN` for the matrix and the shipped partition for the validation cell; the criterion of sufficiency with the law; three stops for each cell of the matrix and one for the validation cell; one stop for each cell in M56 and M57; condition A before condition B; stops cut at `timeout` left out of the fit; the phase rule of the stop; no change of the documents within this item.
+- No decision remains for the acceptance. The plan stays draft until the owner accepts it and authorizes the implementation separately.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Request the guest through G9 with the disk size of the estimate. Render the settings of condition A, install the appliance with the documented sequence, the EPICS Base binaries and the engine address list, and archive the PVs (T1).
+2. Rehearse with 25 and 100 PVs and both holds, measure a0, b0 and c0 and the stop times of engine and retrieval, prove the commands, fix the reset procedure, and exercise the tools on copied evidence (T1).
+3. Write down the expectation of every cell. Run the cells of condition A in the order of the stages, change the policy, and run the cells of condition B in the same order (T2, T3, T4).
+4. Fit the law on the 18 stops of the matrix, and write down the prediction and the prediction interval of the validation cell (T5).
+5. Change the policy to the shipped values, run the validation cell once (T2, T3, T4), and compare it with its interval (T6).
+6. Freeze the evidence, rebuild the table from copies, compile the coverage table and the statement, and record the result without a change of the documents (T6, T7).
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | VM | Rehearse with 25 and 100 PVs and both holds through installation, archiving, accumulation with the rule, the stop, final capture and the table with its replay, with the PVs served by a real `softIoc`; exercise the tools on the copied evidence of the largest stage | Guest of G9; local host | Every step runs and its evidence is retained; a0, b0, c0, the commands and the reset procedure are fixed; defects that block capture or judgment are repaired |
+| T2 | VM | Stop the unit with `sudo systemctl stop` (the effect of `make sd_stop`) under the rule, at each stage and condition of the matrix and in the validation cell, after the expectation of the cell was written down | Guest of G9 | A stop duration of the unit and of each instance for every stop, next to its expectation, with the time after the boundary and the file count |
+| T3 | VM | Cut the journal of each stop with its cursor, read the error lines of the ETL instance, `systemctl show -p Result` and the timeout line; check the four launcher lines, the first and last line of the cut, and overlap | Guest of G9 | The PVs named as left, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T4 | VM | List the three stores before and after each stop | Guest of G9 | After a stop without SIGKILL the short term store holds no file except those of the PVs that the error lines name as left (an empty file is deleted, not moved); after a stop that the unit ended the listing names the PVs that have files |
+| T5 | Local | Fit the law on the stops of the matrix, and write down the prediction and its interval for the validation cell before the cell runs | Local host | The fit, the residuals and the interval are retained and reproduce from the retained table |
+| T6 | Local | Freeze the members, hashes and tool identities, rebuild the table from copies, and compare the validation cell with its written interval | Local host | Every value follows from the retained files, the originals are unchanged, and the comparison uses the interval of T5 |
+| T7 | Review | Read the coverage table, the fit and the statement against the table | Local host | Each claim names the stage, the condition and the stop duration that support it, and no cell that did not run counts as passed |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Guest of G9; local host | Pending | none |
+| T2 | Pending | Guest of G9 | Pending | none |
+| T3 | Pending | Guest of G9 | Pending | none |
+| T4 | Pending | Guest of G9 | Pending | none |
+| T5 | Pending | Local host | Pending | none |
+| T6 | Pending | Local host | Pending | none |
+| T7 | Pending | Local host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### G9 - A guest with the disk capacity that the stop time measurements need is available
+
+Origin: 2.0.1 / G9
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+M55, M56 and M57 need a Debian 13 guest whose disk holds the archive data of the largest cell and the retained logs and evidence. The provider session creates guests from a request, and the owner authorizes the request. The estimate in the Scope of M55 gives 20 GB for the three items, with a factor of about four over the expected need. Responsible parties: the owner (authorization) and the provider session (creation). Affected work: M55, and M56 and M57, which reuse the guest.
+
+##### Completion Criteria
+
+- The owner authorizes the request, and the request names the disk size of the estimate in M55.
+- The provider session confirms a fresh Debian 13 guest of that size.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| Pending | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+#### M56 - Measure the stop time over the PV count with the 15-minute short term store partition
+
+Origin: 2.0.1 / M56
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+M55 measures the stop time on the 5-minute short term store partition and checks one cell on the shipped partition. A 15-minute partition holds three times the data of the 5-minute partition in the same number of files and shows how the stop time grows between the two. The method, the IOC, the stages, the conditions, the phase rule of the stop, the evidence rules and the criterion of sufficiency are those of M55. This item changes only the partition of the short term store and stops each cell once.
+
+##### Scope
+
+- Run the matrix of M55 (stages of 100, 500 and 903 PVs; condition A with the hold of 2 and condition B with the hold of 5) on the short term store partition `PARTITION_15MIN`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest. Stop each of the six cells once. Each stop follows the rule of M55: start archiving at a partition boundary and stop shortly after the boundary that ends the (hold + 1)-th partition, with hold + 2 files of each PV. The accumulation is 45 minutes for condition A and 90 minutes for condition B; with the wait for the boundary the six cells take about 8.3 hours, and about 9 hours with the starts, stops and resets.
+- Follow the order, the reset, the measurement and the overlap check of M55. Write down the prediction of every cell from the law of M55, with its prediction interval, before the cells run.
+- With one stop for each cell this item has no pure error of its own and uses the pure error of M55. The law of M55 was fitted on the 5-minute partition and a smaller file size, so a difference is reported without a single cause.
+
+Out of scope: a change of the repository, the policies or the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
+
+##### Completion Criteria
+
+- A table in the form of M55 lists the six stops with the stop duration of the unit and of each instance, the files and bytes of the short term store, the time after the boundary, the unit result, the consolidated PVs, the left PVs, the refs and the method.
+- A coverage table lists every cell with its result. A cell that did not run is not counted as passed.
+- The statement gives for every cell the difference between the stop time and the prediction of the law of M55, and whether it lies inside the prediction interval.
+
+##### Dependencies And Decisions
+
+- M55 supplies the method, the IOC, the law and the validation cell. The dependency is work ordering: this item starts when M55 is Complete.
+- G9 supplies the guest and its disk, which this item reuses.
+- The owner choices of M55 apply unchanged (stages, IOC, hold of condition B, operating system, criterion of sufficiency, order, phase rule). One stop for each cell is the owner choice for this item (2026-10-19).
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Set the partition `PARTITION_15MIN` and the hold of condition A on the guest, run `make conf.archapplproperties` and `make install`, archive the PVs on a fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
+2. Write down the prediction of every cell, then run the six cells in the order of M55 (T2, T3).
+3. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5).
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | VM | Set the partition `PARTITION_15MIN`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Guest of G9 | The partition and the hold of the cell are in the stored URL |
+| T2 | VM | Stop each of the six cells once under the rule of M55 with the measurement commands that M55 proved | Guest of G9 | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
+| T3 | VM | Cut the journal of each stop with its cursor, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Guest of G9 | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
+| T5 | Review | Read the coverage table and the comparison with the law of M55 | Local host | Each claim names the stage, the condition and the stop duration that support it, and no cell that did not run counts as passed |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Guest of G9 | Pending | none |
+| T2 | Pending | Guest of G9 | Pending | none |
+| T3 | Pending | Guest of G9 | Pending | none |
+| T4 | Pending | Local host | Pending | none |
+| T5 | Pending | Local host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M57 - Measure the stop time over the PV count with the shipped short term store partition
+
+Origin: 2.0.1 / M57
+Identity History: none
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+M55 checks one cell on the shipped partition. The full matrix on the shipped partition measures the stop time of the shipped state for every stage and both conditions. The method, the IOC, the stages, the conditions, the phase rule of the stop, the evidence rules and the criterion of sufficiency are those of M55. This item changes only the partition of the short term store and stops each cell once.
+
+##### Scope
+
+- Run the matrix of M55 (stages of 100, 500 and 903 PVs; condition A with the hold of 2 and condition B with the hold of 5) on the short term store partition `PARTITION_HOUR`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest. Stop each of the six cells once. Each stop follows the rule of M55: start archiving at a partition boundary and stop shortly after the boundary that ends the (hold + 1)-th partition, with hold + 2 files of each PV. The accumulation is 3 hours for condition A and 6 hours for condition B; with the wait for the boundary the six cells take about 33 hours, and about 34 hours with the starts, stops and resets.
+- Follow the order, the reset, the measurement and the overlap check of M55. Write down the prediction of every cell from the law of M55, with its prediction interval, before the cells run.
+- With one stop for each cell this item has no pure error of its own and uses the pure error of M55. The law of M55 was fitted on the 5-minute partition and a smaller file size, so a difference is reported without a single cause.
+
+Out of scope: a change of the repository, the policies or the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
+
+##### Completion Criteria
+
+- A table in the form of M55 lists the six stops with the stop duration of the unit and of each instance, the files and bytes of the short term store, the time after the boundary, the unit result, the consolidated PVs, the left PVs, the refs and the method.
+- A coverage table lists every cell with its result. A cell that did not run is not counted as passed.
+- The statement gives for every cell the difference between the stop time and the prediction of the law of M55, and whether it lies inside the prediction interval.
+
+##### Dependencies And Decisions
+
+- M55 supplies the method, the IOC, the law and the validation cell. The dependency is work ordering: this item starts when M55 is Complete.
+- G9 supplies the guest and its disk, which this item reuses.
+- The owner choices of M55 apply unchanged (stages, IOC, hold of condition B, operating system, criterion of sufficiency, order, phase rule). One stop for each cell is the owner choice for this item (2026-10-19).
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Set the partition `PARTITION_HOUR` and the hold of condition A on the guest, run `make conf.archapplproperties` and `make install`, archive the PVs on a fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
+2. Write down the prediction of every cell, then run the six cells in the order of M55 (T2, T3).
+3. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5).
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | VM | Set the partition `PARTITION_HOUR`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Guest of G9 | The partition and the hold of the cell are in the stored URL |
+| T2 | VM | Stop each of the six cells once under the rule of M55 with the measurement commands that M55 proved | Guest of G9 | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
+| T3 | VM | Cut the journal of each stop with its cursor, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Guest of G9 | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
+| T5 | Review | Read the coverage table and the comparison with the law of M55 | Local host | Each claim names the stage, the condition and the stop duration that support it, and no cell that did not run counts as passed |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Guest of G9 | Pending | none |
+| T2 | Pending | Guest of G9 | Pending | none |
+| T3 | Pending | Guest of G9 | Pending | none |
+| T4 | Pending | Local host | Pending | none |
+| T5 | Pending | Local host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
