@@ -43,6 +43,7 @@ staticcontent/img/wordmark.svg
 staticcontent/js/aa/chart.js
 staticcontent/js/aa/plots.js
 staticcontent/js/aa/spark.js
+staticcontent/js/aa/timezone.js
 staticcontent/js/vendor/d3.LICENSE.txt
 staticcontent/js/vendor/d3.SOURCE.txt
 staticcontent/js/vendor/d3.min.js
