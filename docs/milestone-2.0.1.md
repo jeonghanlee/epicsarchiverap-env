@@ -2159,7 +2159,7 @@ The review of `docs/README.DataJourney.md` ran the scenario of that document thr
 5. Section 5.4 tells the operator to edit the installed `policies.py`. `make install` copies over it the file that `make conf` rendered from `site-template/policies.py.in`, so the edit is lost. The durable edit is in the template, followed by `make conf`.
 6. Section 2.3.1 has no pointer to the pass schedule and the timeline in `docs/README.DataJourney.md` (sections 2 and 4).
 7. Information only: section 2.1.1 says the file is moved "after the time elapses, according to the `partitionGranularity` setting" without the `hold` rule or the schedule.
-8. Information only: the generated page `book/src/configure/policy-parameters.md` repeats the class comment of `PlainPBStoragePlugin` of the selected source (`SRC_TAG`). The comment gives the age at which a file moves as `hold` partitions and the files kept as at least `hold - gather`. The source commit `a02f9ce9` corrects the comment (`hold + 1` partitions counted from the start of the partition; `hold - gather + 1` completed files remain after a pass on schedule), and the page follows when `SRC_TAG` selects a commit that contains it.
+8. Information only: the generated page `book/src/configure/policy-parameters.md` repeats the class comment of `PlainPBStoragePlugin` of the selected source (`SRC_TAG`). The comment gives the age at which a file moves as `hold` partitions and the files kept as at least `hold - gather`. The source commit `a02f9ce9` corrects the comment (`hold + 1` partitions counted from the start of the partition; `hold - gather + 1` completed files remain after a pass on schedule), and the page follows when `SRC_TAG` selects a commit that contains it. Resolved on 2026-10-18: `SRC_TAG` is `origin/modernize`, the owner keeps the local source checkout on the tip of that branch, and the page was regenerated at `6554440f`, which contains `a02f9ce9`.
 9. Section 5.4 does not say that a changed `policies.py` reaches only the PVs that are archived afterwards. The store URLs of a PV are stored with its type information (checked with a SQLite and a MariaDB database), so a PV that was archived before the change keeps its `hold` and its partitions. The guide does not say how the stores of an archived PV are changed; the source has actions for it that no document of this repository names, and none was run.
 10. Section 2.2.2 says that only completed files are subject to `hold`. A file of MTS that has received only some of its parts is a candidate too, and it moves when its boundary is met, as the runs of the Data Journey document show.
 11. Section 2.3.4 states that two setters throw an `IOException` when `gather` exceeds `hold`. This was read from the code and not run.
@@ -2183,7 +2183,7 @@ Out of scope: history records (`CHANGELOG.md`, `docs/milestone-*.md`, `docs/repo
 ##### Dependencies And Decisions
 
 - D59 records the first findings. D61, dated 2026-10-18, widens the scope and orders the work.
-- The generated page `book/src/configure/policy-parameters.md` changes only when D56 sets the source pin that contains the corrected comment of the source (commit `a02f9ce9`).
+- The generated page `book/src/configure/policy-parameters.md` follows the tip of the source branch `origin/modernize` that `SRC_TAG` names; it is regenerated with `book/scripts/generate-all.bash` after the local source checkout moves.
 - Statements of `docs/README.policies.md` are changed under the direction of D61; the guide names Sangil Lee and Jeong Han Lee as authors.
 
 ##### Implementation Plan
