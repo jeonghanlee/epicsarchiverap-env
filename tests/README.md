@@ -244,7 +244,7 @@ the console summary; a skipped check is not verification.
   `TimeoutStopSec` default and an `ExecStart` in service mode, with no
   `ExecStop`. The launcher parses (and passes `shellcheck -x` when installed),
   carries the per-instance `systemd-cat` identifier, the `wait -n` loop and the
-  `bin/run.sh` wrapper, and no longer names `archappl_service.log`. The run
+  `bin/run.sh` wrapper, and does not name `archappl_service.log`. The run
   wrapper template execs `catalina.sh run`; the instance install renders it.
   No JULI `logging.properties` is shipped, the access
   valve carries `maxDays="90"`, and the `log4j.properties` template and its
@@ -445,7 +445,7 @@ the line `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.` shows 
 - The five configuration-generation commands (`appliances.xml`, `archappl.properties`, `policies.py`, `context.xml` and `archappl.conf`) precede the site-overlay copy, which precedes the Maven package command.
 - `MAVEN_FLAGS` is empty for this check; Phase 1 separately verifies nonempty flags across all six Maven targets.
 - The check does not clone sources, execute Java or Maven, generate configuration, provision storage, or inspect WARs and release artifacts. Source compilation tests belong to [epicsarchiverap-maven CI](https://github.com/jeonghanlee/epicsarchiverap-maven/actions); VM acceptance verifies the actual installed candidate independently.
-- The script remains `tests/phase2-compile.bash` for direct callers. Both `--local` and `--phase=2` still run Phase 1 followed by Phase 2.
+- Direct callers run the script `tests/phase2-compile.bash`. Both `--local` and `--phase=2` run Phase 1 followed by Phase 2.
 
 ### Phase 3 - Installation assertions
 
