@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-readonly STOP_FILES="meta.env unit.txt stop-exit.txt keys.txt journal.txt journal.bounds etl-pass.size etl-pass.cut listing-before.txt listing-after.txt"
+readonly STOP_FILES="meta.env unit.txt stop-exit.txt keys.txt journal.txt journal.bounds etl-pass.size etl-pass.cut etl-pass.records listing-before.txt listing-after.txt"
 
 function usage {
     sed -n '3,5p' "${BASH_SOURCE[0]}" >&2
@@ -75,7 +75,7 @@ base(FILENAME) == "journal.txt" {
     if (!stamped($0)) next
     if (match($0, /archappl-(engine|retrieval|etl|mgmt): stopping pid [0-9]+/)) {
         svc = substr($0, RSTART + 9); sub(/:.*/, "", svc)
-        launch[svc] = epoch($1)
+        jl[++njl] = svc; jlt[njl] = epoch($1)
     }
     next
 }
@@ -86,14 +86,19 @@ base(FILENAME) == "etl-pass.cut" {
     if (match($0, /Need to consolidate data from etl source [^ ]+ for pv [^ ]+/)) {
         nj++; jt[nj] = ts; split(substr($0, RSTART, RLENGTH), w, " "); jpv[nj] = w[11]
     }
+    next
+}
+# The pass records of the whole etl-pass.log: a record is written at the end of
+# its pass, so the passes around a stop are not all in the cut of the stop.
+base(FILENAME) == "etl-pass.records" {
+    if (!stamped($0)) next
     if (index($0, "ETLPassRecord[")) {
         np++
         nreq = split("plannedAt startedAt endedAt pvCount jobsRun jobsFailed partitionsMoved bytesMoved slowestPv slowestMillis aborted", req, " ")
         for (i = 1; i <= nreq; i++) if (rec($0, req[i]) == "") badpass = badpass " " req[i]
         pplan[np] = epoch(rec($0, "plannedAt")); pstart[np] = epoch(rec($0, "startedAt"))
         pend[np] = epoch(rec($0, "endedAt"))
-        sm = rec($0, "slowestMillis") + 0; if (sm > slowest) slowest = sm
-        if (pend[np] != "" && pend[np] - pstart[np] > passmax) passmax = pend[np] - pstart[np]
+        psm[np] = rec($0, "slowestMillis") + 0
     }
     next
 }
@@ -134,13 +139,24 @@ END {
         if (size["before"] !~ /^[0-9]+$/ || size["after"] !~ /^[0-9]+$/) miss("etl-pass.size:value")
         else if (size["after"] + 0 < size["before"] + 0) miss("etl-pass:truncated")
     }
+    # Launcher lines count only from the start of the stop; a cut that reaches
+    # back before it holds the lines of earlier stops.
+    axs = epoch(unit["ActiveExitTimestamp"])
+    for (i = 1; i <= njl; i++) if (axs == "" || jlt[i] >= axs - 1) launch[jl[i]] = jlt[i]
+    fb = epoch(bounds["first_utc"])
+    if (fb != "" && axs != "" && fb < axs - 60) miss("journal.bounds:first-before-stop")
     result = unit["Result"]
     if (result != "timeout") {
         split("engine retrieval etl mgmt", svcs, " ")
         for (i = 1; i <= 4; i++) if (!(svcs[i] in launch)) miss("launcher:" svcs[i])
     }
-    if (("etl-pass.cut" in got) && !("etl-pass.cut" in filled)) miss("etl-pass.cut:empty")
+    # A stop that the unit ended before the launcher reached the ETL instance has
+    # no ETL lines by design; its cut may be empty.
+    if (("etl-pass.cut" in got) && !("etl-pass.cut" in filled)) {
+        if (result != "timeout" || ("etl" in launch)) miss("etl-pass.cut:empty")
+    }
     else if (("etl-pass.cut" in got) && ("etl" in launch) && shutdown == "") miss("etl-pass.cut:shutdown-line")
+    if (("etl-pass.records" in got) && np == 0) miss("etl-pass.records:empty")
     if (badpass != "") miss("pass-record:" substr(badpass, 2))
     c1 = (missing == "" ? "Passed" : "Incomplete")
 
@@ -163,6 +179,16 @@ END {
     hi = (meta["partition"] == "PARTITION_5MIN" ? 60 : 90)
     qual = ""
     if ((have_before && offfiles > 0) || afterb == "" || afterb < 30 || afterb > hi) qual = "off-rule"
+    # slowestMillis and the pass duration count the passes planned in the
+    # accumulation of this stop: from (hold + 2) partitions before E to the end.
+    part = (meta["partition"] == "PARTITION_5MIN" ? 300 : 3600)
+    nwin = 0; slowest = 0; passmax = 0
+    for (i = 1; i <= np; i++) {
+        if (eu == "" || ie == "" || pplan[i] == "" || pplan[i] < eu - (hold + 2) * part || pplan[i] > ie) continue
+        nwin++
+        if (psm[i] > slowest) slowest = psm[i]
+        if (pend[i] != "" && pend[i] - pstart[i] > passmax) passmax = pend[i] - pstart[i]
+    }
     lim = (shutdown != "" ? shutdown + 5 : ie)
     for (i = 1; i <= np; i++) {
         running = (pstart[i] != "" && ax != "" && pstart[i] <= ax && (pend[i] == "" || pend[i] >= ax))
@@ -220,7 +246,7 @@ END {
         add("loop_median_s", r6(med), 1); add("loop_max_s", r6(jmax), 1); add("loop_max_pv", jmaxpv)
     }
     if (result == "timeout" && nj > 0) add("sigkill_pv", jpv[nj])
-    if (np > 0) { add("slowest_ms_max", slowest, 1); add("pass_duration_max_s", r6(passmax), 1) }
+    if (nwin > 0) { add("passes_in_window", nwin, 1); add("slowest_ms_max", slowest, 1); add("pass_duration_max_s", r6(passmax), 1) }
     add("qualifier", qual)
     add("c1", c1); add("c2", c2); add("c3", c3)
     if (missing != "") add("incomplete", substr(missing, 2))
@@ -262,6 +288,13 @@ function main {
     [[ -d "${run}" ]] || usage
     : > "${out}"
     while IFS= read -r folder; do
+        # A stop that ended before its record (no meta.env, or an ended.txt of
+        # run-stop.bash) stays in the coverage table but not in the table.
+        if [[ ! -f "${folder}/meta.env" || -f "${folder}/ended.txt" ]]; then
+            printf 'rebuild-table: not recorded: %s (%s)\n' "${folder##*/}" \
+                "$(paste -sd' ' "${folder}/ended.txt" 2> /dev/null || echo 'no ended.txt')" >&2
+            continue
+        fi
         rc=0
         stop_record "${folder}" >> "${out}" || rc=$?
         [[ ${rc} -le 2 ]] || { printf 'rebuild-table: failed on %s\n' "${folder}" >&2; exit 3; }

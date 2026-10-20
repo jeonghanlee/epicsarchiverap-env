@@ -184,7 +184,7 @@ function test_parser_variants {
     d="$(copy_stop stop-01-passed truncated)"; printf 'before=4987\nafter=100\n' > "${d}/etl-pass.size"
     expect_eq "truncated log: status" "2" "$(judge "${d}")"
     expect_eq "truncated log: reason" "etl-pass:truncated" "$(field "${workspace}/out/judge-truncated.out" incomplete)"
-    d="$(copy_stop stop-01-passed no-jobsrun)"; sed -i 's/ jobsRun=3,//' "${d}/etl-pass.cut"
+    d="$(copy_stop stop-01-passed no-jobsrun)"; sed -i 's/ jobsRun=3,//' "${d}/etl-pass.records"
     expect_eq "pass record without jobsRun: status" "2" "$(judge "${d}")"
     expect_eq "pass record without jobsRun: reason" "pass-record:jobsRun" "$(field "${workspace}/out/judge-no-jobsrun.out" incomplete)"
     d="$(copy_stop stop-01-passed no-invocation)"; sed -i '/^InvocationID=/d' "${d}/unit.txt"
@@ -196,6 +196,24 @@ function test_parser_variants {
     d="$(copy_stop stop-01-passed empty-cut)"; : > "${d}/etl-pass.cut"
     expect_eq "empty cut: status" "2" "$(judge "${d}")"
     expect_eq "empty cut: reason" "etl-pass.cut:empty" "$(field "${workspace}/out/judge-empty-cut.out" incomplete)"
+    d="$(copy_stop stop-01-passed no-records)"; : > "${d}/etl-pass.records"
+    expect_eq "no pass record: status" "2" "$(judge "${d}")"
+    expect_eq "no pass record: reason" "etl-pass.records:empty" "$(field "${workspace}/out/judge-no-records.out" incomplete)"
+    d="$(copy_stop stop-01-passed old-pass)"
+    sed 's/2026-10-19T20:05:0/2026-10-19T19:00:0/g; s/slowestMillis=850/slowestMillis=9999/' "${d}/etl-pass.records" > "${d}/old.line"
+    cat "${d}/old.line" >> "${d}/etl-pass.records"; rm "${d}/old.line"
+    judge "${d}" > /dev/null
+    expect_eq "pass before the accumulation: slowest_ms_max" "850" "$(field "${workspace}/out/judge-old-pass.out" slowest_ms_max)"
+    expect_eq "pass before the accumulation: passes_in_window" "1" "$(field "${workspace}/out/judge-old-pass.out" passes_in_window)"
+    d="$(copy_stop stop-02-timeout killed-before-etl)"; : > "${d}/etl-pass.cut"; sed -i '/archappl-etl:/d' "${d}/journal.txt"
+    expect_eq "timeout before the ETL instance: status" "1" "$(judge "${d}")"
+    expect_eq "timeout before the ETL instance: c1" "Passed" "$(field "${workspace}/out/judge-killed-before-etl.out" c1)"
+    d="$(copy_stop stop-01-passed cut-too-early)"
+    sed -i 's/^first_utc=.*/first_utc=2026-10-19T06:21:31.260778Z/' "${d}/journal.bounds"
+    sed -i '1i 2026-10-19T19:45:40.200000+00:00 guest archappl[900]: archappl-etl: stopping pid 1900' "${d}/journal.txt"
+    expect_eq "cut that starts before the stop: status" "2" "$(judge "${d}")"
+    expect_eq "cut that starts before the stop: reason" "journal.bounds:first-before-stop" "$(field "${workspace}/out/judge-cut-too-early.out" incomplete)"
+    expect_eq "cut that starts before the stop: etl_gap_s" "10" "$(field "${workspace}/out/judge-cut-too-early.out" etl_gap_s)"
     d="$(copy_stop stop-01-passed malformed-listing)"; sed -i '1s/ 2026-[^ ]* / /' "${d}/listing-before.txt"
     expect_eq "listing row without time: status" "2" "$(judge "${d}")"
     d="$(copy_stop stop-01-passed no-frozen)"; rm "${d}/frozen/SHA256SUMS"
@@ -204,7 +222,7 @@ function test_parser_variants {
     expect_eq "three files of one PV: status" "0" "$(judge "${d}")"
     expect_eq "three files of one PV: qualifier" "off-rule" "$(field "${workspace}/out/judge-off-rule.out" qualifier)"
     d="$(copy_stop stop-01-passed overlap)"
-    sed -i 's/plannedAt=2026-10-19T20:05:00Z, startedAt=2026-10-19T20:05:00.100Z, endedAt=2026-10-19T20:05:02Z/plannedAt=2026-10-19T20:05:30Z, startedAt=2026-10-19T20:05:30Z, endedAt=2026-10-19T20:05:44Z/' "${d}/etl-pass.cut"
+    sed -i 's/plannedAt=2026-10-19T20:05:00Z, startedAt=2026-10-19T20:05:00.100Z, endedAt=2026-10-19T20:05:02Z/plannedAt=2026-10-19T20:05:30Z, startedAt=2026-10-19T20:05:30Z, endedAt=2026-10-19T20:05:44Z/' "${d}/etl-pass.records"
     expect_eq "pass running at the stop: qualifier" "overlap" "$(judge "${d}" > /dev/null; field "${workspace}/out/judge-overlap.out" qualifier)"
     if [[ ${EUID} -ne 0 ]]; then
         d="$(copy_stop stop-01-passed unreadable)"; chmod 000 "${d}/unit.txt"
@@ -309,6 +327,7 @@ function test_run_stop {
     expect_eq "run-stop with an unknown cell" "3" "$(status_of rs-cell "${TOP}/run-stop.bash" --cell main-1 "${common[@]}")"
     expect_eq "run-stop with a bad stop number" "3" "$(status_of rs-stop "${TOP}/run-stop.bash" --cell main-903 "${common[@]}" --stop x)"
     expect_eq "run-stop main cell with a prediction" "3" "$(status_of rs-pred "${TOP}/run-stop.bash" --cell main-903 "${common[@]}" --prediction "${FIX}/fit/prediction.json")"
+    expect_eq "run-stop main cell without an expectation" "3" "$(status_of rs-noexp "${TOP}/run-stop.bash" --cell main-903 --run selftest --stop 1 --stage 1 --partition PARTITION_5MIN --hold 2 --evidence "${workspace}/evidence" --pv-list "${workspace}/pvs.csv")"
     expect_eq "run-stop validation without a prediction" "3" "$(status_of rs-nopred "${TOP}/run-stop.bash" --cell validation-903 "${common[@]}")"
     expect_eq "run-stop without the guard file" "3" \
         "$(STOP_TIME_GUARD_FILE="${workspace}/absent" status_of rs-guard "${TOP}/run-stop.bash" --cell main-903 "${common[@]}" --dry-run)"
@@ -337,6 +356,17 @@ function test_rebuild_and_compare {
     cp -r "${FIX}/run-synthetic" "${copy}"
     expect_eq "rebuild-table on the copy" "0" "$(status_of rebuild "${TOP}/rebuild-table.bash" "${copy}" "${workspace}/rebuilt.jsonl")"
     after="$(cd "${FIX}" && find . -type f -printf '%P\n' | LC_ALL=C sort | xargs sha256sum | sha256sum)"
+    cp -r "${FIX}/run-synthetic" "${workspace}/with-unrecorded"
+    mkdir "${workspace}/with-unrecorded/stop-main-903-9.interrupted-20261019T000000Z"
+    cp "${FIX}/run-synthetic/stop-01-passed/keys.txt" "${workspace}/with-unrecorded/stop-main-903-9.interrupted-20261019T000000Z/"
+    "${TOP}/rebuild-table.bash" "${workspace}/with-unrecorded" "${workspace}/with-unrecorded.jsonl" 2> "${workspace}/out/unrecorded.err"
+    expect_eq "folder without meta.env: records" "$(wc -l < "${FIX}/run-synthetic/stops.jsonl")" "$(wc -l < "${workspace}/with-unrecorded.jsonl")"
+    expect_eq "folder without meta.env: notice" "1" "$(grep -c 'not recorded: stop-main-903-9.interrupted' "${workspace}/out/unrecorded.err")"
+    cp -r "${FIX}/run-synthetic/stop-01-passed" "${workspace}/with-unrecorded/stop-main-903-8"
+    printf 'native_status=0\nstop_command_issued=1\nended_utc=2026-10-19T20:06:00.000000Z\n' > "${workspace}/with-unrecorded/stop-main-903-8/ended.txt"
+    "${TOP}/rebuild-table.bash" "${workspace}/with-unrecorded" "${workspace}/with-ended.jsonl" 2> "${workspace}/out/ended.err"
+    expect_eq "folder with ended.txt: records" "$(wc -l < "${FIX}/run-synthetic/stops.jsonl")" "$(wc -l < "${workspace}/with-ended.jsonl")"
+    expect_eq "folder with ended.txt: notice" "1" "$(grep -c 'not recorded: stop-main-903-8 (native_status=0 stop_command_issued=1' "${workspace}/out/ended.err")"
     expect_eq "fixtures unchanged" "${before}" "${after}"
     expect_eq "rebuilt records" "$(wc -l < "${FIX}/run-synthetic/stops.jsonl")" "$(wc -l < "${workspace}/rebuilt.jsonl")"
     if [[ -r "${COMPARE_EVIDENCE}" ]] && command -v python3 > /dev/null; then
@@ -351,6 +381,22 @@ function test_rebuild_and_compare {
     fi
 }
 
+function test_rehearsal_records {
+    why "Real stops of the rehearsal judge again to the values that run-stop recorded at the stop."
+    local R="${FIX}/run-rehearsal" name want cell stop key rec
+    for name in stop-rehearsal-25-2:0:rehearsal-25:2 stop-timeout-rehearsal-100-2:1:rehearsal-100:2; do
+        IFS=: read -r name want cell stop <<< "${name}"
+        expect_eq "rehearsal ${name} status" "${want}" "$(judge "${R}/${name}")"
+        rec="${workspace}/recorded-${name}.json"
+        grep "\"cell\": \"${cell}\", \"stop\": \"${stop}\"" "${R}/recorded.jsonl" > "${rec}"
+        # Fields that the tool repairs after these stops did not change.
+        for key in invocation_id result stop_exit duration_s after_boundary_s sts_files sts_bytes consolidated_pvs left_pvs loop_jobs engine_gap_s c2; do
+            expect_eq "rehearsal ${name}: ${key}" "$(field "${rec}" "${key}")" "$(field "${workspace}/out/judge-${name}.out" "${key}")"
+        done
+    done
+    expect_eq "rehearsal stop-interrupted-rehearsal-100-1 status" "2" "$(judge "${R}/stop-interrupted-rehearsal-100-1")"
+}
+
 trap _handle_exit EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
@@ -360,6 +406,7 @@ function main {
     workspace="$(mktemp -d "${TMPDIR:-/tmp}/stop-time-selftest.XXXXXX")"
     mkdir -p "${workspace}/out" "${workspace}/stops"
     test_fixture_verdicts
+    test_rehearsal_records
     test_parser_variants
     test_time_handling
     test_gen_pvs

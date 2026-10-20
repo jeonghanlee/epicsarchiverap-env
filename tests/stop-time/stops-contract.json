@@ -25,6 +25,7 @@
     "loop_mean_s": "s",
     "loop_median_s": "s",
     "loop_max_s": "s",
+    "passes_in_window": "pass",
     "slowest_ms_max": "ms",
     "pass_duration_max_s": "s"
   },
@@ -36,7 +37,7 @@
     "engine_gap_s", "retrieval_gap_s", "etl_gap_s", "mgmt_gap_s",
     "consolidated_pvs", "left_pvs", "loop_jobs",
     "loop_sum_s", "loop_mean_s", "loop_median_s", "loop_max_s",
-    "slowest_ms_max", "pass_duration_max_s"
+    "passes_in_window", "slowest_ms_max", "pass_duration_max_s"
   ],
   "fields": null,
   "allow_empty": false

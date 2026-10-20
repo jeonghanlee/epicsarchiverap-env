@@ -3,12 +3,14 @@
 # Usage:
 #   run-stop.bash --run <run-id> --cell <cell> --stop <n|nr> --stage <N> --partition <name>
 #                 --hold <n> --evidence <dir> --pv-list <csv> [--pv-list <csv> ...]
-#                 --expectation <file> [--prediction <file>] [--unit <unit>] [--dry-run]
+#                 [--expectation <file>] [--prediction <file>] [--unit <unit>] [--dry-run]
 #   run-stop.bash --judge <stop folder>
 # Cells: rehearsal-25, rehearsal-100, main-903, main-3000, validation-903 (the only cell that takes --prediction).
+# --expectation is required for every cell except the rehearsal cells.
 # Exit status: 0 Passed, 1 Failed, 2 Incomplete, 3 refusal or usage, 130 INT, 143 TERM.
-# Test hooks: STOP_TIME_GUARD_FILE (default /etc/stop-time-guest) and STOP_TIME_CHECKOUT
-# (default the checkout that holds this script).
+# Test hooks: STOP_TIME_GUARD_FILE (default /etc/stop-time-guest), STOP_TIME_CHECKOUT
+# (default the checkout that holds this script), and STOP_TIME_CURSOR (a journal cursor used
+# instead of the one taken before the stop, to rehearse a lost cursor).
 
 set -euo pipefail
 
@@ -41,7 +43,7 @@ declare -g RUN_ID="" CELL="" STOP="" STAGE="" PARTITION="" HOLD="" UNIT="" EVIDE
 declare -g EXPECTATION="" PREDICTION="" DRY_RUN=0 JUDGE=""
 declare -g -a PV_LISTS=()
 declare -g STORAGE_TOP="" INSTALL_LOCATION="" MGMT_URL="" TIMEOUT_S="" LOG4J_SITE_FILE=""
-declare -g RUN_DIR="" STOP_DIR="" STATUS="" PART_S=0
+declare -g RUN_DIR="" STOP_DIR="" STATUS="" PART_S=0 STOP_ISSUED=0
 
 function refuse {
     printf 'run-stop: %s\n' "$1" >&2
@@ -49,7 +51,7 @@ function refuse {
 }
 
 function usage {
-    sed -n '3,9p' "${BASH_SOURCE[0]}" >&2
+    sed -n '3,10p' "${BASH_SOURCE[0]}" >&2
     exit 3
 }
 
@@ -123,6 +125,9 @@ function _handle_exit {
             final_rc=2
         fi
     fi
+    if [[ ${TEST_COMPLETE} -ne 1 && -n "${STOP_DIR}" && -d "${STOP_DIR}" ]]; then
+        end_unjudged "${rc}" || true
+    fi
     if [[ -n "${STATUS}" && -f "${STATUS}" ]]; then
         set_status actual_end_utc "$(utc_now)" || true
     fi
@@ -131,6 +136,24 @@ function _handle_exit {
     fi
     print_summary
     exit "${final_rc}"
+}
+
+# A stop that ended before its record: note how it ended, mark the repeat that
+# is due, and freeze the folder. Before the stop command the same stop runs
+# again; after it the stop is Incomplete and repeats once with the suffix r.
+function end_unjudged {
+    local rc="$1" next
+    printf 'native_status=%s\nstop_command_issued=%s\nended_utc=%s\n' "${rc}" "${STOP_ISSUED}" "$(utc_now)" \
+        > "${STOP_DIR}/ended.txt"
+    if [[ ${STOP_ISSUED} -eq 0 ]]; then
+        next="${CELL}/${STOP}"
+    elif [[ "${STOP}" != *r ]]; then
+        next="${CELL}/${STOP}r"
+    else
+        next=""
+    fi
+    [[ -z "${STATUS}" ]] || set_status pending "${next}"
+    write_sums "${STOP_DIR}" 3
 }
 
 function utc_now {
@@ -210,7 +233,11 @@ function validate_options {
     for list in "${PV_LISTS[@]}"; do
         [[ -r "${list}" ]] || refuse "cannot read the PV list ${list}"
     done
-    [[ -r "${EXPECTATION}" ]] || refuse "--expectation must name a readable file"
+    if [[ "${CELL}" == rehearsal-* ]]; then
+        [[ -z "${EXPECTATION}" || -r "${EXPECTATION}" ]] || refuse "--expectation must name a readable file"
+    else
+        [[ -r "${EXPECTATION}" ]] || refuse "the cell ${CELL} needs --expectation with a readable file"
+    fi
     if [[ "${CELL}" == "validation-903" ]]; then
         [[ -r "${PREDICTION}" ]] || refuse "the validation stop needs --prediction"
         [[ -r "${PREDICTION}.sha256" ]] || refuse "the prediction needs its hash file ${PREDICTION}.sha256"
@@ -255,7 +282,8 @@ function check_before {
     grep -q '^Storage=persistent' /etc/systemd/journald.conf /etc/systemd/journald.conf.d/*.conf 2> /dev/null \
         || [[ -d /var/log/journal ]] || refuse "the journal is not persistent"
     for list in "${PV_LISTS[@]}"; do
-        head -n 1 "${list}" | tr -d '\r' | tr ',' '\n' | grep -qx store_key || refuse "${list} has no column store_key"
+        awk -F',' 'NR == 1 { for (i = 1; i <= NF; i++) { h = $i; sub(/\r$/, "", h); if (h == "store_key") found = 1 }; exit } END { exit !found }' "${list}" \
+            || refuse "${list} has no column store_key"
     done
     if [[ "${CELL}" == "validation-903" ]]; then
         (cd "$(dirname "${PREDICTION}")" && sha256sum --check --status "$(basename "${PREDICTION}").sha256") \
@@ -328,6 +356,11 @@ function sudo_read {
     sudo cat -- "$1"
 }
 
+# Read a file as root from the given byte (1 is the first).
+function sudo_tail_from {
+    sudo tail -c "+$1" -- "$2"
+}
+
 # Write <folder>/SHA256SUMS over every other file of the folder.
 function write_sums {
     local folder="$1" depth="$2" sums
@@ -372,19 +405,28 @@ function write_meta {
     } > "${STOP_DIR}/meta.env"
 }
 
-# Cut the journal from the cursor; fall back to the unit time stamps when the
-# cursor is lost, and identify the first and the last record from an export read.
+# Cut the journal from the cursor. A cursor that the journal cannot find either
+# fails the seek or seeks to another position, so the cut also falls back to the
+# unit time stamps when its first record is older than the moment the cursor was
+# taken; the first and the last record come from an export read of the same cut.
 function cut_journal {
-    local cursor="$1" since="$2" until="$3" mode="cursor" rc=0
+    local cursor="$1" since="$2" until="$3" taken_us="$4" mode="cursor" rc=0 first_us
     keep journal-cut env TZ=UTC journalctl -u "${UNIT}" --after-cursor="${cursor}" -o short-iso-precise --no-pager || rc=$?
-    if [[ ${rc} -ne 0 ]] || grep -q 'Failed to seek to cursor' "${STOP_DIR}/cmd/journal-cut.err"; then
+    if [[ ${rc} -eq 0 ]] && ! grep -q 'Failed to seek to cursor' "${STOP_DIR}/cmd/journal-cut.err"; then
+        keep journal-export journalctl -u "${UNIT}" --after-cursor="${cursor}" -o export --no-pager || true
+        first_us="$(awk -F= '/^__REALTIME_TIMESTAMP=/ { print $2; exit }' "${STOP_DIR}/cmd/journal-export.out")"
+        if [[ -n "${first_us}" && "${first_us}" -ge $((taken_us - 1000000)) ]]; then
+            cp "${STOP_DIR}/cmd/journal-cut.out" "${STOP_DIR}/journal.txt"
+        else
+            mode="time"
+        fi
+    else
         mode="time"
+    fi
+    if [[ "${mode}" == "time" ]]; then
         keep journal-cut-time env TZ=UTC journalctl -u "${UNIT}" --since="${since}" --until="${until}" -o short-iso-precise --no-pager || true
         cp "${STOP_DIR}/cmd/journal-cut-time.out" "${STOP_DIR}/journal.txt"
         keep journal-export journalctl -u "${UNIT}" --since="${since}" --until="${until}" -o export --no-pager || true
-    else
-        cp "${STOP_DIR}/cmd/journal-cut.out" "${STOP_DIR}/journal.txt"
-        keep journal-export journalctl -u "${UNIT}" --after-cursor="${cursor}" -o export --no-pager || true
     fi
     awk -v mode="${mode}" '
         /^__CURSOR=/ { c = substr($0, 10) }
@@ -404,10 +446,12 @@ function cut_journal {
     fi
 }
 
+# Print the record of a stop folder and return its verdict (0, 1 or 2), or 3
+# for a tool error of rebuild-table.bash.
 function judge_folder {
     local record rc=0
     record="$("${TOP}/rebuild-table.bash" --stop "$1")" || rc=$?
-    [[ ${rc} -le 2 ]] || exit 3
+    [[ ${rc} -le 2 ]] || return 3
     printf '%s\n' "${record}"
     return "${rc}"
 }
@@ -418,11 +462,18 @@ function claim_of {
 
 function measure {
     local now ready b0 e_planned e_used lo hi off second=0 cursor size_before size_after
-    local listing_end stop_rc=0 record rc=0 qualifier
+    local listing_end stop_rc=0 record rc=0 qualifier taken_us
     RUN_DIR="${EVIDENCE}/${RUN_ID}"
     STOP_DIR="${RUN_DIR}/stop-${CELL}-${STOP}"
     STATUS="${RUN_DIR}/status"
-    [[ ! -e "${STOP_DIR}" ]] || refuse "the stop folder ${STOP_DIR} exists; a repeat takes the suffix r"
+    if [[ -e "${STOP_DIR}" ]]; then
+        # A folder of the same stop that ended before the stop command and has
+        # no record is moved aside; any other existing folder is refused.
+        if [[ -e "${STOP_DIR}/stop-exit.txt" ]] || grep -qF "\"cell\": \"${CELL}\", \"stop\": \"${STOP}\"" "${RUN_DIR}/stops.jsonl" 2> /dev/null; then
+            refuse "the stop folder ${STOP_DIR} holds a stop; a repeat takes the suffix r"
+        fi
+        mv -- "${STOP_DIR}" "${STOP_DIR}.interrupted-$(date -u +%Y%m%dT%H%M%SZ)"
+    fi
     mkdir -p "${STOP_DIR}"
     SUMMARY_ON=1
 
@@ -432,14 +483,16 @@ function measure {
     set_status start_utc "$(utc_of "${now}")"
     set_status intended_end_utc "$(utc_of $((now + READY_LIMIT_S + (HOLD + 3) * PART_S + 30 + TIMEOUT_S)))"
     set_status actual_end_utc ""
-    set_status expectation_sha256 "$(sha256sum "${EXPECTATION}" | cut -d' ' -f1)"
-    set_status expectation_written_utc "$(utc_of "$(stat -c %Y "${EXPECTATION}")")"
+    if [[ -n "${EXPECTATION}" ]]; then
+        set_status expectation_sha256 "$(sha256sum "${EXPECTATION}" | cut -d' ' -f1)"
+        set_status expectation_written_utc "$(utc_of "$(stat -c %Y "${EXPECTATION}")")"
+        cp -p "${EXPECTATION}" "${STOP_DIR}/"
+    fi
     if [[ "${CELL}" == "validation-903" ]]; then
         set_status prediction_sha256 "$(cut -d' ' -f1 "${PREDICTION}.sha256")"
         set_status prediction_written_utc "$(utc_of "$(stat -c %Y "${PREDICTION}")")"
         cp -p "${PREDICTION}" "${PREDICTION}.sha256" "${STOP_DIR}/"
     fi
-    cp -p "${EXPECTATION}" "${STOP_DIR}/"
     write_keys "${STOP_DIR}/keys.txt"
     [[ "$(wc -l < "${STOP_DIR}/keys.txt")" -eq "${STAGE}" ]] || refuse "the PV lists give $(wc -l < "${STOP_DIR}/keys.txt") keys, not ${STAGE}"
 
@@ -484,13 +537,20 @@ function measure {
     set_status e_used_utc "$(utc_of "${e_used}")"
     set_status chrony_offset_s "$(chronyc tracking 2> /dev/null | awk '/^System time/ { v = $4; if ($6 == "slow") v = -v; print v }')"
 
+    taken_us="$(date -u +%s%6N)"
     cursor="$(journalctl -u "${UNIT}" --show-cursor -n 0 -q 2> /dev/null | sed -n 's/^-- cursor: //p')"
+    printf 'cursor_taken=%s\n' "${cursor}" > "${STOP_DIR}/journal.cursor"
+    if [[ -n "${STOP_TIME_CURSOR:-}" ]]; then
+        cursor="${STOP_TIME_CURSOR}"
+        printf 'cursor_used=%s\n' "${cursor}" >> "${STOP_DIR}/journal.cursor"
+    fi
     [[ -n "${cursor}" ]] || mark_incomplete "no journal cursor before the stop"
     size_before="$(etl_log_size)"
     cp -p "${STATUS}" "${STOP_DIR}/status.${CELL}.${STOP}"
     [[ $(( $(date -u +%s) - listing_end )) -le ${LISTING_GRACE_S} ]] || mark_incomplete "the stop began more than ${LISTING_GRACE_S} s after the listing"
 
     why "The stop duration comes from the monotonic properties of the unit; the native status is kept apart."
+    STOP_ISSUED=1
     keep systemctl-stop sudo systemctl stop "${UNIT}" || stop_rc=$?
     printf '%d\n' "${stop_rc}" > "${STOP_DIR}/stop-exit.txt"
     keep systemctl-show systemctl show --timestamp=us+utc "${UNIT}" -p ActiveExitTimestamp -p ActiveExitTimestampMonotonic \
@@ -501,30 +561,40 @@ function measure {
     ax="$(sed -n 's/^ActiveExitTimestamp=[A-Za-z]* \(.*\) UTC$/\1/p' "${STOP_DIR}/unit.txt")"
     ie="$(sed -n 's/^InactiveEnterTimestamp=[A-Za-z]* \(.*\) UTC$/\1/p' "${STOP_DIR}/unit.txt")"
     if [[ -n "${cursor}" ]]; then
-        cut_journal "${cursor}" "${ax} UTC" "$(date -u -d "${ie} UTC + 1 second" '+%Y-%m-%d %H:%M:%S') UTC"
+        cut_journal "${cursor}" "${ax} UTC" "$(date -u -d "${ie} UTC + 1 second" '+%Y-%m-%d %H:%M:%S') UTC" "${taken_us}"
     fi
 
     size_after="$(etl_log_size)"
     printf 'before=%s\nafter=%s\n' "${size_before}" "${size_after}" > "${STOP_DIR}/etl-pass.size"
     if [[ "${size_after}" -ge "${size_before}" ]]; then
-        sudo tail -c "+$((size_before + 1))" "${INSTALL_LOCATION}/etl/logs/etl-pass.log" \
-            | head -c "$((size_after - size_before))" > "${STOP_DIR}/etl-pass.cut"
+        # Copy the tail first and cut it to length from the file, so that no
+        # reader of a pipe ends early under pipefail.
+        sudo_tail_from "$((size_before + 1))" "${INSTALL_LOCATION}/etl/logs/etl-pass.log" > "${STOP_DIR}/etl-pass.tail"
+        head -c "$((size_after - size_before))" "${STOP_DIR}/etl-pass.tail" > "${STOP_DIR}/etl-pass.cut"
+        rm -f -- "${STOP_DIR}/etl-pass.tail"
     fi
+    sudo_read "${INSTALL_LOCATION}/etl/logs/etl-pass.log" | grep -h 'ETLPassRecord\[' > "${STOP_DIR}/etl-pass.records" || true
     list_stores > "${STOP_DIR}/listing-after.txt"
     write_meta "$(utc_of "${e_used}")"
     freeze_config
 
     why "C1 needs complete evidence, C2 a sufficient stop, C3 the validation stop inside its interval."
-    record="$(judge_folder "${STOP_DIR}")" || rc=$?
+    record="$(judge_folder "${STOP_DIR}" 2> "${STOP_DIR}/cmd/judge.err")" || rc=$?
+    if [[ ${rc} -gt 2 ]]; then
+        # A tool error is not a verdict of the stop: no record is written, and the
+        # stop ends as one that ended before its record (see end_unjudged).
+        mark_incomplete "tool error: rebuild-table.bash status ${rc}, see ${STOP_DIR}/cmd/judge.err"
+        return 0
+    fi
     printf '%s\n' "${record}" >> "${RUN_DIR}/stops.jsonl"
     assert_claim "C1 ${CELL}/${STOP} evidence complete" "$(claim_of "${record}" c1)"
     assert_claim "C2 ${CELL}/${STOP} stop suffices" "$(claim_of "${record}" c2)"
     [[ "${CELL}" != "validation-903" ]] || assert_claim "C3 ${CELL}/${STOP} inside the prediction" "$(claim_of "${record}" c3)"
     qualifier="$(sed -n 's/.*"qualifier": "\([^"]*\)".*/\1/p' <<< "${record}")"
-    if [[ "${STOP}" == *r ]]; then
-        set_status pending ""
-    elif [[ -n "${qualifier}" || $(claim_of "${record}" c1) != "Passed" ]]; then
+    if [[ "${STOP}" != *r ]] && [[ -n "${qualifier}" || $(claim_of "${record}" c1) != "Passed" ]]; then
         set_status pending "${CELL}/${STOP}r"
+    else
+        set_status pending ""
     fi
     write_sums "${STOP_DIR}" 3
     TEST_COMPLETE=1
