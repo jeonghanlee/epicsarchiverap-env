@@ -1,0 +1,43 @@
+{
+  "format": "jsonl",
+  "keys": ["cell", "stop", "invocation_id"],
+  "timestamps": ["active_exit_utc", "inactive_enter_utc"],
+  "numbers": {
+    "n_pvs": "pv",
+    "hold": "partition",
+    "timeout_s": "s",
+    "stop_exit": "status",
+    "duration_s": "s",
+    "after_boundary_s": "s",
+    "files_per_pv_expected": "file",
+    "pvs_off_file_count": "pv",
+    "sts_files": "file",
+    "sts_bytes": "byte",
+    "sts_bytes_per_pv": "byte/pv",
+    "engine_gap_s": "s",
+    "retrieval_gap_s": "s",
+    "etl_gap_s": "s",
+    "mgmt_gap_s": "s",
+    "consolidated_pvs": "pv",
+    "left_pvs": "pv",
+    "loop_jobs": "job",
+    "loop_sum_s": "s",
+    "loop_mean_s": "s",
+    "loop_median_s": "s",
+    "loop_max_s": "s",
+    "slowest_ms_max": "ms",
+    "pass_duration_max_s": "s"
+  },
+  "required": ["run", "c1", "c2"],
+  "optional": [
+    "active_exit_utc", "inactive_enter_utc",
+    "n_pvs", "hold", "timeout_s", "stop_exit", "duration_s", "after_boundary_s",
+    "files_per_pv_expected", "pvs_off_file_count", "sts_files", "sts_bytes", "sts_bytes_per_pv",
+    "engine_gap_s", "retrieval_gap_s", "etl_gap_s", "mgmt_gap_s",
+    "consolidated_pvs", "left_pvs", "loop_jobs",
+    "loop_sum_s", "loop_mean_s", "loop_median_s", "loop_max_s",
+    "slowest_ms_max", "pass_duration_max_s"
+  ],
+  "fields": null,
+  "allow_empty": false
+}

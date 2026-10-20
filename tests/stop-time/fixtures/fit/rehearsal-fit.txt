@@ -1,0 +1,4 @@
+status=fitted
+n_stops=4
+a0_s=3.08333
+b0_s_per_pv=0.00466667

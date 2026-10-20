@@ -92,6 +92,9 @@ network provisioning:
 tests/run-all-tests.bash --local
 ```
 
+The stop time measurement in [stop-time/](stop-time/README.md) is a test for
+its own guest, and `--local` does not run it.
+
 The following command opens a run. It runs the published candidate's local
 suite and records the baseline; it contacts no guest:
 

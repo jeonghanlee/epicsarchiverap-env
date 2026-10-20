@@ -1,0 +1,4 @@
+2026-10-19T20:05:40.200000+00:00 guest archappl[1001]: archappl-engine: stopping pid 2001
+2026-10-19T20:05:41.000000+00:00 guest archappl[1001]: archappl-retrieval: stopping pid 2002
+2026-10-19T20:05:42.000000+00:00 guest archappl[1001]: archappl-etl: stopping pid 2003
+2026-10-19T20:05:52.000000+00:00 guest archappl[1001]: archappl-mgmt: stopping pid 2004
