@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates of this milestone are Complete. M13 (management web interface rework), assigned to this milestone by D45, is Complete on 2026-10-21; its information architecture is accepted by D49 and the interface was implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); the transfer to epicsarchiverap-maven is in its `modernize` branch since `d0932d1b` (plan item 12), and T6 passed on 2026-10-21 on this host; D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) is In progress; M13, its last milestone dependency, is Complete. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37. M54 (policy documents) is Complete. M55 (Backlog) is Complete on 2026-10-20: the six stops of the main cells give the line 0.297 s + 0.00224 s per PV (the timeout of 300 s at about 134000 PVs, cautiously 108000), and the validation stop on the shipped partition took 3.74 s, outside its interval (C3 Failed); the table and the statement are in its Closure Evidence. M58 (Backlog) is Complete on 2026-10-21: the targets that run as root render nothing into the checkout, the rendering runs as the checkout owner (`make conf.install`, `make sql.update`), and the rendering rules remove a rendered file left by root before they write it; commit `0323fab` is on `origin/release-2.0.1`. M56 and M57 (Backlog) were reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed; they are Not started and Ready, and their plans are drafts that need acceptance.
+Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates of this milestone are Complete. M13 (management web interface rework), assigned to this milestone by D45, is Complete on 2026-10-21; its information architecture is accepted by D49 and the interface was implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); the transfer to epicsarchiverap-maven is in its `modernize` branch since `d0932d1b` (plan item 12), and T6 passed on 2026-10-21 on this host; D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) is In progress; M13, its last milestone dependency, is Complete. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37. M54 (policy documents) is Complete. M55 (Backlog) is Complete on 2026-10-20: the six stops of the main cells give the line 0.297 s + 0.00224 s per PV (the timeout of 300 s at about 134000 PVs, cautiously 108000), and the validation stop on the shipped partition took 3.74 s, outside its interval (C3 Failed); the table and the statement are in its Closure Evidence. M58 (Backlog) is Complete on 2026-10-21: the targets that run as root render nothing into the checkout, the rendering runs as the checkout owner (`make conf.install`, `make sql.update`), and the rendering rules remove a rendered file left by root before they write it; commit `0323fab` is on `origin/release-2.0.1`. M56 and M57 (Backlog) were reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed; their plans were accepted and their implementation authorized on 2026-10-21; M56 is In progress, starting with the support of the 15-minute partition in `tests/stop-time/`, and M57 follows it on the same guest.
 
 ## Scope
 
@@ -1417,8 +1417,8 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Docs | M54 | Align the documents and comments about policies, storage tiers and ETL with the code | Milestone | Complete | No | D59, D61 | Every statement of the documents, comments and test messages in scope about policies, storage tiers and ETL is listed with its code source and is a match, or is corrected, or goes to the owner of the code; the statements about when a file moves come from a run; [detail](#m54---align-the-documents-and-comments-about-policies-storage-tiers-and-etl-with-the-code) |
 | Runtime | M55 | Measure the stop time of the appliance with data in the short term store | Milestone | Complete | No | G9 | The stop times of the unit for the stages of 903 and 3000 PVs on the 5-minute short term store partition, one validation stop on the shipped partition, and the slope of the stop time over the PV count show how many PVs the stop timeout (300 seconds by default) allows; [detail](#m55---measure-the-stop-time-of-the-appliance-with-data-in-the-short-term-store) |
 | Gate | G9 | A guest with the disk capacity that the stop time measurement needs is available | External gate | Complete | No | none | The provider session creates a fresh Debian 13 guest of 2 vCPU, 4 GiB and 30 GiB from a complete resource request of the requester session, under its standing authorization when the capacity check passes, and hands it off; [detail](#g9---a-guest-with-the-disk-capacity-that-the-stop-time-measurement-needs-is-available) |
-| Runtime | M56 | Measure the stop time over the PV count with the 15-minute short term store partition | Milestone | Not started | Yes | M55 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the main cells of M55 are repeated once with the partition `PARTITION_15MIN`; [detail](#m56---measure-the-stop-time-over-the-pv-count-with-the-15-minute-short-term-store-partition) |
-| Runtime | M57 | Measure the stop time over the PV count with the shipped short term store partition | Milestone | Not started | Yes | M55 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the main cells of M55 are repeated once with the shipped partition `PARTITION_HOUR`; [detail](#m57---measure-the-stop-time-over-the-pv-count-with-the-shipped-short-term-store-partition) |
+| Runtime | M56 | Measure the stop time over the PV count with the 15-minute short term store partition | Milestone | In progress | No | M55 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the stop scripts accept `PARTITION_15MIN` and the main cells of M55 are repeated once with it; [detail](#m56---measure-the-stop-time-over-the-pv-count-with-the-15-minute-short-term-store-partition) |
+| Runtime | M57 | Measure the stop time over the PV count with the shipped short term store partition | Milestone | Not started | No | M55, M56 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the main cells of M55 are repeated once with the shipped partition `PARTITION_HOUR`; [detail](#m57---measure-the-stop-time-over-the-pv-count-with-the-shipped-short-term-store-partition) |
 | Install | M58 | Keep the checkout writable for the engineer after `sudo make install` and `sudo make sql.fill` | Milestone | Complete | No | M55 | A checkout that ran the documented `sudo make install` or `sudo make sql.fill` lets the engineer run the next Make target without a permission error, or the installation guide states the step that restores the ownership; [detail](#m58---keep-the-checkout-writable-for-the-engineer-after-sudo-make-install-and-sudo-make-sqlfill) |
 
 ### Backlog Details
@@ -2563,7 +2563,7 @@ The request carries these fields, with the purpose first:
 Origin: 2.0.1 / M56
 Identity History: none
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -2572,8 +2572,9 @@ The main cells of M55 use the 5-minute short term store partition, and one valid
 ##### Scope
 
 - Run the main cells of M55 (the stages of 903 and 3000 PVs with the hold of 2) once more with the short term store partition `PARTITION_15MIN`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest, with the rule, the order, the reset, the measurement and the verdicts of M55, and one stop for each cell. Write down the prediction of every cell from the line of M55 before the cells run. The line of M55 was fitted on the 5-minute partition, so a difference is reported without a single cause.
+- Extend `tests/stop-time/run-stop.bash` and `tests/stop-time/rebuild-table.bash` to the partition `PARTITION_15MIN` (900 s). The STS to MTS pass of this partition starts 5 minutes after each boundary, as on the hourly partition, so the stop lies between 30 and 90 seconds after E; `tests/stop-time/selftest.bash` gets a case for it.
 
-Out of scope: a change of the repository, the policies or the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
+Out of scope: a change of the repository other than the partition support of `tests/stop-time/`, of the policies or of the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
 
 ##### Completion Criteria
 
@@ -2583,39 +2584,45 @@ Out of scope: a change of the repository, the policies or the defaults; a change
 ##### Dependencies And Decisions
 
 - Decision Date: 2026-10-19. The owner reduced M55 to the stages of 903 and 3000 PVs after the stop time of ansible-provision at 903 PVs (13 seconds) showed a per-PV part near 5 milliseconds. This item is Deferred until the result of M55. It reopens by a new dated decision when the result of M55 cannot be carried to the shipped partition: C3 of the validation stop is Failed, or the ETL gap per PV of the validation stop exceeds that of the cell `main-903` by more than 50 percent, or a stop time lies near the stop timeout.
-- M55 supplies the method, the guest, the PV set and the line.
+- M55 supplies the method, the PV set, the conditions and the line; the guest is a new one (decision of 2026-10-21 below).
 - Decision Date: 2026-10-21. The owner reopened this item: its reopening condition is met, because C3 of the validation stop of M55 is Failed (3.74 s on the shipped partition, outside the interval of the line of the main cells). The status returns from Deferred to Not started; the plan stays a draft until its acceptance.
+- Decision Date: 2026-10-21. The owner chose a fresh Debian 13 guest for this item and M57, so the disk of the guest of M55 stays unchanged as evidence; M56 runs first and M57 follows on the same guest. Both items run as scoped.
+- Decision Date: 2026-10-21. The scripts of M55 accept only the 5-minute and the hourly partition; the owner put their extension to `PARTITION_15MIN` into this item.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-21
+Implementation Authorization: the owner authorized the implementation on 2026-10-21
 Superseded Plan Artifacts: none
 
-1. Set the partition `PARTITION_15MIN` on the guest of M55, run `make conf.archapplproperties` and `sudo make install`, archive the PVs on a fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
-2. Write down the predictions, then run the cells in the order of M55 (T2, T3).
-3. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5).
+1. Extend `run-stop.bash` and `rebuild-table.bash` to `PARTITION_15MIN` (900 s, the stop between 30 and 90 seconds after E) and add its case to `selftest.bash` (T6). The change lands by its own commit and push authority before step 2, or reaches the guest as a patch whose SHA-256 the results record.
+2. Request a fresh Debian 13 guest of 2 vCPU, 4 GiB and one 30 GiB disk from the provider session, and prepare it as M55 prepared its guest: the settings of M55 (persistent journal, file appender of the pass events, heap 256M), source `a8d07955`, this repository at the commit that carries step 1 or a later one (it also carries the rendering by the checkout owner of `0323fab`), with the commit used recorded in the results, the 903 PVs of ansible-provision and the 2097 generated PVs (T1).
+3. Set the partition `PARTITION_15MIN` in `../CONFIG_SITE.local` and run the reset of M55 with its policy change, which stops the unit first and renders (`make conf.archapplproperties`, `make conf.install`) and installs (`sudo make install`) inside it; archive the PVs on the fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
+4. Write down the predictions, then run the cells in the order of M55 (T2, T3). Under the rule of M55 a stop lies after the boundary E, B0 plus three partitions, so each stop waits up to one hour on this partition. The main cells take `--expectation` with the expectation file of the rehearsal of M55, `~/stop-time-evidence/st-20261019/expectation.jsonl` on the host, copied to the guest, as the main cells of M55 did.
+5. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5). The guest stays for M57.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | VM | Set the partition `PARTITION_15MIN`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Guest of M55 | The partition and the hold of the cell are in the stored URL |
-| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Guest of M55 | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
-| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Guest of M55 | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T1 | VM | Prepare the fresh guest as M55 prepared its guest, then set the partition `PARTITION_15MIN`, render with `make conf.archapplproperties` and `make conf.install`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Fresh guest | The partition and the hold of the cell are in the stored URL |
+| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Fresh guest | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
+| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Fresh guest | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
 | T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
 | T5 | Review | Read the coverage table and the comparison with the line of M55 | Local host | Each claim names the stage and the stop duration that support it, and no cell that did not run counts as passed |
+| T6 | Local | Run `tests/stop-time/selftest.bash` with the case of `PARTITION_15MIN`, and `run-stop.bash` with an unknown partition | Local host | The selftest passes, the 15-minute case uses 900 s and the window of 30 to 90 seconds, and an unknown partition is still refused |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Guest of M55 | Pending | none |
-| T2 | Pending | Guest of M55 | Pending | none |
-| T3 | Pending | Guest of M55 | Pending | none |
+| T1 | Pending | Fresh guest | Pending | none |
+| T2 | Pending | Fresh guest | Pending | none |
+| T3 | Pending | Fresh guest | Pending | none |
 | T4 | Pending | Local host | Pending | none |
 | T5 | Pending | Local host | Pending | none |
+| T6 | 2026-10-21 | Local host | Passed | `tests/stop-time/selftest.bash` exit 0, 149 of 149: `run-stop.bash` with `PARTITION_15MIN` passes the option checks and stops at the guard file, `PARTITION_30MIN` is refused with status 3 and the message that names the three partitions; a copy of the fixture stop `stop-01-passed` with one more pass planned two hours before E counts 1 pass in the window (slowest 850 ms) as `PARTITION_15MIN` and 2 (9999 ms) as `PARTITION_HOUR`. The same selftest with the earlier `rebuild-table.bash` failed the two 15-minute window assertions (2 passes, 9999 ms), so the case detects the 3600 s window; shellcheck reports nothing for the three changed scripts |
 
 ##### Closure Evidence
 
@@ -2654,27 +2661,29 @@ Out of scope: a change of the repository, the policies or the defaults; a change
 ##### Dependencies And Decisions
 
 - Decision Date: 2026-10-19. The owner reduced M55 to the stages of 903 and 3000 PVs after the stop time of ansible-provision at 903 PVs (13 seconds) showed a per-PV part near 5 milliseconds. This item is Deferred until the result of M55. It reopens by a new dated decision when the result of M55 cannot be carried to the shipped partition: C3 of the validation stop is Failed, or the ETL gap per PV of the validation stop exceeds that of the cell `main-903` by more than 50 percent, or a stop time lies near the stop timeout.
-- M55 supplies the method, the guest, the PV set and the line.
+- M55 supplies the method, the PV set, the conditions and the line; the guest is a new one (decision of 2026-10-21 below).
+- M56 is a work ordering dependency: this item runs on the guest of M56 after M56.
 - Decision Date: 2026-10-21. The owner reopened this item: its reopening condition is met, because C3 of the validation stop of M55 is Failed (3.74 s on the shipped partition, outside the interval of the line of the main cells). The status returns from Deferred to Not started; the plan stays a draft until its acceptance.
+- Decision Date: 2026-10-21. The owner chose a fresh Debian 13 guest for this item and M56, so the disk of the guest of M55 stays unchanged as evidence; M56 runs first and M57 follows on the same guest. Both items run as scoped.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-21
+Implementation Authorization: the owner authorized the implementation on 2026-10-21
 Superseded Plan Artifacts: none
 
-1. Set the partition `PARTITION_HOUR` on the guest of M55, run `make conf.archapplproperties` and `sudo make install`, archive the PVs on a fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
-2. Write down the predictions, then run the cells in the order of M55 (T2, T3).
-3. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5).
+1. On the guest of M56, set the partition `PARTITION_HOUR` in `../CONFIG_SITE.local` and run the reset of M55 with its policy change, which stops the unit first and renders (`make conf.archapplproperties`, `make conf.install`) and installs (`sudo make install`) inside it; archive the PVs on the fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
+2. Write down the predictions, then run the cells in the order of M55 (T2, T3). Under the rule of M55 a stop lies after the boundary E, B0 plus three partitions, so each stop waits up to four hours on this partition, as the validation stop of M55 did. The main cells take `--expectation` with the expectation file of the rehearsal of M55, `~/stop-time-evidence/st-20261019/expectation.jsonl` on the host, copied to the guest, as the main cells of M55 did.
+3. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5), then send the finished notice for the guest and ask to keep its disk as evidence.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | VM | Set the partition `PARTITION_HOUR`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Guest of M55 | The partition and the hold of the cell are in the stored URL |
-| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Guest of M55 | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
-| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Guest of M55 | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T1 | VM | Set the partition `PARTITION_HOUR`, render with `make conf.archapplproperties` and `make conf.install`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Guest of M56 | The partition and the hold of the cell are in the stored URL |
+| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Guest of M56 | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
+| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Guest of M56 | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
 | T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
 | T5 | Review | Read the coverage table and the comparison with the line of M55 | Local host | Each claim names the stage and the stop duration that support it, and no cell that did not run counts as passed |
 
@@ -2682,9 +2691,9 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Guest of M55 | Pending | none |
-| T2 | Pending | Guest of M55 | Pending | none |
-| T3 | Pending | Guest of M55 | Pending | none |
+| T1 | Pending | Guest of M56 | Pending | none |
+| T2 | Pending | Guest of M56 | Pending | none |
+| T3 | Pending | Guest of M56 | Pending | none |
 | T4 | Pending | Local host | Pending | none |
 | T5 | Pending | Local host | Pending | none |
 
