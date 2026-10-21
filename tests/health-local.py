@@ -294,8 +294,12 @@ class SystemdFileTests(WorkspaceTest):
                                     ("-j8", "/srv/aa-test", "aa-test")):
             with self.subTest(jobs=jobs):
                 # The shipped global .NOTPARALLEL remains in force in both runs.
-                self.make(jobs, "install.systemd", f"AA_INSTALL_LOCATION={install}",
-                          f"AA_USERID={user}", f"AA_GROUPID={user}")
+                # conf.systemd renders the units that conf.install renders, without
+                # its record of the source commit, which needs the source clone;
+                # install.systemd installs the rendered files and renders nothing itself.
+                site = (f"AA_INSTALL_LOCATION={install}", f"AA_USERID={user}", f"AA_GROUPID={user}")
+                self.make(jobs, "conf.systemd", *site)
+                self.make(jobs, "install.systemd", *site)
                 for name in ("epicsarchiverap-maven.service", "epicsarchiverap-maven-health.service",
                              "epicsarchiverap-maven-health.timer", "tomcat9.service.d/override.conf"):
                     path = self.units / name
@@ -324,6 +328,7 @@ class SystemdFileTests(WorkspaceTest):
 
     def test_site_timing_overrides(self):
         (self.root.parent / "CONFIG_SITE.local").write_text("SYSTEMD_HEALTH_STARTUP_SECONDS=90\nSYSTEMD_HEALTH_INTERVAL_SECONDS=20\n")
+        self.make("conf.health.service", "conf.health.timer")
         self.make("install.health.service", "install.health.timer")
         self.assertIn(".service 90\n", (self.units / "epicsarchiverap-maven-health.service").read_text())
         self.assertIn("OnUnitInactiveSec=20s\n", (self.units / "epicsarchiverap-maven-health.timer").read_text())

@@ -41,6 +41,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `conf.health.service.show` | `epicsarchiverap-maven-health.service.in` |  |
 | `conf.health.timer` | `epicsarchiverap-maven-health.timer.in` |  |
 | `conf.health.timer.show` | `epicsarchiverap-maven-health.timer.in` |  |
+| `conf.install` | `conf.override conf.systemd0 conf.health.service conf.health.timer src_version` | Render the systemd units that install reads, and record the source commit in .versions |
 | `conf.override` | `override.conf.in` |  |
 | `conf.override.show` | `override.conf.in` |  |
 | `conf.policies` | `policies.py.in \| mkdir.sitesidpath` |  |
@@ -74,22 +75,22 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `help` |  |  |
 | `info.mvn` |  | Maven and Java |
 | `init` | `clone update` | Clone and update Source |
-| `install` | `sd_health_stop` | Install |
+| `install` | `sd_health_stop` | Install as root what conf.install and the build rendered; run make conf.install as the checkout owner first |
 | `install.engine` |  |  |
 | `install.etl` |  |  |
-| `install.files` | `src_install services.install serveroption.install sd_install` |  |
-| `install.health.service` | `epicsarchiverap-maven-health.service.in conf.health.service` |  |
+| `install.files` | `src_install services.install serveroption.install install.systemd` |  |
+| `install.health.service` | `epicsarchiverap-maven-health.service.in` |  |
 | `install.health.service.show` |  |  |
-| `install.health.timer` | `epicsarchiverap-maven-health.timer.in conf.health.timer` |  |
+| `install.health.timer` | `epicsarchiverap-maven-health.timer.in` |  |
 | `install.health.timer.show` |  |  |
 | `install.mgmt` |  |  |
-| `install.override` | `override.conf.in conf.override` |  |
+| `install.override` | `override.conf.in` |  |
 | `install.override.show` |  |  |
 | `install.pkgs` |  |  |
 | `install.retrieval` |  |  |
 | `install.systemd` | `install.override install.systemd0 install.health.service install.health.timer` |  |
 | `install.systemd.show` | `install.override.show install.systemd0.show install.health.service.show install.health.timer.show` |  |
-| `install.systemd0` | `epicsarchiverap-maven.service.in conf.systemd0` |  |
+| `install.systemd0` | `epicsarchiverap-maven.service.in` |  |
 | `install.systemd0.show` |  |  |
 | `mkdir.sitesidpath` |  |  |
 | `mkdir.wars` |  |  |
@@ -107,7 +108,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `sd_health_disable` | `sd_health_stop` | Disable recurring monitoring without stopping or disabling the appliance. |
 | `sd_health_status` |  | Show current monitor state; journal and ExecMainStatus distinguish skips from checks. |
 | `sd_health_stop` |  | Stop only the monitor; absent units are harmless, observation/stop errors are fatal. |
-| `sd_install` | `sd_health_stop conf.systemd install.systemd` |  |
+| `sd_install` | `sd_health_stop conf.systemd` |  |
 | `sd_restart` |  |  |
 | `sd_start` |  |  |
 | `sd_status` |  |  |
@@ -124,7 +125,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `sql.table.show` | `mariadb_setup.bash` |  |
 | `sql.update` |  |  |
 | `sql.update.show` |  |  |
-| `src_install` | `src_version src_preinst` |  |
+| `src_install` | `src_preinst` |  |
 | `src_postrm` |  |  |
 | `src_preinst` |  |  |
 | `src_uninstall` |  |  |

@@ -291,7 +291,7 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
 - Configuration database: `DB_BACKEND` is `mariadb` (default) or `sqlite`, set
   in `../CONFIG_SITE.local`; any other value stops step 3
   (`make conf.archapplproperties`), so the sequence goes no further, and
-  `make install` also stops before it writes the unit. With `sqlite`, the
+  `make conf.install` also stops before it renders the unit. With `sqlite`, the
   database is the file `ARCHAPPL_SQLITE_FILE`, by default
   `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`
   (`/arch/config/archappl.sqlite`), owned by the service account. It sits under
@@ -321,7 +321,7 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   reachable by that account; the distribution defaults are. The server may
   then run with `skip-networking`. After changing `DB_SOCKET`, run step 2 (`make db.conf`)
   and step 3 again, then follow the [reinstall procedure](#reinstall-and-upgrade)
-  on an installed host. Stop the appliance before step 7 (`make install`, which
+  on an installed host. Stop the appliance before step 8 (`make install`, which
   also replaces the WARs), then start it after installation succeeds.
   `DB_SOCKET` is ignored for `sqlite`.
 - Toolchain: `JAVA_HOME` is set through the OS preset
@@ -419,9 +419,13 @@ pages, their judgements and their limits are described in [the interface guide](
 ## Reinstall and upgrade
 
 Build and generate the configuration before the maintenance window: run steps 1
-to 4 of the [ordered sequence](#ordered-sequence) (`make init`, `make db.conf`,
-`make conf.archapplproperties`, `make build.mvn`). Without step 4, `make install`
-replaces the payload with the WARs that already sit in `target`. Stop the
+to 5 of the [ordered sequence](#ordered-sequence) (`make init`, `make db.conf`,
+`make conf.archapplproperties`, `make build.mvn`, `make conf.install`) as the
+checkout owner. Without step 4, `make install` replaces the payload with the
+WARs that already sit in `target`. `make install` installs the units that
+step 5 rendered and renders nothing into the checkout itself; when a unit is
+missing or older than its template or the configuration, it stops and names
+`make conf.install`. Stop the
 appliance before replacing its files; Tomcat must not load classes while the
 WAR and logging libraries are being replaced. From the aa-env checkout,
 stop the appliance, install as root, and start only after installation succeeds.
@@ -429,6 +433,7 @@ The `sudo make install` command runs Make itself as root so its shell can
 access existing service-owned instance directories:
 
 ```bash
+make conf.install
 make sd_stop
 sudo make install
 make sd_start
@@ -471,12 +476,22 @@ already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 | 2 | `make db.conf` | U | `DB_BACKEND`, `DB_*` | MariaDB: `site-template/mariadb.conf`; SQLite: none | MariaDB: file exists (`make db.conf.show`); SQLite: `[SKIP]` |
 | 3 | `make conf.archapplproperties` | U | `ARCHAPPL_*` (incl. `ARCHAPPL_*_PORT`, default 17665-17668) | `site-template/*` and source `classpathfiles` | files exist (`make conf.archapplproperties.show`) |
 | 4 | `make build.mvn` | U | source clone, `JAVA_HOME` | four WARs and the Tomcat log4j jar set in `epicsarchiverap-maven-src/target` | four `*-{mgmt,engine,etl,retrieval}.war`; `target/tomcat-log4j` holds `log4j-api`, `log4j-core`, `log4j-appserver` and `log4j-jul` |
-| 5 | `make sql.fill` | U (R for SQLite) | `DB_BACKEND`; `DB_USER`/`DB_USER_PASS` or `ARCHAPPL_SQLITE_FILE`; source SQL | schema loaded over TCP or `DB_SOCKET`, or into the SQLite file | `make sql.show` lists the tables |
-| 6 | `make conf.storage` | R | `ARCHAPPL_STORAGE_TOP` | `/arch/{sts,mts,lts}/ArchiverStore` | directories exist, owned by the service user |
-| 7 | `make install` | R | WARs, `AA_USERID`/`AA_GROUPID` | four instances, appliance service, health service and timer | units installed; appliance and timer enabled, not started |
-| 8 | `make sd_start` | R | installed units and complete instance configuration | appliance and health timer started | timer active; process checks after startup allowance; separate mgmt probe returns HTTP 200 |
+| 5 | `make conf.install` | U | `AA_*`, `DB_BACKEND`, `SYSTEMD_*`, source clone | `site-template/systemd/` units and `site-template/.versions` | files exist |
+| 6 | MariaDB: `make sql.fill`; SQLite: `make sql.update`, then `make sql.table.fill` | MariaDB: U; SQLite: U, then R | `DB_BACKEND`; `DB_USER`/`DB_USER_PASS` or `ARCHAPPL_SQLITE_FILE`; source SQL | `site-template/sql/` schema copy; schema loaded over TCP or `DB_SOCKET`, or into the SQLite file | `make sql.show` lists the tables |
+| 7 | `make conf.storage` | R | `ARCHAPPL_STORAGE_TOP` | `/arch/{sts,mts,lts}/ArchiverStore` | directories exist, owned by the service user |
+| 8 | `make install` | R | WARs, the files of step 5, `AA_USERID`/`AA_GROUPID` | four instances, appliance service, health service and timer | units installed; appliance and timer enabled, not started |
+| 9 | `make sd_start` | R | installed units and complete instance configuration | appliance and health timer started | timer active; process checks after startup allowance; separate mgmt probe returns HTTP 200 |
 
 Notes:
+- The steps that need root render nothing into the checkout, so the checkout
+  stays writable for its owner. `make install` installs the units that step 5
+  rendered (step 5 also records the source commit in `site-template/.versions`),
+  and `make sql.table.fill` loads the schema
+  copy that `make sql.update` rendered; each stops with exit status 2 and names
+  the rendering target when its file is missing or older than its template or,
+  for the units, than the configuration (`configure/CONFIG*`,
+  `configure/RELEASE*`, `../CONFIG_SITE.local`, `../RELEASE.local`). After a
+  change of the configuration run step 5 again.
 - `make install` creates the service account (idempotent), stops any existing
   health timer/check before changing files, then installs the appliance and
   health pair. It reloads systemd before enabling the appliance and timer, with
@@ -500,7 +515,8 @@ Notes:
   authentication method. See the [MariaDB reference](technicaldocs/README.mariadb.md).
   The database targets, including `db.rmAdmin` and `db.drop`, stop with a non-zero status
   and name the failed step when the database client fails.
-- SQLite: step 5 needs root (R). `sql.fill` first creates the service account
+- SQLite: step 6 loads the schema as root (R) after `make sql.update` rendered
+  it as the checkout owner. `sql.table.fill` first creates the service account
   when it does not exist yet, as `make install` does later, then creates the
   directory of `ARCHAPPL_SQLITE_FILE` for that account and loads the schema
   with `sqlite3` run as the account (`runuser` for a root-run build, `sudo -u`

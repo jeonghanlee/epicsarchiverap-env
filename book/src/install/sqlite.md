@@ -34,9 +34,11 @@ This page installs a systemd-managed appliance whose configuration database is a
    + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite db.conf
    + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite conf.archapplproperties
    + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite build.mvn
+   + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite conf.install
    If installed, stop epicsarchiverap-maven.service and require it to be inactive before changing installed files.
    + sudo -- make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite sd_health_stop
-   + sudo -- make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite sql.fill
+   + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite sql.update
+   + sudo -- make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite sql.table.fill
    + sudo -- make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite sql.show
    + sudo -- make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite conf.storage
    + sudo -- make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite install

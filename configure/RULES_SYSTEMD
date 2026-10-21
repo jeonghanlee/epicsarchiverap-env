@@ -11,10 +11,16 @@ show_systemd_RULES:=$(addsuffix .show, $(conf_systemd_RULES))
 install_systemd_RULES:=$(addprefix install., $(systemd_RULES_NAMES))
 show_install_systemd_RULES:=$(addsuffix .show, $(install_systemd_RULES))
 
-sd_install: sd_health_stop conf.systemd install.systemd
+sd_install: sd_health_stop conf.systemd
+	$(QUIET)$(MAKE) install.systemd
 	$(QUIET)$(SUDO) systemctl daemon-reload
 
-.PHONY: conf.systemd conf.systemd.show install.systemd install.systemd.show
+.PHONY: conf.systemd conf.systemd.show install.systemd install.systemd.show conf.install
+
+# install itself renders nothing into the checkout; it installs what this
+# target renders, so run this target as the checkout owner first.
+## Render the systemd units that install reads, and record the source commit in .versions
+conf.install: $(conf_systemd_RULES) src_version
 .PHONY: conf.override conf.systemd0 install.override install.systemd0
 
 conf.systemd: $(conf_systemd_RULES)
@@ -25,9 +31,14 @@ install.systemd: $(install_systemd_RULES)
 
 install.systemd.show: $(show_install_systemd_RULES)
 
+# The conf.* rules remove the rendered file before they write it, so that a
+# file left owned by root in the checkout does not stop the checkout owner.
+# The file name variable holds no path; an empty name or one with a path stops
+# the rule before the removal.
 # /etc/systemd/system/tomcat9.service.d/
 conf.override: $(SYSTEMD_OVERRIDE_FILENAME).in
 	$(QUIET) echo ">>> Generate $(basename $<) from $<"
+	$(QUIET)case "$(SYSTEMD_OVERRIDE_FILENAME)" in ""|*/*) echo ">>> SYSTEMD_OVERRIDE_FILENAME must be a file name without a path: $(SYSTEMD_OVERRIDE_FILENAME)" >&2; exit 2;; esac; rm -f -- "$(basename $<)"
 	$(QUIET)sed -e "s:@INSTALL_LOCATION@:$(AA_INSTALL_LOCATION):g" \
                 < $< > $(basename $<)
 
@@ -38,6 +49,7 @@ conf.systemd0: $(SYSTEMD_FILENAME).in
 	$(call check_db_backend)
 	$(QUIET)echo ">>> Generate $(basename $<) from $<"
 	$(QUIET)echo ">>> $(SYSTEMD_SERVICES)"
+	$(QUIET)case "$(SYSTEMD_FILENAME)" in ""|*/*) echo ">>> SYSTEMD_FILENAME must be a file name without a path: $(SYSTEMD_FILENAME)" >&2; exit 2;; esac; rm -f -- "$(basename $<)"
 	$(QUIET)sed -e "s|@DOCURL@|$(DOCURL)|g" \
 				-e "s|@USERID@|$(AA_USERID)|g" \
 				-e "s|@GROUPID@|$(AA_GROUPID)|g" \
@@ -52,14 +64,18 @@ conf.systemd0: $(SYSTEMD_FILENAME).in
 conf.systemd0.show: $(SYSTEMD_FILENAME).in
 	@cat -b $(basename $<)
 
-install.override: $(SYSTEMD_OVERRIDE_FILENAME).in conf.override
+# The install.* rules install the files that the conf.* rules render. They do
+# not render, so that a root run of them writes nothing into the checkout.
+install.override: $(SYSTEMD_OVERRIDE_FILENAME).in
+	$(call require_rendered,$(basename $<),$<,conf.install)
 	$(QUIET)$(SUDO) $(INSTALL) -d  $(SYSTEMD_PATH)/tomcat9.service.d/
 	$(QUIET)$(SUDO) $(INSTALL_DATA) -b $(basename $<) $(SYSTEMD_PATH)/tomcat9.service.d/
 
 install.override.show: 
 	$(QUIET)cat -b $(SYSTEMD_PATH)/tomcat9.service.d/$(SYSTEMD_OVERRIDE_FILENAME)
 
-install.systemd0: $(SYSTEMD_FILENAME).in conf.systemd0
+install.systemd0: $(SYSTEMD_FILENAME).in
+	$(call require_rendered,$(basename $<),$<,conf.install)
 	$(QUIET)$(SUDO) $(INSTALL_DATA) -D -b $(basename $<) $(SYSTEMD_PATH)/$(SYSTEMD_FILENAME)
 
 install.systemd0.show:
@@ -69,6 +85,7 @@ install.systemd0.show:
 define health_unit_rules
 .PHONY: conf.health.$(1) conf.health.$(1).show install.health.$(1) install.health.$(1).show
 conf.health.$(1): $(APPNAME)-health.$(1).in
+	$$(QUIET)case "$$(APPNAME)" in ""|*/*) echo ">>> APPNAME must be a file name without a path: $$(APPNAME)" >&2; exit 2;; esac; rm -f -- "$$(basename $$<)"
 	$$(QUIET)sed -e 's|@USERID@|$$(AA_USERID)|g' \
 		-e 's|@GROUPID@|$$(AA_GROUPID)|g' \
 		-e 's|@INSTALL_LOCATION@|$$(AA_INSTALL_LOCATION)|g' \
@@ -85,7 +102,8 @@ conf.health.$(1): $(APPNAME)-health.$(1).in
 conf.health.$(1).show: $(APPNAME)-health.$(1).in
 	$$(QUIET)cat -b $$(basename $$<)
 
-install.health.$(1): $(APPNAME)-health.$(1).in conf.health.$(1)
+install.health.$(1): $(APPNAME)-health.$(1).in
+	$$(call require_rendered,$$(basename $$<),$$<,conf.install)
 	$$(QUIET)$$(SUDO) $$(INSTALL_DATA) -D -b $$(basename $$<) $$(SYSTEMD_PATH)/$(APPNAME)-health.$(1)
 
 install.health.$(1).show:

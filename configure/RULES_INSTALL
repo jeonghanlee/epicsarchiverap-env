@@ -8,12 +8,13 @@ show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 
 .PHONY: install install.files services.install
 
-## Install
+## Install as root what conf.install and the build rendered; run make conf.install as the checkout owner first
 install: sd_health_stop
 	$(QUIET)$(MAKE) install.files
 
 # Monitor shutdown completes before any payload is changed; enable never starts it.
-install.files: src_install services.install serveroption.install sd_install
+install.files: src_install services.install serveroption.install install.systemd
+	$(QUIET)$(SUDO) systemctl daemon-reload
 	$(QUIET)$(SUDO)	chown -R $(AA_USERID):$(AA_GROUPID) $(AA_INSTALL_LOCATION)
 	$(QUIET)$(MAKE) sd_enable
 
@@ -71,7 +72,7 @@ archapplshell.install: $(ARCHAPPL_MAIN_SCRIPT)
 archapplshell.show: $(ARCHAPPL_MAIN_SCRIPT)
 	$(QUIET)cat -bs $(AA_INSTALL_LOCATION)/$(patsubst $(TOP)/scripts/%,%,$<)
 
-src_install: src_version src_preinst
+src_install: src_preinst
 #	$(if $(wildcard $(AA_INSTALL_LOCATION)), $(QUIET)$(SUDO) mv $(AA_INSTALL_LOCATION) $(AA_INSTALL_LOCATION)_backup_$$(date +%Y%m%d-%H%M%S))
 	$(QUIET)$(SUDO) $(INSTALL) -d -o $(AA_USERID) -g $(AA_GROUPID) $(AA_INSTALL_LOCATION)
 
@@ -97,6 +98,7 @@ src_postrm:
 	$(QUIET)$(SUDO) bash $(AA_SITE_TEMPLATE_PATH)/usergroup.postrm "purge" "$(AA_USERID)"
 
 src_version: FORCE
+	$(QUIET)test -n "$(AA_SITE_TEMPLATE_PATH)" && rm -f -- "$(AA_SITE_TEMPLATE_PATH)/.versions"
 	$(QUIET)echo "Timestamps : $$(date +%Y%m%d-%H%M%S)/YYYYMMDD-HHMMSS" > $(AA_SITE_TEMPLATE_PATH)/.versions
 	$(QUIET)echo "- SRC REMOTE URL   : $(SRC_GITURL)"  >> $(AA_SITE_TEMPLATE_PATH)/.versions
 	$(QUIET)echo "- SRC SITE VERSION : $(SRC_TAG)"     >> $(AA_SITE_TEMPLATE_PATH)/.versions

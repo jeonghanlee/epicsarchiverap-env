@@ -7,10 +7,11 @@ The repository turns the source commit that `SRC_TAG` selects and a set of site 
 | Stage | Target | What it does |
 | :--- | :--- | :--- |
 | 1. Fetch the source | `make init` | Runs `clone`, which clones `SRC_GITURL` into `SRC_PATH` and checks out the reference `SRC_TAG`, and `update`, which runs `git submodule update --init`. |
-| 2. Generate the configuration | `make conf` | Runs `conf.archapplproperties` and `conf.storage`. It writes `appliances.xml`, `archappl.properties` and `policies.py` from their `.in` templates and prepares the storage folders. |
+| 2. Generate the configuration | `make conf` | Runs `conf.archapplproperties` and `conf.storage`, whose commands run with `sudo`. It writes `appliances.xml`, `archappl.properties` and `policies.py` from their `.in` templates and prepares the storage folders. |
 | 3. Apply the site inputs | `copy.sitespecific` | Replaces `src/sitespecific/<site_id>` of the source tree with `site-template/siteid`, where `<site_id>` is the value of `ARCHAPPL_SITEID`. |
 | 4. Build the WARs | `make build.mvn` | Runs `mvnw clean package -DskipTests` in the source tree with `ARCHAPPL_SITEID` set. |
-| 5. Install | `make install` | Stops the health monitor, installs the four instances, the generated configuration files and the systemd units, and enables the service. |
+| 5. Render the units | `make conf.install` | Runs as the checkout owner: renders the systemd override, service and health units from their `.in` templates and records the source commit in `site-template/.versions`. |
+| 6. Install | `make install` | Runs as root: stops the health monitor, installs the four instances, the generated configuration files and the units of stage 5, and enables the service. It renders nothing into the checkout and stops, naming `make conf.install`, when a unit of stage 5 is missing or older than its template or the configuration. |
 
 `make build` runs stage 2 and then stage 4, which runs stage 3 first, so one target covers everything up to the WAR files. `make install` does not build.
 
@@ -26,15 +27,14 @@ The three generated files are copied into `site-template/siteid/classpathfiles`.
 
 `conf.storage` runs with `sudo`: it creates `ARCHAPPL_STORAGE_TOP` and the three store folders. The target `conf.archapplproperties` generates the files without `sudo`; `make conf.archapplproperties build.mvn` therefore builds the WAR files without touching the storage folders.
 
-## What stage 5 installs
+## What stage 6 installs
 
 The dry run `make -n install` lists the steps, in order:
 
-1. Record the source commit in `site-template/.versions`.
-2. Install the instances `mgmt`, `engine`, `etl` and `retrieval` under `AA_INSTALL_LOCATION`.
-3. Install `archappl.conf`, `appliances.xml`, `archappl.properties` and `policies.py` into `AA_INSTALL_LOCATION`.
-4. Write the port numbers of `appliances.xml` into the `server.xml` of each instance.
-5. Install `scripts/archappl.bash` into `AA_INSTALL_LOCATION`.
-6. Generate and install the systemd override and service files, then enable the service.
+1. Install the instances `mgmt`, `engine`, `etl` and `retrieval` under `AA_INSTALL_LOCATION`.
+2. Install `archappl.conf`, `appliances.xml`, `archappl.properties` and `policies.py` into `AA_INSTALL_LOCATION`.
+3. Write the port numbers of `appliances.xml` into the `server.xml` of each instance.
+4. Install `scripts/archappl.bash` into `AA_INSTALL_LOCATION`.
+5. Install the systemd override, service and health units that stage 5 rendered, reload systemd, and enable the service.
 
 The page [Files of an installation](../configure/installed-files.md) lists the result.

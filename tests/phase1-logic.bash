@@ -319,6 +319,86 @@ case "${unit_text}" in
     *ExecStop=*|*Type=forking*) _record_fail "Appliance unit has no ExecStop and is not forking" "found one in ${unit_out}" ;;
     *) _record_pass "Appliance unit has no ExecStop and is not forking" ;;
 esac
+# P1.19a The targets that run as root render nothing into the checkout: a
+# dry run of install and of the SQLite schema load writes no file under the
+# checkout, and an install rule without its rendered file stops and names the
+# rendering target. SUDO=false keeps any privileged command from running.
+root_env="${WORKSPACE}/root-env"
+mkdir -p "${root_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${root_env}/"
+rm -f "${root_env}/configure/"*.local "${root_env}/site-template/systemd/"*.service \
+    "${root_env}/site-template/systemd/"*.timer "${root_env}/site-template/systemd/override.conf"
+for root_target in install sql.table.fill; do
+    root_rc=0
+    make -C "${root_env}" -n --no-print-directory DB_BACKEND=sqlite "${root_target}" > "${WORKSPACE}/root-${root_target}.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 0 "make -n ${root_target} runs"
+    if grep -E "> *${root_env}/" "${WORKSPACE}/root-${root_target}.txt" | grep -qv '>&2'; then
+        _record_fail "make -n ${root_target} writes nothing into the checkout" "$(grep -E "> *${root_env}/" "${WORKSPACE}/root-${root_target}.txt" | head -1)"
+    else
+        _record_pass "make -n ${root_target} writes nothing into the checkout"
+    fi
+done
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=sqlite SUDO=false install.systemd0 > "${WORKSPACE}/root-unrendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "install.systemd0 stops without the rendered unit"
+if grep -q 'run make conf.install as the checkout owner first' "${WORKSPACE}/root-unrendered.txt"; then
+    _record_pass "install.systemd0 names conf.install"
+else
+    _record_fail "install.systemd0 names conf.install" "$(head -1 "${WORKSPACE}/root-unrendered.txt")"
+fi
+# A rendered unit older than its template or the site configuration is stale:
+# the install stops and names conf.install, and a new rendering passes.
+printf 'SYSTEMD_TIMEOUT_STOP_SECONDS=7\n' > "${WORKSPACE}/CONFIG_SITE.local"
+for stale_input in "${root_env}/site-template/systemd/epicsarchiverap-maven.service.in" "${WORKSPACE}/CONFIG_SITE.local"; do
+    # Each case starts from a rendering that is newer than every input, and
+    # then makes one input newer than it.
+    make -C "${root_env}" -s SUDO= conf.systemd0 > "${WORKSPACE}/root-render.txt" 2>&1
+    touch -d '2 minutes ago' "${root_env}/site-template/systemd/epicsarchiverap-maven.service.in" "${WORKSPACE}/CONFIG_SITE.local"
+    touch -d '1 minute ago' "${root_env}/site-template/systemd/epicsarchiverap-maven.service"
+    touch "${stale_input}"
+    root_rc=0
+    make -C "${root_env}" -s SUDO=false install.systemd0 > "${WORKSPACE}/root-stale.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 2 "install.systemd0 stops on a unit older than $(basename "${stale_input}")"
+    if grep -q "is older than .*/$(basename "${stale_input}"); run make conf.install" "${WORKSPACE}/root-stale.txt"; then
+        _record_pass "install.systemd0 names the newer $(basename "${stale_input}") and conf.install"
+    else
+        _record_fail "install.systemd0 names the newer $(basename "${stale_input}") and conf.install" "$(head -1 "${WORKSPACE}/root-stale.txt")"
+    fi
+done
+make -C "${root_env}" -s SUDO= conf.systemd0 > "${WORKSPACE}/root-render.txt" 2>&1
+root_rc=0
+make -C "${root_env}" -s SUDO= SYSTEMD_PATH="${WORKSPACE}/root-units" install.systemd0 > "${WORKSPACE}/root-fresh.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "install.systemd0 installs a unit rendered after the change"
+case "$(cat "${WORKSPACE}/root-units/epicsarchiverap-maven.service" 2> /dev/null)" in
+    *"TimeoutStopSec=7s"*) _record_pass "The installed unit carries the changed site value" ;;
+    *) _record_fail "The installed unit carries the changed site value" "TimeoutStopSec=7s missing" ;;
+esac
+# A rendered unit that the checkout owner cannot write, as a root run of an
+# earlier install leaves it, is removed and rendered again.
+chmod 444 "${root_env}/site-template/systemd/epicsarchiverap-maven.service"
+root_rc=0
+make -C "${root_env}" -s SUDO= conf.systemd0 > "${WORKSPACE}/root-readonly.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "conf.systemd0 renders over a unit the checkout owner cannot write"
+# The unit file name holds no path; a name with a path stops before the removal.
+root_rc=0
+make -C "${root_env}" -s SUDO= SYSTEMD_FILENAME=systemd/epicsarchiverap-maven.service conf.systemd0 > "${WORKSPACE}/root-pathname.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "conf.systemd0 stops on a unit file name with a path"
+if [[ -f "${root_env}/site-template/systemd/epicsarchiverap-maven.service" ]]; then
+    _record_pass "The rendered unit remains after a file name with a path"
+else
+    _record_fail "The rendered unit remains after a file name with a path" "file removed"
+fi
+rm -f "${WORKSPACE}/CONFIG_SITE.local"
+rm -f "${root_env}/site-template/sql/"*_updated.sql
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=mariadb SUDO=false sql.table.fill > "${WORKSPACE}/root-sql-unrendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "sql.table.fill stops without the rendered schema"
+if grep -q 'run make sql.update as the checkout owner first' "${WORKSPACE}/root-sql-unrendered.txt"; then
+    _record_pass "sql.table.fill names sql.update"
+else
+    _record_fail "sql.table.fill names sql.update" "$(head -1 "${WORKSPACE}/root-sql-unrendered.txt")"
+fi
+
 launcher_rc=0
 bash -n "${TOP}/scripts/archappl.bash" || launcher_rc=$?
 assert_status "${launcher_rc}" 0 "Launcher parses"

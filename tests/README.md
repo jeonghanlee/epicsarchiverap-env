@@ -238,10 +238,21 @@ the console summary; a skipped check is not verification.
   argument variants; it skips if that JDK has no compiler. A skipped case is
   not a pass. No appliance JVM is launched.
 - Real Make configuration and unit file installation run in an isolated
-  checkout/destination using default and alternate paths/accounts. Both `-j1`
+  checkout/destination using default and alternate paths/accounts: the `conf.*`
+  unit rules render, then `install.systemd` installs. Both `-j1`
   and `-j8` retain the shipped `.NOTPARALLEL`. Full-install and removal command
   ordering is checked by dry-run only; no live systemctl mutation is executed.
   If available, `systemd-analyze verify` checks the generated pair's unit syntax.
+- The targets that run as root render nothing into the checkout: in an
+  isolated copy, `make -n install` and `make -n sql.table.fill` print no write
+  under the checkout. `install.systemd0` stops with exit status 2 and names
+  `make conf.install` when the rendered unit is missing or older than its
+  template or `../CONFIG_SITE.local`, and installs the changed site value after
+  a new rendering. `sql.table.fill` stops with exit status 2 and names
+  `make sql.update` without the rendered schema.
+- The rendering rules write as the checkout owner: `conf.systemd0` renders over
+  a unit the checkout owner cannot write, and stops with exit status 2,
+  keeping the rendered unit, when `SYSTEMD_FILENAME` holds a path.
 - The appliance unit rendered by the real `conf.systemd0` rule from an isolated
   copy carries `Type=simple`, `KillMode=mixed`, `Restart=no`, the
   `TimeoutStopSec` default and an `ExecStart` in service mode, with no

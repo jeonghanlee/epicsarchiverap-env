@@ -73,8 +73,12 @@ sql.drop: sql.table.drop
 # sure the service account exists (src_preinst), then runs sqlite3 as that
 # account through SQLITE_RUN_AS and feeds the schema on standard
 # input, since that account may not read a checkout under a private home.
+# sql.update removes the rendered copy before it writes it, so that a copy left
+# owned by root in the checkout does not stop the checkout owner; the removal
+# runs only on a non-empty path and stops the rule otherwise.
 ifeq "$(DB_BACKEND)" "sqlite"
 sql.update:
+	$(QUIET)test -n "$(SQL_AA_UPDATE_SQLITE)" && rm -f -- "$(SQL_AA_UPDATE_SQLITE)"
 	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
 	            -e "s/CREATE TRIGGER /CREATE TRIGGER IF NOT EXISTS /g" \
 	            < $(SQL_AA_ORIG_SQLITE) > $(SQL_AA_UPDATE_SQLITE)
@@ -83,7 +87,12 @@ sql.update.show:
 	$(QUIET)echo ">>> $(SQL_AA_UPDATE_SQLITE)"
 	$(QUIET)cat -b $(SQL_AA_UPDATE_SQLITE)
 
-sql.table.fill: src_preinst
+# sql.table.fill loads the schema that sql.update rendered; it renders nothing,
+# so that a root run writes nothing into the checkout. The check runs before
+# src_preinst, so a missing or stale schema stops before the account is touched.
+sql.table.fill:
+	$(call require_rendered,$(SQL_AA_UPDATE_SQLITE),$(SQL_AA_ORIG_SQLITE),sql.update,$(SQL_AA_ORIG_SQLITE))
+	$(QUIET)$(MAKE) src_preinst
 	$(QUIET)$(SUDO) $(INSTALL) -d -o $(AA_USERID) -g $(AA_GROUPID) $(dir $(ARCHAPPL_SQLITE_FILE))
 	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) < $(SQL_AA_UPDATE_SQLITE)
 
@@ -92,6 +101,7 @@ sql.table.show:
 	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) .tables
 else ifeq "$(DB_BACKEND)" "mariadb"
 sql.update:
+	$(QUIET)test -n "$(SQL_AA_UPDATE_SQL)" && rm -f -- "$(SQL_AA_UPDATE_SQL)"
 	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
 	            -e "s/) ENGINE=InnoDB;/) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/g" \
 	            < $(SQL_AA_ORIG_SQL) > $(SQL_AA_UPDATE_SQL)
@@ -101,6 +111,7 @@ sql.update.show:
 	$(QUIET)cat -b $(SQL_AA_UPDATE_SQL)
 
 sql.table.fill: mariadb_setup.bash
+	$(call require_rendered,$(SQL_AA_UPDATE_SQL),$(SQL_AA_ORIG_SQL),sql.update,$(SQL_AA_ORIG_SQL))
 	$(QUIET)bash $< "queryFile" "$(SQL_AA_UPDATE_SQL)"
 
 sql.table.show: mariadb_setup.bash

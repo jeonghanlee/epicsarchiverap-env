@@ -664,7 +664,9 @@ function offer_pv_verification {
 function prepare_database {
     local root_port
     if [[ "$backend" == sqlite ]]; then
-        root_make sql.fill
+        # Render the schema as the checkout owner; the root step only loads it.
+        run_make sql.update
+        root_make sql.table.fill
         root_make sql.show
         return
     fi
@@ -791,6 +793,9 @@ function main {
     run_make db.conf
     run_make conf.archapplproperties
     run_make build.mvn
+    # Render the files that install reads from the checkout as the checkout
+    # owner; the root install writes nothing into the checkout.
+    run_make conf.install
     stage='appliance stop'
     stop_appliance
     stage='database and installation'

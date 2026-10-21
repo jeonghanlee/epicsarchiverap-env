@@ -114,6 +114,18 @@ VARS_EXCLUDES+=distclean
 VARS_EXCLUDES+=checkfile
 
 # Stops the recipe unless DB_BACKEND names exactly one supported backend.
+# The configuration that a rendered file depends on: a file rendered before the
+# last change of one of these is stale.
+RENDER_INPUTS=$(wildcard $(TOP)/configure/CONFIG* $(TOP)/configure/RELEASE* $(TOP)/../CONFIG_SITE.local $(TOP)/../RELEASE.local)
+
+# require_rendered(file, template, target[, inputs]): stop with status 2 when the
+# file is missing or older than its template or an input (default RENDER_INPUTS),
+# naming the target that renders it. A root install uses it instead of rendering.
+define require_rendered
+$(QUIET)test -f $(1) || { echo ">>> $(1) is not rendered; run make $(3) as the checkout owner first" >&2; exit 2; }; for input in $(2) $(if $(4),$(4),$(RENDER_INPUTS)); do if [ "$$input" -nt $(1) ]; then echo ">>> $(1) is older than $$input; run make $(3) as the checkout owner first" >&2; exit 2; fi; done
+endef
+VARS_EXCLUDES+=require_rendered
+
 define check_db_backend
 	$(if $(and $(filter 1,$(words $(DB_BACKEND))),$(filter $(DB_BACKENDS),$(DB_BACKEND))),,$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)')))
 endef
