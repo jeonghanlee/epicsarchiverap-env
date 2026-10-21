@@ -68,6 +68,7 @@ function base(f) { sub(/.*\//, "", f); return f }
 base(FILENAME) == "meta.env" { split($0, kv, "="); meta[kv[1]] = substr($0, length(kv[1]) + 2); next }
 base(FILENAME) == "unit.txt" { split($0, kv, "="); unit[kv[1]] = substr($0, length(kv[1]) + 2); next }
 base(FILENAME) == "journal.bounds" { split($0, kv, "="); bounds[kv[1]] = substr($0, length(kv[1]) + 2); next }
+base(FILENAME) ~ /^status\./ { split($0, kv, "="); stat[kv[1]] = substr($0, length(kv[1]) + 2); next }
 base(FILENAME) == "etl-pass.size" { split($0, kv, "="); size[kv[1]] = substr($0, length(kv[1]) + 2); next }
 base(FILENAME) == "stop-exit.txt" { if ($1 ~ /^[0-9]+$/) stop_exit = $1; next }
 base(FILENAME) == "keys.txt" { if ($0 != "") { keys[$0] = 1; nkeys++ } ; next }
@@ -180,11 +181,17 @@ END {
     qual = ""
     if ((have_before && offfiles > 0) || afterb == "" || afterb < 30 || afterb > hi) qual = "off-rule"
     # slowestMillis and the pass duration count the passes planned in the
-    # accumulation of this stop: from (hold + 2) partitions before E to the end.
+    # accumulation of this stop: from (hold + 2) partitions before E, and not
+    # before run-stop.bash started (start_utc of the status copy; etl-pass.log
+    # runs on across resets, so earlier passes may belong to an earlier stage),
+    # to the end of the unit.
     part = (meta["partition"] == "PARTITION_5MIN" ? 300 : 3600)
+    wstart = (eu != "" ? eu - (hold + 2) * part : "")
+    st0 = epoch(stat["start_utc"])
+    if (st0 != "" && wstart != "" && st0 > wstart) wstart = st0
     nwin = 0; slowest = 0; passmax = 0
     for (i = 1; i <= np; i++) {
-        if (eu == "" || ie == "" || pplan[i] == "" || pplan[i] < eu - (hold + 2) * part || pplan[i] > ie) continue
+        if (wstart == "" || ie == "" || pplan[i] == "" || pplan[i] < wstart || pplan[i] > ie) continue
         nwin++
         if (psm[i] > slowest) slowest = psm[i]
         if (pend[i] != "" && pend[i] - pstart[i] > passmax) passmax = pend[i] - pstart[i]
@@ -271,6 +278,10 @@ function stop_record {
         fi
     done
     [[ -s "${folder}/frozen/SHA256SUMS" ]] && frozen=1
+    # The status file as it was before the stop gives the start of run-stop.bash.
+    for f in "${folder}"/status.*; do
+        [[ -f "${f}" && -r "${f}" ]] && files+=("${f}")
+    done
     awk -v required="${STOP_FILES}" -v present="${present}" -v nonempty="${nonempty}" -v frozen="${frozen}" \
         "${AWK_STOP}" "${files[@]}" /dev/null || rc=$?
     [[ ${rc} -le 2 ]] || { printf 'rebuild-table: awk failed on %s (status %d)\n' "${folder}" "${rc}" >&2; return 3; }

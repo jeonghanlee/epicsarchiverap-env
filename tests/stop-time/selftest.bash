@@ -214,6 +214,13 @@ function test_parser_variants {
     expect_eq "cut that starts before the stop: status" "2" "$(judge "${d}")"
     expect_eq "cut that starts before the stop: reason" "journal.bounds:first-before-stop" "$(field "${workspace}/out/judge-cut-too-early.out" incomplete)"
     expect_eq "cut that starts before the stop: etl_gap_s" "10" "$(field "${workspace}/out/judge-cut-too-early.out" etl_gap_s)"
+    d="$(copy_stop stop-01-passed earlier-stage-pass)"
+    sed 's/2026-10-19T20:05:0/2026-10-19T19:50:0/g; s/slowestMillis=850/slowestMillis=9999/' "${d}/etl-pass.records" > "${d}/old.line"
+    cat "${d}/old.line" >> "${d}/etl-pass.records"; rm "${d}/old.line"
+    printf 'run=synthetic\nstart_utc=2026-10-19T19:52:00Z\n' > "${d}/status.main-903.01"
+    judge "${d}" > /dev/null
+    expect_eq "pass before the start of run-stop: slowest_ms_max" "850" "$(field "${workspace}/out/judge-earlier-stage-pass.out" slowest_ms_max)"
+    expect_eq "pass before the start of run-stop: passes_in_window" "1" "$(field "${workspace}/out/judge-earlier-stage-pass.out" passes_in_window)"
     d="$(copy_stop stop-01-passed malformed-listing)"; sed -i '1s/ 2026-[^ ]* / /' "${d}/listing-before.txt"
     expect_eq "listing row without time: status" "2" "$(judge "${d}")"
     d="$(copy_stop stop-01-passed no-frozen)"; rm "${d}/frozen/SHA256SUMS"
@@ -397,6 +404,23 @@ function test_rehearsal_records {
     expect_eq "rehearsal stop-interrupted-rehearsal-100-1 status" "2" "$(judge "${R}/stop-interrupted-rehearsal-100-1")"
 }
 
+function test_helpers {
+    why "archive-stage builds the archivePV body from the PV lists without sending it; both helpers refuse a bad usage."
+    local d="${workspace}/archive" want
+    printf 'pv,group,scan,method,period,policy,store_key\r\nA:ONE,g,1 second,MONITOR,1.0,,A/ONE\r\nA:TWO,f,.1 second,SCAN,0.1,VeryFast,A/TWO\r\n' > "${workspace}/list-a.csv"
+    printf 'pv,group,scan,method,period,policy,store_key\nB:ONE,g,10 second,SCAN,10.0,Medium,B/ONE\n' > "${workspace}/list-b.csv"
+    expect_eq "archive-stage --dry-run status" "0" "$(status_of archive-dry "${TOP}/archive-stage.bash" --dry-run "${d}" "${workspace}/list-a.csv" "${workspace}/list-b.csv")"
+    want='[{"pv": "A:ONE", "samplingperiod": "1.0", "samplingmethod": "MONITOR"}, {"pv": "A:TWO", "samplingperiod": "0.1", "samplingmethod": "SCAN", "policy": "VeryFast"}, {"pv": "B:ONE", "samplingperiod": "10.0", "samplingmethod": "SCAN", "policy": "Medium"}]'
+    expect_eq "archive-stage body" "${want}" "$(cat "${d}/archivePV.json")"
+    expect_eq "archive-stage --dry-run sends nothing" "absent" "$([[ -e "${d}/archivePV.http" ]] && echo present || echo absent)"
+    expect_eq "archive-stage without lists" "3" "$(status_of archive-usage "${TOP}/archive-stage.bash" --dry-run "${d}")"
+    printf 'pv,group\nC:ONE,g\n' > "${workspace}/list-bad.csv"
+    expect_eq "archive-stage with a list without method" "3" "$(status_of archive-bad "${TOP}/archive-stage.bash" --dry-run "${workspace}/archive-bad" "${workspace}/list-bad.csv")"
+    expect_eq "run-cell without options" "3" "$(status_of cell-usage "${TOP}/run-cell.bash")"
+    expect_eq "run-cell with --stop" "3" "$(status_of cell-stop "${TOP}/run-cell.bash" --stops 3 --stop 1 --run r --cell main-903 --evidence "${workspace}/ev")"
+    expect_eq "run-cell without --stops" "3" "$(status_of cell-nostops "${TOP}/run-cell.bash" --run r --cell main-903 --evidence "${workspace}/ev")"
+}
+
 trap _handle_exit EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
@@ -413,6 +437,7 @@ function main {
     test_fit_line
     test_c3
     test_run_stop
+    test_helpers
     test_rebuild_and_compare
     TEST_COMPLETE=1
 }

@@ -9,7 +9,9 @@ runs on the guest, and the self-test runs on the local host.
 | Script | Role |
 | --- | --- |
 | `gen-pvs.bash <output folder>` | Writes `extra.db` and `extra.csv`: the 2097 PVs `STOPTIME:E0001` to `STOPTIME:E2097` that, with the 903 PVs of ansible-provision, form the stage of 3000 PVs |
+| `archive-stage.bash` | Archives the PVs of one stage after a reset with one archivePV POST and waits until every PV is archived and connected |
 | `run-stop.bash` | Measures one stop: the checks before the stop, the phase window, the stop, the cuts, the listings, the status file and the record of the stop |
+| `run-cell.bash` | Runs the stops of one cell in order, starts the appliance between them, and stops the cell at a refusal or a repeat that is due |
 | `rebuild-table.bash` | Rebuilds the record of each stop from the raw files of its stop folder |
 | `fit-line.bash` | Fits the stop time over the PV count: `rehearsal`, `expect`, `line`, `predict` and `check` |
 | `selftest.bash` | Tests the scripts on the committed fixtures, without a guest |
@@ -20,16 +22,18 @@ runs on the guest, and the self-test runs on the local host.
 1. Local host: run `selftest.bash`, `bash -n` and `shellcheck -x` on every script.
 2. Guest: create the guard file `/etc/stop-time-guest`, install the appliance
    with `ARCHAPPL_STORAGE_TOP` `/arch` and `DB_BACKEND=sqlite` in
-   `../CONFIG_SITE.local`, start the IOC unit, archive the PVs of the stage,
-   and run `run-stop.bash --dry-run` with the options of the first stop once
-   the first pass after the archiving has created `etl-pass.log`.
+   `../CONFIG_SITE.local`, start the IOC unit, archive the PVs of the stage
+   with `archive-stage.bash`, and run `run-stop.bash --dry-run` with the
+   options of the first stop once the first pass after the archiving has
+   created `etl-pass.log`.
 3. Guest: run the rehearsal stops with `--cell rehearsal-25` and
    `--cell rehearsal-100`, then `fit-line.bash rehearsal` and
    `fit-line.bash expect`.
-4. Guest: run the stops of the cells `main-903` and `main-3000`. A stop leaves
-   the appliance stopped: run `make sd_start` before the next stop of the
-   cell. Between the two cells run the reset of item M55 in
-   `docs/milestone-2.0.1.md` and archive the PVs of the next stage.
+4. Guest: run the stops of the cells `main-903` and `main-3000` with
+   `run-cell.bash`. A stop leaves the appliance stopped; `run-cell.bash` runs
+   `make sd_start` before each further stop. Between the two cells run the
+   reset of item M55 in `docs/milestone-2.0.1.md` and archive the PVs of the
+   next stage with `archive-stage.bash`.
 5. Local host: copy the evidence, run `rebuild-table.bash` on a copy, compare it
    with the recorded `stops.jsonl` through `compare-evidence.py`, run
    `fit-line.bash line` and `fit-line.bash predict`, and copy the prediction
@@ -73,6 +77,48 @@ PVs adds `--pv-list <extra.csv>`. A repeated stop takes the number of the
 original with the suffix `r` (`--stop 2r`). The validation stop
 adds `--prediction <prediction.json>`, with the file `<prediction.json>.sha256`
 beside it.
+
+### Archive the PVs of a stage
+
+`archive-stage.bash` turns the PV lists into the body of one archivePV POST
+(`pv`, `samplingperiod` from the column `period`, `samplingmethod` from the
+column `method`, and `policy` when the column is not empty), sends it to
+`MGMT_URL` (default `http://localhost:17665/mgmt/bpl`), and reads
+`getPVStatus` every 10 seconds until every PV shows `Being archived` with
+`connectionState` true, at most `READY_LIMIT_S` seconds (default 1200). It
+keeps the body, the reply, its HTTP status, the last status read and the
+times in the output folder. `--dry-run` writes the body only. The following
+command archives the stage of 903 PVs after a reset:
+
+```bash
+tests/stop-time/archive-stage.bash ~/stop-time-evidence/<run-id>/<cell>/archive <pvs.csv> <pvs-load1.csv> <pvs-load2.csv>
+```
+
+The stage of 3000 PVs adds `<extra.csv>`. Exit status: 0 every PV ready, 1
+the POST failed, 2 not every PV ready in time, 3 usage.
+
+### Run the stops of a cell
+
+`run-cell.bash` runs `run-stop.bash` for the stops `--first` to
+`--first + --stops - 1` and passes every other option to it unchanged. Before
+each stop after the first it runs `make sd_start`, because a stop leaves the
+appliance stopped. It stops the cell when `run-stop.bash` refuses (status 3),
+when `make sd_start` fails, or when the status file names a repeat in
+`pending`, so that a later stop does not remove that key. Each stop keeps its
+output in `<evidence>/<run-id>/console/<cell>-<stop>.log`, and
+`<cell>.rcs` lists the exit status and `pending` after each stop. The
+appliance must be active before the first stop. The following command runs
+the three stops of the cell `main-903`:
+
+```bash
+tests/stop-time/run-cell.bash --stops 3 --run <run-id> --cell main-903 --stage 903 --partition PARTITION_5MIN --hold 2 --evidence ~/stop-time-evidence --pv-list <pvs.csv> --pv-list <pvs-load1.csv> --pv-list <pvs-load2.csv> --expectation ~/stop-time-evidence/<run-id>/expectation.jsonl
+```
+
+Exit status: 0 every stop ran (each stop keeps its own verdict), 2 the cell
+stopped at a repeat that is due, 3 usage, a refusal or a failed
+`make sd_start`. A repeat runs with `run-stop.bash --stop <n>r`.
+
+### Judge a recorded stop
 
 The following command judges a recorded stop folder without a stop:
 
@@ -191,7 +237,10 @@ and the recorded fit, rehearsal fit, expectation and prediction.
   longest with its PV; a stop with result `timeout` names the PV of its last
   line.
 - `slowestMillis` and the pass duration count the passes of `etl-pass.records`
-  planned from (hold + 2) partitions before E to the end of the unit.
+  planned from (hold + 2) partitions before E, and not before `start_utc` of
+  the status copy `status.<cell>.<stop>` (the start of `run-stop.bash`), to
+  the end of the unit; `etl-pass.log` runs on across resets, so the passes of
+  an earlier stage stay out.
 - A pass running at `ActiveExitTimestamp`, or planned between it and the line
   "Shutting down ETL threads." plus 5 seconds, gives the qualifier `overlap`; a
   time after the boundary outside the window or a PV without hold + 2 files
@@ -240,6 +289,10 @@ and the recorded fit, rehearsal fit, expectation and prediction.
 
 - `gen-pvs.bash` writes 2097 records of the form of `load1.db` and 2097 rows
   with LF line ends; two runs give the same SHA-256.
+- `archive-stage.bash --dry-run` builds the archivePV body from lists with CR
+  LF line ends, with and without a policy, and sends nothing; it refuses a call
+  without lists and a list without the column `method`. `run-cell.bash`
+  refuses a call without options, without `--stops` and with `--stop`.
 - `run-stop.bash` refuses with status 3, and writes no evidence, without
   options, with an unknown cell, a bad stop number, a prediction for a main
   cell, a validation stop without a prediction, without the guard file and
