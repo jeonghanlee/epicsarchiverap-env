@@ -95,6 +95,17 @@ tests/run-all-tests.bash --local
 The stop time measurement in [stop-time/](stop-time/README.md) is a test for
 its own guest, and `--local` does not run it.
 
+The local suite reaches no database that it did not start: its MariaDB checks
+use a private server (see [Native database and PV checks](#native-database-and-pv-checks)).
+A database target run by hand (`sql.*`, `db.*`, `queryFile` of
+`mariadb_setup.bash`) reaches the server that `DB_HOST_NAME`, `DB_HOST_PORT`
+and `DB_SOCKET` name, by default the database `archappl` on `127.0.0.1:3306`,
+also from an isolated copy of the checkout and with `SUDO=false`, which stops
+only `sudo` and not the database client. On a host whose MariaDB serves a real
+appliance, run such a target only for a case that stops at its check line (a
+missing or stale input) and run a case that passes its checks on a guest.
+Before any database target, read where those three variables point.
+
 The following command opens a run. It runs the published candidate's local
 suite and records the baseline; it contacts no guest:
 
