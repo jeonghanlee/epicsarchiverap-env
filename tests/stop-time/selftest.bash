@@ -421,6 +421,32 @@ function test_helpers {
     expect_eq "run-cell without --stops" "3" "$(status_of cell-nostops "${TOP}/run-cell.bash" --run r --cell main-903 --evidence "${workspace}/ev")"
 }
 
+function test_partition_15min {
+    why "The 15-minute partition is 900 s: run-stop accepts it, an unknown partition is refused, and the pass window of rebuild-table spans (hold + 2) * 900 s before E."
+    local common=() d early
+    printf 'pv,group,scan,method,period,policy,store_key\r\nA:B,g,1 second,MONITOR,1.0,,A/B\r\n' > "${workspace}/pvs-15.csv"
+    common=(--run selftest --stop 1 --stage 1 --hold 2 --evidence "${workspace}/evidence-15"
+        --pv-list "${workspace}/pvs-15.csv" --expectation "${FIX}/fit/expectation.jsonl")
+    STOP_TIME_GUARD_FILE="${workspace}/absent" status_of rs-15min "${TOP}/run-stop.bash" --cell main-903 --partition PARTITION_15MIN "${common[@]}" --dry-run > /dev/null
+    expect_eq "run-stop PARTITION_15MIN reaches the guard" "1" "$(grep -c 'guard file' "${workspace}/out/rs-15min.err")"
+    expect_eq "run-stop with an unknown partition" "3" "$(status_of rs-30min "${TOP}/run-stop.bash" --cell main-903 --partition PARTITION_30MIN "${common[@]}")"
+    expect_eq "run-stop partition message" "1" "$(grep -c 'partition must be PARTITION_5MIN, PARTITION_15MIN or PARTITION_HOUR' "${workspace}/out/rs-30min.err")"
+    # A pass planned two hours before E lies inside the window of the hourly
+    # partition (4 h) and outside that of the 15-minute partition (1 h).
+    early='2026-10-19T18:05:02.000Z DEBUG [ETL-1] org.epics.archiverappliance.etl.common.ETLPassDriver - ETL pass of transition sts to mts : ETLPassRecord[plannedAt=2026-10-19T18:05:00Z, startedAt=2026-10-19T18:05:00.100Z, endedAt=2026-10-19T18:05:02Z, pvCount=3, jobsRun=3, jobsFailed=0, partitionsMoved=3, bytesMoved=3000, slowestPv=STOPTIME:E0002, slowestMillis=9999, aborted=false]'
+    local part name want_n want_ms
+    for part in PARTITION_15MIN:p15:1:850 PARTITION_HOUR:p60:2:9999; do
+        IFS=: read -r part name want_n want_ms <<< "${part}"
+        d="$(copy_stop stop-01-passed "${name}")"
+        sed -i "s/^partition=PARTITION_5MIN\$/partition=${part}/" "${d}/meta.env"
+        { printf '%s\n' "${early}"; cat "${d}/etl-pass.records"; } > "${d}/records.new" && mv "${d}/records.new" "${d}/etl-pass.records"
+        expect_eq "${part}: status" "0" "$(judge "${d}")"
+        expect_eq "${part}: passes_in_window" "${want_n}" "$(field "${workspace}/out/judge-${name}.out" passes_in_window)"
+        expect_eq "${part}: slowest_ms_max" "${want_ms}" "$(field "${workspace}/out/judge-${name}.out" slowest_ms_max)"
+        expect_eq "${part}: qualifier absent" "" "$(field "${workspace}/out/judge-${name}.out" qualifier)"
+    done
+}
+
 trap _handle_exit EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
@@ -437,6 +463,7 @@ function main {
     test_fit_line
     test_c3
     test_run_stop
+    test_partition_15min
     test_helpers
     test_rebuild_and_compare
     TEST_COMPLETE=1

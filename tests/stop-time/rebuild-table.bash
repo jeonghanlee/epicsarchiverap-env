@@ -185,7 +185,7 @@ END {
     # before run-stop.bash started (start_utc of the status copy; etl-pass.log
     # runs on across resets, so earlier passes may belong to an earlier stage),
     # to the end of the unit.
-    part = (meta["partition"] == "PARTITION_5MIN" ? 300 : 3600)
+    part = (meta["partition"] == "PARTITION_5MIN" ? 300 : (meta["partition"] == "PARTITION_15MIN" ? 900 : 3600))
     wstart = (eu != "" ? eu - (hold + 2) * part : "")
     st0 = epoch(stat["start_utc"])
     if (st0 != "" && wstart != "" && st0 > wstart) wstart = st0

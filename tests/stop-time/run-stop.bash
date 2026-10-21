@@ -223,8 +223,9 @@ function validate_options {
     [[ "${STAGE}" =~ ^[1-9][0-9]*$ ]] || refuse "--stage must be a positive number"
     case "${PARTITION}" in
         PARTITION_5MIN) PART_S=300 ;;
+        PARTITION_15MIN) PART_S=900 ;;
         PARTITION_HOUR) PART_S=3600 ;;
-        *) refuse "--partition must be PARTITION_5MIN or PARTITION_HOUR" ;;
+        *) refuse "--partition must be PARTITION_5MIN, PARTITION_15MIN or PARTITION_HOUR" ;;
     esac
     [[ "${HOLD}" =~ ^[1-9][0-9]*$ ]] || refuse "--hold must be a positive number"
     [[ -n "${EVIDENCE}" ]] || refuse "--evidence is required"
