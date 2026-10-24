@@ -58,6 +58,33 @@ timeout is sized from a measured stop: a test host with three PVs stopped in
 about 10 s, the 300 s default leaves room for a loaded ETL, and a site sets
 its own value after timing its stop. There is no `ExecStop`.
 
+## Measured stop times
+
+The stop time of the unit was measured on one appliance whose short term store held data. This section reports the measurements; it gives no sizing rule and no recommended value of `SYSTEMD_TIMEOUT_STOP_SECONDS`.
+
+| PVs | 5-minute partition | 15-minute partition | 1-hour partition |
+| --- | --- | --- | --- |
+| 903 | 2.236 s to 2.391 s (three stops) | 2.368 s (one stop) | 2.932 s (one stop) |
+| 3000 | 6.605 s to 7.807 s (three stops) | 8.072 s (one stop) | 9.730 s (one stop) |
+
+Each value is the time the unit took to stop, from `ActiveExitTimestamp` to `InactiveEnterTimestamp`, read from the monotonic properties of the unit. The conditions of every stop were:
+
+- One Debian 13 guest with 2 vCPU and 4 GiB of memory; the short, medium and long term stores on one virtual disk.
+- SQLite as the database; a hold of 2 in the short term store ([policy guide](../README.policies.md)), so each PV had four files in the store at the stop.
+- The 3000 PVs are the 903 PVs of the test set plus 2097 generated PVs at 1 Hz.
+- The stop began about 30 seconds after a partition boundary, with no ETL pass running.
+- Every stop ended with the unit result `success`; every PV was consolidated and none was left.
+
+The growth with the PV count is almost entirely the ETL instance. On the 5-minute partition it took about 1.06 s at 903 PVs and 5.66 s at 3000 PVs (means of three stops); on the 1-hour partition it took 1.652 s and 8.333 s (one stop). The engine instance stayed near 1.1 s to 1.3 s in the stops on the 5-minute partition.
+
+The measurements have these limits:
+
+- The values for the 15-minute and the 1-hour partition are single stops.
+- The three stores shared one virtual disk. A site with its short term store on tmpfs or SSD and its medium term store on another disk or on NFS can differ.
+- Only two PV counts were measured; the values are not extended beyond 3000 PVs.
+- A stop during a running ETL pass was not measured and can take longer.
+- The default of 300 s lies far above every measured value.
+
 ## Instance lifecycle
 
 | Event | Launcher behavior | Unit result |
