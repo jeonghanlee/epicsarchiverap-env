@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates of this milestone are Complete. M13 (management web interface rework), assigned to this milestone by D45, is Complete on 2026-10-21; its information architecture is accepted by D49 and the interface was implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); the transfer to epicsarchiverap-maven is in its `modernize` branch since `d0932d1b` (plan item 12), and T6 passed on 2026-10-21 on this host; D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) is In progress; M13, its last milestone dependency, is Complete. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37. M54 (policy documents) is Complete. M55 is Complete on 2026-10-20: the six stops of the main cells give the line 0.297 s + 0.00224 s per PV (the timeout of 300 s at about 134000 PVs, cautiously 108000), and the validation stop on the shipped partition took 3.74 s, outside its interval (C3 Failed); the table and the statement are in its Closure Evidence. M58 is Complete on 2026-10-21: the targets that run as root render nothing into the checkout, the rendering runs as the checkout owner (`make conf.install`, `make sql.update`), and the rendering rules remove a rendered file left by root before they write it; commit `0323fab` is on `origin/release-2.0.1`. M56 and M57 were reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed; their plans were accepted and their implementation authorized on 2026-10-21; M56 is Complete on 2026-10-21 (2.368 s at 903 PVs and 8.072 s at 3000 PVs on the 15-minute partition, against 2.324 s and 7.029 s of the line of M55), and M57 is Complete on 2026-10-21 (2.932 s at 903 PVs and 9.730 s at 3000 PVs on the shipped hourly partition, against 2.324 s and 7.029 s of the line of M55).
+Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates of this milestone are Complete. M13 (management web interface rework), assigned to this milestone by D45, is Complete on 2026-10-21; its information architecture is accepted by D49 and the interface was implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); the transfer to epicsarchiverap-maven is in its `modernize` branch since `d0932d1b` (plan item 12), and T6 passed on 2026-10-21 on this host; D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) is In progress; M13, its last milestone dependency, is Complete. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37. M54 (policy documents) is Complete. M55 is Complete on 2026-10-20: the six stops of the main cells give the line 0.297 s + 0.00224 s per PV (the timeout of 300 s at about 134000 PVs, cautiously 108000), and the validation stop on the shipped partition took 3.74 s, outside its interval (C3 Failed); the table and the statement are in its Closure Evidence. M58 is Complete on 2026-10-21: the targets that run as root render nothing into the checkout, the rendering runs as the checkout owner (`make conf.install`, `make sql.update`), and the rendering rules remove a rendered file left by root before they write it; commit `0323fab` is on `origin/release-2.0.1`. M56 and M57 were reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed; their plans were accepted and their implementation authorized on 2026-10-21; M56 is Complete on 2026-10-21 (2.368 s at 903 PVs and 8.072 s at 3000 PVs on the 15-minute partition, against 2.324 s and 7.029 s of the line of M55), and M57 is Complete on 2026-10-21 (2.932 s at 903 PVs and 9.730 s at 3000 PVs on the shipped hourly partition, against 2.324 s and 7.029 s of the line of M55). M60 (the health starting bound as a site setting) is Not started; its plan is a draft that waits for the owner's acceptance.
 
 Evidence file names: a bare file name or run folder name given as evidence in this register (for example `m10-vm-run-e441d59-aa953a4` or a `.log` file without a directory) names a file of the private work folder of the development host. Those files are not part of the repository and are not preserved; the results, times, commits and SHA256 values written in the text are the record. Evidence given with its path under `~/stop-time-evidence/` is kept on the host and is not covered by this statement.
 
@@ -49,6 +49,7 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Install | M58 | Keep the checkout writable for the engineer after `sudo make install` and `sudo make sql.fill` | Milestone | Complete | No | M55 | A checkout that ran the documented `sudo make install` or `sudo make sql.fill` lets the engineer run the next Make target without a permission error, or the installation guide states the step that restores the ownership; [detail](#m58---keep-the-checkout-writable-for-the-engineer-after-sudo-make-install-and-sudo-make-sqlfill) |
 | Docs | M59 | Record the measured stop times in the systemd reference | Milestone | Complete | No | M55, M56, M57, D62 | `docs/technicaldocs/README.systemd.md` states the conditions and the measured stop times of the stages of 903 and 3000 PVs on the three partitions, and gives no rule; [detail](#m59---record-the-measured-stop-times-in-the-systemd-reference) |
 | Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | D60 | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
+| Health | M60 | Let a site set the health starting bound through the configuration files | Milestone | Not started | Yes | D65 | A value of `ARCHAPPL_HEALTH_STARTING_SECONDS` in `../CONFIG_SITE.local` reaches `archappl.conf` after `make conf.archapplproperties`, and the scheduled health check uses it; [detail](#m60---let-a-site-set-the-health-starting-bound-through-the-configuration-files) |
 | Release | M44 | Verify and publish release 2.0.1 | Milestone | In progress | No | M43, M14, M10, M45, M46, M13, D31, D37, D39, D44, D45, D56 | Released objects and required post-release checks pass; candidate `48724a2` published with source `162269e7`, `SRC_TAG` now `origin/modernize`, final integration and VM acceptance Pending; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
@@ -92,6 +93,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D62 | Record the measured stop times in `docs/technicaldocs/README.systemd.md` as measurements only, with no sizing rule and no recommended value: two PV counts on three partitions, most cells measured by one stop, do not suffice for a rule. | 2026-10-23 |
 | D63 | Correct the sentence of `docs/technicaldocs/README.systemd.md` that sized the timeout from a test host with three PVs stopping in about 10 s, which disagrees with the measured stop times: it points to the new section instead, and the register and the document say the same. | 2026-10-23 |
 | D64 | Move the Complete rows and their details that sit in the Backlog section, and the In progress row M53, to the Milestone section, because all of them are work of release 2.0.1: M48, M51, M52, M54, M55, G9, M56, M57, M58, M59 and M53. M27, M41, M42, M47 and M49 stay in the Backlog. | 2026-10-23 |
+| D65 | Make `ARCHAPPL_HEALTH_STARTING_SECONDS` a configuration variable of the repository in the same way as `ARCHAPPL_STORAGE_ALARM_PERCENT`: a default in `configure/CONFIG_SITE`, a line in `site-template/archappl.conf.in` and a substitution in `configure/RULES_PROPERTIES`, so that a value in `../CONFIG_SITE.local` reaches `archappl.conf` and the scheduled health check. | 2026-10-24 |
 
 ### Assignment History
 
@@ -2246,6 +2248,78 @@ Labels: none
 GitHub Milestone: none
 Observed State: none; no issue exists
 Last Compared: none
+
+#### M60 - Let a site set the health starting bound through the configuration files
+
+Origin: 2.0.1 / M60
+Identity History: none
+GitHub Issue: [#62](https://github.com/jeonghanlee/epicsarchiverap-env/issues/62)
+Status: Not started
+
+##### Summary
+
+`ARCHAPPL_HEALTH_STARTING_SECONDS` bounds how long `archappl.bash health` reports an instance as starting (default 10 seconds, valid 1 to 59). `scripts/archappl.bash` reads it after it loads the `archappl.conf` next to the script, but nothing writes it into that file: `configure/CONFIG_SITE`, `site-template/archappl.conf.in` and the `conf.archappl` substitution list in `configure/RULES_PROPERTIES` do not name it. A value in `../CONFIG_SITE.local` therefore has no effect, and the scheduled check, which systemd runs without a site environment, always uses the default. `ARCHAPPL_STORAGE_ALARM_PERCENT` has all three parts and works. The book page `book/src/operate/health.md` lists the variable as settable in `../CONFIG_SITE.local`, which is false until this item lands.
+
+##### Scope
+
+- `configure/CONFIG_SITE`: the default `ARCHAPPL_HEALTH_STARTING_SECONDS:=10` and a comment that names the valid range 1 to 59, beside `ARCHAPPL_STORAGE_ALARM_PERCENT`.
+- `site-template/archappl.conf.in`: the line `ARCHAPPL_HEALTH_STARTING_SECONDS=@ARCHAPPL_HEALTH_STARTING_SECONDS@`.
+- `configure/RULES_PROPERTIES`: the matching substitution in the `conf.archappl` list.
+- The tests: `tests/phase1-logic.bash` (the block that checks `ARCHAPPL_STORAGE_ALARM_PERCENT`) and `tests/health-starting.bash`.
+- The documents that name the variable: `docs/technicaldocs/README.systemd.md`, `CHANGELOG.md`, `book/src/operate/health.md` (the sentence that a changed value reaches the check only through a reinstall now covers both variables) and the generated page `book/src/configure/variables.md`.
+
+Out of scope: a change of the default of 10 seconds or of the range 1 to 59, a change of the startup allowance `SYSTEMD_HEALTH_STARTUP_SECONDS`, and a change of `scripts/archappl.bash`.
+
+##### Completion Criteria
+
+- With no site setting, the rendered `archappl.conf` holds `ARCHAPPL_HEALTH_STARTING_SECONDS=10`.
+- A value in `../CONFIG_SITE.local` reaches `archappl.conf` after `make conf.archapplproperties`.
+- The health check uses the rendered value: a start older than it reports `FAIL startup-timeout`, and a value outside 1 to 59 reports `ERROR starting-invalid-bound`.
+- The scheduled check, run by systemd, uses the rendered value after a reinstall.
+- The documents that name the variable agree with this behavior, and `book/scripts/check-generated.bash` reports every generated page current.
+
+##### Dependencies And Decisions
+
+- D65, Decision Date: 2026-10-24. The variable follows the pattern of `ARCHAPPL_STORAGE_ALARM_PERCENT`.
+- The rendered line is a plain assignment, as for `ARCHAPPL_STORAGE_ALARM_PERCENT`. An installed `archappl.conf` is loaded before the variable is read, so it takes precedence over the process environment of a manual run.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Add the default and its comment to `configure/CONFIG_SITE`, the line to `site-template/archappl.conf.in` and the substitution to `configure/RULES_PROPERTIES`, each beside the entry of `ARCHAPPL_STORAGE_ALARM_PERCENT` (T1).
+2. Extend the block of `tests/phase1-logic.bash` that checks `ARCHAPPL_STORAGE_ALARM_PERCENT` with the same checks for the new variable: the default is rendered, and a value in `../CONFIG_SITE.local` reaches `archappl.conf` (T1).
+3. Add to `tests/health-starting.bash` a case that sets the bound only in the `archappl.conf` of the test workspace, with no environment variable, and expects the same `FAIL startup-timeout` and `ERROR starting-invalid-bound` results (T2).
+4. Update the documents named in Scope and regenerate the generated pages with `book/scripts/generate-all.bash` (T3).
+5. Run `tests/run-all-tests.bash --local` (T4).
+6. Request a fresh guest from the provider session, set a value in `../CONFIG_SITE.local`, install, and check `archappl.conf` and the scheduled check (T5). The guest request needs its own authority.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | The extended block of `tests/phase1-logic.bash` renders `archappl.conf` through the real `make conf.archapplproperties` with no setting and with a value in `../CONFIG_SITE.local` | Local host | The default renders as 10 and the site value renders unchanged; before the change the line is absent |
+| T2 | Local | The new case of `tests/health-starting.bash` runs the shipped `archappl.bash health` with the bound only in `archappl.conf` | Local host | `FAIL startup-timeout` for a start older than the bound and `ERROR starting-invalid-bound` for a value outside 1 to 59, with no environment variable set |
+| T3 | Local | `book/scripts/check-generated.bash` and `mdbook build` | Local host | Every generated page is current and the book builds |
+| T4 | Local | `tests/run-all-tests.bash --local` with the real EPICS Base | Local host | Exit status 0 without failures |
+| T5 | VM | On a fresh guest, set a value in `../CONFIG_SITE.local`, install with the shipped installer, then read the installed `archappl.conf` and the journal of the scheduled health check | Fresh guest | The installed `archappl.conf` holds the value and the scheduled check applies it |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Not run | Local host | Pending | none |
+| T2 | Not run | Local host | Pending | none |
+| T3 | Not run | Local host | Pending | none |
+| T4 | Not run | Local host | Pending | none |
+| T5 | Not run | Fresh guest | Pending | none |
+
+##### Closure Evidence
+
+- none
 
 #### M44 - Verify and publish release 2.0.1
 
