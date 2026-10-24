@@ -1423,7 +1423,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Runtime | M56 | Measure the stop time over the PV count with the 15-minute short term store partition | Milestone | Complete | No | M55 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the stop scripts accept `PARTITION_15MIN` and the main cells of M55 are repeated once with it; [detail](#m56---measure-the-stop-time-over-the-pv-count-with-the-15-minute-short-term-store-partition) |
 | Runtime | M57 | Measure the stop time over the PV count with the shipped short term store partition | Milestone | Complete | No | M55, M56 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the main cells of M55 are repeated once with the shipped partition `PARTITION_HOUR`; [detail](#m57---measure-the-stop-time-over-the-pv-count-with-the-shipped-short-term-store-partition) |
 | Install | M58 | Keep the checkout writable for the engineer after `sudo make install` and `sudo make sql.fill` | Milestone | Complete | No | M55 | A checkout that ran the documented `sudo make install` or `sudo make sql.fill` lets the engineer run the next Make target without a permission error, or the installation guide states the step that restores the ownership; [detail](#m58---keep-the-checkout-writable-for-the-engineer-after-sudo-make-install-and-sudo-make-sqlfill) |
-| Docs | M59 | Record the measured stop times in the systemd reference | Milestone | In progress | No | M55, M56, M57, D62 | `docs/technicaldocs/README.systemd.md` states the conditions and the measured stop times of the stages of 903 and 3000 PVs on the three partitions, and gives no rule; [detail](#m59---record-the-measured-stop-times-in-the-systemd-reference) |
+| Docs | M59 | Record the measured stop times in the systemd reference | Milestone | Complete | No | M55, M56, M57, D62 | `docs/technicaldocs/README.systemd.md` states the conditions and the measured stop times of the stages of 903 and 3000 PVs on the three partitions, and gives no rule; [detail](#m59---record-the-measured-stop-times-in-the-systemd-reference) |
 
 ### Backlog Details
 
@@ -2814,7 +2814,7 @@ Last Compared: none
 Origin: 2.0.1 / M59
 Identity History: none
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -2863,4 +2863,5 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Commit `9f369e1ea23459367a9309266466d4fb6d82bdff` ("Document the measured stop times in the systemd reference") carries the section and this record; T1 and T2 Passed against it.
+- Landing: observed 2026-10-23 21:17 PDT (2026-10-24 04:17 UTC) with `git ls-remote origin refs/heads/release-2.0.1`, which returned `9f369e1ea23459367a9309266466d4fb6d82bdff`; the two changed paths of `git diff --name-only 377dc38 9f369e1` are `docs/milestone-2.0.1.md` and `docs/technicaldocs/README.systemd.md`.
