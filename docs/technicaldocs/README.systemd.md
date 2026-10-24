@@ -54,9 +54,9 @@ alone, which sends SIGTERM to each JVM in the stop order and waits for it to
 leave; Tomcat's shutdown hook stops the webapps, and the ETL consolidates its
 `consolidateOnShutdown` stores in that path. Processes still alive at
 `TimeoutStopSec` receive SIGKILL, which cuts a consolidation short, so the
-timeout is sized from a measured stop: a test host with three PVs stopped in
-about 10 s, the 300 s default leaves room for a loaded ETL, and a site sets
-its own value after timing its stop. There is no `ExecStop`.
+timeout is sized from a measured stop: the measured values are in the section
+Measured stop times below, the 300 s default leaves room for a loaded ETL, and
+a site sets its own value after timing its stop. There is no `ExecStop`.
 
 ## Measured stop times
 

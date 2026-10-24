@@ -79,6 +79,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D60 | Add to the book one page that adapts the verified Data Journey document: the statements stay as the document makes them, and only the form follows the book (headings, links to sections and to book pages, copied figures). This is the one exception to the owner rule of 2026-10-11 that the book is never written from a `docs/*.md` document, because every statement of that document comes from a run of the real ETL code and the document lists the runs. | 2026-10-18 |
 | D61 | Align every statement of the documents, the explanatory comments and the test messages of this repository about policies, storage tiers and ETL with the code, in the scope and order of M54. History records stay as they were. A defect of the code goes to the owner of the code, and the document does not follow it. | 2026-10-18 |
 | D62 | Record the measured stop times in `docs/technicaldocs/README.systemd.md` as measurements only, with no sizing rule and no recommended value: two PV counts on three partitions, most cells measured by one stop, do not suffice for a rule. | 2026-10-23 |
+| D63 | Correct the sentence of `docs/technicaldocs/README.systemd.md` that sized the timeout from a test host with three PVs stopping in about 10 s, which disagrees with the measured stop times: it points to the new section instead, and the register and the document say the same. | 2026-10-23 |
 
 ### Assignment History
 
@@ -2824,28 +2825,32 @@ The measurements of M55, M56 and M57 give the stop time of the unit at 903 and 3
 
 - Add one section to `docs/technicaldocs/README.systemd.md`: the conditions of the measurements (guest, database, hold, time of the stop after the partition boundary), the stop times of the six cells, the share of the ETL instance, and the limits of the measurements.
 - Every value of the section is a value of the Verification Results or the statements of M55, M56 and M57.
+- Replace the clause of the unit file paragraph that gave a test host with three PVs stopping in about 10 s by a pointer to the new section (D63).
 
-Out of scope: a sizing rule, a recommended timeout, an extrapolation beyond 3000 PVs, a change of the default of `SYSTEMD_TIMEOUT_STOP_SECONDS`, `docs/README.install.md`, the book, and the sentence of the systemd reference that a test host with three PVs stopped in about 10 s, which disagrees with the 2.2 s to 9.7 s measured for 903 to 3000 PVs; it is left unchanged until the owner decides.
+Out of scope: a sizing rule, a recommended timeout, an extrapolation beyond 3000 PVs, a change of the default of `SYSTEMD_TIMEOUT_STOP_SECONDS`, `docs/README.install.md`, and the book.
 
 ##### Completion Criteria
 
 - The section states the conditions, the six cell values and the limits, and contains no rule, recommendation or extrapolation.
 - Every number of the section equals the value recorded in M55, M56 or M57.
+- The unit file paragraph names no stop time that disagrees with the section and points to it.
 
 ##### Dependencies And Decisions
 
 - M55, M56 and M57 hold the measurements and their evidence.
 - Decision Date: 2026-10-23. D62: record the measurements only, in `docs/technicaldocs/README.systemd.md`.
+- Decision Date: 2026-10-23. D63: the owner ordered the register and the document to say the same about the test host sentence. This reopens the item with a third plan step; it is Complete again with T3.
 
 ##### Implementation Plan
 
 Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-23
-Implementation Authorization: the owner authorized the implementation on 2026-10-23
+Plan Acceptance: accepted by the owner on 2026-10-23; step 3 added and accepted by the owner on 2026-10-23
+Implementation Authorization: the owner authorized the implementation on 2026-10-23, and step 3 on 2026-10-23
 Superseded Plan Artifacts: none
 
 1. Write the section before `## Instance lifecycle` of `docs/technicaldocs/README.systemd.md` from the statements of M55, M56 and M57 (T1).
 2. Run a second-person pass on the section, then correct the findings (T2).
+3. Replace the clause about a test host with three PVs in the unit file paragraph by a pointer to the section (T3).
 
 ##### Test Plan
 
@@ -2853,6 +2858,7 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- |
 | T1 | Local | Extract every number of the new section and search each in the text of M55, M56 and M57 of this register | Local host | Every number appears in the cited rows or statements |
 | T2 | Local | Second-person pass over the section, `git diff --check`, and a search of the section for a recommendation or an extrapolation | Local host | No finding above the floor; no recommendation or extrapolation |
+| T3 | Local | `grep` of `docs/technicaldocs/README.systemd.md` and of `docs/` and `book/` for the old clause | Local host | The old clause is absent from the systemd reference and from the book; in this register it occurs only where D63 and M59 describe it; the pointer and the section heading each occur once |
 
 ##### Verification Results
 
@@ -2860,8 +2866,10 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- |
 | T1 | 2026-10-23 | Local host | Passed | The 25 distinct numbers of the section `Measured stop times` in `docs/technicaldocs/README.systemd.md` were extracted with a script and each was found in the text of M55, M56 and M57 of this register. The six cell values and the ETL values were then read against the statements of M55 (2.236 s to 2.391 s and 6.605 s to 7.807 s; ETL about 1.06 s and 5.66 s), M56 (2.368 s and 8.072 s) and M57 (2.932 s and 9.730 s; ETL 1.652 s and 8.333 s); the stops of M56 and M57 began 30.67 s to 31.04 s after the boundary, as the section states |
 | T2 | 2026-10-23 | Local host | Passed | Two second-person passes over the whole section. The first, from a site engineer who sizes the timeout, found three minor findings: the definition of the stop time, the word `stage` that the page does not explain, and the hold without a link; all three are applied. The second, from a maintainer who checks the values against this register, found nothing above the floor. `git diff --check` exit status 0; the section contains no recommended value, rule or extrapolation |
+| T3 | 2026-10-23 | Local host | Passed | `grep -c 'test host with three PVs'` and `grep -c 'about 10 s'` on `docs/technicaldocs/README.systemd.md` returned 0; `grep -rn 'about 10 s' docs book` found the phrase only in D63, in M59 and in two rows of M55 about samples per second; `grep -c 'Measured stop times below'` returned 1 and `grep -c '^## Measured stop times$'` returned 1. A second-person pass over the changed sentence, from a site engineer, found nothing above the floor |
 
 ##### Closure Evidence
 
 - Commit `9f369e1ea23459367a9309266466d4fb6d82bdff` ("Document the measured stop times in the systemd reference") carries the section and this record; T1 and T2 Passed against it.
 - Landing: observed 2026-10-23 21:17 PDT (2026-10-24 04:17 UTC) with `git ls-remote origin refs/heads/release-2.0.1`, which returned `9f369e1ea23459367a9309266466d4fb6d82bdff`; the two changed paths of `git diff --name-only 377dc38 9f369e1` are `docs/milestone-2.0.1.md` and `docs/technicaldocs/README.systemd.md`.
+- The correction of the unit file paragraph (D63, T3) is carried by the commit that carries this line; `git log -- docs/technicaldocs/README.systemd.md` names it.
