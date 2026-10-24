@@ -48,4 +48,4 @@ For each component the installer creates the folder with `conf`, `logs`, `webapp
 | `/arch/config/archappl.sqlite` | The configuration database of the SQLite backend | the SQLite installer |
 | the MariaDB database `archappl` | The configuration database of the MariaDB backend | `DB_NAME` |
 
-An uninstall (`make uninstall`) stops and disables the service, removes the service file and deletes `AA_INSTALL_LOCATION`. It does not remove the stores or the database.
+An uninstall (`make uninstall`) stops and disables the service and the health timer, removes the service file and the two health unit files, and deletes `AA_INSTALL_LOCATION`. It does not remove the stores or the database; [Changes that the installer makes on the host](../install/host-changes.md) lists what else stays.

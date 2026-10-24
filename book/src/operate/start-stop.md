@@ -1,6 +1,6 @@
 # Start and stop actions of the appliance
 
-The appliance is one systemd service, `epicsarchiverap-maven.service`, that owns the four Tomcat instances. This page lists the actions that start, stop and restart it, the order of the instances, and what the control script `archappl.bash` reports.
+The appliance is one systemd service, `epicsarchiverap-maven.service`, that owns the four Tomcat instances. This page lists the actions that start, stop and restart it, the order of the instances, and what the control script `archappl.bash` reports. The [glossary](../appendix/glossary.md) explains the terms of this page.
 
 ## Actions through systemd
 
@@ -9,13 +9,15 @@ Each target runs from the repository checkout that installed the appliance. The 
 | Target | What it does |
 | :--- | :--- |
 | `make sd_start` | Starts the service and its health timer |
-| `make sd_stop` | Stops the service; the unit waits up to `SYSTEMD_TIMEOUT_STOP_SECONDS` (300 seconds by default) for the ordered stop of the four instances, which includes the consolidation of data that the ETL component performs on shutdown. The health timer keeps running, and its scheduled check skips the stopped appliance with `SKIP appliance-inactive` |
+| `make sd_stop` | Stops the service; the unit waits up to `SYSTEMD_TIMEOUT_STOP_SECONDS` (300 seconds by default) for the ordered stop of the four instances, which includes the consolidation of data that the extract, transform, load (ETL) component performs on shutdown. The health timer keeps running, and its scheduled check skips the stopped appliance with `SKIP appliance-inactive` |
 | `make sd_restart` | Restarts the service and starts the health timer again |
 | `make sd_status` | Shows the state of the service |
 
+`make sd_start` returns when systemd accepts the start. The four instances need time before the health check reports `PRESENT`, and it can report `STARTING` meanwhile; [Check the health of the appliance](health.md) describes the check. While the service is stopped, no PV is archived.
+
 ## Output of the status target
 
-The following lines are an excerpt of `make sd_status` on a running appliance. The Java command lines of the four instances and the resource lines are left out:
+The target pipes `systemctl status -l` through `cat -b`, which numbers every non-blank line. The following lines are an excerpt of the `systemctl status` output on a running appliance, shown without those numbers. The Java command lines of the four instances and the resource lines are left out:
 
 ```text
 ● epicsarchiverap-maven.service - EPICS Archiver Appliance for als
@@ -40,6 +42,8 @@ The unit runs `archappl.bash service` as its main process. The script starts the
 | Stop | `engine`, `retrieval`, `etl`, `mgmt` |
 
 Each instance writes to the journal through its own `systemd-cat` with the identifier `archappl-<component>`, as [Journal identifiers of the components](logs.md) lists.
+
+When an instance or its `systemd-cat` helper ends, the service stops the other instances in the stop order and ends with a failure status. The journal shows the first sign as `archappl-<component>: process <pid> is gone`. The unit has `Restart=no`, so the appliance stays down until you run `make sd_restart`.
 
 ## Actions of the control script without systemd
 

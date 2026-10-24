@@ -1,12 +1,14 @@
 # Install an appliance with SQLite
 
-This page installs a systemd-managed appliance whose configuration database is a SQLite file. The installer `scripts/install-local-sqlite.bash` builds the web application archive (WAR) files from the source that `SRC_TAG` selects, installs them and starts the appliance.
+This page installs a systemd-managed appliance whose configuration database is a SQLite file. The installer `scripts/install-local-sqlite.bash` builds the web application archive (WAR) files from the source that `SRC_TAG` selects, installs them and starts the appliance. The [glossary](../appendix/glossary.md) explains the terms of this page.
 
 ## Prerequisites
 
-- A host that runs a supported operating system, prepared as in [Prepare the host for the appliance](prepare-host.md).
+- A host that runs a supported operating system, with the packages that the installer needs. Run the installer without `--skip-packages` to install them, or prepare the host as in [Prepare the host for the appliance](prepare-host.md), which also installs the MariaDB packages.
 - An ordinary user that owns the checkout and that can use `sudo`; the installer runs privileged steps with `sudo` itself.
-- Source inputs without local changes. The generated `als` site and ignored build outputs are allowed.
+- A host that runs systemd, with the JDK under `JAVA_HOME` and these commands: `make`, `git`, `realpath`, `bash`, `sudo`, `flock`, `curl`, `jq`, `unzip`, `sha512sum`, `systemctl` and `timeout`, plus `sqlite3` for the SQLite installer or `mysql` for the MariaDB installers. The installer stops with a message when one of these is missing. A host without Tomcat also needs `wget`, which the installer does not check; the package list of [Prepare the host for the appliance](prepare-host.md) includes it.
+- What the installer changes on the host and the network access that it needs, as [Changes that the installer makes on the host](host-changes.md) lists them.
+- Source inputs without local changes. The generated site folder (`ARCHAPPL_SITEID`; the installers pass `als` to every make step) and ignored build outputs are allowed.
 - Optional: an exported `EPICS_BASE` with `softIoc` and `caget`, for the soft input/output controller (IOC) test that the installer offers before the installation.
 
 ## Steps
@@ -58,14 +60,24 @@ This page installs a systemd-managed appliance whose configuration database is a
    + sudo -- make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=sqlite tomcat.install
    ```
 
-2. Optional: set the storage, Tomcat and service-account values for this host in `CONFIG_SITE.local`, as in [Override a setting for one host](../configure/override-setting.md). Do this before the installation, because the installer reads the values then.
+2. Optional: set the storage, Tomcat and service-account values for this host in `../CONFIG_SITE.local`, as in [Override a setting for one host](../configure/override-setting.md). Do this before the installation, because the installer reads the values then.
 
-3. Install the appliance. Run the command of step 1 without `--plan`. When an existing Tomcat is found, `--tomcat existing` uses it as the service user and `--tomcat replace` backs it up and installs the configured version. The option `-y` skips the confirmation.
+3. Optional: decide how the installer handles Tomcat and its questions.
 
-4. Wait for the installer to finish. It waits up to 180 seconds for the process health, the four startup states and the `getApplianceInfo` call of `mgmt`, and then shows the management page address, the four component addresses, the health result and the appliance information.
+   Read the Tomcat lines of the plan in step 1. When the checkout owner cannot execute an existing Tomcat, the plan prints a choice. Add `--tomcat existing` to the command to use the existing Tomcat after checking access as the service user. Add `--tomcat replace` to back it up and install the configured version. The option `--tomcat replace` stops the appliance and moves the existing folder to `/opt/tomcat9.backup.<random>/tomcat`.
 
-   When a step fails, the installer prints `Installation stopped during <stage> (exit <status>)`, with the failed stage and its exit status, keeps the data and the build files, and neither rolls back nor starts the service again. Correct the cause and run the installer again.
+   Add `-y` to skip the two questions of the installer. In the Tomcat case, a run with `-y` and without `--tomcat` stops with `Select --tomcat existing or --tomcat replace for unattended installation`.
+
+   The command of step 1 has `--skip-packages`, which uses the packages of the host. Remove it when the installer is to install the packages.
+
+4. Install the appliance. Run the command of step 1 without `--plan`, with the options that you chose in step 3.
+
+   The installer asks two questions before it changes anything. The first offers the optional soft IOC test: `Run the PV acquisition/storage/retrieval test after installation? [y/N]`. The default is `N`. The second asks for a confirmation: `Install packages, build, prepare the database, replace the appliance and start it? [y/N]`. The option `-y` skips both questions. A run without a terminal and without `-y` stops with `Non-interactive stdin; use --yes`.
+
+5. Wait for the installer to finish. It waits up to 180 seconds for the process health, the four startup states and the `getApplianceInfo` call of `mgmt`, and then shows the management page address, the four component addresses, the health result and the appliance information.
+
+   When a step fails, the installer prints `Installation stopped during <stage> (exit <status>)` with the failed stage. When the start or the startup check fails, it prints `Appliance files are installed. Verification failed (exit <status>)` instead. When the startup check fails, it also prints the readiness block with the last results, which [The readiness block of the installer](../operate/health-results.md#the-readiness-block-of-the-installer) explains. In both cases the installer keeps the data and the build files. It does not roll back the run and does not restart the appliance. Correct the cause and run the installer again.
 
 ## Verification
 
-The installer ends with the health result and the appliance information, as [Check the health of the appliance](../operate/health.md) describes. A successful installation leaves the appliance running under systemd as `epicsarchiverap-maven.service`.
+The installer ends with the health result and the appliance information, as [Check the health of the appliance](../operate/health.md) describes. Before the health result it prints `Installation completed. All required installation checks passed.` The readiness block ends with `PV acquisition, storage and retrieval: NOT CHECKED`, which is expected until you run the test of [Archive a test PV and check the stored samples](verify-pv.md). When you did not choose the soft IOC test, one more line says so: `Optional PV verification was not selected before installation; PV acquisition, storage and retrieval remain NOT CHECKED.` A successful installation leaves the appliance running under systemd as `epicsarchiverap-maven.service`.

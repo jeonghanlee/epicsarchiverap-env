@@ -1,6 +1,6 @@
 # Storage use reporting
 
-The control script reports how much space the three stores use, and the health check compares each store with a threshold. This page lists both reports and explains the placement check that runs when the storage folders are prepared.
+The control script reports how much space the three stores use, and the health check compares each store with a threshold. This page lists both reports and explains the placement check that runs when the storage folders are prepared. The [glossary](../appendix/glossary.md) explains the terms of this page.
 
 ## What the control script reports
 
@@ -10,11 +10,11 @@ The control script reports how much space the three stores use, and the health c
 | `storage all` | The same, with every file listed as well as the folders |
 | `health` | One `storage path=...` line for the archive root and for each of the short, medium and long term folders, with the file system usage against `ARCHAPPL_STORAGE_ALARM_PERCENT` (85 by default) |
 
-The `storage` actions need `sudo` rights, because `du` runs as root. [Health check results](health-results.md) lists the forms of the `storage path=...` lines and their status words.
+The `storage` actions need `sudo` rights, because `du` runs as root. On a large archive the actions can run for a long time and load the disk, because `du` reads every entry of the stores; `storage all` also prints every file. [Health check results](health-results.md) lists the forms of the `storage path=...` lines and their status words.
 
 ## Output of the storage action
 
-The action reads the `archappl.conf` next to the script, so it runs from the installed location and not from a checkout. The folder `<install_location>` is `AA_INSTALL_LOCATION`, which holds `archappl.bash` and `archappl.conf`. The following command prints the report:
+The action reads the `archappl.conf` next to the script, so it runs from the installed location and not from a checkout. The folder `<install_location>` is `AA_INSTALL_LOCATION` (`/opt/epicsarchiverap-maven` by default; `make -s print-AA_INSTALL_LOCATION` prints it), which holds `archappl.bash` and `archappl.conf`. The following command prints the report:
 
 ```bash
 bash <install_location>/archappl.bash storage

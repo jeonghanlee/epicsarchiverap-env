@@ -18,6 +18,7 @@
 - [Install an appliance with MariaDB over TCP](install/mariadb-tcp.md)
 - [Archive a test PV and check the stored samples](install/verify-pv.md)
 - [Reinstall or upgrade an appliance](install/reinstall.md)
+- [Changes that the installer makes on the host](install/host-changes.md)
 
 # Build from source
 
