@@ -89,6 +89,10 @@ ARCHAPPL_LONG_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore
 ## Usage percent of the store's filesystem at or above which the launcher's
 ## health check reports FAIL storage-threshold. Set it in ../CONFIG_SITE.local.
 ARCHAPPL_STORAGE_ALARM_PERCENT:=85
+## Seconds after a start within which the launcher's health check reports
+## STARTING; an older start without a ready instance is FAIL startup-timeout.
+## The valid range is 1 to 59. Set it in ../CONFIG_SITE.local.
+ARCHAPPL_HEALTH_STARTING_SECONDS:=10
 ## SQLite database file of the sqlite backend, on the archive volume.
 ARCHAPPL_SQLITE_FILE=$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite
 ## Store partition granularity and ETL hold per tier, rendered into

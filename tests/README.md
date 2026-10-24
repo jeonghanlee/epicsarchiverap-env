@@ -322,9 +322,10 @@ the console summary; a skipped check is not verification.
   warning only for the home store; each directory comes from `mktemp -d` and is
   removed, and a case whose directory cannot be made, or `/dev/shm` on the root
   mount, prints `[SKIP]`. The real `conf.archappl` render carries
-  `ARCHAPPL_STORAGE_ALARM_PERCENT=85`, and `70` when `../CONFIG_SITE.local`
-  sets it. The shipped launcher's `health`, with a real JDK, no running
-  instance and the checkout as the store, prints
+  `ARCHAPPL_STORAGE_ALARM_PERCENT=85` and `ARCHAPPL_HEALTH_STARTING_SECONDS=10`,
+  and `70` and `20` when `../CONFIG_SITE.local` sets them. The shipped
+  launcher's `health`, with a real JDK, no running instance and the checkout as
+  the store, prints
   `storage ... FAIL storage-threshold` and the verdict
   `health FAIL one-or-more-invalid-instances; storage-threshold` at a threshold
   equal to the measured usage, and `PRESENT` with only the instance cause one

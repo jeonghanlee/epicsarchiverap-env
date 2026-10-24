@@ -245,4 +245,36 @@ HEALTH_RC=0
 HEALTH_OUT=$(ARCHAPPL_HEALTH_STARTING_SECONDS=59 bash "${ROOT}/archappl.bash" health 2>&1) || HEALTH_RC=$?
 assert_status "${HEALTH_RC}" 0 "A bound of 59 is accepted"
 
+# A bound written only into archappl.conf, with no environment variable, is the bound the check uses.
+printf 'ARCHAPPL_HEALTH_STARTING_SECONDS=1\n' >> "${ROOT}/archappl.conf"
+stop_instance mgmt
+hold_instance mgmt
+sleep 2.2
+HEALTH_RC=0
+HEALTH_OUT=$(env -u ARCHAPPL_HEALTH_STARTING_SECONDS bash "${ROOT}/archappl.bash" health 2>&1) || HEALTH_RC=$?
+assert_status "${HEALTH_RC}" 1 "A start older than the bound of archappl.conf reports status 1"
+assert_has "${HEALTH_OUT}" "mgmt pid=${PIDS[mgmt]} FAIL startup-timeout" \
+    "A start older than the bound of archappl.conf is startup-timeout"
+release "${ROOT}/hold1.mgmt"
+wait_for_file "${ROOT}/at2.mgmt" "mgmt reaches the catalina.sh hold for the archappl.conf bound"
+release "${ROOT}/hold2.mgmt"
+wait_ready mgmt
+for bound in 0 60; do
+    printf 'ARCHAPPL_HEALTH_STARTING_SECONDS=%s\n' "${bound}" >> "${ROOT}/archappl.conf"
+    HEALTH_RC=0
+    HEALTH_OUT=$(env -u ARCHAPPL_HEALTH_STARTING_SECONDS bash "${ROOT}/archappl.bash" health 2>&1) || HEALTH_RC=$?
+    assert_status "${HEALTH_RC}" 2 "A bound of ${bound} in archappl.conf is refused"
+    assert_has "${HEALTH_OUT}" "mgmt pid=- ERROR starting-invalid-bound" \
+        "A bound of ${bound} in archappl.conf names the invalid bound"
+done
+
+# The assignment of archappl.conf wins over the process environment.
+HEALTH_RC=0
+HEALTH_OUT=$(ARCHAPPL_HEALTH_STARTING_SECONDS=10 bash "${ROOT}/archappl.bash" health 2>&1) || HEALTH_RC=$?
+assert_status "${HEALTH_RC}" 2 "An invalid bound in archappl.conf outranks a valid environment bound"
+printf 'ARCHAPPL_HEALTH_STARTING_SECONDS=59\n' >> "${ROOT}/archappl.conf"
+HEALTH_RC=0
+HEALTH_OUT=$(ARCHAPPL_HEALTH_STARTING_SECONDS=70 bash "${ROOT}/archappl.bash" health 2>&1) || HEALTH_RC=$?
+assert_status "${HEALTH_RC}" 0 "A valid bound in archappl.conf outranks an invalid environment bound"
+
 phase_pass "Health: instances that have not executed Java yet"

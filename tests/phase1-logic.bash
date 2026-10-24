@@ -751,13 +751,21 @@ case "$(cat "${st_conf}")" in
     *$'\nARCHAPPL_STORAGE_ALARM_PERCENT=85\n'*) _record_pass "archappl.conf carries ARCHAPPL_STORAGE_ALARM_PERCENT=85 by default" ;;
     *) _record_fail "archappl.conf carries ARCHAPPL_STORAGE_ALARM_PERCENT=85 by default" "missing in ${st_conf}" ;;
 esac
-printf 'ARCHAPPL_STORAGE_ALARM_PERCENT:=70\n' > "${st_env}/../CONFIG_SITE.local"
+case "$(cat "${st_conf}")" in
+    *$'\nARCHAPPL_HEALTH_STARTING_SECONDS=10\n'*) _record_pass "archappl.conf carries ARCHAPPL_HEALTH_STARTING_SECONDS=10 by default" ;;
+    *) _record_fail "archappl.conf carries ARCHAPPL_HEALTH_STARTING_SECONDS=10 by default" "missing in ${st_conf}" ;;
+esac
+printf 'ARCHAPPL_STORAGE_ALARM_PERCENT:=70\nARCHAPPL_HEALTH_STARTING_SECONDS:=20\n' > "${st_env}/../CONFIG_SITE.local"
 rm -f "${st_conf}"
 make -C "${st_env}" -s conf.archappl > /dev/null 2>&1 || true
 rm -f "${st_env}/../CONFIG_SITE.local"
 case "$(cat "${st_conf}")" in
     *$'\nARCHAPPL_STORAGE_ALARM_PERCENT=70\n'*) _record_pass "A threshold in ../CONFIG_SITE.local reaches archappl.conf" ;;
     *) _record_fail "A threshold in ../CONFIG_SITE.local reaches archappl.conf" "the shipped default won" ;;
+esac
+case "$(cat "${st_conf}")" in
+    *$'\nARCHAPPL_HEALTH_STARTING_SECONDS=20\n'*) _record_pass "A starting bound in ../CONFIG_SITE.local reaches archappl.conf" ;;
+    *) _record_fail "A starting bound in ../CONFIG_SITE.local reaches archappl.conf" "the shipped default won" ;;
 esac
 st_java=$(command -v java || true)
 if [[ -z "${st_java}" ]]; then

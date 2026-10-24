@@ -50,7 +50,7 @@ The control script verifies that the four Java virtual machine (JVM) processes b
    | `ARCHAPPL_STORAGE_ALARM_PERCENT` | 85 | A store at or above this usage makes the check print `FAIL storage-threshold` |
    | `ARCHAPPL_HEALTH_STARTING_SECONDS` | 10 | An instance that starts within this many seconds prints `STARTING`; the valid range is 1 to 59 |
 
-   A changed `ARCHAPPL_STORAGE_ALARM_PERCENT` reaches the check only through a reinstall, because the installer writes it into `archappl.conf`. Follow [Reinstall or upgrade an appliance](../install/reinstall.md).
+   A changed `ARCHAPPL_STORAGE_ALARM_PERCENT` or `ARCHAPPL_HEALTH_STARTING_SECONDS` reaches the check only through a reinstall, because the installer writes both into `archappl.conf`. Follow [Reinstall or upgrade an appliance](../install/reinstall.md).
 
 ## Verification
 

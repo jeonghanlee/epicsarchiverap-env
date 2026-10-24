@@ -234,8 +234,11 @@ line, the second by `catalina.sh run` with `CATALINA_BASE` of the instance in
 the process environment. A start older than `ARCHAPPL_HEALTH_STARTING_SECONDS`
 (default 10) is `FAIL startup-timeout`. The value is a whole number from 1 to
 59, below the scheduled startup allowance of 60 seconds; any other value is
-`ERROR starting-invalid-bound`. A process that is not in the start chain and
-does not run the configured Java stays `FAIL wrong-java-executable`.
+`ERROR starting-invalid-bound`. A site sets the value in `../CONFIG_SITE.local`;
+the installer writes it into `archappl.conf`, which the launcher loads before it
+reads the variable, so the scheduled check uses it. A process that is not in the
+start chain and does not run the configured Java stays
+`FAIL wrong-java-executable`.
 
 | Exit | Meaning |
 | --- | --- |

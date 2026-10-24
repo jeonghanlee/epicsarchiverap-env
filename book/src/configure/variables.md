@@ -67,6 +67,7 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `ARCHAPPL_MEDIUM_TERM_FOLDER` | `=` | `$(ARCHAPPL_STORAGE_TOP)/mts/ArchiverStore` |  |
 | `ARCHAPPL_LONG_TERM_FOLDER` | `=` | `$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore` |  |
 | `ARCHAPPL_STORAGE_ALARM_PERCENT` | `:=` | `85` | Usage percent of the store's filesystem at or above which the launcher's health check reports FAIL storage-threshold. Set it in ../CONFIG_SITE.local. |
+| `ARCHAPPL_HEALTH_STARTING_SECONDS` | `:=` | `10` | Seconds after a start within which the launcher's health check reports STARTING; an older start without a ready instance is FAIL startup-timeout. The valid range is 1 to 59. Set it in ../CONFIG_SITE.local. |
 | `ARCHAPPL_SQLITE_FILE` | `=` | `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite` | SQLite database file of the sqlite backend, on the archive volume. |
 | `ARCHAPPL_STS_GRANULARITY` | `:=` | `PARTITION_HOUR` | Store partition granularity and ETL hold per tier, rendered into $(ARCHAPPL_POLICIES). A granularity must be one of the PartitionGranularity names in the source (PARTITION_5MIN, PARTITION_15MIN, PARTITION_30MIN, PARTITION_HOUR, PARTITION_DAY, PARTITION_MONTH, PARTITION_YEAR); a hold must be a positive integer. A test host shortens the chain in ../CONFIG_SITE.local. |
 | `ARCHAPPL_STS_HOLD` | `:=` | `2` |  |
