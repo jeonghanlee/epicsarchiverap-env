@@ -7,7 +7,7 @@ Canonical branch or ref: release-2.0.1
 Git upstream: origin/release-2.0.1
 Remote tracker: [GitHub milestone 2.0.1 / #7](https://github.com/jeonghanlee/epicsarchiverap-env/milestone/7), observed OPEN on 2026-09-30 at 04:34 UTC via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones/7`
 
-Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates of this milestone are Complete. M13 (management web interface rework), assigned to this milestone by D45, is Complete on 2026-10-21; its information architecture is accepted by D49 and the interface was implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); the transfer to epicsarchiverap-maven is in its `modernize` branch since `d0932d1b` (plan item 12), and T6 passed on 2026-10-21 on this host; D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) is In progress; M13, its last milestone dependency, is Complete. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37. M54 (policy documents) is Complete. M55 (Backlog) is Complete on 2026-10-20: the six stops of the main cells give the line 0.297 s + 0.00224 s per PV (the timeout of 300 s at about 134000 PVs, cautiously 108000), and the validation stop on the shipped partition took 3.74 s, outside its interval (C3 Failed); the table and the statement are in its Closure Evidence. M58 (Backlog) is Complete on 2026-10-21: the targets that run as root render nothing into the checkout, the rendering runs as the checkout owner (`make conf.install`, `make sql.update`), and the rendering rules remove a rendered file left by root before they write it; commit `0323fab` is on `origin/release-2.0.1`. M56 and M57 (Backlog) were reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed; their plans were accepted and their implementation authorized on 2026-10-21; M56 is Complete on 2026-10-21 (2.368 s at 903 PVs and 8.072 s at 3000 PVs on the 15-minute partition, against 2.324 s and 7.029 s of the line of M55), and M57 is Complete on 2026-10-21 (2.932 s at 903 PVs and 9.730 s at 3000 PVs on the shipped hourly partition, against 2.324 s and 7.029 s of the line of M55).
+Next session entry point: M10, M14, M43, M45, M46 and M50 are Complete; all three external gates of this milestone are Complete. M13 (management web interface rework), assigned to this milestone by D45, is Complete on 2026-10-21; its information architecture is accepted by D49 and the interface was implemented and checked in `site-template/ui` (T1 to T5 and T7 to T12 Pass); the operator documentation (`docs/README.interface.md`, the site inputs section of `docs/README.install.md`, the docs index) and the changelog entry are written (plan item 11, checked against the shipped file names and the `copy.ui` target); the transfer to epicsarchiverap-maven is in its `modernize` branch since `d0932d1b` (plan item 12), and T6 passed on 2026-10-21 on this host; D46 keeps the server code unchanged, D47 sets the plotting limits and response targets, and D48 sets the design principles. M44 (release 2.0.1) is In progress; M13, its last milestone dependency, is Complete. The published candidate is epicsarchiverap-env `48724a28e0ce7a49f3c302f814b10116652b331e`, with source pin `162269e7db97f527626ba0b387933a8c47e8bb57`; the branch has since set `SRC_TAG` to `origin/modernize`, the tip of the source branch, so a release verification must record the source commit it resolved. Current-candidate local checks and four-WAR readiness checks are recorded below with their limits; source CI at the new pin has not been verified here, and final integrated verification remain Pending. The eight-case VM run passed with epicsarchiverap-env `bbad185` and source `84ae8a83` (recorded in Release Verification Results) and has to be repeated at the final source pin. The earlier source CI and Release Verification 2 Pass at `120d53fe` apply only to that historical candidate. Release 2.0.1 waits for the epicsarchiverap-maven work in progress (D56): no source pin is set, epicsarchiverap-env tests the latest `origin/modernize`, and the owner names the source commit when that work is finished. The eight-case VM run passed with env `bbad185` and source `84ae8a83` and is repeated at that commit, which needs its own authority; current-pin source CI, complete Release Verification 2, release notes and matrix preparation follow it. The local source checkout is at `65245250`, the site folder holds only the site's own files (D57, `0c511ae`), and the local suite and the build pass at that source; the page checks and a screen reader check passed at `7e9e2253` (Release Verification Results). One VM case (`debian13-sqlite`) passed on the slim site folder at `514be155`; the four MariaDB cases of the guest verifier passed at `3de600d9` (Release Verification Results), and the full eight-case run is repeated at the final source commit. The accepted VM matrix remains Debian 13 and Rocky 8.10; the additional local-install OS presets do not expand it. The release merge targets the default branch `maven`, and post-release verification is one SQLite case per accepted operating system. Further commits, pushes, guest requests, the VM run and release objects need separate authority. The pinned Ansible and cloud-provision inventory generator remain unchanged. M41 remains Backlog under D37. M54 (policy documents) is Complete. M55 is Complete on 2026-10-20: the six stops of the main cells give the line 0.297 s + 0.00224 s per PV (the timeout of 300 s at about 134000 PVs, cautiously 108000), and the validation stop on the shipped partition took 3.74 s, outside its interval (C3 Failed); the table and the statement are in its Closure Evidence. M58 is Complete on 2026-10-21: the targets that run as root render nothing into the checkout, the rendering runs as the checkout owner (`make conf.install`, `make sql.update`), and the rendering rules remove a rendered file left by root before they write it; commit `0323fab` is on `origin/release-2.0.1`. M56 and M57 were reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed; their plans were accepted and their implementation authorized on 2026-10-21; M56 is Complete on 2026-10-21 (2.368 s at 903 PVs and 8.072 s at 3000 PVs on the 15-minute partition, against 2.324 s and 7.029 s of the line of M55), and M57 is Complete on 2026-10-21 (2.932 s at 903 PVs and 9.730 s at 3000 PVs on the shipped hourly partition, against 2.324 s and 7.029 s of the line of M55).
 
 Evidence file names: a bare file name or run folder name given as evidence in this register (for example `m10-vm-run-e441d59-aa953a4` or a `.log` file without a directory) names a file of the private work folder of the development host. Those files are not part of the repository and are not preserved; the results, times, commits and SHA256 values written in the text are the record. Evidence given with its path under `~/stop-time-evidence/` is kept on the host and is not covered by this statement.
 
@@ -38,6 +38,17 @@ Baseline: epicsarchiverap-env `d68f66848e1edc174e76fe77326e941baf58f850`, publis
 | Tests | M45 | Contain the journalctl reader and CAJ search-port defects in VM acceptance | Milestone | Complete | No | G7, G8, D38, D39 | T8 exposure to hidden journal entries is measured, failures carry classifying evidence, and T8 is revised only if exposure is found; [detail](#m45---contain-the-journalctl-reader-and-caj-search-port-defects-in-vm-acceptance) |
 | UI | M13 | Rework the management web interface and its site skin | Milestone | Complete | No | D45, D46, D47, D48, D49, D50, D51, D52, D53, D54, D57, D58 | The management console pages, navigation, icons and explanatory text are redesigned and checked in the real appliance at desktop and mobile widths; the files owned by epicsarchiverap-maven are transferred to it; [detail](#m13---rework-the-management-web-interface-and-its-site-skin) |
 | UI | M50 | Replace the sample buffer capacity adjustment with the margin in seconds | Milestone | Complete | No | none | The environment writes `sampleBufferMarginSeconds` from `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS`, the Operations remedies name it, and `SRC_TAG` pins a source that reads it; [detail](#m50---replace-the-sample-buffer-capacity-adjustment-with-the-margin-in-seconds) |
+| Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Complete | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
+| UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
+| UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
+| Docs | M54 | Align the documents and comments about policies, storage tiers and ETL with the code | Milestone | Complete | No | D59, D61 | Every statement of the documents, comments and test messages in scope about policies, storage tiers and ETL is listed with its code source and is a match, or is corrected, or goes to the owner of the code; the statements about when a file moves come from a run; [detail](#m54---align-the-documents-and-comments-about-policies-storage-tiers-and-etl-with-the-code) |
+| Runtime | M55 | Measure the stop time of the appliance with data in the short term store | Milestone | Complete | No | G9 | The stop times of the unit for the stages of 903 and 3000 PVs on the 5-minute short term store partition, one validation stop on the shipped partition, and the slope of the stop time over the PV count show how many PVs the stop timeout (300 seconds by default) allows; [detail](#m55---measure-the-stop-time-of-the-appliance-with-data-in-the-short-term-store) |
+| Gate | G9 | A guest with the disk capacity that the stop time measurement needs is available | External gate | Complete | No | none | The provider session creates a fresh Debian 13 guest of 2 vCPU, 4 GiB and 30 GiB from a complete resource request of the requester session, under its standing authorization when the capacity check passes, and hands it off; [detail](#g9---a-guest-with-the-disk-capacity-that-the-stop-time-measurement-needs-is-available) |
+| Runtime | M56 | Measure the stop time over the PV count with the 15-minute short term store partition | Milestone | Complete | No | M55 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the stop scripts accept `PARTITION_15MIN` and the main cells of M55 are repeated once with it; [detail](#m56---measure-the-stop-time-over-the-pv-count-with-the-15-minute-short-term-store-partition) |
+| Runtime | M57 | Measure the stop time over the PV count with the shipped short term store partition | Milestone | Complete | No | M55, M56 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the main cells of M55 are repeated once with the shipped partition `PARTITION_HOUR`; [detail](#m57---measure-the-stop-time-over-the-pv-count-with-the-shipped-short-term-store-partition) |
+| Install | M58 | Keep the checkout writable for the engineer after `sudo make install` and `sudo make sql.fill` | Milestone | Complete | No | M55 | A checkout that ran the documented `sudo make install` or `sudo make sql.fill` lets the engineer run the next Make target without a permission error, or the installation guide states the step that restores the ownership; [detail](#m58---keep-the-checkout-writable-for-the-engineer-after-sudo-make-install-and-sudo-make-sqlfill) |
+| Docs | M59 | Record the measured stop times in the systemd reference | Milestone | Complete | No | M55, M56, M57, D62 | `docs/technicaldocs/README.systemd.md` states the conditions and the measured stop times of the stages of 903 and 3000 PVs on the three partitions, and gives no rule; [detail](#m59---record-the-measured-stop-times-in-the-systemd-reference) |
+| Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | D60 | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
 | Release | M44 | Verify and publish release 2.0.1 | Milestone | In progress | No | M43, M14, M10, M45, M46, M13, D31, D37, D39, D44, D45, D56 | Released objects and required post-release checks pass; candidate `48724a2` published with source `162269e7`, `SRC_TAG` now `origin/modernize`, final integration and VM acceptance Pending; [detail](#m44---verify-and-publish-release-201) |
 
 ### Decisions
@@ -80,6 +91,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D61 | Align every statement of the documents, the explanatory comments and the test messages of this repository about policies, storage tiers and ETL with the code, in the scope and order of M54. History records stay as they were. A defect of the code goes to the owner of the code, and the document does not follow it. | 2026-10-18 |
 | D62 | Record the measured stop times in `docs/technicaldocs/README.systemd.md` as measurements only, with no sizing rule and no recommended value: two PV counts on three partitions, most cells measured by one stop, do not suffice for a rule. | 2026-10-23 |
 | D63 | Correct the sentence of `docs/technicaldocs/README.systemd.md` that sized the timeout from a test host with three PVs stopping in about 10 s, which disagrees with the measured stop times: it points to the new section instead, and the register and the document say the same. | 2026-10-23 |
+| D64 | Move the Complete rows and their details that sit in the Backlog section, and the In progress row M53, to the Milestone section, because all of them are work of release 2.0.1: M48, M51, M52, M54, M55, G9, M56, M57, M58, M59 and M53. M27, M41, M42, M47 and M49 stay in the Backlog. | 2026-10-23 |
 
 ### Assignment History
 
@@ -94,6 +106,17 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | 265f580 / G6 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
 | 265f580 / M41 | docs/milestone-2.0.1.md, Milestone | docs/milestone-2.0.1.md, Backlog | this synchronization commit | this synchronization commit; D37, 2026-10-01 |
 | 265f580 / M13 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D45, 2026-10-09 |
+| 2.0.1 / M48 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M51 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M52 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M54 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M55 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / G9 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M56 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M57 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M58 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M59 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
+| 2.0.1 / M53 | docs/milestone-2.0.1.md, Backlog | docs/milestone-2.0.1.md, Milestone | this synchronization commit | this synchronization commit; D64, 2026-10-23 |
 
 ### Milestone Details
 
@@ -1262,6 +1285,968 @@ Observed Labels: enhancement
 Observed Milestone: 2.0.1 / #7
 Last Compared: 2026-10-11 at 08:49 UTC, `gh issue view 60 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-11T08:49:40Z, enhancement, milestone 2.0.1, assignee jeonghanlee; one closing comment; the live body equals the synchronized draft with the five acceptance criteria checked
 
+#### M48 - Review scripts/archappl.bash, starting with the `h` case that does nothing
+
+Origin: 2.0.1 / M48
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: [#61](https://github.com/jeonghanlee/epicsarchiverap-env/issues/61)
+Status: Complete
+
+##### Summary
+
+`scripts/archappl.bash` (799 lines) is the control script that systemd runs as the main process of the appliance and that operators call for `status`, `health`, `storage` and `loglevel`. A reading for the book found one defect and several points that no test or review has examined as a whole. The defect: the usage text lists `h` as "this screen", the `case` has an empty `h` arm (`h);;` at line 792), so `bash archappl.bash h` prints nothing, while `help`, no argument and any unknown argument print the usage. Observed 2026-10-11 on the author's host before the fixes (`h` now prints the usage and exits 1 like an unknown argument); the recheck then was `bash scripts/archappl.bash help 2>&1 | grep -c .` (13 lines in a checkout) and `bash scripts/archappl.bash h 2>&1 | grep -v 'archappl.conf: No such' | grep -c .` (0 lines).
+
+The first review (2026-10-11, the whole file read and each action run in an isolated copy with a configuration file and instance scripts) found these. They are hypotheses until the owner accepts them. Line numbers and observations in the table refer to the script before the fixes of the same day.
+
+| # | Class | Finding | Evidence to recheck |
+| --- | --- | --- | --- |
+| F1 | must-fix, accepted, fixed | `startup` and `shutdown` ignore the exit status of `bin/startup.sh` and `bin/shutdown.sh` and exit 0, so `make start`, `make stop` and `restart` report success when an instance failed | In a copy with an instance script that exits 1, `bash archappl.bash startup` starts the others and exits 0 |
+| F2 | must-fix, accepted, fixed | Line 26 sources `archappl.conf` without checking; without the file `startup` prints one error, starts the instances with no environment and exits 0 | Remove `archappl.conf` from the copy and run `startup` |
+| F3 | minor, accepted, fixed | `shutdown` removes `temp/<component>.pid` even when `shutdown.sh` failed, so a running process is later reported as `missing-pid-file` | Run `shutdown` with a failing `shutdown.sh` and a pid file present |
+| F4 | minor, accepted, fixed | `status` prints `>>> Verified process and storage health` before it runs the check, so a failing check follows the word `Verified` (lines 115 and 116) | Run `status` in a copy whose `JAVA_HOME` is wrong |
+| F5 | minor, accepted, fixed | `get_ip` (line 42) prints the seventh field of the route to `8.8.8.8`: empty without a route, and `uid` value for a route without `via` | Put an `ip` command that fails or prints `8.8.8.8 dev eth0 src 10.0.0.5 uid 1000` first in `PATH` |
+| F6 | minor, accepted, fixed | `help`, no argument and an unknown argument print the usage to stderr and exit 1, while `h` prints nothing and exits 0 | `bash archappl.bash <arg>; echo $?` for each |
+| F7 | minor, accepted, fixed | The usage lists `h`, and the `h` arm (line 792) is empty | `bash archappl.bash h` prints no line |
+| F8 | info, accepted, fixed | The usage does not name `health --systemd <unit> <own_unit> <allowance>` (used by the timer), `storage all` or `help`, and it spells `possbile` (line 731) | Compare the usage (lines 729 to 745) with the `case` (lines 765 to 796) |
+| F9 | info, accepted, fixed | The local checks do not run `startup`, `shutdown`, `restart`, `help` or `h`; `service` is checked only as unit text | `grep` the actions in `tests/health-local.py` and `tests/phase1-logic.bash` |
+
+`shellcheck scripts/archappl.bash` reports no finding on 2026-10-11.
+
+F1 and F2 were accepted and fixed on 2026-10-11 by the owner's direction. F3, F4, F5 and F8 were accepted and fixed the same day. For F6 and F7 the owner chose to remove `h` from the usage and the `case`, so `h` is an unknown argument like any other and `help` is unchanged; F9 is closed by the checks of the actions and of `h`. `restart` stops when its shutdown part failed, and `startup`, `shutdown`, `restart` and `service` stop when `archappl.conf` is missing or is not valid shell, and a valid file whose last command fails still runs; `status`, `storage`, `loglevel` and `help` are unchanged.
+
+##### Scope
+
+- The owner chooses which of F1 to F9 are fixed; each chosen finding is fixed in `scripts/archappl.bash` one at a time.
+- The two must-fix findings, F1 and F2, make the exit status of a start, a stop and a restart state what happened; the owner chooses whether the other actions of the script are reviewed again after the fixes.
+- For F7 the owner chooses between making `h` print the usage and removing `h` from the usage text.
+
+Out of scope: a change of what `startup`, `shutdown`, `service`, `health` and `loglevel` do for a healthy appliance; replacing the script.
+
+##### Completion Criteria
+
+- Every finding of the table is fixed or recorded as a decision with its reason.
+- `startup`, `shutdown` and `restart` exit non-zero when an instance script fails, and `startup` stops when `archappl.conf` cannot be read.
+- Each fixed finding has a check in `tests/phase1-logic.bash` that fails on the defect, shown by a mutation of the shipped script.
+- The full local suite passes.
+
+##### Dependencies And Decisions
+
+- No dependency. A dated owner decision on the depth of the review and on the `h` option is required before it can become Not started.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: F1 and F2 accepted by the owner on 2026-10-11
+Implementation Authorization: the owner started the fixes of F1 and F2 on 2026-10-11
+Superseded Plan Artifacts: none
+
+1. The owner accepts, rejects or defers each finding of the table.
+2. Fix the accepted findings in `scripts/archappl.bash`, one finding at a time, F1 and F2 first.
+3. Add a check for each fixed finding to the logic checks next to the existing `loglevel` and `status` checks, run against an isolated copy with a configuration file and instance scripts.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | The script run with `startup`, `shutdown` and `restart` in an isolated copy whose engine instance script exits 1, against the shipped code and against a mutation that ignores the status | Local host | The shipped script exits non-zero; the mutation exits 0 and fails the check |
+| T2 | Local | The script run with `startup` in a copy without `archappl.conf` | Local host | The script stops before it runs an instance script and exits non-zero |
+| T3 | Local | The script run with `help`, with `h` and with an unknown argument | Local host | The outcome the owner chose for F6 and F7 |
+| T4 | Local | The full local suite `bash tests/run-all-tests.bash --local` | Local host | Passes with the same groups as before |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-11 | Local host; launcher copy beside instance scripts that record their call and exit with a chosen status (`tests/phase1-logic.bash`, P1.28) | Pass | A failed `engine` start gives `startup ERROR engine status=1`, exit non-zero and four calls; a failed `etl` stop gives the same for `shutdown`; `restart` exits non-zero on a failed start and starts nothing after a failed stop; a copy whose status is dropped exits 0 on a failed start and on a failed stop, and a copy that ignores a failed stop in `restart` starts the instances; a failed stop keeps its pid file and removes the others; `status` takes the source address of the route (also without `via`), falls back to the host name and no longer prints `Verified`; each is seen by a copy that restores the defect |
+| T2 | 2026-10-11 | Local host; the same copy without `archappl.conf` | Pass | `startup`, `shutdown`, `restart` and `service` exit non-zero and run no instance script when the file is missing or is not valid shell; a valid file whose last command fails still starts the four instances; a copy without the check, and a copy that uses the status of the last command, are seen by the check; `help` still prints the usage |
+| T3 | 2026-10-11 | Local host; the launcher copy of the P1.28 checks | Pass | `help` prints the usage and exits 1; `h` prints the same usage and exits 1 like an unknown argument; the usage names `health --systemd`, `storage all` and `help`, spells `possible` and has no `h` line; a copy with the misspelled heading is seen by the check |
+| T4 | 2026-10-11 | Local checkout, real Base binaries | Pass | `run-all-tests.bash --local` exit 0: Phase 1 285, Health 32, No Ant 22, Interface files 243, Phase 2 16 |
+
+##### Closure Evidence
+
+- Complete on 2026-10-11: F1 and F2 landed in `922c26c` and F3 to F9 in `972a312` on `origin/release-2.0.1`, the register in `72f6837` and `4686013`; T1 to T4 passed (T4: Phase 1 285, Health 32, No Ant 22, Interface files 243, Phase 2 16); #61 was closed as completed with its body synchronized and its four acceptance criteria checked. The row stays in the Backlog because the owner has not assigned it to a milestone.
+
+##### GitHub Projection
+
+Title: Report failed starts and stops in the appliance control script
+Labels: bug
+GitHub Milestone: none
+Observed State: CLOSED
+Observed Labels: bug
+Observed Milestone: none
+Last Compared: 2026-10-11 at 18:37 UTC, `gh issue view 61 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-11T18:37:22Z, bug, no milestone, assignee jeonghanlee; one closing comment; the live body equals the synchronized draft with the four acceptance criteria checked
+
+#### M51 - Remove the interface copy step now that the source carries the management interface
+
+Origin: 2.0.1 / M51
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+The management interface was developed in `site-template/ui` and copied over the source tree by `make copy.ui` before every Maven build. jeonghanlee/epicsarchiverap-maven carries the same 35 files since `d0932d1b`, so the copy only repeats them. The site skin of `site-template/siteid` stays here.
+
+##### Scope
+
+- Remove `site-template/ui`, the `copy.ui` rule and its prerequisite in the `build.*` targets, `scripts/prepare-ui.bash`, `ARCHAPPL_UI_TEMPLATE_PATH` and `ARCHAPPL_UI_TARGET_PATH`.
+- The installers restore the files of an earlier copy from the source clone, stop when the selected source does not carry the interface files, and no longer tolerate a copied tree.
+- `tests/ui-static.bash` keeps its checks and reads the files from the selected source clone through `tests/ui-files.list`; without a clone it skips with a message.
+- `docs/README.interface.md` becomes a short pointer to the description in the source repository; the book and `CHANGELOG.md` follow; the judgements page of the book is generated from the selected source and fails without a clone.
+
+Out of scope: the site skin and the site folder inputs; the source repository's own checks; a change of the interface itself.
+
+##### Completion Criteria
+
+- No tracked file names `copy.ui`, `prepare-ui.bash` or `ARCHAPPL_UI_*` outside `CHANGELOG.md`, the registers, the book's history, and the check of `tests/phase2-compile.bash` and its description in `tests/README.md` that the rendered build has no copy step.
+- `make conf.archapplproperties build.mvn` on a fresh clone of the source builds four WARs whose `mgmt.war` carries every `mgmt` file of `tests/ui-files.list` under `ui/`.
+- `tests/ui-static.bash` passes against that clone, reports the missing files of a source without the interface, and skips without a clone.
+- `bash tests/run-all-tests.bash --local` passes.
+
+##### Dependencies And Decisions
+
+- Depends on jeonghanlee/epicsarchiverap-maven carrying the interface (`d0932d1b`, on `modernize`). Decisions of the owner on 2026-10-11: the static checks stay here and run against the selected source; the interface guide stays as a short pointer; the checks and the book generator behave as recommended without a clone (the checks skip, the generator fails); the release pin is a `modernize` commit at or after `d0932d1b`.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-11 with the decisions above
+Implementation Authorization: the owner started the work on 2026-10-11
+Superseded Plan Artifacts: none
+
+1. Remove the rule, variables, script and folder; adjust the installers.
+2. Retarget `tests/ui-static.bash` and remove the copy checks of `tests/phase1-logic.bash`, `phase2-compile.bash` and `database-config.py`.
+3. Update the interface guide, the book, `tests/README.md` and `CHANGELOG.md`.
+4. Build on a fresh clone and run the full local suite.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `make conf.archapplproperties build.mvn` on a fresh clone of the source at the branch tip; list `mgmt.war` | Local host | No copy output; BUILD SUCCESS; every `mgmt` file of `tests/ui-files.list` under `ui/` |
+| T2 | Local | `tests/ui-static.bash` against the fresh clone, against a source at `162269e7`-era content without the files, and without a clone | Local host | Passes with 244 checks; reports the missing files; skips with a message |
+| T3 | Local | The full local suite with the fresh clone | Local host with real Base binaries | Exit 0 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-11 | Local host; clone of `modernize` at `0097bc2d` | Pass | BUILD SUCCESS in about 24 s, no `copying the prepared interface files` line, `ui/index.html` present and no `mgmt` file of the list missing |
+| T2 | 2026-10-11 | Local host | Pass | 244 checks pass against the fresh clone; a source without the files fails the check that names the missing files; without a clone the checks print a skip message and exit 0 |
+| T3 | 2026-10-11 | Local checkout, real Base binaries, `AA_SOURCE_CLONE` set to the fresh clone | Pass | `run-all-tests.bash --local` exit 0: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14 |
+
+##### Closure Evidence
+
+- Complete on 2026-10-11: the removal, the installer changes and the check transition landed in `a1aab5a`, the documentation in `582eba2` and the register in `c6a05b9` on `origin/release-2.0.1`; T1 to T3 passed (T3: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14, run against a fresh clone of `modernize` at `0097bc2d`). The row has no GitHub issue and stays in the Backlog because the owner has not assigned it to a milestone.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M52 - Remove the stylesheet rules, images and screenshots that nothing uses
+
+Origin: 2.0.1 / M52
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+`site-template/siteid/css/main.css` held 17 jQuery UI dialog rules (117 lines), and the site folder carried `css/mgmt.css` (641 lines) and 45 more images (about 2.3 MB with `dome.png`) that the old home page used; the documents carried screenshots of the old pages. None of the 35 interface files uses a `.ui-*` class or links `mgmt.css`; the five management pages link only `comm/css/main.css`. jeonghanlee/epicsarchiverap-maven removed the same rules from its copy of `main.css`.
+
+##### Scope
+
+- Remove the `.ui-*` rules from `css/main.css`; the result equals the source repository's `main.css` byte for byte (blob `3ca0ae78`).
+- Remove the 45 images of `site-template/siteid/img` that no page, template or stylesheet names, with `convert.sh`, `nav-bar-bg.xcf`, `README.md` and `LICENSE.FeatherIcons`; the site folder keeps `img/LBNLLogo.png` and `img/als.ico`.
+- Remove the screenshots of the old pages in `docs/technicaldocs/images` with `README.screenshots.md`, and the screenshot of the old home page in `README.md`.
+- Remove `site-template/siteid/css/mgmt.css`; a site can still supply one, and the source keeps its own `mgmt.css`.
+- Remove the comparison of `mgmt.css` from the VM verifier; the check of `main.css` and the images stays.
+- Declare the browser icon in `template_changes.html` as `image/x-icon`, which is what `als.ico` is.
+- Update the interface guide, the install guide, the book and the changelog.
+
+Out of scope: the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately and verifies again after the documents are written; the source repository's own static files (`mgmt.css`, `archclient.js`, `testjson.css`), which its owner decides.
+
+##### Completion Criteria
+
+- `css/main.css` has no `.ui-` rule and keeps the tokens and the contrast of the shared stylesheet.
+- A WAR built from a fresh clone carries `ui/comm/css/main.css`, `ui/comm/img/LBNLLogo.png` and `ui/comm/img/als.ico` equal to the site folder's files, `ui/css/mgmt.css` equal to the source's own file, and every image that a management page names.
+- No tracked file names a removed image, the removed notes or the removed screenshots outside the changelog and the registers.
+- `bash tests/run-all-tests.bash --local` passes.
+
+##### Dependencies And Decisions
+
+- Depends on the removal of the interface copy step (M51). Decision of the owner on 2026-10-11: delete what no page uses, keep the stylesheet the pages link and the inputs that a site overlays.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-11
+Implementation Authorization: the owner started the work on 2026-10-11
+Superseded Plan Artifacts: none
+
+1. Remove the rules and the file.
+2. Remove the VM check of `mgmt.css` and update the documents.
+3. Build on a fresh clone and run the full local suite.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `tests/ui-static.bash` with the contrast check; `git hash-object` of `css/main.css` against the source's file | Local host | 244 checks pass; the blob equals the source's |
+| T2 | Local | `make conf.archapplproperties build.mvn` on a fresh clone; compare `ui/comm/css/main.css` and `ui/css/mgmt.css` of `mgmt.war` | Local host | Equal to the site folder's `main.css` and to the source's `mgmt.css` |
+| T3 | Local | The full local suite | Local host with real Base binaries | Exit 0 |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-11 | Local host | Pass | 244 checks pass, including the contrast of at least 4.5:1; the blob of `css/main.css` is `3ca0ae7898dc263b31882fcbc2cfc9651bf3ef99`, the source's |
+| T2 | 2026-10-11 | Local host; fresh clone of `modernize` at `0097bc2d` | Pass | BUILD SUCCESS in about 24 s; `ui/comm/css/main.css`, `ui/comm/img/LBNLLogo.png` and `ui/comm/img/als.ico` equal the site folder's files, `ui/css/mgmt.css` equals the source's file, and the source's default images (`archiverheader.svg`, `nav-bar-bg.gif`, `sort_*.png`) are present; a search of the tracked files finds no name of a removed file |
+| T3 | 2026-10-11 | Local checkout, real Base binaries, `AA_SOURCE_CLONE` set to the fresh clone | Pass | `run-all-tests.bash --local` exit 0: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14 |
+
+##### Closure Evidence
+
+- Complete on 2026-10-11: the site folder cleanup landed in `ac04a08`, the documents in `f5a18f2` and the register in `bb19781` on `origin/release-2.0.1`; T1 to T3 passed (T3: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14, run against a fresh clone of `modernize` at `0097bc2d`). The VM verifier change was checked for syntax only: it runs on a VM that this host does not have, and the release verification runs it. The row has no GitHub issue and stays in the Backlog because the owner has not assigned it to a milestone.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M54 - Align the documents and comments about policies, storage tiers and ETL with the code
+
+Origin: 2.0.1 / M54
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+The review of `docs/README.DataJourney.md` ran the scenario of that document through the real ETL pass scheduler, the real ETL job and the real storage plugins with a simulated clock. The ETL does not run when a partition ends. Each transition has a fixed schedule: the cadence is the source partition length (at most 8 hours), the offset is 5 minutes times (transition number + 1), and every job uses the pass start minus 60 seconds as its current time. A file with partition start `S` leaves its tier in the first pass whose start is at least `S + (hold + 1) * P + 60 s` for `gather=1`. D61 widens the work from the guide `docs/README.policies.md` to every statement of the documents, comments and test messages of the repository about policies, storage tiers and ETL. The findings known on 2026-10-18 are below; the statement list of the plan adds the rest.
+
+1. Section 2.3.3 (example: "an ETL run at each partition boundary") and section 2.3.5 Scenario A ("as soon as the partition boundary is reached") say that the ETL runs when a partition ends. The passes start at fixed times (the Data Journey document, section 2).
+2. Section 2.3.1 (Trigger: the oldest sample "is older than `hold` partitions") and the example of section 2.3.2 ("about six hours old" for `PARTITION_HOUR` and `hold=6`) understate the age by up to one partition. A file moves when `hold + 1` partition lengths have passed since its partition began.
+3. Withdrawn on 2026-10-18: the sentence "in the first pass after that time" that this item quoted is not in the guide, and section 5.5 already says that the actual move waits for the next ETL pass.
+4. Section 5.5 says that `gather=1` stays in the template "on STS". The template fixes `gather=1` on STS and on MTS, so `gather` cannot be changed through the Make variables.
+5. Section 5.4 tells the operator to edit the installed `policies.py`. `make install` copies over it the file that `make conf` rendered from `site-template/policies.py.in`, so the edit is lost. The durable edit is in the template, followed by `make conf`.
+6. Section 2.3.1 has no pointer to the pass schedule and the timeline in `docs/README.DataJourney.md` (sections 2 and 4).
+7. Information only: section 2.1.1 says the file is moved "after the time elapses, according to the `partitionGranularity` setting" without the `hold` rule or the schedule.
+8. Information only: the generated page `book/src/configure/policy-parameters.md` repeats the class comment of `PlainPBStoragePlugin` of the selected source (`SRC_TAG`). The comment gives the age at which a file moves as `hold` partitions and the files kept as at least `hold - gather`. The source commit `a02f9ce9` corrects the comment (`hold + 1` partitions counted from the start of the partition; `hold - gather + 1` completed files remain after a pass on schedule), and the page follows when `SRC_TAG` selects a commit that contains it. Resolved on 2026-10-18: `SRC_TAG` is `origin/modernize`, the owner keeps the local source checkout on the tip of that branch, and the page was regenerated at `6554440f`, which contains `a02f9ce9`.
+9. Section 5.4 does not say that a changed `policies.py` reaches only the PVs that are archived afterwards. The store URLs of a PV are stored with its type information (checked with a SQLite and a MariaDB database), so a PV that was archived before the change keeps its `hold` and its partitions. The guide does not say how the stores of an archived PV are changed; the source has actions for it that no document of this repository names, and none was run.
+10. Section 2.2.2 says that only completed files are subject to `hold`. A file of MTS that has received only some of its parts is a candidate too, and it moves when its boundary is met, as the runs of the Data Journey document show.
+11. Section 2.3.4 states that two setters throw an `IOException` when `gather` exceeds `hold`. This was read from the code and not run.
+
+##### Scope
+
+- List every statement about policies, storage tiers and ETL in: `docs/README.policies.md`, `docs/README.install.md`, `docs/technicaldocs/`, `docs/README.vmtests.md`, `tests/README.md`, the pages of `book/src` that are not generated, the explanatory comments of `configure/`, `site-template/` and `scripts/`, and the messages and comments of `tests/`.
+- Compare each statement with its code source and class it as match, mismatch or unverifiable. Correct a mismatch in the document or comment. Run a statement about when or how a file moves on the real classes before it is written.
+- Report a defect of the code to the owner of the code instead of making the document follow it.
+
+Out of scope: history records (`CHANGELOG.md`, `docs/milestone-*.md`, `docs/reports/`, GitHub issues); `docs/README.DataJourney.md`, its book page and the figures, which change only when a finding requires it; the generated book pages, which follow the selected source (D56); any change of the behavior of the code of this repository or of the source repository.
+
+##### Completion Criteria
+
+- The statement list covers every in-scope file; each statement names its code source and its class.
+- Every mismatch is corrected, or reported to the owner of the code, or recorded as unverifiable with the check that would settle it.
+- Every statement about when or how a file moves was run on the real classes or on an installed guest.
+- A second-person review of each corrected group by a reader who calculates the move times for the shipped policy and for `PARTITION_5MIN` finds nothing above the severity floor.
+- Every link and anchor of the corrected passages resolves, `git diff --check` is clean, the book builds with the pinned mdBook release, and the generated pages are current.
+
+##### Dependencies And Decisions
+
+- D59 records the first findings. D61, dated 2026-10-18, widens the scope and orders the work.
+- The generated page `book/src/configure/policy-parameters.md` follows the tip of the source branch `origin/modernize` that `SRC_TAG` names; it is regenerated with `book/scripts/generate-all.bash` after the local source checkout moves.
+- Statements of `docs/README.policies.md` are changed under the direction of D61; the guide names Sangil Lee and Jeong Han Lee as authors.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-18
+Implementation Authorization: the owner directed the work on 2026-10-18
+Superseded Plan Artifacts: the draft plan of D59
+
+1. Build the statement list for each file group: `docs/README.policies.md`; the install and service documents; the pages of the book; the comments of `configure/`, `site-template/` and `scripts/`; `tests/`. The list is a working file outside the repository.
+2. Verify each statement: read the code; run the `make` statements in a copy of the repository with the install path set to a scratch folder; run the statements about files on the real classes or on a retained guest.
+3. Correct the documents and comments group by group, one commit per group, and withdraw or correct the findings of this detail that the list shows wrong.
+4. Report the defects of the code to its owner.
+5. Review each corrected group with the second-person review and apply the findings above the floor.
+6. Record the observed results and close the item when the criteria hold.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Compare the statement list with `git ls-files` of the in-scope paths | Local host | Every in-scope file appears in the list or is named as without statements |
+| T2 | Run | Run each statement about when or how a file moves on the real classes or on a retained guest | Local host; retained guest | Each statement is confirmed by the observed run or corrected |
+| T3 | Local | Run each `make` statement in a copy of the repository with the install path set to a scratch folder | Local host | Each statement is confirmed by the output or corrected |
+| T4 | Review | Second-person review of each corrected group by readers that compute the move times for the shipped policy and for `PARTITION_5MIN` | Local host | No finding above the severity floor |
+| T5 | Local | Check every link and anchor of the corrected passages, run `git diff --check`, build the book with the pinned mdBook release and run `book/scripts/check-generated.bash` | Local host | All targets exist; no whitespace error; no warning; every generated page current |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-18 | Local host | Pass | `git ls-files` of the in-scope paths (160 files, UI folder and binaries excluded) swept for ETL, STS, MTS, LTS, hold, gather, `policies.py`, `partitionGranularity` and the store names; every file with a hit is either in the four reader lists (`statements-policy-domain.md`, not tracked) or was read in this sweep (glossary, health, storage, components, install pages, `archappl.properties.in`, `tests/health-starting.bash`, scripts); no further mismatch |
+| T2 | 2026-10-18 | Local host; retained guest | Pass | Real `PBThreeTierETLPVLookup`, `ETLPassTicker`, `ETLPassDriver`, `ETLJob` and `PlainPBStoragePlugin` with a simulated clock for hold 0 to 6, gather 0 to 4, header-only and zero-byte files, post-processing, reload and stored URLs; pass schedule and a 70-minute real-clock ETL run and the MariaDB persistence case on a guest. The hold 6 `PARTITION_HOUR` example (STS `PARTITION_HOUR`, MTS `PARTITION_DAY`, 10:00 file left STS at 17:05) and the 5-minute test host example (STS `PARTITION_5MIN`, MTS `PARTITION_HOUR`, hold 2, gather 1: the STS 10:00 file left at 10:20, the MTS 10:00 file at 13:10:05) were run on 2026-10-18 21:58 PDT with the scratch copy of the ETL classes; the ETL selection code and the scheduler are identical in the source at `6554440f` (the differences are timing metrics, display, a time parse error handler and a comment) |
+| T3 | 2026-10-18 | Local host | Pass | `make conf.policies` and the `make -n` targets run in a scratch copy with the install path, `SUDO` and the user overrides set; `run-all-tests.bash --local` exit 0 at the source tip `6554440f` after the last edit of the comments, with the real Base binaries: Phase 1 273 passed, Health 32, No Ant 22, Interface files 345, Phase 2 14, none failed (2026-10-18 PDT, `local-suite-6554440f-r2.log`, not tracked) |
+| T4 | 2026-10-18 | Local host | Pass | Five readers (P1 to P5, a new seat each) audited the guide and the other changed files against the code and the run logs; every item above the floor is applied. P5 found the Completed State definition against partial MTS files (section 2.2.2 now defines Completed per tier and names the partial file as an exception) and the time window of the MONITOR sentence; both corrected. Edits after P5 are the wording of section 2.2 and 5.1 and of two property locations, read back by the author only |
+| T5 | 2026-10-18 21:25 PDT | Local host | Pass | `git diff --check` exit 0; pinned mdBook 0.5.4 build exit 0 with no warning; `book/scripts/check-generated.bash` all five pages current after `configure/variables.md` was regenerated; the links of the guide resolved in the third reader audit |
+
+##### Closure Evidence
+
+- Closed on 2026-10-19 after the criteria held. Commits on `release-2.0.1`: `08dc331` (comments and messages of the rendering rules), `02c910f` (policy guide), `c201ec2` (storage tiers page and plan rows), `777724f`, `ed7505d`, `66f4516`, `81f6949`, `eee2723`, `c305587`, `8cb926b`, `ee052de` and `ef49d3a` (register, generated page, example runs, interface check list, test README count and unused macro); the commit that carries this closure adds the references of the guide to the issues below.
+- Defects of the code, reported to its owner and filed in epicsarchiverap-maven: [#49](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/49) (`optimized_N` as `reducedata` ignores N), [#50](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/50) (`reducedata` together with `pp`), [#51](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/51) (pp files of a moved partition stay in the source store). The documentation corrections of epicsarchiverap-maven are `8b8a0ae3` (hold and gather row, policy re-read) and `41c33cdf` (pass driver, 60 second margin).
+- The local source checkout follows the tip of `origin/modernize`; the generated policy parameters page was regenerated at `6554440f`, which contains `a02f9ce9`.
+- Verification Results above hold the observed runs and reviews. After the last review, the edits were the example runs, the unused macro and the issue references; the issue references were read by the author only.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M55 - Measure the stop time of the appliance with data in the short term store
+
+Origin: 2.0.1 / M55
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+`make sd_stop` stops the four instances in the order engine, retrieval, etl and mgmt. The unit waits up to `SYSTEMD_TIMEOUT_STOP_SECONDS` (300 seconds by default).
+
+When the ETL component receives the stop, it waits for the running pass of each driver, up to the property `org.epics.archiverappliance.etl.common.ETLPassStopWaitSeconds` (60 seconds by default); a pass starts no further job after the stop flag is set, so the wait bounds the one job that runs, not the pass. It interrupts the worker threads and waits once more up to the same value. It then runs one job for each PV whose store sets `consolidateOnShutdown`, one after the other and without a time limit of its own. Each job uses a processing time one year ahead, so the hold keeps no file back (`PBThreeTierETLPVLookup`). The shipped policies set the option on the short term store only.
+
+The unit kills the processes that run when `TimeoutStopSec` (`SYSTEMD_TIMEOUT_STOP_SECONDS`) ends (`KillMode=mixed`). A PV that the loop has not reached by then leaves no line in the log. The error line "PVs left unconsolidated", written after the whole loop, counts only the PVs whose job runs after the wait and the PVs that the skip environment variable names. The loop writes one error line for each such PV ("Not consolidating <pv> ... still running" or "... names its destination"). The lines of the individual jobs are written at debug level, and the shipped root level is info (`ARCHAPPL_ROOT_LOGGER_LEVEL`).
+
+The duration of the stop grows with the number of PVs and with the data in the short term store. No measurement of it exists across the PV count, the data volume and the phase of the stop (the two stops of ansible-provision at 903 PVs are in the Scope), and the code does not show whether 300 seconds suffice. The property `ETLPassStopWaitSeconds` is documented in the source repository (`docs/book/src/configuration.md`, `docs/design-etl-pass-scheduler.md`) and not in the templates or documents of this repository; it is read from the installed `archappl.properties`, which `make install` renders from `site-template/archappl.properties.in` without a placeholder for it, so a site has no hook for the property in this repository, and setting it means a change of the template (a separate item).
+
+
+##### Scope
+
+Terms
+
+- A pass is one run of the ETL jobs of the PVs that share a transition and a cadence ([The Data Journey](README.DataJourney.md)). The cadence of the first transition is the partition length of the short term store; a pass starts at a partition grid time plus 5 minutes, except the start-up pass that runs once when the ETL component starts and the passes that wait for a running pass.
+- The hold is the setting of the store that keeps files back; a file moves in the first pass at or after the start of its partition plus (hold + 1) partitions plus 60 seconds ([policy guide](README.policies.md), section 2.3).
+- A stage is a PV count. A cell is one stage on one partition. The main cells are the stage of 903 PVs and the stage of 3000 PVs on the partition `PARTITION_5MIN` with the hold of 2. The validation cell is the stage of 903 PVs on the shipped partition `PARTITION_HOUR` with the hold of 2. A stop is one stop of the unit; each main cell has three stops and the validation cell one.
+- The unit is `epicsarchiverap-maven.service` (`SYSTEMD_FILENAME`). The evidence members are the retained files of the runs: journal cuts, unit results, listings, cuts of the ETL log, frozen configuration. The replay rebuilds the table from copies of the members.
+
+Target and environment
+
+- Measure the stop of the installed appliance on one Debian 13 guest (G9). The engineer of the requester session installs the appliance with the local SQLite installation (`scripts/install-local-sqlite.bash`, [installation guide](README.install.md)); the provider installs nothing. SQLite is the owner choice of 2026-10-19. The reset is a deletion of files (see Order and reset). The target `PVTypeInfo.show` rejects SQLite, so the stored URL of a PV is read through the BPL `getPVTypeInfo`.
+- A real `softIoc` serves the PVs. Copy the EPICS Base binaries of the host (`/home/jeonglee/alsu-epics/1.3.0/debian-13/7.0.10/base`, about 339 MB) to the guest with `bin` and `lib` together, because the run path of `softIoc` is relative to its location. Install the package `libreadline8`, which `softIoc` needs and `configure/os/debian13.pkgs` does not name. `AA_TEST_EPICS_BIN` is the absolute `bin/linux-x86_64` folder on the guest with `softIoc` and `caget`. The IOC and the appliance run on the same guest, so `EPICS_CA_ADDR_LIST` is `127.0.0.1` with the auto address list off, as in `scripts/verify-local-pv.bash`, and the IOC gets `EPICS_CAS_INTF_ADDR_LIST=127.0.0.1`, `EPICS_CAS_AUTO_BEACON_ADDR_LIST=NO`, `EPICS_CAS_BEACON_ADDR_LIST=127.0.0.1` and `EPICS_CA_MAX_ARRAY_BYTES=16384` (the variables of `install-fixture.py` of ansible-provision); the engine finds the IOC through `EPICS_CA_ADDR_LIST` of `archappl.conf`.
+- The owner defers Rocky Linux 8.10 to a separate item after the Debian 13 result. The register records that the journal reader of systemd 239 hides lines (G7, M45), which matters for a measurement that reads the journal.
+- Context: ansible-provision observed whole-unit normal stops of 12.516 and 13.770 seconds at 903 PVs on two Rocky Linux 8.10 guests (the shortened and the default chain, its own PV set, installed timeout 300 seconds, aa-maven 120d53fe, aa-env 6599fbb1; observations of 86400 seconds that ended on 2026-10-15; register of ansible-provision, `docs/milestone-38560eb.md`). Those values are the wall time of a blocking `systemctl stop` of the whole unit, taken with the monotonic clock of a Python process (`tests/archiver-soak/etl-pass/observe.py`), after a 24-hour run with an uncontrolled phase of the stop and an unrecorded file count of the short term store, on MariaDB, Rocky Linux 8.10 and 256M heaps. They record no stop time of an instance and no left PV. At 903 PVs they leave the per-PV part of the stop near 5 milliseconds, which puts the stop time at 300 seconds above 10000 PVs. This item therefore adds a stage of 3000 PVs, a controlled phase and the per-instance and per-job times, and does not replace those values.
+- Keep the shipped log level (info) for the root logger, so that the logging does not change the stop time. Keep `ETLPassStopWaitSeconds` at its default of 60 seconds, which is not in the installed `archappl.properties`, and record that. The two waits take up to 120 seconds of the 300 seconds of the unit. A stop during a running pass, which would exercise that value, is not part of this item; because the wait bounds one job, the longest job of the pass records (`slowestMillis`) is the evidence for its size, not the duration of a pass.
+- Settings that the purpose needs and the base guest lacks, which the engineer sets on the guest and records: a persistent journal (a drop-in of `journald.conf` with `Storage=persistent`, a `SystemMaxUse` large enough for the largest stage, and the rate limit of the ansible-provision role `archiver_build`: 30 seconds and 10000 messages; the role is the model, `roles/archiver_build/tasks/main.yml`), time synchronization with `chrony` (the package is in `configure/os/debian13.pkgs`; record `chronyc tracking`), the package `rsync` for the transfer of the evidence (not in `configure/os/debian13.pkgs`), and outbound network access of the guest for the installation. The service account is `tomcat` (`AA_USERID`), the default of the local installation; the heap setting of each instance and the journald rate limits are part of the frozen configuration. The health timer of the installation stays active; it skips a unit that is stopping, and its state is part of the frozen configuration.
+- Fix the refs before the first install and keep them for the whole run: the commit of this repository (the tip of `release-2.0.1` at the start of the run) and the source ref `SRC_TAG` (the tip of the branch `origin/modernize` at the first install, the owner choice of 2026-10-19; the resolved commit is recorded and not changed during the run). The checkout of this repository lies in the home folder of the engineer on the guest, and `../CONFIG_SITE.local` is the file one folder above its top.
+- State in the report the differences between the measured guest and a production deployment: the three tiers lie on one virtual disk (a production short term store on tmpfs or SSD and a medium term store on another disk or NFS changes the copy time of the loop, which is the largest risk that no cell tests), the memory is 4 GiB with the IOC on the same two vCPUs (the page cache), the heap value of each instance (`AA_JAVA_HEAPSIZE`, recorded; the stage of 3000 PVs may put the 256M heaps under garbage-collection pressure, and heap sizing itself is M41), the added file appender (one write for each pass and about one line for each PV at the stop), SQLite instead of the MariaDB of other deployments (the loop does not use the database; the effect is on the management instance), and Debian 13 instead of Rocky Linux 8.10.
+
+The test PV set
+
+- Reuse the 903 PVs of ansible-provision (owner choice of 2026-10-19), and add 2097 generated PVs for the stage of 3000 PVs (owner choice of 2026-10-19). The 903 PVs lie in the repository of ansible-provision, `tests/archiver-soak/fixtures/`: the IOC databases `aasoak.db`, `load1.db` and `load2.db`, and the PV lists `pvs.csv` (100 PVs), `pvs-load1.csv` (400) and `pvs-load2.csv` (403); `pvs-all.csv` (903 rows) has the SHA-256 `037a92691bc23a6dcac37ec3613ad19c9f80b93b689209ec8dc403b519eaf594`. Its generators are `baseline/gen_soak.py` and `baseline/gen_load.py`. Copy the files at a pinned commit (recorded) unchanged and check them. ansible-provision stays the single writer of the files; the copy changes nothing there, and its session is informed by message.
+- The mix of the 903 PVs (counted from the PV lists): 110 PVs of the policy `VeryFast` (0.1 seconds), 10 of `Fast`, 10 of `Medium`, 773 of `Default`, 8 waveforms of 1000 elements, 783 PVs that update every second, 110 every 0.1 seconds and ten every 10 seconds (`AASOAK:SLOW:CH01` to `CH10`). The deadband override of ansible-provision (`retest-deadband.db`) is applied: it sets `MDEL` and `ADEL` to -1 for the ten records of the group `deadband`, which otherwise change rarely, so that every update of these PVs is archived. The IOC databases carry more records than the lists archive (`aasoak.db` 110 records for 100 PVs, `load2.db` 406 for 403; the helper records `*_SRC` feed the enum, string and waveform records), so the record count of the IOC is not the PV count. The database is SQLite and the account `tomcat`; the ansible-provision installation uses MariaDB and the account `mid-srv`, which this item does not use.
+- The script `tests/stop-time/gen-pvs.bash <output folder>` generates the 2097 further PVs `STOPTIME:E0001` to `STOPTIME:E2097` as the file `extra.db` and the PV list `extra.csv`. `extra.db` has the form of `load1.db`: one header comment line, then for each PV a `calc` record with `SCAN` `1 second`, `INPA` the own value with `NPP`, `CALC` `(A+1)%3600`, `VAL` 100 times the index and `PREC` `1`, with one blank line between records. `extra.csv` has the columns of the other lists (`pv`, `group` `extra`, `scan` `1 second`, `method` MONITOR, `period` `1.0`, an empty `policy` for `Default`, and `store_key`). The lists of ansible-provision end their lines with CR LF; `extra.csv` and `extra.db` end them with LF, and the parsers of this item strip a trailing CR from every field. The generator is deterministic: two runs give files with the same SHA-256, which `selftest.bash` checks. The stage of 3000 PVs is the 903 PVs and these 2097. Its share of fast PVs is lower (110 of 3000) than that of the stage of 903 PVs (110 of 903), so the PV count and the data rate vary together; the report states this limit.
+- The IOC runs as a system unit `stop-time-ioc.service` that the engineer installs on the guest. The unit runs as the account `tomcat` and starts `softIoc -S -d aasoak.db -d load1.db -d load2.db -d extra.db -d retest-deadband.db`, with the list of `-d` options in a drop-in `stage.conf` of the unit that the engineer writes for the stage (`extra.db` only in the stage of 3000 PVs) and `retest-deadband.db` last, because the records of the override merge into the records of the files before them in the order of the `-d` options. The unit is enabled, so that it comes back after a reboot of the guest, and carries the IOC environment above. Switching the stage is: write `stage.conf`, `systemctl daemon-reload`, restart the unit, and read the ten `MDEL` and `ADEL` fields and one PV of each database with `caget`. The rehearsal reads the fields `MDEL` and `ADEL` of the ten records through Channel Access and requires -1 before the first archiving. The scripts `apply-fixture.py` and `install-fixture.py` of ansible-provision belong to its environment (account `mid-srv`, the Rocky path of Base, the unit `etl-soak-ioc.service`) and are not used. The unit file and the IOC environment are part of the frozen configuration.
+- Archive the PVs of the stage with one POST to `/mgmt/bpl/archivePV` with `Content-Type: application/json` (exactly that value; a value with a charset takes another path of the action and fails), as ansible-provision does in `register.py`: the body is a JSON array with one object for each PV, with `pv`, `samplingperiod` and `samplingmethod` from the columns `period` and `method` of the PV list and `policy` when the column is not empty. This reproduces the 880 PVs of the method MONITOR and the 23 of the method SCAN of the set of 903 PVs. The installation guide shows a GET with `pv` only; the list of the 773 PVs of the policy `Default` is 13038 bytes, above the default header limit of 8192 bytes of Tomcat, and the body of a POST has no such limit. Archiving is done when `GET /mgmt/bpl/getPVStatus` (without `pv` it returns every PV that has type information; a PV in the state "Initial sampling" is not in the list, so the number of entries must reach the number of PVs of the stage) shows for every PV exactly one entry with `status` `Being archived` and `connectionState` `true`. Read the stored URL of one PV of each policy with `GET /mgmt/bpl/getPVTypeInfo?pv=<pv>`. The sampling period sizes the sample buffer, and the policy `Default` would drop samples of a 10 Hz PV, so every PV keeps the policy of its row. The rehearsal checks that the short term store holds about 10 samples per second for a 10 Hz PV.
+
+Cells, order and reset
+
+- Order of the runs: the reset after the rehearsal, the three stops of the main cell `main-903`, the reset, the three stops of the main cell `main-3000`, the change of the policy to the shipped values with the reset, and the validation stop of the cell `validation-903`. These three strings and the rehearsal cells `rehearsal-25` and `rehearsal-100` are the values of `--cell`. Render the settings of the main cells (`PARTITION_5MIN`, hold 2) through `ARCHAPPL_STS_GRANULARITY` and `ARCHAPPL_STS_HOLD` in `../CONFIG_SITE.local` before the first install, so that the first archiving uses them. The validation cell uses the shipped values, written into the same file as `PARTITION_HOUR` and `2` (not removed, so that the frozen file shows them); the owner chose them so that the report shows how the stop time of the 5-minute partition compares with the shipped state. The hold of 5 is not measured. The 15-minute and hourly matrices are not measured by this item; M56 and M57 measured them (Deferred on 2026-10-19; reopened and Complete on 2026-10-21).
+- A policy change reaches only the PVs that are archived afterwards, because the store URLs with the hold are stored in the type information of each PV (policy guide, section 5.4). The reset calls `make` without the variables that the local installation script passes, so `../CONFIG_SITE.local` carries `DB_BACKEND=sqlite` (`ARCHAPPL_SITEID` defaults to `als`; `DB_BACKEND` defaults to `mariadb`, and a `make conf.archapplproperties` or `make conf.install` without it renders the context files or the unit for MariaDB, after which the unit does not start). The steps that run as root render nothing into the checkout (M58): the engineer renders the units with `make conf.install` and the schema with `make sql.update` first, so the checkout stays writable for the engineer. (The measurement of this item ran before that change; it gave the files that `sudo make install` and `sudo make sql.fill` had rendered as root back to the engineer after each such command.) The reset and the policy change are one sequence, which the rehearsal proves: `make sd_stop`; edit `../CONFIG_SITE.local` when the policy changes; `make conf.archapplproperties` (check the STS URL of the rendered `site-template/policies.py`); `sudo make conf.storage.rm` (it removes `ARCHAPPL_STORAGE_TOP`, so the stores of all three tiers and the SQLite file go together; the leading `-` of the rule hides an error, so list the folder afterwards and require that it is gone); `sudo make conf.storage` (the folders of the three tiers; under `sudo` the placement check of the storage path sees the home of root, which only changes its warning); `make sql.update`, `sudo make sql.table.fill` and `sudo make sql.show` (the folder `config` and the schema of the SQLite file, which `conf.storage` does not create; the local installation script runs the same targets); `make conf.install` and `sudo make install` when the policy changed (it installs the rendered files and does not start the unit); switch the IOC to the stage (below); `make sd_start`; archive the PVs of the stage; check the stored URL of one PV of each policy with `getPVTypeInfo`. Between stages without a policy change the same sequence runs without the edit and without `make conf.install` and `sudo make install`. A stop moves the data of the short term store into the medium term store, so the reset empties the medium and long term stores too; a stage is not grown by adding PVs.
+- Between the stops of one cell the PVs stay archived. After a stop start the appliance, wait until every PV shows `Being archived` and `connectionState` `true` (archiving resumed 55 to 60 seconds after a restart in ansible-provision), wait for the partition boundary, accumulate, and stop. When the window of a stop is missed (the engineer was away, or the listing failed twice), the appliance is not restarted: in the steady state the short term store holds hold + 2 files of every PV between a boundary and the next pass, so any following boundary serves as E and the window applies to it; the status file records the planned E and the E actually used. The B0 rule applies only to the first stop after a start of the appliance, and the accumulation bound of (hold + 2) partitions plus 30 seconds applies only to that stop. A restart of the appliance that is not a measured stop is avoided; if one is needed (a reboot of the guest, a failed start), it is recorded in the coverage table as an auxiliary stop with its reason, and the next stop follows the B0 rule.
+
+Accumulation and the phase of the stop
+
+- Passes run at fixed times, and a file moves in the first pass at or after the start of its partition plus (hold + 1) partitions plus 60 seconds. With the cadence equal to the partition length, the first transition runs its pass 5 minutes after each partition boundary. For the 5-minute partition that is the next boundary, so the pass and the boundary coincide.
+- Every stop takes place with hold + 2 = 4 files of each PV in the short term store. At the boundary that ends the (hold + 1)-th partition of data the first file has not moved, and the new partition has just opened its file.
+- Rule. B0 is the first partition boundary at least 30 seconds after every PV shows `Being archived` and `connectionState` `true` following the restart, so that every PV has a partial file of the partition before B0. The boundary E is B0 plus (hold + 1) partitions. For the hourly partition stop between 30 and 90 seconds after E, which lies before the pass at 5 minutes past E. For the 5-minute partition the pass and the boundary coincide, so stop between 30 and 60 seconds after E, after that pass has started. The lower bound of 30 seconds covers the scan of 10 seconds of the slowest PVs and the write period of the engine of 10 seconds. The accumulation of a stop is the time from the restart to E, at most (hold + 2) partitions plus 30 seconds: 20.5 minutes in a main cell and 4 hours in the validation cell. Nominal accumulation from B0 to E is 15 minutes and 3 hours.
+- After a restart the engine archives from the restart time, not from a boundary, so the first file of a PV is a partial file of the partition that contains the restart. For the hourly partition that file moves before E; for the 5-minute partition it moves in the pass at E, which is why the 5-minute stop follows that pass.
+- The rule holds for this IOC: after the override of the deadband every PV updates every 0.1 seconds (110 PVs of the set of 903), every second or every 10 seconds (the ten PVs `AASOAK:SLOW:CH01` to `CH10`), so every PV has a file of the new partition within the lower bound of 30 seconds. The listing must show hold + 2 files of every PV; the listing decides. If it does not show them inside the window, do not stop: wait for E plus one partition and check once more; if the second check also fails, stop and mark the stop `off-rule`. A 10 Hz PV can lose a sample when a write pass of the engine is delayed ([epicsarchiverap-maven#29](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/29)); the rule counts files, not samples.
+- Check overlap for every stop and for every driver, the first transition (pass 5 minutes after each partition boundary) and the second transition (with the shipped medium term store partition `PARTITION_DAY` at 00:10, 08:10 and 16:10 UTC). The launcher line `archappl-etl: stopping pid` is written just before the signal to the ETL JVM. The ETL component stops its ticker after the stop sequence of Tomcat; the log file has the line "Shutting down ETL threads." at the moment when the ETL component begins to stop, and the ticker checks every 5 seconds, so the table uses the time of that line plus 5 seconds as an upper bound of that moment.
+- A stop overlaps a pass when a pass of any driver is running at the start of the stop (`ActiveExitTimestamp`), or is scheduled to start between that start and the time of the stopped ticker. A pass that starts in that interval runs normally and moves files, so the count of files can fall to hold + 1. Before a stop on the 5-minute partition `run-stop.bash` reads `etl-pass.log` and requires the pass record whose `plannedAt` is E (the listing alone shows only that the partial file moved, not that the pass ended); it waits inside the window until the record is present, and a window that ends without it makes the stop `off-rule`. An overlapping stop is marked and reported apart. A wait of the ETL component on a running job shorter than the stop wait of 60 seconds leaves no line at the shipped level; the stop time of the ETL instance is measured, and an excess over the expectation above 20 percent and above 5 seconds is marked.
+- Re-run rule: a stop that is marked as overlapping, off-rule or Incomplete is repeated once (accumulate and stop once more) and then both stops stay in the table with their marks; the repeated stop carries the number of the original with the suffix `r` (`--stop 2r`), and the coverage table lists both. Before the repeat the status file carries `pending=<cell>/<stop>r`, and `run-stop.bash` removes the key when the repeat is recorded, so that a successor reads from the directory whether a repeat is due. The fit uses the stops that follow the rule and are not Incomplete, and the report states the stops actually used. A stop that is interrupted before the stop command is repeated from the accumulation with the same suffix, and the coverage table lists both.
+- The start-up pass runs once when the ETL component starts after each restart. It finds an empty short term store and moves nothing.
+
+Pass events and the shutdown jobs
+
+- Copy the `log4j2.xml` of the WAR (installed instances carry it under `WEB-INF/classes`) to a site file that the service account `tomcat` can read (mode 644, not under the home folder of the engineer), name it in `ARCHAPPL_LOG4J_SITE_FILE`, and run the stop/install/start procedure of the installation guide once. Check that `archappl.conf` carries `LOG4J_CONFIGURATION_FILE` with the path: a missing or unreadable file makes log4j2 fall back to an error-only console configuration without the priority prefix, and the journal loses its info lines.
+- The site file adds, in `Appenders`, a file appender `ETLPASS` with `fileName="${sys:catalina.base}/logs/etl-pass.log"`, `createOnDemand="true"` (the four instances read the same file, and only the ETL instance writes) and the pattern `%d{yyyy-MM-dd'T'HH:mm:ss.SSS}{UTC}Z %-5level [%t] %c - %m%n`. It adds, before `Root`, two loggers at level debug with additivity off, `org.epics.archiverappliance.etl.common.ETLPassDriver` and `org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup`, each with two appender references: `ETLPASS` and `STDOUT` with `level="info"`. The second reference keeps the info and error lines of these loggers in the journal; without it the error lines of the driver vanish from the journal, and with additivity on the debug lines reach it. A real run with log4j-core 2.26.1 proved this fragment. The root level and the journal stay at info.
+- The file holds one line for each pass (the pass record), the line "Shutting down ETL threads." when the ETL component stops, and one line "Need to consolidate data from etl source ... for pv ..." before each job of the loop at the stop. On the guest the file of the ETL instance is `<AA_INSTALL_LOCATION>/etl/logs/etl-pass.log`, owned by `tomcat`; read it with `sudo`. Record its size in bytes before and after each stop; the cut of a stop is the bytes between the two sizes, a line without a time stamp (a stack trace) belongs to the line before it, and a pass record is written at the end of the pass, so the passes around a stop are read from the whole file, which is copied into the evidence at the end of each stage. The pass details of the PV details page are not used, because its figure of the last job time is a running sum.
+- The time of a job of the loop is the gap between two consecutive lines "Need to consolidate", so that K lines give K - 1 times. The last job has no end line: the report gives it as not available, with the time to the end of the ETL instance as an upper bound that does not enter the maximum. The rehearsal proves the file, compares its times with the schedule, and checks with the final site file that it does not change the stop time of a rehearsal stop.
+
+Measurement
+
+- Stop the unit with `sudo systemctl stop <unit>`, which is what `make sd_stop` runs with its exit status ignored; keep the exit status. Take the stop duration from the monotonic properties of the unit, `InactiveEnterTimestampMonotonic` minus `ActiveExitTimestampMonotonic` (`systemctl show --timestamp=us+utc -p ...`), so that both values come from one clock. Take the UTC stamps from `ActiveExitTimestamp` and `InactiveEnterTimestamp`. Read `systemctl show -p Result` before the next start, because a start resets it.
+- The launcher prints one line `archappl-<service>: stopping pid <pid>` for each instance to the unit journal and no end line. The stop time of an instance is the gap to the next such line, and the stop time of mgmt is the gap to the end of the unit. The engine gap runs from the line of the engine to the line of the retrieval, the ETL gap from the line of the ETL instance to the line of the management instance, and the management gap from its line to `InactiveEnterTimestamp`.
+- Take a journal cursor before the stop (`journalctl -u <unit> --show-cursor -n 0 -q`). Cut the journal with it (`TZ=UTC journalctl -u <unit> --after-cursor=<cursor> -o short-iso-precise`; the original text of every line is kept, and the first and the last record of each cut are identified by their cursor and time, not only counted). The launcher lines, the error lines and the info lines are in the journal. The pass records, the line "Shutting down ETL threads." and the lines "Need to consolidate ..." are in the file `etl-pass.log`. Both are required evidence.
+- The cursor command returns three cases that the script tells apart: a line `-- cursor: ...` (use it), an empty output with status 0 (the unit has no entries, or the user may not read its entries; the engineer is a member of the group `systemd-journal` or uses `sudo`, and the script checks this before the first stop; take the cursor after the first start), and, for an `--after-cursor` read, the message `Failed to seek to cursor` (a lost cursor, cut by time stamps instead) or `-- No entries --` (an empty cut). Identify the first and the last record of a cut from a second read of the same cut in `-o export` format (`__CURSOR` and the time stamp).
+- The shipped level shows only the error lines: the per-PV lines and the count of left PVs described in the Summary. The consolidated PVs and the PVs that the loop did not reach therefore come from the listing of the three stores before and after the stop. The files of a PV are `<store_key>:<partition label>.pb` in each store. The key is the PV name with every separator of the installed property `siteNameSpaceSeparators` (`:`, `-` and `_` in the shipped `archappl.properties`) replaced by `/` (`ConvertPVNameToKey`); applied to the 903 PVs this rule reproduces the column `store_key` of the lists without a mismatch, and for the generated names only `:` occurs. The parsers of this item take the key from the column `store_key` of the lists and never derive it, and a PV name in an error line is mapped to its key with the same lists.
+- Check the completeness of the journal: the four launcher lines per stop, the first and the last line of the cut, the retention setting (`SystemMaxUse`) and the size of the journal after a stage. A cursor taken in a quiet journal may not be found afterwards (observed on systemd 239); check that the cut starts at the cursor, and otherwise cut by the timestamps of `ActiveExitTimestamp` and `InactiveEnterTimestamp`. A missing required line makes the stop Incomplete. The exception is a stop that the unit ended with SIGKILL, where the lines of the instances not stopped are absent by design and the result `timeout` is the observed outcome.
+- Freeze for every stop the rendered `policies.py`, the site `log4j2.xml`, the settings of journald and chrony (with `chronyc tracking`), the environment of the IOC and the unit file `stop-time-ioc.service`, the SHA-256 of `softIoc` and `caget`, the status file, the expectation files, `../CONFIG_SITE.local`, the installed `archappl.properties` and `archappl.conf`, the refs of this repository and of the source, the kernel and the JDK.
+- At the start of each run publish the stage, the start time and the intended end in a status file on the guest and in the terminal of the run, and keep the checkpoints in the evidence. The status file also records the actual end time. Keep the standard output, the standard error and the exit status of every command of the run, failed ones included (`archivePV`, `getPVStatus`, `make install`, `chronyc`, `journalctl`, `systemctl`), in the evidence directory before any reset or cleanup. No fault is injected in this test; a stop that the unit ends is an observed outcome.
+
+Claims, expectation and the fit
+
+- Claims, each with the verdict of the test framework (Passed, Failed, Incomplete). C1, per stop: the stop is measured with complete required evidence (the journal cut with the four launcher lines, the unit properties and result, the listings before and after, the frozen configuration, the cut of `etl-pass.log`); Passed when all are present and usable, Incomplete when any is missing or unusable. C2, per stop: the stop suffices (result `success`, duration at most `SYSTEMD_TIMEOUT_STOP_SECONDS`, no PV left); Passed when it holds, Failed when the evidence shows otherwise. A confirmed violation stays Failed even when other evidence of that stop is Incomplete. C3, the validation stop: its duration lies inside the written 95 percent prediction interval of one more stop of the main cell of 903 PVs; Passed, Failed or Incomplete in the same way.
+- A stop that the unit ended (`timeout`) is an observed outcome and the Failed result of C2, not a tool error. A failure of a query or of the parser is a tool error, is reported apart, and does not make a stop Failed; missing required evidence stays Incomplete. Overlap and a stop outside the rule (`off-rule`: the time after the boundary outside the window, or a listing that does not show hold + 2 files of every PV) are qualifiers: a qualified stop keeps its C1 and C2 results and is left out of the fit. A cell suffices when all its stops that are Passed for C1 are Passed for C2; the report states how many stops of the cell this covers.
+- Expected native status: the rehearsal records the exit status of `systemctl stop` for a normal stop and for a stop cut at `timeout`. The cut is exercised on the rehearsal guest by shortening `SYSTEMD_TIMEOUT_STOP_SECONDS`, a declared configuration change that the rehearsal reverts. The native status is stored apart from the verdict. The run stops as Incomplete when the guest is lost, the IOC does not serve the stage, the journal is not persistent, or the use of the root file system reaches 85 percent.
+- Expectation. A stop of the stage of N PVs has the expected duration a0 + N * b0. The rehearsal measures a0 and b0 from four stops (25 and 100 PVs, two stops each, hold 2; the 25 PVs are every fourth data row of `pvs.csv`, rows 4, 8, ..., 100 without the header line): `fit-line.bash rehearsal` fits the line through the four stops. The expectations of the main cells are written by `fit-line.bash expect` on the guest to `<evidence>/<run-id>/expectation.jsonl` before the cells run, which is the file that `--expectation` names, and its SHA-256 and the time go to the status file. They extrapolate from at most 100 PVs, and the report says so. The mark "excess of the ETL gap" rests on that extrapolation.
+- Fit. For the stops of the two main cells that follow the rule, `fit-line.bash line` fits duration = a + b * N by ordinary least squares, without weights, in `awk`. With two values of N the line runs through the two cell means; with n stops used the residual has n - 2 degrees of freedom (4 when all six stops are used), and the standard error of b follows from the pooled variance of the two cells. The report shows the mean, the smallest and the largest stop of each cell, the slope with its standard error and its 95 percent interval (the Student quantile t(0.975, df) from a table of published values for df 1 to 30 that the script carries with its source), the intercept, and the predicted PV count at which the line reaches the value of `SYSTEMD_TIMEOUT_STOP_SECONDS` and 80 percent of it. It gives each PV count twice: from the slope and from the upper end of its interval, which is the cautious value. A slope that is not positive has no PV count; the report then gives only a lower bound from the upper end. A cell with fewer than two stops that follow the rule makes the fit Incomplete. Two values of N cannot test linearity; the rehearsal stops lie beside the line as a plausibility check and do not enter the fit. The line is valid for this IOC and the 5-minute partition, and a prediction beyond 3000 PVs is an extrapolation. The outputs are rounded to 6 significant digits, and `fit-line.bash check <recorded fit>` compares the rounded text exactly.
+- Report apart, without a fit: the gap of the engine, of the ETL instance and of the management instance of every stop, the bytes of the short term store from the listing, a summary of the jobs of the loop at the stop (the number, the sum, the mean, the median, the longest with its PV; the individual gaps stay in the evidence) and the PV at which a SIGKILL cut the loop, and for each cell the longest `slowestMillis` and the longest pass duration of the pass records.
+- Validation. Before the validation stop runs, `fit-line.bash predict` writes the prediction file on the local host from the n stops of the main cell of 903 PVs that follow the rule: their mean plus and minus t(0.975, n - 1) times their sample standard deviation (divisor n - 1) times the square root of 1 + 1/n (with n = 3: t = 4.303 and the square root of 4/3). With fewer than two such stops the prediction and C3 are Incomplete. The file and its SHA-256 are copied to the evidence directory of the guest with `scp`, and `run-stop.bash` checks the hash and records it with the time in the status file before the stop. The validation stop agrees when it lies inside the interval; outside it, C3 is Failed, and the report names the differences that may explain it (file size, the cadence of the passes, the store ages, the page cache) without assigning one cause. One stop gives agreement or a flag, not an uncertainty of the line.
+- Limits that the report states: the stops of one cell run in sequence and the stops after the first merge into a medium term store that holds the data of the stops before them; the standard deviation of the stops can grow with N; the waveform of a `compress` record grows from 1 to 1000 elements in the first 1000 seconds after each restart of the IOC, so the bytes of the first stop of a stage are lower than the estimate; and the time of the line "Shutting down ETL threads." plus 5 seconds is an upper bound of the moment at which the ticker stops.
+
+Test scripts, evidence and tools
+
+- The scripts are new files of this repository in `tests/stop-time/`, a deliverable of this item that follows its own review and commit authority. All of them are Bash (D41: new tests are written in Bash; the arithmetic of the fit runs in `awk`, so the item adds no Python). They are: `gen-pvs.bash` (the 2097 PVs), `archive-stage.bash` (the archivePV POST of a stage and the wait until every PV is archived and connected), `run-cell.bash` (the stops of one cell in order, with `make sd_start` between them and a stop at a refusal or a repeat that is due), `run-stop.bash` (one stop: the checks before the stop, the phase window, the stop, the cuts, the listings, the status file, and for the validation stop the verdict of C3 against the prediction file), `rebuild-table.bash` (the table from the raw evidence), `fit-line.bash` (the subcommands `rehearsal`, `expect`, `line`, `predict` and `check` of this Scope) and `selftest.bash` (the test of the scripts themselves on the committed fixtures, see below). The `README.md` of the folder has the sections Recommended Test Sequence, Debugging and Workspace Retention, Test Execution and Verified Behaviors, a table of the exit statuses, the reason why the scripts do not use `tests/lib/common.bash`, and the sentence that `tests/run-all-tests.bash --local` does not run the folder. `tests/README.md` gets one sentence that names the folder as a test for the guest that `--local` does not run. The scripts hold no runtime evidence.
+- Interface of the scripts. `run-stop.bash` takes the options `--run <run-id>`, `--cell <name>` (`rehearsal-25`, `rehearsal-100`, `main-903`, `main-3000` or `validation-903`), `--stop <number>` (a number, or a number with the suffix `r` for a repeat), `--stage <N>`, `--partition <name>`, `--hold <n>`, `--unit <unit>`, `--evidence <directory>` (the parent of the run folders), `--pv-list <csv>` (repeatable), `--expectation <file>`, `--prediction <file>` (validation stop only), `--dry-run` and `--judge <stop folder>`; it reads `ARCHAPPL_STORAGE_TOP` and `AA_INSTALL_LOCATION` from `make -s print-...` of the checkout, runs as the engineer with `sudo` for the commands that need it, and writes one JSON record of the stop to `<evidence>/<run-id>/stops.jsonl`. `--dry-run` parses the options, runs every check before the stop and prints the commands of the stop without running them. `--judge <stop folder>` judges a recorded stop folder without a stop and exits with its verdict, which is how the verdicts are tested on the fixtures. `gen-pvs.bash <output folder>` writes `extra.db` and `extra.csv`. `rebuild-table.bash <evidence copy> <output.jsonl>` rebuilds the table from the raw files. `fit-line.bash <subcommand> <input> [<output>]` reads JSONL; `rehearsal` and `line` write text, `expect` writes `expectation.jsonl`, `predict` writes `prediction.json`, and `check` writes nothing and exits 0 on equal text and 1 on a difference. A refusal of the guard or of the usage exits with status 3 and a message before any side effect, apart from the verdicts 0, 1 and 2; the `README.md` says that status 2 means Incomplete here while `tests/run-all-tests.bash` uses 2 for an invalid usage and 77 for an incomplete system test.
+- Bash form of the scripts: `set -euo pipefail`, `function name {`, `TOP` resolved from `BASH_SOURCE` and `readonly`, one assertion for each claim, the counters `TEST_TOTAL`, `TEST_PASSED`, `TEST_FAILED`, `FAILED_DETAILS` and `INCOMPLETE_DETAILS`, the summary block, one EXIT handler, the exit status 0 for Passed, 1 for Failed, 2 for Incomplete, 130 and 143 for INT and TERM. `bash -n` and `shellcheck -x` pass without a finding on every script; this is a condition of the review of the pull request, not a gate of the repository.
+- Fixtures and the self-test. The folder `tests/stop-time/fixtures/` holds small files of the shapes that the scripts read: a journal cut with the four launcher lines, a unit record of `systemctl show`, a cut of `etl-pass.log` with pass records, the line "Shutting down ETL threads." and consolidation lines, listings of the three stores, a PV list, an expectation file, a prediction file, a recorded `stops.jsonl` and a recorded fit. They are sanitized excerpts of the rehearsal or, until the rehearsal ran, synthetic files in the same form; the `README.md` says which. `selftest.bash` runs on the local host without a guest and checks: the parsers on the fixtures and on copies with a launcher line removed, a cut without its cursor, a truncated log, a missing required field, a stack trace line and an empty cut (each with the expected Passed or Incomplete result, and a tool error that is not a product failure); the time handling on a known pair of stamps; `gen-pvs.bash` for the count, the names, the record form and the determinism; `fit-line.bash` on a known table (the slope, the intercept and the standard error against recorded values, the 30 table values, `check` failing on a changed digit, a slope that is not positive, and fewer than two stops); the verdict of C3 inside, outside and on the interval; the refusal of the guard and of a wrong `ARCHAPPL_STORAGE_TOP` with status 3; the exit statuses 0, 1 and 2 of `run-stop.bash --judge` on fixture stop folders that are Passed, Failed and Incomplete, and the checks of `run-stop.bash --dry-run`; and that `rebuild-table.bash` on copies leaves the originals byte-identical and agrees with the recorded `stops.jsonl` through `compare-evidence.py`. The self-test is the condition under which the pull request is reviewed; the rehearsal on the guest adds what the host cannot show.
+- `run-stop.bash` does not source `tests/lib/common.bash`, whose workspace under `/dev/shm`, its own EXIT trap and its exit at the first failure do not fit the scheme of the test framework; it has its own counters and the single EXIT handler, and the evidence directory is never the cleaned workspace. The folder is a test for the guest and is run explicitly there; `tests/run-all-tests.bash --local` does not call it, and the `README.md` says so. `run-stop.bash` refuses to run (status 3) unless the file `/etc/stop-time-guest` exists (the engineer creates it on the guest at the start) and `ARCHAPPL_STORAGE_TOP` is `/arch`; the script never runs `make conf.storage.rm`.
+- Evidence directory: `~/stop-time-evidence/<run-id>/` of the engineer on the guest, outside `ARCHAPPL_STORAGE_TOP` and outside scratch folders, so that `sudo make conf.storage.rm` does not reach it. It holds the status file, the journal cuts, the cuts and the copy of `etl-pass.log`, the listings, the output of every command, the expectation and prediction files and the frozen configuration. On failure or Incomplete the workspace is retained, and `KEEP_WORKSPACE=1` retains it on success too. Originals are frozen after each stop, and replays use separate copies.
+- Result location: the coverage table, the statement and the fit text are written as `report.md`, `coverage.md` and `fit.txt` into `~/stop-time-evidence/<run-id>/report/` on the host and copied, with their SHA-256, into the Verification Results and the Closure Evidence of this item in `docs/milestone-2.0.1.md` (the register holds the table and the statement; the raw evidence stays private on the host and the guest). The result changes no document of the repository; the deliverables add the folder `tests/stop-time/` with its `README.md` and one sentence in `tests/README.md`.
+- Record contract. Required fields: launcher line (time, service, pid), unit record (`ActiveExitTimestamp`, `InactiveEnterTimestamp`, both monotonic values, `Result`, `InvocationID`), pass record (`plannedAt`, `startedAt`, `endedAt`, `pvCount`, `jobsRun`, `jobsFailed`, `partitionsMoved`, `bytesMoved`, `slowestPv`, `slowestMillis`, `aborted`; the other fields are optional), consolidation line (time, PV), listing row (store, PV key, file, bytes, modification time). A missing required field makes the record Incomplete; a missing optional field does not. The parser runs on retained records and on copies of real records with a launcher line removed, a cut that misses its cursor and a truncated log, and each outcome is checked. The table keeps the original timestamp text and converts to UTC with microsecond precision. The status file `<evidence>/<run-id>/status` has `key=value` lines with the keys `run`, `cell`, `stop`, `stage`, `partition`, `hold`, `start_utc`, `intended_end_utc`, `actual_end_utc`, `b0_utc`, `e_planned_utc`, `e_used_utc`, `expectation_sha256`, `expectation_written_utc`, `prediction_sha256`, `prediction_written_utc`, `chrony_offset_s` and `pending`; `run-stop.bash` copies it as `status.<cell>.<stop>` into the folder of the stop before the stop and updates the live file after it. The expectation file `expectation.jsonl` holds one JSON record for each cell (`cell`, `n_pvs`, `expected_s`, `a0_s`, `b0_s_per_pv`), the prediction file `prediction.json` the fields `cell`, `n_stops`, `mean_s`, `sd_s`, `t`, `lower_s` and `upper_s`, and `run-stop.bash` writes one JSON record for each stop to `stops.jsonl` (the recorded table) with the per-stop fields of the Completion Criteria, the key `stop` carrying the suffix `r` of a repeat; the per-cell values (the longest `slowestMillis`, the longest pass, the ratio of the ETL gap per PV of the validation stop to that of `main-903`) come from `fit-line.bash line`. The contract file of `compare-evidence.py`, `tests/stop-time/stops-contract.json`, declares the keys `cell`, `stop` and `invocation_id`, the time stamps and the numbers with their units; `selftest.bash` uses the same file.
+- Tools of the test framework. `check-sources.py` checks the copied test PV set against an independent inventory: the inventory root is a folder extracted with `git archive` from `tests/archiver-soak/fixtures/` at the pinned commit of ansible-provision, made a Git working tree with `git init` (the checker lists its members with `git ls-files`), with a `SHA256SUMS` of all its `.db` and `.csv` files, and the candidate root is the copy on the guest; the check runs on the guest after the copy, with `git` installed there and the archive carried over with the copy; the generated files `extra.db` and `extra.csv` are checked by their own `SHA256SUMS` and the hash of the generator. `compare-evidence.py` compares the table that `rebuild-table.bash` rebuilds with the recorded table of the stops (JSONL records; a key without a value is left out of the record, because the tool treats an empty number as unresolved; keys cell, stop and the `InvocationID` of the unit; time stamps in UTC with `Z`; numbers with their units); the recorded table and the rebuilt table come from the same raw evidence by different paths, so their agreement shows that the rebuild reproduces the recording and is not an independent expectation. `bundle-evidence.py` is not used: it takes a receipt as its input, and no producer of a receipt for `rebuild-table.bash` exists in this item. Freezing a stop is: `run-stop.bash` writes `<stop folder>/SHA256SUMS` over every file of the stop folder after the stop, and the engineer writes `<evidence>/<run-id>/SHA256SUMS` over all stop folders and the live files at the end of each stage and at the end of the run. The evidence moves from the guest to the local host with `rsync -a` into `~/stop-time-evidence/<run-id>/` of the engineer on the host, followed by `sha256sum --check --strict` of both manifests there; the replay runs on a second copy under `~/stop-time-evidence/<run-id>-replay/`, and the originals are compared with their manifests after the replay.
+- Readiness is observed, not slept. The wait for the boundary is computed from the UTC clock, with the offset of `chronyc tracking` recorded for each stop; after the IOC restart each PV connection is verified before archiving; the stop is issued only when the listing shows hold + 2 files of every PV and the clock lies inside the window. The listing records its start and end, and the stop begins within 10 seconds after the listing ends.
+- Rehearse before the main cells: run the stages of 25 and 100 PVs through installation, archiving, accumulation with the rule, the stop, the final capture of logs, journal and listings, the building of the table and its replay from copies. Measure a0 and b0 with the four stops above and the stop times of engine and retrieval, check that the short term store holds about 10 samples per second for a 10 Hz PV, prove the commands of this Scope, and fix the reset procedure. Rehearse the failure paths: a stop cut at `timeout`, a missing launcher line, a lost cursor, a failed query, a truncated log and an interrupted stop, and show that a tool error is not recorded as a product failure. The rehearsal of 25 and 100 PVs establishes the tools and the commands, and cannot establish the behavior of 3000 PVs, of the hourly partition or of the full volume. It counts for no cell. Repair what blocks capture or judgment before the main cells. Exercise the tools of the table and the replay once on a declared replicate of the retained rehearsal evidence, copied to the member count and size of the largest cell (3000 PVs, 4 files of each PV, 7 stops); this tests the tools only and supports no claim about the appliance.
+- A corrected tool is run on the retained evidence as a candidate result, and the original result is kept. A stop is repeated only when a required observation cannot be recovered or the behavior of the target changed.
+- After a reboot of the guest: check `journalctl --list-boots` (the journal is persistent, so the cursors of the stops before the reboot stay valid; the monotonic values of a stop come from one boot), the units `epicsarchiverap-maven.service` and `stop-time-ioc.service` (both enabled; the appliance start after the boot is an auxiliary stop in the coverage table), the ten `MDEL` and `ADEL` fields, `chronyc tracking`, the guard file and the evidence directory, and continue with the B0 rule.
+- Disk estimate (an assumption that the rehearsal replaces with the measured sample size). The stage of 3000 PVs produces about 3980 scalar samples per second (1884 from the set of 903 PVs and 2097 generated) and 8 waveform samples per second. A scalar sample takes about 25 bytes in a plain file and a waveform sample about 8 kB (packed doubles), which gives about 165 kB per second or 590 MB per hour. A cell of the stage of 3000 PVs holds 4 files of 5 minutes (about 200 MB) in the short term store and the consolidated data of the same size in the medium term store. At the validation stop the short term store of 903 PVs holds hold + 2 files, three full hours and the file just opened (about 1.2 GB), and the medium term store holds the data of the same size after the stop. With the evidence, about 6 GB are data and evidence. The system, the JDK, Tomcat, the Maven cache and the EPICS Base copy take about 12 GB on the same disk, so the request names 30 GiB. Keep the use of the root file system below 85 percent, the threshold of the health check for the storage path.
+- Total time: accumulation and waits of the six stops of the main cells up to 20.5 minutes each (about 2 hours) and of the validation stop up to 4 hours; with the starts, stops, resets and checks of 7 stops the run takes about 8 hours without the rehearsal.
+
+Out of scope: a change of the default of `SYSTEMD_TIMEOUT_STOP_SECONDS`, of the ETL code or of the policies of the repository, apart from the new files of `tests/stop-time/` named in this Scope (the raised or changed `ARCHAPPL_STS_*` values are settings of the guest only); a change of `docs/README.install.md` or the systemd reference (a change follows the result and needs its own plan item and authority); heap sizing (M41); a stop during a running pass; the hold of 5; the 15-minute and the hourly matrices (M56 and M57; Deferred on 2026-10-19; reopened and Complete on 2026-10-21); any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`; the guest has its own installation at the same default paths); a run on Rocky Linux 8.10.
+
+##### Completion Criteria
+
+- A table lists for every stop of the main cells and the validation cell, with the keys cell, stop and the `InvocationID` of the unit, the qualifiers (overlap, off-rule, incomplete) and the verdicts C1, C2 and C3: the number of PVs, the files of each PV, the files and bytes of the short term store, the time after the boundary, the stop duration of the unit and of each instance, the unit result, the consolidated PVs and the left PVs, the jobs of the loop at the stop as a summary (the number of jobs, the sum, the mean, the median, the longest with its PV, the gap of the ETL instance divided by the PV count; the individual gaps between consecutive "Need to consolidate" lines stay in the evidence) and the PV at which a SIGKILL cut the loop, and for each cell the longest `slowestMillis` and the longest pass duration of the pass records. It names the refs, the kernel, the JDK, the policy values, the installed `TimeoutStopSec` and the value of `ETLPassStopWaitSeconds`, and for the validation stop the ratio of its ETL gap per PV to that of the cell `main-903`. A stop that the unit ended or that overlapped a pass is marked.
+- The journal cuts, the unit results, the listings and the frozen configuration reproduce the table. Their hashes and the identities of the rebuilding tools are frozen before the replay. The replay runs on copies, and the originals are unchanged.
+- A coverage table lists every cell and every stop with its result: observed stop, ended by the unit (SIGKILL, result `timeout`), overlapping a pass, off-rule, Incomplete (a required record is missing), not run, interrupted, or auxiliary (a start or stop that is not measured, with its reason). A cell or a stop that did not run is not counted as passed.
+- A statement gives the line of the stop time over the PV count with its standard error, the PV counts at which it reaches the stop timeout and 80 percent of it (from the slope and from the cautious end of its interval), the predicted stop time at 5000, 10000, 20000 and 50000 PVs (from the slope and from the cautious end, with the note that these are extrapolations beyond 3000 PVs), the sentence that the line and the PV counts assume that no pass runs at the stop and that a running job adds at most two waits of `ETLPassStopWaitSeconds` plus one left PV, the cells that suffice and that do not, and the result of the validation stop against its written interval.
+- The statement opens with a block of the conditions of the measurement: for each cell the partition and the hold, the database (SQLite), the memory and vCPU of the guest, the disk layout (the three tiers on one virtual disk), the operating system, the heap of each instance, the log level and the appender, the installed `TimeoutStopSec` and the value of `ETLPassStopWaitSeconds` (not in the installed file; the default), the PV mix as a table (policy, rate, waveforms, the 2097 generated 1 Hz PVs), and for each stop the bytes of the short term store and the average bytes per PV. It names what a site has to do to set each of the two values (`SYSTEMD_TIMEOUT_STOP_SECONDS` in `../CONFIG_SITE.local` followed by `make sd_install`; `ETLPassStopWaitSeconds` only through a change of `site-template/archappl.properties.in`), the cost of a PV left unconsolidated (its files move in the next pass of a store on a disk, and are lost on a reboot with a store on tmpfs), and the follow-up item and the two documents (`docs/README.install.md`, `docs/technicaldocs/README.systemd.md`) that a sizing rule would change. The statement does not change the documents.
+- Every stop has its verdicts for C1 and C2 and the validation stop its verdict for C3, as the Scope defines them; the summary of the run gives the counters and the exit status of the driver (0 Passed, 1 Failed, 2 Incomplete); the report files and their hashes are in the Verification Results of this item. The scripts of `tests/stop-time/`, their fixtures and their `README.md` are delivered; `selftest.bash` passes on the local host, and `bash -n` and `shellcheck -x` pass on every script.
+
+##### Dependencies And Decisions
+
+- G9: the guest. The order is: the owner accepts the plan, the owner authorizes the implementation, the second step of the implementation sends the request of G9 (the first step writes and self-tests the scripts on the local host), the provider completes G9, and then the steps that need the guest run. Owner decision of 2026-10-19: the item is In progress with step 1 (the scripts and their self-test on the local host), which needs no guest; G9 is the condition of steps 2 to 7, which do not start while G9 is Open. G9 is Complete since 2026-10-19. The guest stays running during the measurement, because each start after a shutdown needs the authorization of the owner of the provider. The disk size of the request comes from the estimate in the Scope.
+- Owner choices of 2026-10-19, taken before the acceptance of the plan: the stages of 903 and 3000 PVs (the choice follows the finding that the measurement of ansible-provision at 903 PVs is 13 seconds), the reuse of the 903 PVs of ansible-provision with 2097 generated PVs for the stage of 3000; the hold of 2; Debian 13, with Rocky Linux 8.10 deferred; the partition `PARTITION_5MIN` for the main cells and the shipped partition for the validation stop; the criterion of sufficiency; three stops for each main cell and one for the validation stop; no stop during a running pass and no hold of 5; SQLite as the database; the guest of 2 vCPU, 4 GiB and 30 GiB; the installation by the engineer with the local script and the account `tomcat`; the pass events from a log file; the verdict model of the test framework (C1, C2, C3); the scripts in `tests/stop-time/` of this repository; the use of `check-sources.py` and `compare-evidence.py` (not `bundle-evidence.py`, which needs a receipt producer); the override of the deadband applied and a lower bound of 30 seconds of the window; the Student quantile from a table of published values; the scripts in Bash with `awk` and no Python (D41), with committed fixtures and a self-test on the local host; a missed window continued at the next boundary without a restart; the report form of the Completion Criteria (conditions block, fixed PV counts, loop summary); no change of the documents within this item. M56 and M57 are Deferred on the same date (reopened and Complete on 2026-10-21).
+- The owner accepted the plan and authorized the implementation on 2026-10-19.
+- Owner decision of 2026-10-20: the two helpers that the measurement used on the guest, the archiving of a stage and the run of the stops of a cell, become `tests/stop-time/archive-stage.bash` and `tests/stop-time/run-cell.bash`, each with its purpose and usage in its header and in the `README.md` of the folder.
+- Owner decision of 2026-10-20: the excerpts of the rehearsal are added to the fixtures beside the synthetic files instead of replacing them; the synthetic files stay as the base of the damaged copies of the self-test, and no real validation stop exists before step 6.
+- Owner decision of 2026-10-19: `run-stop.bash` also takes the rehearsal cells `rehearsal-25` and `rehearsal-100`, so that the rehearsal stops are recorded in `stops.jsonl` and `fit-line.bash rehearsal` reads them.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-19 (the plan of commit `0ac24de`)
+Implementation Authorization: the owner authorized the implementation on 2026-10-19
+Superseded Plan Artifacts: none
+
+1. Write the scripts and the fixtures of `tests/stop-time/`, and pass the self-test on the local host (T1).
+2. Send the resource request of G9 and receive the handoff. On the guest install the appliance with the local SQLite installation, copy the EPICS Base binaries and install `libreadline8`, set the persistent journal and `chrony`, install the site log4j2 file for the pass events, copy the test PV set at the pinned commit and check it with `check-sources.py`, generate the 2097 PVs, and render the settings of the main cells; the PVs are archived in the sequence of each stage (T2).
+3. Rehearse with 25 and 100 PVs, including the failure paths and the stop cut at `timeout`. Measure a0 and b0 and the stop times of engine and retrieval, prove the commands, fix the reset procedure, exercise the tools on the replicated evidence, and replace the synthetic fixtures by sanitized excerpts of the rehearsal (T2).
+4. Write the expectation of the main cells with `fit-line.bash expect` and record its hash. Reset after the rehearsal, run the three stops of the stage of 903 PVs, reset, and run the three stops of the stage of 3000 PVs (T3, T4, T5).
+5. Freeze the evidence of the main cells (members, SHA-256, tool identities), move it to the local host with `rsync -a` and check its manifest there, fit the line, write the prediction of the validation stop with `fit-line.bash predict`, and copy it to the guest with its hash (T6).
+6. Change the policy to the shipped values, reset, and run the validation stop (T3, T4, T5).
+7. Freeze all evidence, move it to the local host, rebuild the table from copies, compare the validation stop with its written interval, compile the coverage table and the statement, and record the result without a change of the documents (T7, T8).
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run `selftest.bash` of `tests/stop-time/` on the committed fixtures, and `bash -n` and `shellcheck -x` on every script | Local host | The self-test passes with exit status 0; the parsers, the generator, the fit, the C3 verdict, the guard and the exit statuses behave as the Scope states; `shellcheck -x` reports nothing |
+| T2 | VM | Rehearse with 25 and 100 PVs through installation, archiving, accumulation with the rule, the stop, final capture and the table with its replay, with the PVs served by a real `softIoc`; rehearse the failure paths (a stop cut at `timeout`, a missing launcher line, a lost cursor, a failed query, a truncated log, an interrupted stop); exercise the tools on the replicated evidence of the largest cell | Guest of G9; local host | Every step runs and its evidence is retained; a0, b0, the commands, the native statuses and the reset procedure are fixed; a tool error is not recorded as a product failure; defects that block capture or judgment are repaired; the fixtures are replaced by sanitized excerpts and T1 passes on them too |
+| T3 | VM | Stop the unit with `sudo systemctl stop` (the effect of `make sd_stop`) under the rule at each stop of the main cells and in the validation cell, after the expectation is written down | Guest of G9 | A stop duration of the unit and of each instance for every stop, next to its expectation, with the time after the boundary and the file count |
+| T4 | VM | At the shipped log level cut the journal of each stop with its cursor, read the error lines of the ETL instance, `systemctl show -p Result` of the unit before the next start and the journal line of the timeout; check the four launcher lines, the first and last line of the cut, and overlap | Guest of G9 | The PVs named as left, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T5 | VM | List the three stores before and after each stop | Guest of G9 | After a stop without SIGKILL the short term store holds no file except those of the PVs that the error lines name as left (an empty file is deleted, not moved); after a stop that the unit ended the listing names the PVs that still have files |
+| T6 | Local | Freeze the evidence of the main cells (members, SHA-256, tool identities), fit the line with `fit-line.bash line`, and write the prediction of the validation stop with `fit-line.bash predict` and its hash before the stop runs | Local host | The line, its standard error and the interval are retained and reproduce from the frozen table with `fit-line.bash check` |
+| T7 | Local | Freeze all evidence, move it from the guest with a check of every member, rebuild the table from separate copies with `rebuild-table.bash`, compare it with the recorded `stops.jsonl` by `compare-evidence.py`, and judge C3 of the validation stop against the interval of T6 | Local host | Every value follows from the retained files, the originals are unchanged, the table agrees with the recorded table, and C3 uses the interval of T6 |
+| T8 | Review | Read the coverage table, the line and the statement against the table | Local host | Each claim names the stage and the stop duration that support it, the line reproduces from the retained table, and no cell that did not run counts as passed |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-19, 2026-10-20 | Local host (Debian 13) | Passed | `tests/stop-time/selftest.bash` on 2026-10-19 with the files of commit `943407e`, which adds the folder: 87 of 87 assertions Passed with exit status 0; on 2026-10-20 with the files of the commit that carries the tool repairs and the fixtures of the rehearsal: 128 of 128 Passed with exit status 0. Each run used `awk` once as GNU awk and once as mawk (the awk of the guest), and `bash -n` and `shellcheck -x` reported no finding on the five scripts. On 2026-10-20 with the helpers `archive-stage.bash` and `run-cell.bash` added and the pass window bound to the start of `run-stop.bash`: 138 of 138 Passed with exit status 0, once with GNU awk and once with mawk. On the first two dates a seeded defect in a copy of `rebuild-table.bash` (the PV word of the consolidation line) and in a copy of `fit-line.bash` (the factor of the prediction interval) each made the self-test exit 1 |
+| T2 | 2026-10-20 | Guest of G9 (Debian 13, source `a8d07955`, this repository `943407e` with the tool repairs below copied in; the copied files are those of the commit that carries the repairs, equal by SHA-256 to the local files); local host | Passed | Installation, the site log4j2 file, the persistent journal, `chrony`, the IOC unit and the copied PV set (`check-sources.py` Passed against the inventory of ansible-provision `635d76c`) are in place; a 10 Hz PV stores 601 samples in 60 seconds. Four rehearsal stops are Passed for C1 and C2: 25 PVs 1.312 s and 1.336 s, 100 PVs 1.580 s and 1.479 s (engine gap about 1.1 s, ETL gap 0.11 to 0.31 s, no PV left); `fit-line.bash rehearsal` gives a0 1.25554 s and b0 0.00273987 s per PV, and `expectation.jsonl` gives 3.72964 s for 903 PVs and 9.47515 s for 3000 PVs. Failure paths: a stop with `SYSTEMD_TIMEOUT_STOP_SECONDS` 1 ended in `timeout` after 1.08 s with all 100 PVs left and the exit status 0 of `systemctl stop`; a TERM to `run-stop.bash` gave status 143 and Incomplete with the evidence kept; damaged copies of a real stop folder (a launcher line removed, the cursor of the cut missing, a truncated log) are Incomplete, a cut by time stamps is Passed, and an unreadable file is a tool error (status 3). A lost cursor: `journalctl` answers a malformed cursor with status 1 and `Failed to seek to cursor`, but a well-formed cursor that the journal does not hold seeks to another position and returns the journal from its start (a live stop with such a cursor, given through the test hook `STOP_TIME_CURSOR`, cut 25 launcher lines of earlier stops); after the repair below a live stop with the same cursor fell back to the cut by the unit time stamps (`mode=time`, first record at the start of the stop, 4 launcher lines, Passed). A failed query: the appliance stopped 5 seconds after `run-stop.bash` started, so `getPVStatus` failed; after 900 seconds the script ended Incomplete (status 2) without a stop command and without a record in `stops.jsonl`. Tool repairs found by the rehearsal (the original records kept, the repaired tool run on copies as candidate results): the pass records are read from the whole `etl-pass.log` (`etl-pass.records`), `slowestMillis` and the pass duration count the passes of the accumulation of each stop, the rehearsal cells take no `--expectation`, an empty cut is not missing evidence when the unit ended the stop before the ETL instance, `run-stop.bash` cuts by the unit time stamps when the first record of the cursor cut is older than the moment the cursor was taken, `rebuild-table.bash` counts launcher lines from the start of the stop and marks a cut that starts more than 60 seconds before it as Incomplete, and three pipes whose reader can end early under `pipefail` were removed (one of them ended a live stop after the stop command with status 141; that stop is kept and repeated as `4r`), and a stop that ends before its record now writes `ended.txt` and `SHA256SUMS` into its folder and sets `pending` to the same stop before the stop command or to the repeat with the suffix `r` after it, while a recorded clean stop removes the key; on the guest a TERM during the wait gave status 143, a frozen folder and `pending=rehearsal-100/6`, a second run of the same stop moved the old folder aside as `.interrupted-<UTC>`, and a stop whose folder holds `stop-exit.txt` was refused with status 3 and left unchanged (the folders of the stops ended before this repair carry no `ended.txt`). The expectation of the main cells was written from the table recorded at the four rehearsal stops; with the repaired tool the same a0 and b0 come from the candidate results (the folder of `rehearsal-25` stop 1 with the pass records extracted after it), while the original folder of that stop is Incomplete for C1 without `etl-pass.records`, and a table rebuilt from the original folders gives a0 1.27133 s and b0 0.00258193 s per PV from the other three stops. A tool error of `rebuild-table.bash` at the end of a stop writes no record and ends the stop as one that ended before its record; this branch was not executed in a live stop: `run-stop.bash --judge` on a folder with an unreadable file gave status 3 and no record, and the end handling is the one that the interrupted stops above executed. A declared replicate of a rehearsal stop folder at the size of the largest cell (3000 PVs with 4 short term files each, 7 stop folders, 12000 listing rows of the short term store per stop) exercised the tools only: `rebuild-table.bash` built the 7 records in 3.2 s, its run on a copy agreed through `compare-evidence.py` (Passed), the originals stayed byte-identical, and `fit-line.bash line` and `check` ran on the table. Three real stop folders of the rehearsal (normal, timeout, interrupted) are fixtures in `tests/stop-time/fixtures/run-rehearsal/` beside the synthetic ones, and `selftest.bash` judges them again to the values recorded at the stop (128 of 128 assertions Passed with GNU awk and with mawk) |
+| T3 | 2026-10-20 | Guest of G9 (this repository `990786e`, source `a8d07955`, SQLite; `PARTITION_5MIN` for the main cells and `PARTITION_HOUR` for the validation stop, hold 2) | Passed | Six stops of the main cells, each about 30 seconds after its boundary E (30.17 s to 30.73 s), with hold + 2 files of every PV and no qualifier: `main-903` 2.34421 s, 2.3907 s and 2.23577 s against the expectation 3.72964 s; `main-3000` 7.80716 s, 6.60475 s and 6.67428 s against 9.47515 s. Engine gap 1.09 s to 1.28 s, ETL gap 1.02 s to 1.10 s at 903 PVs and 5.25 s to 6.40 s at 3000 PVs, management gap 0.05 s to 0.07 s. The validation stop (`PARTITION_HOUR`, 30.42 s after E at 01:00 UTC) took 3.7403 s: engine gap 1.209 s, ETL gap 2.296 s, management gap 0.116 s |
+| T4 | 2026-10-20 | Guest of G9 | Passed | Every stop of the main cells: unit result `success`, the four launcher lines, a cut from its cursor (`mode=cursor`), no error line of the ETL instance, no overlap with a pass (the longest pass of the cell `main-3000` took 9.41 s), C1 and C2 Passed; no stop was ended by the unit and none is Incomplete. The validation stop has the same: result `success`, four launcher lines, a cut from its cursor, no error line, no overlap (its longest pass took 0.88 s) |
+| T5 | 2026-10-20 | Guest of G9 | Passed | Before each stop of the main cells the listing showed hold + 2 = 4 files of every PV in the short term store; after each stop the short term store held no file and every PV was consolidated (903 and 3000 loop jobs, sums 0.96 s to 1.05 s and 5.17 s to 6.34 s, longest job 14 ms), so no PV was left. The validation stop had 4 files of every PV (1118597163 bytes, 1.24 MB per PV) before and no file after, with 903 loop jobs (sum 2.215 s, longest 119 ms) |
+| T6 | 2026-10-20 | Local host | Passed | The run folder (1019 files) moved from the guest with `rsync -a` and passed `sha256sum --check --strict` on the host; the tool identities are in `tool-identity.txt`. On a separate copy `rebuild-table.bash` reproduced the six records of the main cells exactly (`compare-evidence.py` Passed), and `fit-line.bash check` found the line of the rebuilt table equal to the recorded line. The line: intercept 0.297442 s, slope 0.00224376 s per PV, standard error 0.000187137 (df 4, t 2.776, interval 0.00172427 to 0.00276325); the timeout of 300 s at 133571 PVs and cautiously 108460, 80 percent of it at 106831 and 86746.5. The prediction of the validation stop from the three stops of `main-903`: mean 2.32356 s, sd 0.0795025 s, interval 1.92854 s to 2.71858 s, SHA-256 `73f66105047240e1b5edb83c730180f7ca12b2d0777f0f7d088301173a7f4f37`, copied to the guest and checked there before the stop. An independent computation gave the same line and interval |
+| T7 | 2026-10-20 | Local host | Passed | The run folder (1103 files, 197 MB) moved from the guest with `rsync -a` and passed `sha256sum --check --strict` on the host; a separate copy `st-20261019-replay-final` holds the rebuilt table and the tool identities. `rebuild-table.bash` rebuilt 11 records; `compare-evidence.py` against the recorded `stops.jsonl` found every unit duration, result, C2 and C3 equal and differences only in the pass statistics and in C1 of `rehearsal-25` stop 1, all from the tool repairs: the pass statistics count the passes from the start of `run-stop.bash` (start_utc of the status copy), because `etl-pass.log` runs on across resets and the window of the hourly partition reached back into the stage of 3000 PVs (the recorded longest pass of the validation stop, 9.41 s, belongs to that stage; its own is 0.88 s). The originals stayed unchanged. The run manifest leaves out the nested `SHA256SUMS` files; each real stop folder passed its own `SHA256SUMS` and `frozen/SHA256SUMS` on the host (22 manifests), the nested manifests are byte-equal on the host and the guest, and those of the declared copies (the damaged copies of the failure paths, the candidate copies and the replicate of the largest cell) differ by design. The run of the failure paths (`st-20261019-fail`, 268 files) moved to the host the same way and passed its manifest and the 8 manifests of its stop folders. The line of the rebuilt table equals the line of T6 apart from the added ratio of the validation stop. C3 of the validation stop: 3.7403 s outside the interval 1.92854 s to 2.71858 s of T6 (the hash of the prediction in the status copy equals the hash of T6), so C3 is Failed; its ETL gap per PV is 2.15936 times that of `main-903`. Report files on the host with SHA-256: `report.md` `1212c93a0d8b155c47ef222cef61a44a4140edfe49e52602532284d216643a03`, `coverage.md` `0828d6cc91da0ca8b76e774c29f152317b5edb5312ed5f7002772ea722cdffa5`, `fit-final.txt` `cc607c8e400bc73b42afe0456c703c6e3cc0b906af21454681f14a088777ff01` |
+| T8 | 2026-10-20 | Local host | Passed | Every value of `report.md` and `coverage.md` was recomputed from the rebuilt table, `fit-final.txt`, `prediction.json`, the frozen configuration and the PV lists: the 7 rows of the stop table, the line, its interval and PV counts, the predictions at 5000 to 50000 PVs, the cell means, the ratio of the validation stop, the gap ranges, the job times, the data sizes and the PV mix (110 `VeryFast` at 10 Hz, 10 `Fast` at 1 Hz, 10 `Medium` at 0.1 Hz, 773 `Default` at 1 Hz with 8 waveforms) agree; every claim names the cell and the stops that support it, the line reproduces from the retained table (T7), and no cell that did not run counts as passed (all three cells ran their planned stops) |
+
+##### Closure Evidence
+
+- Complete on 2026-10-20. Deliverables: `tests/stop-time/` (scripts, fixtures, `README.md`) in commits `943407e` and `990786e` and in the commit that carries this record (the helpers `archive-stage.bash` and `run-cell.bash` and the pass window bound to the start of `run-stop.bash`); the records of the run in `f589bb9` and this commit. Every test of the Test Plan is Passed (T1 to T8).
+- Report files on the host, `~/stop-time-evidence/st-20261019/report/`: `report.md` (SHA-256 `1212c93a0d8b155c47ef222cef61a44a4140edfe49e52602532284d216643a03`), `coverage.md` (`0828d6cc91da0ca8b76e774c29f152317b5edb5312ed5f7002772ea722cdffa5`), `fit-final.txt` (`cc607c8e400bc73b42afe0456c703c6e3cc0b906af21454681f14a088777ff01`); the raw evidence stays private on the host and the guest.
+- Conditions: Debian 13 guest of 2 vCPU, 4 GiB, one 30 GiB disk for the three tiers and SQLite; source `a8d07955`; heap 256M for each instance; root logger INFO with the file appender of the pass events; installed `TimeoutStopSec` 300 s; `ETLPassStopWaitSeconds` 60 s (the default, not in the installed file); the 903 PVs of ansible-provision (110 `VeryFast` at 10 Hz, 10 `Fast`, 10 `Medium` at 0.1 Hz, 773 `Default` with 8 waveforms) and 2097 generated 1 Hz PVs for the stage of 3000.
+
+| Cell | Stop | InvocationID | PVs | Partition | STS bytes per PV | After E (s) | Unit stop (s) | Engine (s) | ETL (s) | Mgmt (s) | Result | Left | Loop jobs | Loop sum (s) | Longest job (ms) | C1 | C2 | C3 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| main-903 | 1 | `495618cc` | 903 | PARTITION_5MIN | 105781 | 30.40 | 2.344 | 1.127 | 1.074 | 0.073 | success | 0 | 903 | 0.957 | 11 | Passed | Passed | — |
+| main-903 | 2 | `383d946a` | 903 | PARTITION_5MIN | 106106 | 30.37 | 2.391 | 1.156 | 1.096 | 0.067 | success | 0 | 903 | 1.045 | 9 | Passed | Passed | — |
+| main-903 | 3 | `2e966fe1` | 903 | PARTITION_5MIN | 106071 | 30.17 | 2.236 | 1.091 | 1.020 | 0.060 | success | 0 | 903 | 0.979 | 8 | Passed | Passed | — |
+| main-3000 | 1 | `9edb4d3f` | 3000 | PARTITION_5MIN | 45814 | 30.73 | 7.807 | 1.281 | 6.396 | 0.069 | success | 0 | 3000 | 6.340 | 12 | Passed | Passed | — |
+| main-3000 | 2 | `87e2ddbe` | 3000 | PARTITION_5MIN | 45410 | 30.51 | 6.605 | 1.266 | 5.252 | 0.052 | success | 0 | 3000 | 5.172 | 14 | Passed | Passed | — |
+| main-3000 | 3 | `41bd1478` | 3000 | PARTITION_5MIN | 45329 | 30.67 | 6.674 | 1.219 | 5.329 | 0.056 | success | 0 | 3000 | 5.278 | 12 | Passed | Passed | — |
+| validation-903 | 1 | `8bb533ed` | 903 | PARTITION_HOUR | 1238760 | 30.42 | 3.740 | 1.209 | 2.296 | 0.116 | success | 0 | 903 | 2.215 | 119 | Passed | Passed | Failed |
+
+- Statement. Over the six stops of the main cells the stop time of the unit is 0.297442 s + 0.00224376 s per PV (standard error 0.000187137, 95 percent interval of the slope 0.00172427 to 0.00276325). It reaches the stop timeout of 300 s at 133571 PVs and cautiously at 108460, and 80 percent of it at 106831 and cautiously at 86746.5; at 5000, 10000, 20000 and 50000 PVs it predicts 11.5 s, 22.7 s, 45.2 s and 112.5 s, cautiously 14.1 s, 27.9 s, 55.6 s and 138.5 s, extrapolations beyond 3000 PVs. Nearly all of the growth is the ETL instance (about 1.06 s at 903 PVs, 5.66 s at 3000), while the engine gap stays between 1.09 s and 1.28 s. The line and the PV counts assume that no pass runs at the stop; a running job adds at most two waits of `ETLPassStopWaitSeconds` and one left PV. All three cells suffice (every stop Passed for C1 and C2: result `success`, within the timeout, no PV left).
+- The validation stop on the shipped partition took 3.740 s, outside its written interval of 1.92854 s to 2.71858 s, so C3 is Failed; its ETL gap per PV is 2.15936 times that of `main-903`. Differences that may explain it, without one assigned cause: 1.24 MB per PV in the short term store against 0.106 MB (hour files against 5-minute files), a mean loop job of 2.46 ms against 1.06 to 1.16 ms and a longest job of 119 ms on a waveform PV, one pass an hour against one every 5 minutes, and 1.1 GB of short term data on a guest of 4 GiB.
+- A site sets the timeout with `SYSTEMD_TIMEOUT_STOP_SECONDS` in `../CONFIG_SITE.local` and `make sd_install`, and `ETLPassStopWaitSeconds` only through `site-template/archappl.properties.in`. A PV left unconsolidated keeps its files in the short term store, which move in the next pass on a disk and are lost at a reboot on tmpfs. A sizing rule would change `docs/README.install.md` and `docs/technicaldocs/README.systemd.md` and needs its own item; this item changes no document.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### G9 - A guest with the disk capacity that the stop time measurement needs is available
+
+Origin: 2.0.1 / G9
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+M55 needs one Debian 13 guest. The requester is the session of this repository, and the provider is the session that owns the hypervisor and its provisioner. The provider creates a fresh guest for a requester of the same owner under its standing authorization when the capacity check passes; the owner of the requester authorizes the implementation of M55, whose second step sends the request, after the owner has accepted the plan. Responsible parties: the requester session (the request, the finished notice) and the provider session (creation, handoff, shutdown). Affected work: M55, and M56 and M57 if the owner reopens them; they would reuse the guest after a restart from its disk.
+
+The request carries these fields, with the purpose first:
+
+- Purpose: the measurement of the stop time of the unit on a SQLite installation (M55).
+- Platform: Debian 13, the bare profile `debian13` of the provisioner (not `debian13-archiver-dev`, which applies an appliance that would conflict with the installation of the engineer).
+- Resources: 2 vCPU (fixed by the provisioner), 4 GiB of memory (the default), 30 GiB of disk (the provisioner option `-z 30G`; the estimate of M55: about 6 GB for data and evidence and about 12 GB for the system, with a margin).
+- Duration: about 12 hours of running: about 4 hours for the installation and the rehearsal and about 8 hours for the measurement; the guest may be shut down in between and restarted by the requester.
+- State: a fresh base image; the disk is evidence to keep until the owner removes it.
+- Access: the requester connects by SSH with a key and uses `sudo` without a password.
+- Follow-up: none for the provider. The engineer installs the appliance, the EPICS Base binaries, `libreadline8` and `rsync`, and sets the persistent journal and `chrony` on the guest.
+
+##### Completion Criteria
+
+- The requester sends the request with every field above, and the provider answers with the outcome, the guest name, the path of the private handoff and every deviation from the request (for example a vCPU count other than 2).
+- The provider's verification of the running guest (provisioner status, key-only login, `sudo`, OS release, CPU, memory, disk) is in the handoff.
+- The requester sends a finished notice when its use ends and says that the disk is evidence to keep.
+
+##### Verification Results
+
+| Observed At | Result | Evidence |
+| --- | --- | --- |
+| 2026-10-19 | Passed | The provider created a fresh guest of the bare profile `debian13` and answered with the outcome `completed` and every field of the request, without a separate handoff file. Its verification: provisioner exit 0 and ready, 2 vCPU, 4096 MiB, Debian 13 (trixie), a 30 GiB disk with 27 GiB free on the root file system, key-only SSH, `sudo -n` without a password, cloud-init done without errors, `/opt` empty; no deviation from the request. Starting the guest again after a shutdown needs the authorization of the owner of the provider and a capacity check each time. |
+
+##### Closure Evidence
+
+- The guest was handed off on 2026-10-19 (Verification Results above); its name, address and access stay in the private records of the provider and the requester.
+- The requester sent the finished notice on 2026-10-20 after the evidence was copied and verified on its host, and asked to keep the disk as evidence; the provider answered that the guest is shut off and stays defined, with its disk, seed, creation record and address reservation kept until the owner decides on removal.
+
+#### M56 - Measure the stop time over the PV count with the 15-minute short term store partition
+
+Origin: 2.0.1 / M56
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+The main cells of M55 use the 5-minute short term store partition, and one validation stop uses the shipped partition. A 15-minute partition holds three times the data of the 5-minute partition in the same number of files and would show how the stop time grows between the two.
+
+##### Scope
+
+- Run the main cells of M55 (the stages of 903 and 3000 PVs with the hold of 2) once more with the short term store partition `PARTITION_15MIN`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest, with the rule, the order, the reset, the measurement and the verdicts of M55, and one stop for each cell. Write down the prediction of every cell from the line of M55 before the cells run. The line of M55 was fitted on the 5-minute partition, so a difference is reported without a single cause.
+- Extend `tests/stop-time/run-stop.bash` and `tests/stop-time/rebuild-table.bash` to the partition `PARTITION_15MIN` (900 s). The STS to MTS pass of this partition starts 5 minutes after each boundary, as on the hourly partition, so the stop lies between 30 and 90 seconds after E; `tests/stop-time/selftest.bash` gets a case for it.
+
+Out of scope: a change of the repository other than the partition support of `tests/stop-time/`, of the policies or of the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
+
+##### Completion Criteria
+
+- A table in the form of M55 lists the stops with the stop duration of the unit and of each instance, the files and bytes of the short term store, the time after the boundary, the unit result, the consolidated PVs, the left PVs, the refs and the method.
+- The statement gives for each cell the difference between the stop time and the prediction of the line of M55, and the verdicts C1 and C2 of M55 for each stop.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-10-19. The owner reduced M55 to the stages of 903 and 3000 PVs after the stop time of ansible-provision at 903 PVs (13 seconds) showed a per-PV part near 5 milliseconds. This item is Deferred until the result of M55. It reopens by a new dated decision when the result of M55 cannot be carried to the shipped partition: C3 of the validation stop is Failed, or the ETL gap per PV of the validation stop exceeds that of the cell `main-903` by more than 50 percent, or a stop time lies near the stop timeout.
+- M55 supplies the method, the PV set, the conditions and the line; the guest is a new one (decision of 2026-10-21 below).
+- Decision Date: 2026-10-21. The owner reopened this item: its reopening condition is met, because C3 of the validation stop of M55 is Failed (3.74 s on the shipped partition, outside the interval of the line of the main cells). The status returns from Deferred to Not started; the plan stays a draft until its acceptance.
+- Decision Date: 2026-10-21. The owner chose a fresh Debian 13 guest for this item and M57, so the disk of the guest of M55 stays unchanged as evidence; M56 runs first and M57 follows on the same guest. Both items run as scoped.
+- Decision Date: 2026-10-21. The scripts of M55 accept only the 5-minute and the hourly partition; the owner put their extension to `PARTITION_15MIN` into this item.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-21
+Implementation Authorization: the owner authorized the implementation on 2026-10-21
+Superseded Plan Artifacts: none
+
+1. Extend `run-stop.bash` and `rebuild-table.bash` to `PARTITION_15MIN` (900 s, the stop between 30 and 90 seconds after E) and add its case to `selftest.bash` (T6). The change lands by its own commit and push authority before step 2, or reaches the guest as a patch whose SHA-256 the results record.
+2. Request a fresh Debian 13 guest of 2 vCPU, 4 GiB and one 30 GiB disk from the provider session, and prepare it as M55 prepared its guest: the settings of M55 (persistent journal, file appender of the pass events, heap 256M), source `a8d07955`, this repository at the commit that carries step 1 or a later one (it also carries the rendering by the checkout owner of `0323fab`), with the commit used recorded in the results, the 903 PVs of ansible-provision and the 2097 generated PVs (T1).
+3. Set the partition `PARTITION_15MIN` in `../CONFIG_SITE.local` and run the reset of M55 with its policy change, which stops the unit first and renders (`make conf.archapplproperties`, `make conf.install`) and installs (`sudo make install`) inside it; archive the PVs on the fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
+4. Write down the predictions, then run the cells in the order of M55 (T2, T3). Under the rule of M55 a stop lies after the boundary E, B0 plus three partitions, so each stop waits up to one hour on this partition. The main cells take `--expectation` with the expectation file of the rehearsal of M55, `~/stop-time-evidence/st-20261019/expectation.jsonl` on the host, copied to the guest, as the main cells of M55 did.
+5. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5). The guest stays for M57.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | VM | Prepare the fresh guest as M55 prepared its guest, then set the partition `PARTITION_15MIN`, render with `make conf.archapplproperties` and `make conf.install`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Fresh guest | The partition and the hold of the cell are in the stored URL |
+| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Fresh guest | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
+| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Fresh guest | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
+| T5 | Review | Read the coverage table and the comparison with the line of M55 | Local host | Each claim names the stage and the stop duration that support it, and no cell that did not run counts as passed |
+| T6 | Local | Run `tests/stop-time/selftest.bash` with the case of `PARTITION_15MIN`, and `run-stop.bash` with an unknown partition | Local host | The selftest passes, the 15-minute case uses 900 s and the window of 30 to 90 seconds, and an unknown partition is still refused |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-21 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | The guest was prepared with the settings of M55 (persistent journal of 1G with the rate limit of 30 s and 10000, `chrony`, the site `log4j2.xml` of M55 with the same SHA-256, heaps of 256M, the guard file), the ansible-provision fixtures at `635d76c` passed `check-sources.py` (8 files) and the 2097 generated PVs have the SHA-256 of M55. The EPICS Base copy needed `dbd` besides `bin` and `lib`: without it `softIoc` stopped with `Can't open file .../dbd/softIoc.dbd`. With `PARTITION_15MIN` in `../CONFIG_SITE.local` before the first installation, the rendered `policies.py` and the stored URL of a PV of each policy (Default, Fast, Medium, VeryFast) carry `partitionGranularity=PARTITION_15MIN&hold=2`; all 903 PVs and, after the reset, all 3000 PVs were `Being archived` and connected; the ten deadband records read -1 |
+| T2 | 2026-10-21 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | One stop of each cell under the rule of M55, exit status 0: `main-903` E 10:15:00Z, stop 30.74 s after E, unit 2.368 s; `main-3000` E 11:15:00Z, 31.02 s after E, unit 8.072 s; both `success`. A first start of `run-stop.bash` for `main-903` was refused with status 3 before any side effect, because no pass had written `etl-pass.log` yet; it was started again after the first pass. A first archivePV of the 3000 PVs returned HTTP 500 while the appliance was still starting and archived nothing; it was sent again when `getPVStatus` answered. Both refusals are kept in the evidence |
+| T3 | 2026-10-21 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | Both stops have the four launcher lines, the unit result, the listings before and after and the cut of `etl-pass.log` (C1 Passed); every PV had hold + 2 = 4 files before the stop and was consolidated (903 and 3000), no PV was left, no overlap and no off-rule mark (C2 Passed) |
+| T4 | 2026-10-21 | Local host | Passed | The evidence (136 files) was copied from the guest and checked against its `SHA256SUMS`; `rebuild-table.bash --stop` on a separate copy rebuilt both records with the 36 fields of the recorded `stops.jsonl` and no difference; the originals were unchanged afterwards |
+| T5 | 2026-10-21 | Local host | Passed | The table and the statement in Closure Evidence name the stage and the stop duration of every claim; both cells ran, one stop each, as scoped |
+| T6 | 2026-10-21 | Local host | Passed | `tests/stop-time/selftest.bash` exit 0, 149 of 149: `run-stop.bash` with `PARTITION_15MIN` passes the option checks and stops at the guard file, `PARTITION_30MIN` is refused with status 3 and the message that names the three partitions; a copy of the fixture stop `stop-01-passed` with one more pass planned two hours before E counts 1 pass in the window (slowest 850 ms) as `PARTITION_15MIN` and 2 (9999 ms) as `PARTITION_HOUR`. The same selftest with the earlier `rebuild-table.bash` failed the two 15-minute window assertions (2 passes, 9999 ms), so the case detects the 3600 s window; shellcheck reports nothing for the three changed scripts |
+
+##### Closure Evidence
+
+- Complete on 2026-10-21. The support of `PARTITION_15MIN` in `tests/stop-time/` landed in `4c8c9ee` on `origin/release-2.0.1` (T6); T1 to T6 Passed. Report on the host, `~/stop-time-evidence/m56-20261021/report/report.md` (SHA-256 `4d86cdbe2f7e450fd3de7c571cb9f109b3bfe64a9bc5957abe3393dbac89c7e9`); the raw evidence stays private on the host and the guest, whose disk is kept for M57.
+- Conditions: those of M55 (Debian 13 guest of 2 vCPU and 4 GiB with one 30 GiB disk, source `a8d07955`, heaps of 256M, root logger INFO with the file appender of the pass events, `TimeoutStopSec` 300 s, `ETLPassStopWaitSeconds` 60 s, the 903 PVs of ansible-provision and the 2097 generated PVs), with `PARTITION_15MIN` and hold 2, on a fresh guest and this repository at `877cf38`.
+
+| Cell | Stop | InvocationID | PVs | Partition | STS bytes per PV | After E (s) | Unit stop (s) | Engine (s) | ETL (s) | Mgmt (s) | Result | Left | Loop jobs | Loop sum (s) | Longest job (ms) | C1 | C2 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| main-903 | 1 | `a8fc26aa` | 903 | PARTITION_15MIN | 309672 | 30.74 | 2.368 | 1.101 | 1.146 | 0.071 | success | 0 | 903 | 1.096 | 15 | Passed | Passed |
+| main-3000 | 1 | `07340fc6` | 3000 | PARTITION_15MIN | 132072 | 31.02 | 8.072 | 1.203 | 6.727 | 0.071 | success | 0 | 3000 | 6.668 | 18 | Passed | Passed |
+
+- Statement. The predictions of the line of M55, written before the cells ran, are 2.32356 s at 903 PVs and 7.02872 s at 3000 PVs; the stops took 2.368 s (+0.045 s, +1.9 percent) and 8.072 s (+1.043 s, +14.8 percent). The stop at 903 PVs lies inside the range of the three stops of M55 on the 5-minute partition (2.236 s to 2.391 s); the stop at 3000 PVs lies above the longest of them (7.807 s). As in M55, the growth is the ETL instance (1.146 s and 6.727 s, against means of 1.063 s and 5.659 s in M55), while the engine gap stays near 1.1 s to 1.2 s. Differences that may explain the excess at 3000 PVs, without one assigned cause: about 2.9 times the bytes per PV in the short term store (132072 against 45329 to 45814), a mean loop job of 2.22 ms against 1.72 ms to 2.11 ms, and one stop against three. Both stops suffice (C1 and C2 Passed: result `success`, far inside the timeout of 300 s, no PV left).
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M57 - Measure the stop time over the PV count with the shipped short term store partition
+
+Origin: 2.0.1 / M57
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+The main cells of M55 use the 5-minute short term store partition, and one validation stop uses the shipped partition. The main cells on the shipped partition would measure the stop time of the shipped state for each stage.
+
+##### Scope
+
+- Run the main cells of M55 (the stages of 903 and 3000 PVs with the hold of 2) once more with the short term store partition `PARTITION_HOUR`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest, with the rule, the order, the reset, the measurement and the verdicts of M55, and one stop for each cell. Write down the prediction of every cell from the line of M55 before the cells run. The line of M55 was fitted on the 5-minute partition, so a difference is reported without a single cause.
+
+Out of scope: a change of the repository, the policies or the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
+
+##### Completion Criteria
+
+- A table in the form of M55 lists the stops with the stop duration of the unit and of each instance, the files and bytes of the short term store, the time after the boundary, the unit result, the consolidated PVs, the left PVs, the refs and the method.
+- The statement gives for each cell the difference between the stop time and the prediction of the line of M55, and the verdicts C1 and C2 of M55 for each stop.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-10-19. The owner reduced M55 to the stages of 903 and 3000 PVs after the stop time of ansible-provision at 903 PVs (13 seconds) showed a per-PV part near 5 milliseconds. This item is Deferred until the result of M55. It reopens by a new dated decision when the result of M55 cannot be carried to the shipped partition: C3 of the validation stop is Failed, or the ETL gap per PV of the validation stop exceeds that of the cell `main-903` by more than 50 percent, or a stop time lies near the stop timeout.
+- M55 supplies the method, the PV set, the conditions and the line; the guest is a new one (decision of 2026-10-21 below).
+- M56 is a work ordering dependency: this item runs on the guest of M56 after M56.
+- Decision Date: 2026-10-21. The owner reopened this item: its reopening condition is met, because C3 of the validation stop of M55 is Failed (3.74 s on the shipped partition, outside the interval of the line of the main cells). The status returns from Deferred to Not started; the plan stays a draft until its acceptance.
+- Decision Date: 2026-10-21. The owner chose a fresh Debian 13 guest for this item and M56, so the disk of the guest of M55 stays unchanged as evidence; M56 runs first and M57 follows on the same guest. Both items run as scoped.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-21
+Implementation Authorization: the owner authorized the implementation on 2026-10-21
+Superseded Plan Artifacts: none
+
+1. On the guest of M56, set the partition `PARTITION_HOUR` in `../CONFIG_SITE.local` and run the reset of M55 with its policy change, which stops the unit first and renders (`make conf.archapplproperties`, `make conf.install`) and installs (`sudo make install`) inside it; archive the PVs on the fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
+2. Write down the predictions, then run the cells in the order of M55 (T2, T3). Under the rule of M55 a stop lies after the boundary E, B0 plus three partitions, so each stop waits up to four hours on this partition, as the validation stop of M55 did. The main cells take `--expectation` with the expectation file of the rehearsal of M55, `~/stop-time-evidence/st-20261019/expectation.jsonl` on the host, copied to the guest, as the main cells of M55 did.
+3. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5), then send the finished notice for the guest and ask to keep its disk as evidence.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | VM | Set the partition `PARTITION_HOUR`, render with `make conf.archapplproperties` and `make conf.install`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Guest of M56 | The partition and the hold of the cell are in the stored URL |
+| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Guest of M56 | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
+| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Guest of M56 | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
+| T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
+| T5 | Review | Read the coverage table and the comparison with the line of M55 | Local host | Each claim names the stage and the stop duration that support it, and no cell that did not run counts as passed |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-21 | Guest of M56 (fresh Debian 13, 2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | The partition was set to `PARTITION_HOUR` in `../CONFIG_SITE.local`, and the reset of M55 ran with its policy change: `make sd_stop`, `make conf.archapplproperties` (the rendered `policies.py` carries `partitionGranularity=PARTITION_HOUR&hold=2`), `sudo make conf.storage.rm` (`/arch` gone), `sudo make conf.storage`, `make sql.update`, `sudo make sql.table.fill`, `sudo make sql.show`, `make conf.install`, `sudo make install`, `make sd_start`, each with exit status 0 and no file owned by root in the checkout. The IOC stage was written for 903 PVs, all 903 PVs were `Being archived` and connected, and the stored URL of `AASOAK:FAST:CH01` carries `PARTITION_HOUR&hold=2`; for the stage of 3000 PVs the reset was repeated (without the install, because the policy did not change), the IOC served the 2097 further PVs (`STOPTIME:E0001` and `E2097` read, the ten deadband records -1), all 3000 PVs were `Being archived` and connected, and the stored URL of `STOPTIME:E0001` carries `PARTITION_HOUR&hold=2` |
+| T2 | 2026-10-21 | Guest of M56 (fresh Debian 13, 2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | One stop of each cell under the rule of M55, exit status 0: `main-903` E 19:00:00Z (12:00 PDT), stop 31.04 s after E, unit 2.932 s; `main-3000` E 23:00:00Z (16:00 PDT), 30.67 s after E, unit 9.730 s; both `success`. The accumulation took (hold + 2) hourly partitions, so each stop waited about three hours after B0 |
+| T3 | 2026-10-21 | Guest of M56 (fresh Debian 13, 2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | Both stops have the four launcher lines, the unit result, the listings before and after and the cut of `etl-pass.log` (C1 Passed); every PV had hold + 2 = 4 files before the stop and was consolidated (903 and 3000), no PV was left, no overlap and no off-rule mark (C2 Passed) |
+| T4 | 2026-10-21 | Local host | Passed | The evidence (138 files) was copied from the guest and checked against its `SHA256SUMS`; `rebuild-table.bash --stop` on a separate copy rebuilt both records with the 36 fields of the recorded `stops.jsonl` and no difference; the originals were unchanged afterwards |
+| T5 | 2026-10-21 | Local host | Passed | The table and the statement in Closure Evidence name the stage and the stop duration of every claim; both cells ran, one stop each, as scoped |
+
+##### Closure Evidence
+
+- Complete on 2026-10-21. The scripts and the guest are those of M56 (support of the partition in `4c8c9ee`, the result of M56 in `0029bc9`); T1 to T5 Passed. Report on the host, `~/stop-time-evidence/m57-20261021/report/report.md` (SHA-256 `8ef283e21485de33eca6be2786cdf18e0a60a7cdf26ab5bc2e4b23add0c62971`); the raw evidence stays private on the host and the guest.
+- The requester sent the finished notice for the guest on 2026-10-21 after the evidence was copied and verified on its host, and asked to keep the disk as evidence; the provider answered on 2026-10-21 that the guest is shut off and stays defined, with its disk, seed, creation record and address reservation kept until its owner decides on removal; its name, address and access stay in the private records of the provider and the requester.
+- Conditions: those of M55 and M56 (Debian 13 guest of 2 vCPU and 4 GiB with one 30 GiB disk, source `a8d07955`, heaps of 256M, root logger INFO with the file appender of the pass events, `TimeoutStopSec` 300 s, `ETLPassStopWaitSeconds` 60 s, the 903 PVs of ansible-provision and the 2097 generated PVs), with the shipped partition `PARTITION_HOUR` and hold 2, on the guest of M56 and this repository at `877cf38`.
+
+| Cell | Stop | InvocationID | PVs | Partition | STS bytes per PV | After E (s) | Unit stop (s) | Engine (s) | ETL (s) | Mgmt (s) | Result | Left | Loop jobs | Loop sum (s) | Longest job (ms) | C1 | C2 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| main-903 | 1 | `f82c6083` | 903 | PARTITION_HOUR | 1237210 | 31.04 | 2.932 | 1.113 | 1.652 | 0.086 | success | 0 | 903 | 1.592 | 115 | Passed | Passed |
+| main-3000 | 1 | `d6f5143d` | 3000 | PARTITION_HOUR | 531658 | 30.67 | 9.730 | 1.247 | 8.333 | 0.089 | success | 0 | 3000 | 8.276 | 94 | Passed | Passed |
+
+- Statement. The predictions of the line of M55, written before the cells ran, are 2.32356 s at 903 PVs and 7.02872 s at 3000 PVs; the stops took 2.932 s (+0.609 s, +26.2 percent) and 9.730 s (+2.701 s, +38.4 percent). Both stops lie above the 5-minute stops of M55 (2.236 s to 2.391 s at 903 PVs and 6.605 s to 7.807 s at 3000 PVs), and the stop at 903 PVs lies above the upper end 2.71858 s of the interval that M55 wrote for the validation stop; the validation stop of M55 (3.740 s) was longer than this one. As in M55 and M56, the growth is the ETL instance (1.652 s and 8.333 s, against 1.146 s and 6.727 s on the 15-minute partition and means of 1.063 s and 5.659 s on the 5-minute partition), while the engine gap stays near 1.1 s to 1.2 s. On the three partitions the stop time at 3000 PVs is 7.0 s (mean, 5 minutes), 8.1 s (15 minutes) and 9.7 s (one hour), one stop each for the last two. Differences that may explain the growth, without one assigned cause: the bytes per PV in the short term store (1237210 and 531658 against 309672 and 132072 on the 15-minute partition, 4.0 times, and about 11.7 times those of the 5-minute partition), a mean loop job of 1.76 ms and 2.76 ms against 1.22 ms and 2.22 ms on the 15-minute partition, and one stop for each cell. The two cells give a slope of 3.24 ms per PV between 903 and 3000 PVs on the shipped partition, against 2.24 ms of the line of M55; with the intercept of 5 ms this reaches the stop timeout of 300 s near 92500 PVs and 80 percent of it near 74000 PVs. That value is an extrapolation beyond 3000 PVs from two single stops, has no interval, and does not replace the line of M55. Both stops suffice (C1 and C2 Passed: result `success`, far inside the timeout of 300 s, no PV left). A site sizing rule would change `docs/README.install.md` and `docs/technicaldocs/README.systemd.md` and needs its own item; this item changes no document.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M58 - Keep the checkout writable for the engineer after `sudo make install` and `sudo make sql.fill`
+
+Origin: 2.0.1 / M58
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+The installation guide runs `sudo make install` in the checkout of the engineer, and the reset of M55 runs `sudo make sql.fill` there. Both leave rendered files owned by root in the checkout (`site-template/systemd/*`, `site-template/.versions`, `site-template/sql/archappl_sqlite_updated.sql`), and a later Make target that renders into the same folder as the engineer fails; observed on the guest of M55 on 2026-10-20, where `make sd_install` stopped with `cannot create .../site-template/systemd/override.conf: Permission denied`. M55 works around it by giving the files back to the engineer after each such command.
+
+##### Scope
+
+- Find every Make target that the documented sequences run with `sudo` and that writes into the checkout, and the files each leaves owned by root.
+- Separate rendering from installation (owner decision of 2026-10-20). The targets that run as root render nothing into the checkout: `install` installs the rendered systemd units and refuses, naming the rendering target, when one is missing or older than its template or the configuration (`configure/CONFIG*`, `configure/RELEASE*`, `../CONFIG_SITE.local`, `../RELEASE.local`); `sql.table.fill` loads the rendered schema. The rendering (`conf.systemd`, `src_version`, `sql.update`) runs as the engineer before them, and each rendering rule removes its file before it writes it, so that a file an earlier root run left in the checkout does not stop it. The removal stops instead when a path variable (`AA_SITE_TEMPLATE_PATH`, `SQL_AA_UPDATE_SQL`, `SQL_AA_UPDATE_SQLITE`) is empty, or when a file name variable (`SYSTEMD_OVERRIDE_FILENAME`, `SYSTEMD_FILENAME`, `APPNAME`) is empty or holds a path.
+- The callers follow: `scripts/install-local-common.bash` renders as the engineer before each root step, `docs/README.install.md` (the ordered sequence, the reinstall and the SQLite schema step) names the rendering step, and the reset of M55 names it too.
+- The local tests that drive these targets (`tests/phase1-logic.bash`, `tests/health-local.py`, `tests/database-config.py`) follow the split.
+- The book pages that show the installation and the schema load follow the split (owner decision of 2026-10-20): `book/src/install/sqlite.md`, `book/src/understand/build-and-install.md` and the generated `book/src/appendix/make-targets.md` change; `book/src/configure/installed-files.md` (the units come from their `.in` templates) and `book/src/install/reinstall.md` (it runs the installer) stay correct as they are.
+
+Out of scope: the ownership of the installed tree under the installation path and of the storage folders; a change of the database backend or of the installation scripts beyond the ownership.
+
+##### Completion Criteria
+
+- After the documented `sudo make install` and `sudo make sql.fill` on a fresh guest, `make sd_install` and `make conf.archapplproperties` run as the engineer without a permission error, or the guide names the command that makes them run.
+- The checkout holds no file owned by root after the documented sequence, or the guide states which files and why.
+
+##### Dependencies And Decisions
+
+- Decision Date: 2026-10-20. The owner placed the item in the Backlog, to be fixed after the measurement of M55.
+- Decision Date: 2026-10-20. The owner chose the remedy: separate rendering from installation, rather than giving the files back after a root step or documenting a step that restores the ownership.
+- Decision Date: 2026-10-20. The installation check runs on a fresh guest, not on the guest of M55, whose disk is evidence. The provider session creates such a guest on a complete request under its standing authorization, so the guest is a step of the plan and not an external gate.
+- Decision Date: 2026-10-20. The book pages that show the installation and the schema load are part of this item, and the reset of M55 is rewritten for the split.
+- Decision Date: 2026-10-20. A checkout installed before this item holds rendered files owned by root; the rendering rules remove such a file before they write it, instead of a step in the guide that restores the ownership.
+- M55 found the behavior and holds its evidence; its reset carries the workaround until this item closes.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-20
+Implementation Authorization: the owner authorized the implementation on 2026-10-20
+Superseded Plan Artifacts: none
+
+1. Rules: `configure/RULES_INSTALL`, `configure/RULES_SYSTEMD` and `configure/RULES_SQL` keep every write into the checkout in a rendering target and every root target free of such writes; `install` refuses with the name of the rendering target when a rendered file is missing (T1, T2).
+2. Callers: `scripts/install-local-common.bash` runs the rendering as the engineer before `root_make install` and before the SQLite schema load as root; `docs/README.install.md`, the four book pages and the reset of M55 name the rendering step (T2, T3).
+3. Local tests: adapt `tests/phase1-logic.bash` and `tests/database-config.py` to the split and run `tests/run-all-tests.bash --local` (T2).
+4. Request a fresh guest from the provider session, run the local installation and the reset of M55 on it, then the engineer targets; on a checkout that an installation before this item left with rendered files owned by root, run the rendering as the engineer (T4); then send the finished notice (T3, T4).
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `make -n` of every target that the installer and the guide run as root (`install`, `sql.table.fill`, `sql.show`, `conf.storage`, `conf.storage.rm`, `tomcat.install`, `sd_health_stop`, `src_preinst`) | Local host | No command writes into the checkout; before the change `install` writes the four systemd files and `.versions`, and `sql.fill` writes `site-template/sql/archappl_sqlite_updated.sql` |
+| T2 | Local | `tests/run-all-tests.bash --local` with the adapted tests, and `install` without the rendered files | Local host | The local suite passes, and `install` refuses with the name of the rendering target |
+| T3 | VM | On a fresh guest run `scripts/install-local-sqlite.bash`, the reset of M55, then `make sd_install` and `make conf.archapplproperties` as the engineer, and list the files owned by root in the checkout | Fresh guest | The installation and the appliance start pass, the engineer targets run without a permission error, and no file in the checkout outside the source tree is owned by root |
+| T4 | VM | On the guest of T3, run `make sd_stop`, revert the checkout to `240e1e1`, remove the six rendered files (the four units in `site-template/systemd/`, `site-template/.versions`, `site-template/sql/archappl_sqlite_updated.sql`), run `sudo make install` and `sudo make sql.fill` there, apply the change of this item as a patch on `240e1e1`, then run `make conf.install` and `make sql.update` as the engineer, `sudo make install`, `make sd_start`, `make sd_install` and `make conf.archapplproperties`, and list the files owned by root in the checkout | Guest of T3 | Before the change the engineer rendering stops with a permission error; after it the rendering, the installation and the engineer targets pass, the appliance is active, and no file in the checkout outside the source tree is owned by root |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-20 | Local host | Passed | Before the change `make -n install` wrote the four systemd units and `site-template/.versions`, and `make -n sql.fill` wrote `site-template/sql/archappl_sqlite_updated.sql`. After it, `make -n` of `install`, `sql.table.fill`, `sql.show`, `conf.storage`, `conf.storage.rm`, `tomcat.install`, `sd_health_stop` and `src_preinst` prints no write into the checkout; the writes moved to `conf.install` (the four units and `.versions`) and `sql.update` (the schema copy), both run as the checkout owner; `make conf.install` with an invalid `DB_BACKEND` stops before it renders. The third-person review found that a unit rendered before a change of `../CONFIG_SITE.local` was installed unchanged (a timeout of 300 s after a change to 1 s); with the check of the age of the rendered file the install stops and names the newer input and `conf.install`, and after a new rendering it installs the changed value |
+| T2 | 2026-10-20 | Local host (Debian 13) | Passed | `tests/run-all-tests.bash --local` exit status 0 with the real EPICS Base, including the new check P1.19a (no write under the checkout by `make -n install` and `make -n sql.table.fill`; `install.systemd0` and `sql.table.fill` stop with status 2 and name `conf.install` and `sql.update` without their rendered files; `install.systemd0` stops on a unit older than its template or `../CONFIG_SITE.local` and installs the changed value after a new rendering; phase 1 287 of 287) and `SystemdFileTests`, which render with the `conf.*` unit rules before `install.systemd`. In a copy without rendered files `install.systemd0`, `install.override`, `install.health.service` and the MariaDB `sql.table.fill` each stopped with status 2 at the check line, before any privileged command. A run under the long scratch path failed one unrelated check (`make db.addAdmin` reports `ERROR 2001` instead of `ERROR 2002`), because the socket path of that check exceeds the length of a Unix socket path; under a short path it passes. Run again on 2026-10-20 with the removal of rendered files left by root and its guards (change SHA256 prefix `b1846312d8b0e978`): exit status 0, phase 1 290 of 290, including the rendering over a unit the checkout owner cannot write and the stop on a unit file name with a path |
+| T3 | 2026-10-20 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), this repository `240e1e1` with the change applied as a patch, source `8f0d616a` | Passed | The first installation with `scripts/install-local-sqlite.bash -y` ran `conf.install` and `sql.update` as the engineer and `sql.table.fill` and `install` as root, exit status 0, appliance active, no file in the checkout outside the source tree owned by root. With the final change (the check of the age of the rendered files) the reinstall with `--tomcat existing` (a run without the choice stops at the Tomcat preparation, as the guide states) exited 0 with no file owned by root. The reset of M55 in its new order (`make sd_stop`, `make conf.archapplproperties`, `sudo make conf.storage.rm`, `sudo make conf.storage`, `make sql.update`, `sudo make sql.table.fill`, `sudo make sql.show`, `make conf.install`, `sudo make install`, `make sd_start`) exited 0 in every step, `/arch` was removed and recreated and the appliance answered again; then `make sd_install` and `make conf.archapplproperties` as the engineer exited 0 (the first failed with a permission error before this item), and no file in the checkout was owned by root |
+| T4 | 2026-10-20 | Guest of T3, this repository `240e1e1`, then the change applied as a patch (SHA256 prefix `b1846312d8b0e978`), source `8f0d616a` | Passed | At `240e1e1`, `sudo make install` and `sudo make sql.fill` exited 0 and left six files owned by root (the four units, `site-template/.versions`, `site-template/sql/archappl_sqlite_updated.sql`), and `make conf.systemd` as the engineer exited 2 with `cannot create .../site-template/systemd/override.conf: Permission denied`. With the change, `make conf.install` and `make sql.update` as the engineer exited 0 and left no file owned by root; `sudo make install`, `make sd_start` (appliance active after 60 s), `make sd_install` and `make conf.archapplproperties` exited 0, and no file in the checkout outside the source tree was owned by root. Evidence: guest `~/m58-evidence/t4` |
+
+##### Closure Evidence
+
+- Commit `0323fab7ad642a522a19f977e8f502362ec05697` ("Render install inputs as the checkout owner and install them as root") carries the rules, the installer, the tests, the guide, the book pages and this record; T1 to T4 Passed against it (T3 and T4 on the same change applied as a patch).
+- Landing: observed 2026-10-21 with `git ls-remote origin refs/heads/release-2.0.1`, which returned `0323fab7ad642a522a19f977e8f502362ec05697`; the 13 changed paths of `git diff --name-only 240e1e1 0323fab` are the paths of the commit.
+- The guest of T3 and T4 was returned to the provider session with a finished notice on 2026-10-21; its disk keeps the evidence.
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
+#### M59 - Record the measured stop times in the systemd reference
+
+Origin: 2.0.1 / M59
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+The measurements of M55, M56 and M57 give the stop time of the unit at 903 and 3000 PVs on the 5-minute, 15-minute and hourly short term store partitions. The systemd reference states that a site sets its own `SYSTEMD_TIMEOUT_STOP_SECONDS` after timing its stop, and holds no measured values. The owner judged the measurements too few for a sizing rule (D62) and chose to record them as measurements.
+
+##### Scope
+
+- Add one section to `docs/technicaldocs/README.systemd.md`: the conditions of the measurements (guest, database, hold, time of the stop after the partition boundary), the stop times of the six cells, the share of the ETL instance, and the limits of the measurements.
+- Every value of the section is a value of the Verification Results or the statements of M55, M56 and M57.
+- Replace the clause of the unit file paragraph that gave a test host with three PVs stopping in about 10 s by a pointer to the new section (D63).
+
+Out of scope: a sizing rule, a recommended timeout, an extrapolation beyond 3000 PVs, a change of the default of `SYSTEMD_TIMEOUT_STOP_SECONDS`, `docs/README.install.md`, and the book.
+
+##### Completion Criteria
+
+- The section states the conditions, the six cell values and the limits, and contains no rule, recommendation or extrapolation.
+- Every number of the section equals the value recorded in M55, M56 or M57.
+- The unit file paragraph names no stop time that disagrees with the section and points to it.
+
+##### Dependencies And Decisions
+
+- M55, M56 and M57 hold the measurements and their evidence.
+- Decision Date: 2026-10-23. D62: record the measurements only, in `docs/technicaldocs/README.systemd.md`.
+- Decision Date: 2026-10-23. D63: the owner ordered the register and the document to say the same about the test host sentence. This reopens the item with a third plan step; it is Complete again with T3.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-23; step 3 added and accepted by the owner on 2026-10-23
+Implementation Authorization: the owner authorized the implementation on 2026-10-23, and step 3 on 2026-10-23
+Superseded Plan Artifacts: none
+
+1. Write the section before `## Instance lifecycle` of `docs/technicaldocs/README.systemd.md` from the statements of M55, M56 and M57 (T1).
+2. Run a second-person pass on the section, then correct the findings (T2).
+3. Replace the clause about a test host with three PVs in the unit file paragraph by a pointer to the section (T3).
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Extract every number of the new section and search each in the text of M55, M56 and M57 of this register | Local host | Every number appears in the cited rows or statements |
+| T2 | Local | Second-person pass over the section, `git diff --check`, and a search of the section for a recommendation or an extrapolation | Local host | No finding above the floor; no recommendation or extrapolation |
+| T3 | Local | `grep` of `docs/technicaldocs/README.systemd.md` and of `docs/` and `book/` for the old clause | Local host | The old clause is absent from the systemd reference and from the book; in this register it occurs only where D63 and M59 describe it; the pointer and the section heading each occur once |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-23 | Local host | Passed | The 25 distinct numbers of the section `Measured stop times` in `docs/technicaldocs/README.systemd.md` were extracted with a script and each was found in the text of M55, M56 and M57 of this register. The six cell values and the ETL values were then read against the statements of M55 (2.236 s to 2.391 s and 6.605 s to 7.807 s; ETL about 1.06 s and 5.66 s), M56 (2.368 s and 8.072 s) and M57 (2.932 s and 9.730 s; ETL 1.652 s and 8.333 s); the stops of M56 and M57 began 30.67 s to 31.04 s after the boundary, as the section states |
+| T2 | 2026-10-23 | Local host | Passed | Two second-person passes over the whole section. The first, from a site engineer who sizes the timeout, found three minor findings: the definition of the stop time, the word `stage` that the page does not explain, and the hold without a link; all three are applied. The second, from a maintainer who checks the values against this register, found nothing above the floor. `git diff --check` exit status 0; the section contains no recommended value, rule or extrapolation |
+| T3 | 2026-10-23 | Local host | Passed | `grep -c 'test host with three PVs'` and `grep -c 'about 10 s'` on `docs/technicaldocs/README.systemd.md` returned 0; `grep -rn 'about 10 s' docs book` found the phrase only in D63, in M59 and in two rows of M55 about samples per second; `grep -c 'Measured stop times below'` returned 1 and `grep -c '^## Measured stop times$'` returned 1. A second-person pass over the changed sentence, from a site engineer, found nothing above the floor |
+
+##### Closure Evidence
+
+- Commit `9f369e1ea23459367a9309266466d4fb6d82bdff` ("Document the measured stop times in the systemd reference") carries the section and this record; T1 and T2 Passed against it.
+- Landing: observed 2026-10-23 21:17 PDT (2026-10-24 04:17 UTC) with `git ls-remote origin refs/heads/release-2.0.1`, which returned `9f369e1ea23459367a9309266466d4fb6d82bdff`; the two changed paths of `git diff --name-only 377dc38 9f369e1` are `docs/milestone-2.0.1.md` and `docs/technicaldocs/README.systemd.md`.
+- The correction of the unit file paragraph (D63, T3) is carried by the commit that carries this line; `git log -- docs/technicaldocs/README.systemd.md` names it.
+
+#### M53 - Write the appliance book of the repository (`book/`)
+
+Origin: 2.0.1 / M53
+Identity History: moved from Backlog to Milestone on 2026-10-23 under D64
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+`book/` holds an mdBook for the appliance: concepts, install and operate procedures, reference tables and a glossary, written from the code, the configuration and commands run on a host. Five reference pages (`configure/variables.md`, `appendix/make-targets.md`, `appendix/script-options.md`, `configure/policy-parameters.md`, `interface/judgements.md`) are printed by `book/scripts/gen-*.bash` from the code, and `book/scripts/check-generated.bash` fails when one differs from its generator. The structure and the page rules are in `book/PLAN.md`; the page types and title forms follow the owner's technical-writing skill.
+
+##### Scope
+
+- The pages listed in `book/src/SUMMARY.md`, the generators and the generated-page check.
+- The commit of the pages and of the `.gitignore` exception that keeps `book/src/test/` tracked.
+- A GitHub Actions workflow that checks the generated pages after `make init`, builds the book with a pinned mdBook release and publishes it from the default branch.
+- Commands on the install and operate pages that this host could not run as shown, run on a disposable appliance or VM and recorded as real output.
+- The page `book/src/understand/data-journey.md` and its figures, adapted from `docs/README.DataJourney.md` under D60.
+
+Out of scope: any change of the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately; the `docs/*.md` guides, which stay as they are.
+
+##### Completion Criteria
+
+- Every page has one type and the title form of that type, and `SUMMARY.md` reaches every page.
+- `bash book/scripts/check-generated.bash` reports every generated page current.
+- `mdbook build book` passes on a clean clone of the branch with no warning.
+- A page shows a command only when it ran as shown; a page whose commands need `sudo`, systemd or an installed appliance says so in its introduction until the VM verification runs them.
+- A workflow publishes the built book, and the published site equals a local build.
+
+##### Dependencies And Decisions
+
+- Owner rules of 2026-10-11: the book lives in `book/`, is written from the code and from commands run, never from the existing `docs/*.md`; it holds no working history and no host-specific values; deployment by GitHub Actions comes last.
+- The VM verification of 2.0.1 (M44) is the run that can record real output for the pages that need `sudo`, systemd or an installed appliance.
+- D60 lets the page of the data journey be adapted from its `docs/` document; the other pages stay written from the code and from commands run.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: accepted by the owner on 2026-10-12
+Implementation Authorization: the owner directed the work on 2026-10-11
+Superseded Plan Artifacts: none
+
+1. Write the pages and the generators, and review them against the page types (done).
+2. Record real output on a disposable appliance or VM for the pages that could not run here.
+3. Add the publishing workflow (done) and verify the published site after its first run on the default branch.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | `mdbook build book` in a fresh clone of the branch | Local host | Exit 0, no warning, and the pages of `book/src/test/` are not empty |
+| T2 | Local | `bash book/scripts/check-generated.bash` with `AA_SOURCE_CLONE` set to a fresh clone of the source branch | Local host | Every generated page is current |
+| T3 | Review | Second-person review of the whole book against the technical-writing checklist | Local host | Findings applied and a final pass without findings |
+| T4 | VM | Run the install and operate commands that need `sudo`, systemd or an installed appliance, as shown | Disposable VM of the accepted matrix | Each command runs as shown; the output matches the page |
+| T5 | CI | The publishing workflow on the default branch: the jobs `generated`, `build` and `deploy` | GitHub Actions | All three jobs pass and the published site equals a local build |
+| T6 | Local | `mdbook build book` with mdBook 0.5.4, the release that the workflow installs, in a fresh copy of the tree | Local host | Exit 0 and no warning |
+| T7 | Local | In a shallow fresh clone: `make init`, then `bash book/scripts/check-generated.bash` | Local host | Every generated page is current |
+| T8 | Operate | `storage`, `make sd_status`, `make sd_health_status`, `health` as the service account and as an ordinary user, and `journalctl` of the service unit | Installed appliance of the local host | Each output matches its page |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-10-18 | Local host; fresh clone of the pushed branch at `ae46c35`, mdBook 0.5.4 | Pass | `mdbook build book` exit 0 with no warning or error; 37 pages, among them `understand/data-journey.html` with its six figures; `test/vm.html` builds with 27.7 KB. The run of 2026-10-12 at `d04de37` passed too |
+| T2 | 2026-10-12 | Local checkout at `d04de37`; fresh clone of `modernize` at `0097bc2d` | Pass | exit 0; all five generated pages current |
+| T3 | 2026-10-12 | Local host | Pass | whole-book pass, applied-findings pass, technical-writing pass and a final pass; the final pass found nothing to change |
+| T4 | 2026-10-13 00:58 to 01:05 PDT | Debian 13 guest of the one-case run below (env `c4beb5d`, source `514be155`, service account `mid-srv`) | Pass for the operate, verify and install pages; the next guest run repeats them after the page fixes | Commands of `operate/health.md`, `logs.md`, `loglevel.md`, `storage.md`, `start-stop.md` and `install/verify-pv.md` run as shown with the placeholders replaced, and the outputs equal the pages in form (loglevel byte for byte; values such as process ids and use percentages differ). Two commands did not run as the pages showed them: `sudo -u tomcat` of the health page (the guest account is `mid-srv`; the page now uses `<service_account>`) and `bash scripts/archappl.bash storage` in a checkout (it needs the `archappl.conf` next to the installed script; the page now uses `<install_location>`). The corrected commands exit 0 on the guest. The install pages need a checkout owned by an ordinary user, and the checkout of this guest belongs to root, so they were not run there. They ran on a second fresh Debian 13 guest, 2026-10-13 02:30 to 03:00 PDT (env `148cae1`, source `74258cc7`, ordinary user with `sudo`, checkout cloned from the public repository): `prepare-host.md` (package lists as shown, 17 packages installed, Java 21), `sqlite.md` (installer exit 0, health, four startup APIs and appliance information PASS), `verify-pv.md` (`PV acquisition, storage and retrieval: PASS`, 4 stored samples, EPICS Base copied from the host), `reinstall.md` (exit 0, service active, the registered PV kept in the database), `mariadb-uds.md` and `mariadb-tcp.md` (exit 0, same checks PASS). Three differences from the pages were found and the pages carry the correction: the SQLite plan on a host without Tomcat lists three more lines (`tomcat.get`, the SHA-512 verification and `tomcat.install`); a quoted `DB_HOST_NAME="127.0.0.1"` in `../CONFIG_SITE.local` makes `db.create` fail with `ERROR 2005` because `make` keeps the quote characters (the unquoted value passes); a failed installer leaves the service stopped by design, which the three installer pages now state |
+| T5 | Not run | none | Pending | none |
+| T6 | 2026-10-18 | Local host; fresh clone of the pushed branch at `ae46c35` | Pass | mdBook 0.5.4 (archive SHA-256 `3f28de05dafca9d0f2eab99c662116b0e37b89b1d96a08f8f430b9eeae958cd7`, checked against the value that the workflow pins) exit 0 with no warning. The run of 2026-10-12 at `92b2aa7` passed after a generator fix; before it the build warned about an unclosed `<os>` tag in `configure/variables.md`, which the browser would have hidden |
+| T7 | 2026-10-12 | Local host; shallow clone (depth 1) of the tree of `92b2aa7`; selected source `992d8ac4` | Pass | `make init` exit 0 in about 52 s; `check-generated.bash` exit 0 with all five generated pages current |
+| T8 | 2026-10-12 | Installed appliance of the local host | Pass | `storage` printed the three store folders and the total; `make sd_status` showed the service active with the four instances; `make sd_health_status` exits `0` after the fix and printed `Error 3` before it; `health` as the service account printed all four components `PRESENT` and exit `0`, as an ordinary user `unreadable-process-executable` for each and exit `2`; `journalctl -u` as root printed the instance lines, as an ordinary user outside the journal groups `-- No entries --` with exit `0` |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: none
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists
+Last Compared: none
+
 #### M44 - Verify and publish release 2.0.1
 
 Origin: 2.0.1 / M44
@@ -1413,18 +2398,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | DB | M42 | Apply backend selection to all database operations | Carry-forward | Deferred | No | M43, D29, D31 | Every generic DB operation uses the selected backend; unsupported operations fail before contacting another backend; deferred 2026-09-28; [detail](#m42---apply-backend-selection-to-all-database-operations) |
 | Storage | M27 | LTS retrieval pre-processing (`pp`) | Milestone | Open | No | D21 | Decide from operating experience whether `pp` on LTS earns its disk cost; [detail](#m27---lts-retrieval-pre-processing-pp) |
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
-| Runtime | M48 | Review `scripts/archappl.bash`, starting with the `h` case that does nothing | Milestone | Complete | No | none | The first review found nine findings, two of them must-fix (the exit status of a start and a stop, and a start without `archappl.conf`); each accepted finding is fixed with a check that fails on the defect; all nine findings are fixed with checks; [detail](#m48---review-scriptsarchapplbash-starting-with-the-h-case-that-does-nothing) |
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Deferred | No | D55 | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner chose the stop in D55 and scheduled it for the release after 2.0.1; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
-| UI | M51 | Remove the interface copy step now that the source carries the management interface | Milestone | Complete | No | none | The build copies no interface files, `site-template/ui` and its rule, script and variables are gone, the static checks run against the selected source, and the installers refuse a source without the interface; [detail](#m51---remove-the-interface-copy-step-now-that-the-source-carries-the-management-interface) |
-| UI | M52 | Remove the stylesheet rules, images and screenshots that nothing uses | Milestone | Complete | No | M51 | The shipped site folder holds only `css/main.css`, `template_changes.html`, `img/LBNLLogo.png` and `img/als.ico`, `css/main.css` has no jQuery UI dialog rule, the old-page screenshots are gone, the VM verifier no longer compares `mgmt.css`, and the built WAR carries our files; [detail](#m52---remove-the-stylesheet-rules-images-and-screenshots-that-nothing-uses) |
-| Docs | M53 | Write the appliance book of the repository (`book/`) | Milestone | In progress | No | D60 | The pages are written from the code, the generated pages are current, the book builds from a clean checkout, and a workflow publishes it; the pages are written, build and carry a publishing workflow; the first run of that workflow is not recorded; [detail](#m53---write-the-appliance-book-of-the-repository-book) |
-| Docs | M54 | Align the documents and comments about policies, storage tiers and ETL with the code | Milestone | Complete | No | D59, D61 | Every statement of the documents, comments and test messages in scope about policies, storage tiers and ETL is listed with its code source and is a match, or is corrected, or goes to the owner of the code; the statements about when a file moves come from a run; [detail](#m54---align-the-documents-and-comments-about-policies-storage-tiers-and-etl-with-the-code) |
-| Runtime | M55 | Measure the stop time of the appliance with data in the short term store | Milestone | Complete | No | G9 | The stop times of the unit for the stages of 903 and 3000 PVs on the 5-minute short term store partition, one validation stop on the shipped partition, and the slope of the stop time over the PV count show how many PVs the stop timeout (300 seconds by default) allows; [detail](#m55---measure-the-stop-time-of-the-appliance-with-data-in-the-short-term-store) |
-| Gate | G9 | A guest with the disk capacity that the stop time measurement needs is available | External gate | Complete | No | none | The provider session creates a fresh Debian 13 guest of 2 vCPU, 4 GiB and 30 GiB from a complete resource request of the requester session, under its standing authorization when the capacity check passes, and hands it off; [detail](#g9---a-guest-with-the-disk-capacity-that-the-stop-time-measurement-needs-is-available) |
-| Runtime | M56 | Measure the stop time over the PV count with the 15-minute short term store partition | Milestone | Complete | No | M55 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the stop scripts accept `PARTITION_15MIN` and the main cells of M55 are repeated once with it; [detail](#m56---measure-the-stop-time-over-the-pv-count-with-the-15-minute-short-term-store-partition) |
-| Runtime | M57 | Measure the stop time over the PV count with the shipped short term store partition | Milestone | Complete | No | M55, M56 | Reopened on 2026-10-21 because C3 of the validation stop of M55 is Failed: the main cells of M55 are repeated once with the shipped partition `PARTITION_HOUR`; [detail](#m57---measure-the-stop-time-over-the-pv-count-with-the-shipped-short-term-store-partition) |
-| Install | M58 | Keep the checkout writable for the engineer after `sudo make install` and `sudo make sql.fill` | Milestone | Complete | No | M55 | A checkout that ran the documented `sudo make install` or `sudo make sql.fill` lets the engineer run the next Make target without a permission error, or the installation guide states the step that restores the ownership; [detail](#m58---keep-the-checkout-writable-for-the-engineer-after-sudo-make-install-and-sudo-make-sqlfill) |
-| Docs | M59 | Record the measured stop times in the systemd reference | Milestone | Complete | No | M55, M56, M57, D62 | `docs/technicaldocs/README.systemd.md` states the conditions and the measured stop times of the stages of 903 and 3000 PVs on the three partitions, and gives no rule; [detail](#m59---record-the-measured-stop-times-in-the-systemd-reference) |
 
 ### Backlog Details
 
@@ -1766,97 +2740,6 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
-#### M48 - Review scripts/archappl.bash, starting with the `h` case that does nothing
-
-Origin: 2.0.1 / M48
-Identity History: none
-GitHub Issue: [#61](https://github.com/jeonghanlee/epicsarchiverap-env/issues/61)
-Status: Complete
-
-##### Summary
-
-`scripts/archappl.bash` (799 lines) is the control script that systemd runs as the main process of the appliance and that operators call for `status`, `health`, `storage` and `loglevel`. A reading for the book found one defect and several points that no test or review has examined as a whole. The defect: the usage text lists `h` as "this screen", the `case` has an empty `h` arm (`h);;` at line 792), so `bash archappl.bash h` prints nothing, while `help`, no argument and any unknown argument print the usage. Observed 2026-10-11 on the author's host before the fixes (`h` now prints the usage and exits 1 like an unknown argument); the recheck then was `bash scripts/archappl.bash help 2>&1 | grep -c .` (13 lines in a checkout) and `bash scripts/archappl.bash h 2>&1 | grep -v 'archappl.conf: No such' | grep -c .` (0 lines).
-
-The first review (2026-10-11, the whole file read and each action run in an isolated copy with a configuration file and instance scripts) found these. They are hypotheses until the owner accepts them. Line numbers and observations in the table refer to the script before the fixes of the same day.
-
-| # | Class | Finding | Evidence to recheck |
-| --- | --- | --- | --- |
-| F1 | must-fix, accepted, fixed | `startup` and `shutdown` ignore the exit status of `bin/startup.sh` and `bin/shutdown.sh` and exit 0, so `make start`, `make stop` and `restart` report success when an instance failed | In a copy with an instance script that exits 1, `bash archappl.bash startup` starts the others and exits 0 |
-| F2 | must-fix, accepted, fixed | Line 26 sources `archappl.conf` without checking; without the file `startup` prints one error, starts the instances with no environment and exits 0 | Remove `archappl.conf` from the copy and run `startup` |
-| F3 | minor, accepted, fixed | `shutdown` removes `temp/<component>.pid` even when `shutdown.sh` failed, so a running process is later reported as `missing-pid-file` | Run `shutdown` with a failing `shutdown.sh` and a pid file present |
-| F4 | minor, accepted, fixed | `status` prints `>>> Verified process and storage health` before it runs the check, so a failing check follows the word `Verified` (lines 115 and 116) | Run `status` in a copy whose `JAVA_HOME` is wrong |
-| F5 | minor, accepted, fixed | `get_ip` (line 42) prints the seventh field of the route to `8.8.8.8`: empty without a route, and `uid` value for a route without `via` | Put an `ip` command that fails or prints `8.8.8.8 dev eth0 src 10.0.0.5 uid 1000` first in `PATH` |
-| F6 | minor, accepted, fixed | `help`, no argument and an unknown argument print the usage to stderr and exit 1, while `h` prints nothing and exits 0 | `bash archappl.bash <arg>; echo $?` for each |
-| F7 | minor, accepted, fixed | The usage lists `h`, and the `h` arm (line 792) is empty | `bash archappl.bash h` prints no line |
-| F8 | info, accepted, fixed | The usage does not name `health --systemd <unit> <own_unit> <allowance>` (used by the timer), `storage all` or `help`, and it spells `possbile` (line 731) | Compare the usage (lines 729 to 745) with the `case` (lines 765 to 796) |
-| F9 | info, accepted, fixed | The local checks do not run `startup`, `shutdown`, `restart`, `help` or `h`; `service` is checked only as unit text | `grep` the actions in `tests/health-local.py` and `tests/phase1-logic.bash` |
-
-`shellcheck scripts/archappl.bash` reports no finding on 2026-10-11.
-
-F1 and F2 were accepted and fixed on 2026-10-11 by the owner's direction. F3, F4, F5 and F8 were accepted and fixed the same day. For F6 and F7 the owner chose to remove `h` from the usage and the `case`, so `h` is an unknown argument like any other and `help` is unchanged; F9 is closed by the checks of the actions and of `h`. `restart` stops when its shutdown part failed, and `startup`, `shutdown`, `restart` and `service` stop when `archappl.conf` is missing or is not valid shell, and a valid file whose last command fails still runs; `status`, `storage`, `loglevel` and `help` are unchanged.
-
-##### Scope
-
-- The owner chooses which of F1 to F9 are fixed; each chosen finding is fixed in `scripts/archappl.bash` one at a time.
-- The two must-fix findings, F1 and F2, make the exit status of a start, a stop and a restart state what happened; the owner chooses whether the other actions of the script are reviewed again after the fixes.
-- For F7 the owner chooses between making `h` print the usage and removing `h` from the usage text.
-
-Out of scope: a change of what `startup`, `shutdown`, `service`, `health` and `loglevel` do for a healthy appliance; replacing the script.
-
-##### Completion Criteria
-
-- Every finding of the table is fixed or recorded as a decision with its reason.
-- `startup`, `shutdown` and `restart` exit non-zero when an instance script fails, and `startup` stops when `archappl.conf` cannot be read.
-- Each fixed finding has a check in `tests/phase1-logic.bash` that fails on the defect, shown by a mutation of the shipped script.
-- The full local suite passes.
-
-##### Dependencies And Decisions
-
-- No dependency. A dated owner decision on the depth of the review and on the `h` option is required before it can become Not started.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: F1 and F2 accepted by the owner on 2026-10-11
-Implementation Authorization: the owner started the fixes of F1 and F2 on 2026-10-11
-Superseded Plan Artifacts: none
-
-1. The owner accepts, rejects or defers each finding of the table.
-2. Fix the accepted findings in `scripts/archappl.bash`, one finding at a time, F1 and F2 first.
-3. Add a check for each fixed finding to the logic checks next to the existing `loglevel` and `status` checks, run against an isolated copy with a configuration file and instance scripts.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | The script run with `startup`, `shutdown` and `restart` in an isolated copy whose engine instance script exits 1, against the shipped code and against a mutation that ignores the status | Local host | The shipped script exits non-zero; the mutation exits 0 and fails the check |
-| T2 | Local | The script run with `startup` in a copy without `archappl.conf` | Local host | The script stops before it runs an instance script and exits non-zero |
-| T3 | Local | The script run with `help`, with `h` and with an unknown argument | Local host | The outcome the owner chose for F6 and F7 |
-| T4 | Local | The full local suite `bash tests/run-all-tests.bash --local` | Local host | Passes with the same groups as before |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-11 | Local host; launcher copy beside instance scripts that record their call and exit with a chosen status (`tests/phase1-logic.bash`, P1.28) | Pass | A failed `engine` start gives `startup ERROR engine status=1`, exit non-zero and four calls; a failed `etl` stop gives the same for `shutdown`; `restart` exits non-zero on a failed start and starts nothing after a failed stop; a copy whose status is dropped exits 0 on a failed start and on a failed stop, and a copy that ignores a failed stop in `restart` starts the instances; a failed stop keeps its pid file and removes the others; `status` takes the source address of the route (also without `via`), falls back to the host name and no longer prints `Verified`; each is seen by a copy that restores the defect |
-| T2 | 2026-10-11 | Local host; the same copy without `archappl.conf` | Pass | `startup`, `shutdown`, `restart` and `service` exit non-zero and run no instance script when the file is missing or is not valid shell; a valid file whose last command fails still starts the four instances; a copy without the check, and a copy that uses the status of the last command, are seen by the check; `help` still prints the usage |
-| T3 | 2026-10-11 | Local host; the launcher copy of the P1.28 checks | Pass | `help` prints the usage and exits 1; `h` prints the same usage and exits 1 like an unknown argument; the usage names `health --systemd`, `storage all` and `help`, spells `possible` and has no `h` line; a copy with the misspelled heading is seen by the check |
-| T4 | 2026-10-11 | Local checkout, real Base binaries | Pass | `run-all-tests.bash --local` exit 0: Phase 1 285, Health 32, No Ant 22, Interface files 243, Phase 2 16 |
-
-##### Closure Evidence
-
-- Complete on 2026-10-11: F1 and F2 landed in `922c26c` and F3 to F9 in `972a312` on `origin/release-2.0.1`, the register in `72f6837` and `4686013`; T1 to T4 passed (T4: Phase 1 285, Health 32, No Ant 22, Interface files 243, Phase 2 16); #61 was closed as completed with its body synchronized and its four acceptance criteria checked. The row stays in the Backlog because the owner has not assigned it to a milestone.
-
-##### GitHub Projection
-
-Title: Report failed starts and stops in the appliance control script
-Labels: bug
-GitHub Milestone: none
-Observed State: CLOSED
-Observed Labels: bug
-Observed Milestone: none
-Last Compared: 2026-10-11 at 18:37 UTC, `gh issue view 61 --repo jeonghanlee/epicsarchiverap-env`; CLOSED at 2026-10-11T18:37:22Z, bug, no milestone, assignee jeonghanlee; one closing comment; the live body equals the synchronized draft with the four acceptance criteria checked
-
 #### M49 - The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first
 
 Origin: 2.0.1 / M49
@@ -1922,328 +2805,6 @@ Title: The operating system target rewrites `configure/CONFIG_SITE.local` and th
 Labels: bug
 GitHub Milestone: none
 Observed State: none; no issue exists yet
-Last Compared: none
-
-#### M51 - Remove the interface copy step now that the source carries the management interface
-
-Origin: 2.0.1 / M51
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-The management interface was developed in `site-template/ui` and copied over the source tree by `make copy.ui` before every Maven build. jeonghanlee/epicsarchiverap-maven carries the same 35 files since `d0932d1b`, so the copy only repeats them. The site skin of `site-template/siteid` stays here.
-
-##### Scope
-
-- Remove `site-template/ui`, the `copy.ui` rule and its prerequisite in the `build.*` targets, `scripts/prepare-ui.bash`, `ARCHAPPL_UI_TEMPLATE_PATH` and `ARCHAPPL_UI_TARGET_PATH`.
-- The installers restore the files of an earlier copy from the source clone, stop when the selected source does not carry the interface files, and no longer tolerate a copied tree.
-- `tests/ui-static.bash` keeps its checks and reads the files from the selected source clone through `tests/ui-files.list`; without a clone it skips with a message.
-- `docs/README.interface.md` becomes a short pointer to the description in the source repository; the book and `CHANGELOG.md` follow; the judgements page of the book is generated from the selected source and fails without a clone.
-
-Out of scope: the site skin and the site folder inputs; the source repository's own checks; a change of the interface itself.
-
-##### Completion Criteria
-
-- No tracked file names `copy.ui`, `prepare-ui.bash` or `ARCHAPPL_UI_*` outside `CHANGELOG.md`, the registers, the book's history, and the check of `tests/phase2-compile.bash` and its description in `tests/README.md` that the rendered build has no copy step.
-- `make conf.archapplproperties build.mvn` on a fresh clone of the source builds four WARs whose `mgmt.war` carries every `mgmt` file of `tests/ui-files.list` under `ui/`.
-- `tests/ui-static.bash` passes against that clone, reports the missing files of a source without the interface, and skips without a clone.
-- `bash tests/run-all-tests.bash --local` passes.
-
-##### Dependencies And Decisions
-
-- Depends on jeonghanlee/epicsarchiverap-maven carrying the interface (`d0932d1b`, on `modernize`). Decisions of the owner on 2026-10-11: the static checks stay here and run against the selected source; the interface guide stays as a short pointer; the checks and the book generator behave as recommended without a clone (the checks skip, the generator fails); the release pin is a `modernize` commit at or after `d0932d1b`.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-11 with the decisions above
-Implementation Authorization: the owner started the work on 2026-10-11
-Superseded Plan Artifacts: none
-
-1. Remove the rule, variables, script and folder; adjust the installers.
-2. Retarget `tests/ui-static.bash` and remove the copy checks of `tests/phase1-logic.bash`, `phase2-compile.bash` and `database-config.py`.
-3. Update the interface guide, the book, `tests/README.md` and `CHANGELOG.md`.
-4. Build on a fresh clone and run the full local suite.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | `make conf.archapplproperties build.mvn` on a fresh clone of the source at the branch tip; list `mgmt.war` | Local host | No copy output; BUILD SUCCESS; every `mgmt` file of `tests/ui-files.list` under `ui/` |
-| T2 | Local | `tests/ui-static.bash` against the fresh clone, against a source at `162269e7`-era content without the files, and without a clone | Local host | Passes with 244 checks; reports the missing files; skips with a message |
-| T3 | Local | The full local suite with the fresh clone | Local host with real Base binaries | Exit 0 |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-11 | Local host; clone of `modernize` at `0097bc2d` | Pass | BUILD SUCCESS in about 24 s, no `copying the prepared interface files` line, `ui/index.html` present and no `mgmt` file of the list missing |
-| T2 | 2026-10-11 | Local host | Pass | 244 checks pass against the fresh clone; a source without the files fails the check that names the missing files; without a clone the checks print a skip message and exit 0 |
-| T3 | 2026-10-11 | Local checkout, real Base binaries, `AA_SOURCE_CLONE` set to the fresh clone | Pass | `run-all-tests.bash --local` exit 0: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14 |
-
-##### Closure Evidence
-
-- Complete on 2026-10-11: the removal, the installer changes and the check transition landed in `a1aab5a`, the documentation in `582eba2` and the register in `c6a05b9` on `origin/release-2.0.1`; T1 to T3 passed (T3: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14, run against a fresh clone of `modernize` at `0097bc2d`). The row has no GitHub issue and stays in the Backlog because the owner has not assigned it to a milestone.
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
-Last Compared: none
-
-#### M52 - Remove the stylesheet rules, images and screenshots that nothing uses
-
-Origin: 2.0.1 / M52
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-`site-template/siteid/css/main.css` held 17 jQuery UI dialog rules (117 lines), and the site folder carried `css/mgmt.css` (641 lines) and 45 more images (about 2.3 MB with `dome.png`) that the old home page used; the documents carried screenshots of the old pages. None of the 35 interface files uses a `.ui-*` class or links `mgmt.css`; the five management pages link only `comm/css/main.css`. jeonghanlee/epicsarchiverap-maven removed the same rules from its copy of `main.css`.
-
-##### Scope
-
-- Remove the `.ui-*` rules from `css/main.css`; the result equals the source repository's `main.css` byte for byte (blob `3ca0ae78`).
-- Remove the 45 images of `site-template/siteid/img` that no page, template or stylesheet names, with `convert.sh`, `nav-bar-bg.xcf`, `README.md` and `LICENSE.FeatherIcons`; the site folder keeps `img/LBNLLogo.png` and `img/als.ico`.
-- Remove the screenshots of the old pages in `docs/technicaldocs/images` with `README.screenshots.md`, and the screenshot of the old home page in `README.md`.
-- Remove `site-template/siteid/css/mgmt.css`; a site can still supply one, and the source keeps its own `mgmt.css`.
-- Remove the comparison of `mgmt.css` from the VM verifier; the check of `main.css` and the images stays.
-- Declare the browser icon in `template_changes.html` as `image/x-icon`, which is what `als.ico` is.
-- Update the interface guide, the install guide, the book and the changelog.
-
-Out of scope: the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately and verifies again after the documents are written; the source repository's own static files (`mgmt.css`, `archclient.js`, `testjson.css`), which its owner decides.
-
-##### Completion Criteria
-
-- `css/main.css` has no `.ui-` rule and keeps the tokens and the contrast of the shared stylesheet.
-- A WAR built from a fresh clone carries `ui/comm/css/main.css`, `ui/comm/img/LBNLLogo.png` and `ui/comm/img/als.ico` equal to the site folder's files, `ui/css/mgmt.css` equal to the source's own file, and every image that a management page names.
-- No tracked file names a removed image, the removed notes or the removed screenshots outside the changelog and the registers.
-- `bash tests/run-all-tests.bash --local` passes.
-
-##### Dependencies And Decisions
-
-- Depends on the removal of the interface copy step (M51). Decision of the owner on 2026-10-11: delete what no page uses, keep the stylesheet the pages link and the inputs that a site overlays.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-11
-Implementation Authorization: the owner started the work on 2026-10-11
-Superseded Plan Artifacts: none
-
-1. Remove the rules and the file.
-2. Remove the VM check of `mgmt.css` and update the documents.
-3. Build on a fresh clone and run the full local suite.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | `tests/ui-static.bash` with the contrast check; `git hash-object` of `css/main.css` against the source's file | Local host | 244 checks pass; the blob equals the source's |
-| T2 | Local | `make conf.archapplproperties build.mvn` on a fresh clone; compare `ui/comm/css/main.css` and `ui/css/mgmt.css` of `mgmt.war` | Local host | Equal to the site folder's `main.css` and to the source's `mgmt.css` |
-| T3 | Local | The full local suite | Local host with real Base binaries | Exit 0 |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-11 | Local host | Pass | 244 checks pass, including the contrast of at least 4.5:1; the blob of `css/main.css` is `3ca0ae7898dc263b31882fcbc2cfc9651bf3ef99`, the source's |
-| T2 | 2026-10-11 | Local host; fresh clone of `modernize` at `0097bc2d` | Pass | BUILD SUCCESS in about 24 s; `ui/comm/css/main.css`, `ui/comm/img/LBNLLogo.png` and `ui/comm/img/als.ico` equal the site folder's files, `ui/css/mgmt.css` equals the source's file, and the source's default images (`archiverheader.svg`, `nav-bar-bg.gif`, `sort_*.png`) are present; a search of the tracked files finds no name of a removed file |
-| T3 | 2026-10-11 | Local checkout, real Base binaries, `AA_SOURCE_CLONE` set to the fresh clone | Pass | `run-all-tests.bash --local` exit 0: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14 |
-
-##### Closure Evidence
-
-- Complete on 2026-10-11: the site folder cleanup landed in `ac04a08`, the documents in `f5a18f2` and the register in `bb19781` on `origin/release-2.0.1`; T1 to T3 passed (T3: Phase 1 274, Health 32, No Ant 22, Interface files 244, Phase 2 14, run against a fresh clone of `modernize` at `0097bc2d`). The VM verifier change was checked for syntax only: it runs on a VM that this host does not have, and the release verification runs it. The row has no GitHub issue and stays in the Backlog because the owner has not assigned it to a milestone.
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
-Last Compared: none
-
-#### M53 - Write the appliance book of the repository (`book/`)
-
-Origin: 2.0.1 / M53
-Identity History: none
-GitHub Issue: none
-Status: In progress
-
-##### Summary
-
-`book/` holds an mdBook for the appliance: concepts, install and operate procedures, reference tables and a glossary, written from the code, the configuration and commands run on a host. Five reference pages (`configure/variables.md`, `appendix/make-targets.md`, `appendix/script-options.md`, `configure/policy-parameters.md`, `interface/judgements.md`) are printed by `book/scripts/gen-*.bash` from the code, and `book/scripts/check-generated.bash` fails when one differs from its generator. The structure and the page rules are in `book/PLAN.md`; the page types and title forms follow the owner's technical-writing skill.
-
-##### Scope
-
-- The pages listed in `book/src/SUMMARY.md`, the generators and the generated-page check.
-- The commit of the pages and of the `.gitignore` exception that keeps `book/src/test/` tracked.
-- A GitHub Actions workflow that checks the generated pages after `make init`, builds the book with a pinned mdBook release and publishes it from the default branch.
-- Commands on the install and operate pages that this host could not run as shown, run on a disposable appliance or VM and recorded as real output.
-- The page `book/src/understand/data-journey.md` and its figures, adapted from `docs/README.DataJourney.md` under D60.
-
-Out of scope: any change of the data journey document and its figures (`docs/README.DataJourney.md`, `docs/figures`), which the owner manages separately; the `docs/*.md` guides, which stay as they are.
-
-##### Completion Criteria
-
-- Every page has one type and the title form of that type, and `SUMMARY.md` reaches every page.
-- `bash book/scripts/check-generated.bash` reports every generated page current.
-- `mdbook build book` passes on a clean clone of the branch with no warning.
-- A page shows a command only when it ran as shown; a page whose commands need `sudo`, systemd or an installed appliance says so in its introduction until the VM verification runs them.
-- A workflow publishes the built book, and the published site equals a local build.
-
-##### Dependencies And Decisions
-
-- Owner rules of 2026-10-11: the book lives in `book/`, is written from the code and from commands run, never from the existing `docs/*.md`; it holds no working history and no host-specific values; deployment by GitHub Actions comes last.
-- The VM verification of 2.0.1 (M44) is the run that can record real output for the pages that need `sudo`, systemd or an installed appliance.
-- D60 lets the page of the data journey be adapted from its `docs/` document; the other pages stay written from the code and from commands run.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-12
-Implementation Authorization: the owner directed the work on 2026-10-11
-Superseded Plan Artifacts: none
-
-1. Write the pages and the generators, and review them against the page types (done).
-2. Record real output on a disposable appliance or VM for the pages that could not run here.
-3. Add the publishing workflow (done) and verify the published site after its first run on the default branch.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | `mdbook build book` in a fresh clone of the branch | Local host | Exit 0, no warning, and the pages of `book/src/test/` are not empty |
-| T2 | Local | `bash book/scripts/check-generated.bash` with `AA_SOURCE_CLONE` set to a fresh clone of the source branch | Local host | Every generated page is current |
-| T3 | Review | Second-person review of the whole book against the technical-writing checklist | Local host | Findings applied and a final pass without findings |
-| T4 | VM | Run the install and operate commands that need `sudo`, systemd or an installed appliance, as shown | Disposable VM of the accepted matrix | Each command runs as shown; the output matches the page |
-| T5 | CI | The publishing workflow on the default branch: the jobs `generated`, `build` and `deploy` | GitHub Actions | All three jobs pass and the published site equals a local build |
-| T6 | Local | `mdbook build book` with mdBook 0.5.4, the release that the workflow installs, in a fresh copy of the tree | Local host | Exit 0 and no warning |
-| T7 | Local | In a shallow fresh clone: `make init`, then `bash book/scripts/check-generated.bash` | Local host | Every generated page is current |
-| T8 | Operate | `storage`, `make sd_status`, `make sd_health_status`, `health` as the service account and as an ordinary user, and `journalctl` of the service unit | Installed appliance of the local host | Each output matches its page |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-18 | Local host; fresh clone of the pushed branch at `ae46c35`, mdBook 0.5.4 | Pass | `mdbook build book` exit 0 with no warning or error; 37 pages, among them `understand/data-journey.html` with its six figures; `test/vm.html` builds with 27.7 KB. The run of 2026-10-12 at `d04de37` passed too |
-| T2 | 2026-10-12 | Local checkout at `d04de37`; fresh clone of `modernize` at `0097bc2d` | Pass | exit 0; all five generated pages current |
-| T3 | 2026-10-12 | Local host | Pass | whole-book pass, applied-findings pass, technical-writing pass and a final pass; the final pass found nothing to change |
-| T4 | 2026-10-13 00:58 to 01:05 PDT | Debian 13 guest of the one-case run below (env `c4beb5d`, source `514be155`, service account `mid-srv`) | Pass for the operate, verify and install pages; the next guest run repeats them after the page fixes | Commands of `operate/health.md`, `logs.md`, `loglevel.md`, `storage.md`, `start-stop.md` and `install/verify-pv.md` run as shown with the placeholders replaced, and the outputs equal the pages in form (loglevel byte for byte; values such as process ids and use percentages differ). Two commands did not run as the pages showed them: `sudo -u tomcat` of the health page (the guest account is `mid-srv`; the page now uses `<service_account>`) and `bash scripts/archappl.bash storage` in a checkout (it needs the `archappl.conf` next to the installed script; the page now uses `<install_location>`). The corrected commands exit 0 on the guest. The install pages need a checkout owned by an ordinary user, and the checkout of this guest belongs to root, so they were not run there. They ran on a second fresh Debian 13 guest, 2026-10-13 02:30 to 03:00 PDT (env `148cae1`, source `74258cc7`, ordinary user with `sudo`, checkout cloned from the public repository): `prepare-host.md` (package lists as shown, 17 packages installed, Java 21), `sqlite.md` (installer exit 0, health, four startup APIs and appliance information PASS), `verify-pv.md` (`PV acquisition, storage and retrieval: PASS`, 4 stored samples, EPICS Base copied from the host), `reinstall.md` (exit 0, service active, the registered PV kept in the database), `mariadb-uds.md` and `mariadb-tcp.md` (exit 0, same checks PASS). Three differences from the pages were found and the pages carry the correction: the SQLite plan on a host without Tomcat lists three more lines (`tomcat.get`, the SHA-512 verification and `tomcat.install`); a quoted `DB_HOST_NAME="127.0.0.1"` in `../CONFIG_SITE.local` makes `db.create` fail with `ERROR 2005` because `make` keeps the quote characters (the unquoted value passes); a failed installer leaves the service stopped by design, which the three installer pages now state |
-| T5 | Not run | none | Pending | none |
-| T6 | 2026-10-18 | Local host; fresh clone of the pushed branch at `ae46c35` | Pass | mdBook 0.5.4 (archive SHA-256 `3f28de05dafca9d0f2eab99c662116b0e37b89b1d96a08f8f430b9eeae958cd7`, checked against the value that the workflow pins) exit 0 with no warning. The run of 2026-10-12 at `92b2aa7` passed after a generator fix; before it the build warned about an unclosed `<os>` tag in `configure/variables.md`, which the browser would have hidden |
-| T7 | 2026-10-12 | Local host; shallow clone (depth 1) of the tree of `92b2aa7`; selected source `992d8ac4` | Pass | `make init` exit 0 in about 52 s; `check-generated.bash` exit 0 with all five generated pages current |
-| T8 | 2026-10-12 | Installed appliance of the local host | Pass | `storage` printed the three store folders and the total; `make sd_status` showed the service active with the four instances; `make sd_health_status` exits `0` after the fix and printed `Error 3` before it; `health` as the service account printed all four components `PRESENT` and exit `0`, as an ordinary user `unreadable-process-executable` for each and exit `2`; `journalctl -u` as root printed the instance lines, as an ordinary user outside the journal groups `-- No entries --` with exit `0` |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
-Last Compared: none
-
-#### M54 - Align the documents and comments about policies, storage tiers and ETL with the code
-
-Origin: 2.0.1 / M54
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-The review of `docs/README.DataJourney.md` ran the scenario of that document through the real ETL pass scheduler, the real ETL job and the real storage plugins with a simulated clock. The ETL does not run when a partition ends. Each transition has a fixed schedule: the cadence is the source partition length (at most 8 hours), the offset is 5 minutes times (transition number + 1), and every job uses the pass start minus 60 seconds as its current time. A file with partition start `S` leaves its tier in the first pass whose start is at least `S + (hold + 1) * P + 60 s` for `gather=1`. D61 widens the work from the guide `docs/README.policies.md` to every statement of the documents, comments and test messages of the repository about policies, storage tiers and ETL. The findings known on 2026-10-18 are below; the statement list of the plan adds the rest.
-
-1. Section 2.3.3 (example: "an ETL run at each partition boundary") and section 2.3.5 Scenario A ("as soon as the partition boundary is reached") say that the ETL runs when a partition ends. The passes start at fixed times (the Data Journey document, section 2).
-2. Section 2.3.1 (Trigger: the oldest sample "is older than `hold` partitions") and the example of section 2.3.2 ("about six hours old" for `PARTITION_HOUR` and `hold=6`) understate the age by up to one partition. A file moves when `hold + 1` partition lengths have passed since its partition began.
-3. Withdrawn on 2026-10-18: the sentence "in the first pass after that time" that this item quoted is not in the guide, and section 5.5 already says that the actual move waits for the next ETL pass.
-4. Section 5.5 says that `gather=1` stays in the template "on STS". The template fixes `gather=1` on STS and on MTS, so `gather` cannot be changed through the Make variables.
-5. Section 5.4 tells the operator to edit the installed `policies.py`. `make install` copies over it the file that `make conf` rendered from `site-template/policies.py.in`, so the edit is lost. The durable edit is in the template, followed by `make conf`.
-6. Section 2.3.1 has no pointer to the pass schedule and the timeline in `docs/README.DataJourney.md` (sections 2 and 4).
-7. Information only: section 2.1.1 says the file is moved "after the time elapses, according to the `partitionGranularity` setting" without the `hold` rule or the schedule.
-8. Information only: the generated page `book/src/configure/policy-parameters.md` repeats the class comment of `PlainPBStoragePlugin` of the selected source (`SRC_TAG`). The comment gives the age at which a file moves as `hold` partitions and the files kept as at least `hold - gather`. The source commit `a02f9ce9` corrects the comment (`hold + 1` partitions counted from the start of the partition; `hold - gather + 1` completed files remain after a pass on schedule), and the page follows when `SRC_TAG` selects a commit that contains it. Resolved on 2026-10-18: `SRC_TAG` is `origin/modernize`, the owner keeps the local source checkout on the tip of that branch, and the page was regenerated at `6554440f`, which contains `a02f9ce9`.
-9. Section 5.4 does not say that a changed `policies.py` reaches only the PVs that are archived afterwards. The store URLs of a PV are stored with its type information (checked with a SQLite and a MariaDB database), so a PV that was archived before the change keeps its `hold` and its partitions. The guide does not say how the stores of an archived PV are changed; the source has actions for it that no document of this repository names, and none was run.
-10. Section 2.2.2 says that only completed files are subject to `hold`. A file of MTS that has received only some of its parts is a candidate too, and it moves when its boundary is met, as the runs of the Data Journey document show.
-11. Section 2.3.4 states that two setters throw an `IOException` when `gather` exceeds `hold`. This was read from the code and not run.
-
-##### Scope
-
-- List every statement about policies, storage tiers and ETL in: `docs/README.policies.md`, `docs/README.install.md`, `docs/technicaldocs/`, `docs/README.vmtests.md`, `tests/README.md`, the pages of `book/src` that are not generated, the explanatory comments of `configure/`, `site-template/` and `scripts/`, and the messages and comments of `tests/`.
-- Compare each statement with its code source and class it as match, mismatch or unverifiable. Correct a mismatch in the document or comment. Run a statement about when or how a file moves on the real classes before it is written.
-- Report a defect of the code to the owner of the code instead of making the document follow it.
-
-Out of scope: history records (`CHANGELOG.md`, `docs/milestone-*.md`, `docs/reports/`, GitHub issues); `docs/README.DataJourney.md`, its book page and the figures, which change only when a finding requires it; the generated book pages, which follow the selected source (D56); any change of the behavior of the code of this repository or of the source repository.
-
-##### Completion Criteria
-
-- The statement list covers every in-scope file; each statement names its code source and its class.
-- Every mismatch is corrected, or reported to the owner of the code, or recorded as unverifiable with the check that would settle it.
-- Every statement about when or how a file moves was run on the real classes or on an installed guest.
-- A second-person review of each corrected group by a reader who calculates the move times for the shipped policy and for `PARTITION_5MIN` finds nothing above the severity floor.
-- Every link and anchor of the corrected passages resolves, `git diff --check` is clean, the book builds with the pinned mdBook release, and the generated pages are current.
-
-##### Dependencies And Decisions
-
-- D59 records the first findings. D61, dated 2026-10-18, widens the scope and orders the work.
-- The generated page `book/src/configure/policy-parameters.md` follows the tip of the source branch `origin/modernize` that `SRC_TAG` names; it is regenerated with `book/scripts/generate-all.bash` after the local source checkout moves.
-- Statements of `docs/README.policies.md` are changed under the direction of D61; the guide names Sangil Lee and Jeong Han Lee as authors.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-18
-Implementation Authorization: the owner directed the work on 2026-10-18
-Superseded Plan Artifacts: the draft plan of D59
-
-1. Build the statement list for each file group: `docs/README.policies.md`; the install and service documents; the pages of the book; the comments of `configure/`, `site-template/` and `scripts/`; `tests/`. The list is a working file outside the repository.
-2. Verify each statement: read the code; run the `make` statements in a copy of the repository with the install path set to a scratch folder; run the statements about files on the real classes or on a retained guest.
-3. Correct the documents and comments group by group, one commit per group, and withdraw or correct the findings of this detail that the list shows wrong.
-4. Report the defects of the code to its owner.
-5. Review each corrected group with the second-person review and apply the findings above the floor.
-6. Record the observed results and close the item when the criteria hold.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Compare the statement list with `git ls-files` of the in-scope paths | Local host | Every in-scope file appears in the list or is named as without statements |
-| T2 | Run | Run each statement about when or how a file moves on the real classes or on a retained guest | Local host; retained guest | Each statement is confirmed by the observed run or corrected |
-| T3 | Local | Run each `make` statement in a copy of the repository with the install path set to a scratch folder | Local host | Each statement is confirmed by the output or corrected |
-| T4 | Review | Second-person review of each corrected group by readers that compute the move times for the shipped policy and for `PARTITION_5MIN` | Local host | No finding above the severity floor |
-| T5 | Local | Check every link and anchor of the corrected passages, run `git diff --check`, build the book with the pinned mdBook release and run `book/scripts/check-generated.bash` | Local host | All targets exist; no whitespace error; no warning; every generated page current |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-18 | Local host | Pass | `git ls-files` of the in-scope paths (160 files, UI folder and binaries excluded) swept for ETL, STS, MTS, LTS, hold, gather, `policies.py`, `partitionGranularity` and the store names; every file with a hit is either in the four reader lists (`statements-policy-domain.md`, not tracked) or was read in this sweep (glossary, health, storage, components, install pages, `archappl.properties.in`, `tests/health-starting.bash`, scripts); no further mismatch |
-| T2 | 2026-10-18 | Local host; retained guest | Pass | Real `PBThreeTierETLPVLookup`, `ETLPassTicker`, `ETLPassDriver`, `ETLJob` and `PlainPBStoragePlugin` with a simulated clock for hold 0 to 6, gather 0 to 4, header-only and zero-byte files, post-processing, reload and stored URLs; pass schedule and a 70-minute real-clock ETL run and the MariaDB persistence case on a guest. The hold 6 `PARTITION_HOUR` example (STS `PARTITION_HOUR`, MTS `PARTITION_DAY`, 10:00 file left STS at 17:05) and the 5-minute test host example (STS `PARTITION_5MIN`, MTS `PARTITION_HOUR`, hold 2, gather 1: the STS 10:00 file left at 10:20, the MTS 10:00 file at 13:10:05) were run on 2026-10-18 21:58 PDT with the scratch copy of the ETL classes; the ETL selection code and the scheduler are identical in the source at `6554440f` (the differences are timing metrics, display, a time parse error handler and a comment) |
-| T3 | 2026-10-18 | Local host | Pass | `make conf.policies` and the `make -n` targets run in a scratch copy with the install path, `SUDO` and the user overrides set; `run-all-tests.bash --local` exit 0 at the source tip `6554440f` after the last edit of the comments, with the real Base binaries: Phase 1 273 passed, Health 32, No Ant 22, Interface files 345, Phase 2 14, none failed (2026-10-18 PDT, `local-suite-6554440f-r2.log`, not tracked) |
-| T4 | 2026-10-18 | Local host | Pass | Five readers (P1 to P5, a new seat each) audited the guide and the other changed files against the code and the run logs; every item above the floor is applied. P5 found the Completed State definition against partial MTS files (section 2.2.2 now defines Completed per tier and names the partial file as an exception) and the time window of the MONITOR sentence; both corrected. Edits after P5 are the wording of section 2.2 and 5.1 and of two property locations, read back by the author only |
-| T5 | 2026-10-18 21:25 PDT | Local host | Pass | `git diff --check` exit 0; pinned mdBook 0.5.4 build exit 0 with no warning; `book/scripts/check-generated.bash` all five pages current after `configure/variables.md` was regenerated; the links of the guide resolved in the third reader audit |
-
-##### Closure Evidence
-
-- Closed on 2026-10-19 after the criteria held. Commits on `release-2.0.1`: `08dc331` (comments and messages of the rendering rules), `02c910f` (policy guide), `c201ec2` (storage tiers page and plan rows), `777724f`, `ed7505d`, `66f4516`, `81f6949`, `eee2723`, `c305587`, `8cb926b`, `ee052de` and `ef49d3a` (register, generated page, example runs, interface check list, test README count and unused macro); the commit that carries this closure adds the references of the guide to the issues below.
-- Defects of the code, reported to its owner and filed in epicsarchiverap-maven: [#49](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/49) (`optimized_N` as `reducedata` ignores N), [#50](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/50) (`reducedata` together with `pp`), [#51](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/51) (pp files of a moved partition stay in the source store). The documentation corrections of epicsarchiverap-maven are `8b8a0ae3` (hold and gather row, policy re-read) and `41c33cdf` (pass driver, 60 second margin).
-- The local source checkout follows the tip of `origin/modernize`; the generated policy parameters page was regenerated at `6554440f`, which contains `a02f9ce9`.
-- Verification Results above hold the observed runs and reviews. After the last review, the edits were the example runs, the unused macro and the issue references; the issue references were read by the author only.
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
 Last Compared: none
 
 #### M27 - LTS retrieval pre-processing (`pp`)
@@ -2325,551 +2886,3 @@ Observed State: none
 Observed Labels: none
 Observed Milestone: none
 Last Compared: never
-
-#### M55 - Measure the stop time of the appliance with data in the short term store
-
-Origin: 2.0.1 / M55
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-`make sd_stop` stops the four instances in the order engine, retrieval, etl and mgmt. The unit waits up to `SYSTEMD_TIMEOUT_STOP_SECONDS` (300 seconds by default).
-
-When the ETL component receives the stop, it waits for the running pass of each driver, up to the property `org.epics.archiverappliance.etl.common.ETLPassStopWaitSeconds` (60 seconds by default); a pass starts no further job after the stop flag is set, so the wait bounds the one job that runs, not the pass. It interrupts the worker threads and waits once more up to the same value. It then runs one job for each PV whose store sets `consolidateOnShutdown`, one after the other and without a time limit of its own. Each job uses a processing time one year ahead, so the hold keeps no file back (`PBThreeTierETLPVLookup`). The shipped policies set the option on the short term store only.
-
-The unit kills the processes that run when `TimeoutStopSec` (`SYSTEMD_TIMEOUT_STOP_SECONDS`) ends (`KillMode=mixed`). A PV that the loop has not reached by then leaves no line in the log. The error line "PVs left unconsolidated", written after the whole loop, counts only the PVs whose job runs after the wait and the PVs that the skip environment variable names. The loop writes one error line for each such PV ("Not consolidating <pv> ... still running" or "... names its destination"). The lines of the individual jobs are written at debug level, and the shipped root level is info (`ARCHAPPL_ROOT_LOGGER_LEVEL`).
-
-The duration of the stop grows with the number of PVs and with the data in the short term store. No measurement of it exists across the PV count, the data volume and the phase of the stop (the two stops of ansible-provision at 903 PVs are in the Scope), and the code does not show whether 300 seconds suffice. The property `ETLPassStopWaitSeconds` is documented in the source repository (`docs/book/src/configuration.md`, `docs/design-etl-pass-scheduler.md`) and not in the templates or documents of this repository; it is read from the installed `archappl.properties`, which `make install` renders from `site-template/archappl.properties.in` without a placeholder for it, so a site has no hook for the property in this repository, and setting it means a change of the template (a separate item).
-
-
-##### Scope
-
-Terms
-
-- A pass is one run of the ETL jobs of the PVs that share a transition and a cadence ([The Data Journey](README.DataJourney.md)). The cadence of the first transition is the partition length of the short term store; a pass starts at a partition grid time plus 5 minutes, except the start-up pass that runs once when the ETL component starts and the passes that wait for a running pass.
-- The hold is the setting of the store that keeps files back; a file moves in the first pass at or after the start of its partition plus (hold + 1) partitions plus 60 seconds ([policy guide](README.policies.md), section 2.3).
-- A stage is a PV count. A cell is one stage on one partition. The main cells are the stage of 903 PVs and the stage of 3000 PVs on the partition `PARTITION_5MIN` with the hold of 2. The validation cell is the stage of 903 PVs on the shipped partition `PARTITION_HOUR` with the hold of 2. A stop is one stop of the unit; each main cell has three stops and the validation cell one.
-- The unit is `epicsarchiverap-maven.service` (`SYSTEMD_FILENAME`). The evidence members are the retained files of the runs: journal cuts, unit results, listings, cuts of the ETL log, frozen configuration. The replay rebuilds the table from copies of the members.
-
-Target and environment
-
-- Measure the stop of the installed appliance on one Debian 13 guest (G9). The engineer of the requester session installs the appliance with the local SQLite installation (`scripts/install-local-sqlite.bash`, [installation guide](README.install.md)); the provider installs nothing. SQLite is the owner choice of 2026-10-19. The reset is a deletion of files (see Order and reset). The target `PVTypeInfo.show` rejects SQLite, so the stored URL of a PV is read through the BPL `getPVTypeInfo`.
-- A real `softIoc` serves the PVs. Copy the EPICS Base binaries of the host (`/home/jeonglee/alsu-epics/1.3.0/debian-13/7.0.10/base`, about 339 MB) to the guest with `bin` and `lib` together, because the run path of `softIoc` is relative to its location. Install the package `libreadline8`, which `softIoc` needs and `configure/os/debian13.pkgs` does not name. `AA_TEST_EPICS_BIN` is the absolute `bin/linux-x86_64` folder on the guest with `softIoc` and `caget`. The IOC and the appliance run on the same guest, so `EPICS_CA_ADDR_LIST` is `127.0.0.1` with the auto address list off, as in `scripts/verify-local-pv.bash`, and the IOC gets `EPICS_CAS_INTF_ADDR_LIST=127.0.0.1`, `EPICS_CAS_AUTO_BEACON_ADDR_LIST=NO`, `EPICS_CAS_BEACON_ADDR_LIST=127.0.0.1` and `EPICS_CA_MAX_ARRAY_BYTES=16384` (the variables of `install-fixture.py` of ansible-provision); the engine finds the IOC through `EPICS_CA_ADDR_LIST` of `archappl.conf`.
-- The owner defers Rocky Linux 8.10 to a separate item after the Debian 13 result. The register records that the journal reader of systemd 239 hides lines (G7, M45), which matters for a measurement that reads the journal.
-- Context: ansible-provision observed whole-unit normal stops of 12.516 and 13.770 seconds at 903 PVs on two Rocky Linux 8.10 guests (the shortened and the default chain, its own PV set, installed timeout 300 seconds, aa-maven 120d53fe, aa-env 6599fbb1; observations of 86400 seconds that ended on 2026-10-15; register of ansible-provision, `docs/milestone-38560eb.md`). Those values are the wall time of a blocking `systemctl stop` of the whole unit, taken with the monotonic clock of a Python process (`tests/archiver-soak/etl-pass/observe.py`), after a 24-hour run with an uncontrolled phase of the stop and an unrecorded file count of the short term store, on MariaDB, Rocky Linux 8.10 and 256M heaps. They record no stop time of an instance and no left PV. At 903 PVs they leave the per-PV part of the stop near 5 milliseconds, which puts the stop time at 300 seconds above 10000 PVs. This item therefore adds a stage of 3000 PVs, a controlled phase and the per-instance and per-job times, and does not replace those values.
-- Keep the shipped log level (info) for the root logger, so that the logging does not change the stop time. Keep `ETLPassStopWaitSeconds` at its default of 60 seconds, which is not in the installed `archappl.properties`, and record that. The two waits take up to 120 seconds of the 300 seconds of the unit. A stop during a running pass, which would exercise that value, is not part of this item; because the wait bounds one job, the longest job of the pass records (`slowestMillis`) is the evidence for its size, not the duration of a pass.
-- Settings that the purpose needs and the base guest lacks, which the engineer sets on the guest and records: a persistent journal (a drop-in of `journald.conf` with `Storage=persistent`, a `SystemMaxUse` large enough for the largest stage, and the rate limit of the ansible-provision role `archiver_build`: 30 seconds and 10000 messages; the role is the model, `roles/archiver_build/tasks/main.yml`), time synchronization with `chrony` (the package is in `configure/os/debian13.pkgs`; record `chronyc tracking`), the package `rsync` for the transfer of the evidence (not in `configure/os/debian13.pkgs`), and outbound network access of the guest for the installation. The service account is `tomcat` (`AA_USERID`), the default of the local installation; the heap setting of each instance and the journald rate limits are part of the frozen configuration. The health timer of the installation stays active; it skips a unit that is stopping, and its state is part of the frozen configuration.
-- Fix the refs before the first install and keep them for the whole run: the commit of this repository (the tip of `release-2.0.1` at the start of the run) and the source ref `SRC_TAG` (the tip of the branch `origin/modernize` at the first install, the owner choice of 2026-10-19; the resolved commit is recorded and not changed during the run). The checkout of this repository lies in the home folder of the engineer on the guest, and `../CONFIG_SITE.local` is the file one folder above its top.
-- State in the report the differences between the measured guest and a production deployment: the three tiers lie on one virtual disk (a production short term store on tmpfs or SSD and a medium term store on another disk or NFS changes the copy time of the loop, which is the largest risk that no cell tests), the memory is 4 GiB with the IOC on the same two vCPUs (the page cache), the heap value of each instance (`AA_JAVA_HEAPSIZE`, recorded; the stage of 3000 PVs may put the 256M heaps under garbage-collection pressure, and heap sizing itself is M41), the added file appender (one write for each pass and about one line for each PV at the stop), SQLite instead of the MariaDB of other deployments (the loop does not use the database; the effect is on the management instance), and Debian 13 instead of Rocky Linux 8.10.
-
-The test PV set
-
-- Reuse the 903 PVs of ansible-provision (owner choice of 2026-10-19), and add 2097 generated PVs for the stage of 3000 PVs (owner choice of 2026-10-19). The 903 PVs lie in the repository of ansible-provision, `tests/archiver-soak/fixtures/`: the IOC databases `aasoak.db`, `load1.db` and `load2.db`, and the PV lists `pvs.csv` (100 PVs), `pvs-load1.csv` (400) and `pvs-load2.csv` (403); `pvs-all.csv` (903 rows) has the SHA-256 `037a92691bc23a6dcac37ec3613ad19c9f80b93b689209ec8dc403b519eaf594`. Its generators are `baseline/gen_soak.py` and `baseline/gen_load.py`. Copy the files at a pinned commit (recorded) unchanged and check them. ansible-provision stays the single writer of the files; the copy changes nothing there, and its session is informed by message.
-- The mix of the 903 PVs (counted from the PV lists): 110 PVs of the policy `VeryFast` (0.1 seconds), 10 of `Fast`, 10 of `Medium`, 773 of `Default`, 8 waveforms of 1000 elements, 783 PVs that update every second, 110 every 0.1 seconds and ten every 10 seconds (`AASOAK:SLOW:CH01` to `CH10`). The deadband override of ansible-provision (`retest-deadband.db`) is applied: it sets `MDEL` and `ADEL` to -1 for the ten records of the group `deadband`, which otherwise change rarely, so that every update of these PVs is archived. The IOC databases carry more records than the lists archive (`aasoak.db` 110 records for 100 PVs, `load2.db` 406 for 403; the helper records `*_SRC` feed the enum, string and waveform records), so the record count of the IOC is not the PV count. The database is SQLite and the account `tomcat`; the ansible-provision installation uses MariaDB and the account `mid-srv`, which this item does not use.
-- The script `tests/stop-time/gen-pvs.bash <output folder>` generates the 2097 further PVs `STOPTIME:E0001` to `STOPTIME:E2097` as the file `extra.db` and the PV list `extra.csv`. `extra.db` has the form of `load1.db`: one header comment line, then for each PV a `calc` record with `SCAN` `1 second`, `INPA` the own value with `NPP`, `CALC` `(A+1)%3600`, `VAL` 100 times the index and `PREC` `1`, with one blank line between records. `extra.csv` has the columns of the other lists (`pv`, `group` `extra`, `scan` `1 second`, `method` MONITOR, `period` `1.0`, an empty `policy` for `Default`, and `store_key`). The lists of ansible-provision end their lines with CR LF; `extra.csv` and `extra.db` end them with LF, and the parsers of this item strip a trailing CR from every field. The generator is deterministic: two runs give files with the same SHA-256, which `selftest.bash` checks. The stage of 3000 PVs is the 903 PVs and these 2097. Its share of fast PVs is lower (110 of 3000) than that of the stage of 903 PVs (110 of 903), so the PV count and the data rate vary together; the report states this limit.
-- The IOC runs as a system unit `stop-time-ioc.service` that the engineer installs on the guest. The unit runs as the account `tomcat` and starts `softIoc -S -d aasoak.db -d load1.db -d load2.db -d extra.db -d retest-deadband.db`, with the list of `-d` options in a drop-in `stage.conf` of the unit that the engineer writes for the stage (`extra.db` only in the stage of 3000 PVs) and `retest-deadband.db` last, because the records of the override merge into the records of the files before them in the order of the `-d` options. The unit is enabled, so that it comes back after a reboot of the guest, and carries the IOC environment above. Switching the stage is: write `stage.conf`, `systemctl daemon-reload`, restart the unit, and read the ten `MDEL` and `ADEL` fields and one PV of each database with `caget`. The rehearsal reads the fields `MDEL` and `ADEL` of the ten records through Channel Access and requires -1 before the first archiving. The scripts `apply-fixture.py` and `install-fixture.py` of ansible-provision belong to its environment (account `mid-srv`, the Rocky path of Base, the unit `etl-soak-ioc.service`) and are not used. The unit file and the IOC environment are part of the frozen configuration.
-- Archive the PVs of the stage with one POST to `/mgmt/bpl/archivePV` with `Content-Type: application/json` (exactly that value; a value with a charset takes another path of the action and fails), as ansible-provision does in `register.py`: the body is a JSON array with one object for each PV, with `pv`, `samplingperiod` and `samplingmethod` from the columns `period` and `method` of the PV list and `policy` when the column is not empty. This reproduces the 880 PVs of the method MONITOR and the 23 of the method SCAN of the set of 903 PVs. The installation guide shows a GET with `pv` only; the list of the 773 PVs of the policy `Default` is 13038 bytes, above the default header limit of 8192 bytes of Tomcat, and the body of a POST has no such limit. Archiving is done when `GET /mgmt/bpl/getPVStatus` (without `pv` it returns every PV that has type information; a PV in the state "Initial sampling" is not in the list, so the number of entries must reach the number of PVs of the stage) shows for every PV exactly one entry with `status` `Being archived` and `connectionState` `true`. Read the stored URL of one PV of each policy with `GET /mgmt/bpl/getPVTypeInfo?pv=<pv>`. The sampling period sizes the sample buffer, and the policy `Default` would drop samples of a 10 Hz PV, so every PV keeps the policy of its row. The rehearsal checks that the short term store holds about 10 samples per second for a 10 Hz PV.
-
-Cells, order and reset
-
-- Order of the runs: the reset after the rehearsal, the three stops of the main cell `main-903`, the reset, the three stops of the main cell `main-3000`, the change of the policy to the shipped values with the reset, and the validation stop of the cell `validation-903`. These three strings and the rehearsal cells `rehearsal-25` and `rehearsal-100` are the values of `--cell`. Render the settings of the main cells (`PARTITION_5MIN`, hold 2) through `ARCHAPPL_STS_GRANULARITY` and `ARCHAPPL_STS_HOLD` in `../CONFIG_SITE.local` before the first install, so that the first archiving uses them. The validation cell uses the shipped values, written into the same file as `PARTITION_HOUR` and `2` (not removed, so that the frozen file shows them); the owner chose them so that the report shows how the stop time of the 5-minute partition compares with the shipped state. The hold of 5 is not measured. The 15-minute and hourly matrices are not measured by this item; M56 and M57 measured them (Deferred on 2026-10-19; reopened and Complete on 2026-10-21).
-- A policy change reaches only the PVs that are archived afterwards, because the store URLs with the hold are stored in the type information of each PV (policy guide, section 5.4). The reset calls `make` without the variables that the local installation script passes, so `../CONFIG_SITE.local` carries `DB_BACKEND=sqlite` (`ARCHAPPL_SITEID` defaults to `als`; `DB_BACKEND` defaults to `mariadb`, and a `make conf.archapplproperties` or `make conf.install` without it renders the context files or the unit for MariaDB, after which the unit does not start). The steps that run as root render nothing into the checkout (M58): the engineer renders the units with `make conf.install` and the schema with `make sql.update` first, so the checkout stays writable for the engineer. (The measurement of this item ran before that change; it gave the files that `sudo make install` and `sudo make sql.fill` had rendered as root back to the engineer after each such command.) The reset and the policy change are one sequence, which the rehearsal proves: `make sd_stop`; edit `../CONFIG_SITE.local` when the policy changes; `make conf.archapplproperties` (check the STS URL of the rendered `site-template/policies.py`); `sudo make conf.storage.rm` (it removes `ARCHAPPL_STORAGE_TOP`, so the stores of all three tiers and the SQLite file go together; the leading `-` of the rule hides an error, so list the folder afterwards and require that it is gone); `sudo make conf.storage` (the folders of the three tiers; under `sudo` the placement check of the storage path sees the home of root, which only changes its warning); `make sql.update`, `sudo make sql.table.fill` and `sudo make sql.show` (the folder `config` and the schema of the SQLite file, which `conf.storage` does not create; the local installation script runs the same targets); `make conf.install` and `sudo make install` when the policy changed (it installs the rendered files and does not start the unit); switch the IOC to the stage (below); `make sd_start`; archive the PVs of the stage; check the stored URL of one PV of each policy with `getPVTypeInfo`. Between stages without a policy change the same sequence runs without the edit and without `make conf.install` and `sudo make install`. A stop moves the data of the short term store into the medium term store, so the reset empties the medium and long term stores too; a stage is not grown by adding PVs.
-- Between the stops of one cell the PVs stay archived. After a stop start the appliance, wait until every PV shows `Being archived` and `connectionState` `true` (archiving resumed 55 to 60 seconds after a restart in ansible-provision), wait for the partition boundary, accumulate, and stop. When the window of a stop is missed (the engineer was away, or the listing failed twice), the appliance is not restarted: in the steady state the short term store holds hold + 2 files of every PV between a boundary and the next pass, so any following boundary serves as E and the window applies to it; the status file records the planned E and the E actually used. The B0 rule applies only to the first stop after a start of the appliance, and the accumulation bound of (hold + 2) partitions plus 30 seconds applies only to that stop. A restart of the appliance that is not a measured stop is avoided; if one is needed (a reboot of the guest, a failed start), it is recorded in the coverage table as an auxiliary stop with its reason, and the next stop follows the B0 rule.
-
-Accumulation and the phase of the stop
-
-- Passes run at fixed times, and a file moves in the first pass at or after the start of its partition plus (hold + 1) partitions plus 60 seconds. With the cadence equal to the partition length, the first transition runs its pass 5 minutes after each partition boundary. For the 5-minute partition that is the next boundary, so the pass and the boundary coincide.
-- Every stop takes place with hold + 2 = 4 files of each PV in the short term store. At the boundary that ends the (hold + 1)-th partition of data the first file has not moved, and the new partition has just opened its file.
-- Rule. B0 is the first partition boundary at least 30 seconds after every PV shows `Being archived` and `connectionState` `true` following the restart, so that every PV has a partial file of the partition before B0. The boundary E is B0 plus (hold + 1) partitions. For the hourly partition stop between 30 and 90 seconds after E, which lies before the pass at 5 minutes past E. For the 5-minute partition the pass and the boundary coincide, so stop between 30 and 60 seconds after E, after that pass has started. The lower bound of 30 seconds covers the scan of 10 seconds of the slowest PVs and the write period of the engine of 10 seconds. The accumulation of a stop is the time from the restart to E, at most (hold + 2) partitions plus 30 seconds: 20.5 minutes in a main cell and 4 hours in the validation cell. Nominal accumulation from B0 to E is 15 minutes and 3 hours.
-- After a restart the engine archives from the restart time, not from a boundary, so the first file of a PV is a partial file of the partition that contains the restart. For the hourly partition that file moves before E; for the 5-minute partition it moves in the pass at E, which is why the 5-minute stop follows that pass.
-- The rule holds for this IOC: after the override of the deadband every PV updates every 0.1 seconds (110 PVs of the set of 903), every second or every 10 seconds (the ten PVs `AASOAK:SLOW:CH01` to `CH10`), so every PV has a file of the new partition within the lower bound of 30 seconds. The listing must show hold + 2 files of every PV; the listing decides. If it does not show them inside the window, do not stop: wait for E plus one partition and check once more; if the second check also fails, stop and mark the stop `off-rule`. A 10 Hz PV can lose a sample when a write pass of the engine is delayed ([epicsarchiverap-maven#29](https://github.com/jeonghanlee/epicsarchiverap-maven/issues/29)); the rule counts files, not samples.
-- Check overlap for every stop and for every driver, the first transition (pass 5 minutes after each partition boundary) and the second transition (with the shipped medium term store partition `PARTITION_DAY` at 00:10, 08:10 and 16:10 UTC). The launcher line `archappl-etl: stopping pid` is written just before the signal to the ETL JVM. The ETL component stops its ticker after the stop sequence of Tomcat; the log file has the line "Shutting down ETL threads." at the moment when the ETL component begins to stop, and the ticker checks every 5 seconds, so the table uses the time of that line plus 5 seconds as an upper bound of that moment.
-- A stop overlaps a pass when a pass of any driver is running at the start of the stop (`ActiveExitTimestamp`), or is scheduled to start between that start and the time of the stopped ticker. A pass that starts in that interval runs normally and moves files, so the count of files can fall to hold + 1. Before a stop on the 5-minute partition `run-stop.bash` reads `etl-pass.log` and requires the pass record whose `plannedAt` is E (the listing alone shows only that the partial file moved, not that the pass ended); it waits inside the window until the record is present, and a window that ends without it makes the stop `off-rule`. An overlapping stop is marked and reported apart. A wait of the ETL component on a running job shorter than the stop wait of 60 seconds leaves no line at the shipped level; the stop time of the ETL instance is measured, and an excess over the expectation above 20 percent and above 5 seconds is marked.
-- Re-run rule: a stop that is marked as overlapping, off-rule or Incomplete is repeated once (accumulate and stop once more) and then both stops stay in the table with their marks; the repeated stop carries the number of the original with the suffix `r` (`--stop 2r`), and the coverage table lists both. Before the repeat the status file carries `pending=<cell>/<stop>r`, and `run-stop.bash` removes the key when the repeat is recorded, so that a successor reads from the directory whether a repeat is due. The fit uses the stops that follow the rule and are not Incomplete, and the report states the stops actually used. A stop that is interrupted before the stop command is repeated from the accumulation with the same suffix, and the coverage table lists both.
-- The start-up pass runs once when the ETL component starts after each restart. It finds an empty short term store and moves nothing.
-
-Pass events and the shutdown jobs
-
-- Copy the `log4j2.xml` of the WAR (installed instances carry it under `WEB-INF/classes`) to a site file that the service account `tomcat` can read (mode 644, not under the home folder of the engineer), name it in `ARCHAPPL_LOG4J_SITE_FILE`, and run the stop/install/start procedure of the installation guide once. Check that `archappl.conf` carries `LOG4J_CONFIGURATION_FILE` with the path: a missing or unreadable file makes log4j2 fall back to an error-only console configuration without the priority prefix, and the journal loses its info lines.
-- The site file adds, in `Appenders`, a file appender `ETLPASS` with `fileName="${sys:catalina.base}/logs/etl-pass.log"`, `createOnDemand="true"` (the four instances read the same file, and only the ETL instance writes) and the pattern `%d{yyyy-MM-dd'T'HH:mm:ss.SSS}{UTC}Z %-5level [%t] %c - %m%n`. It adds, before `Root`, two loggers at level debug with additivity off, `org.epics.archiverappliance.etl.common.ETLPassDriver` and `org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup`, each with two appender references: `ETLPASS` and `STDOUT` with `level="info"`. The second reference keeps the info and error lines of these loggers in the journal; without it the error lines of the driver vanish from the journal, and with additivity on the debug lines reach it. A real run with log4j-core 2.26.1 proved this fragment. The root level and the journal stay at info.
-- The file holds one line for each pass (the pass record), the line "Shutting down ETL threads." when the ETL component stops, and one line "Need to consolidate data from etl source ... for pv ..." before each job of the loop at the stop. On the guest the file of the ETL instance is `<AA_INSTALL_LOCATION>/etl/logs/etl-pass.log`, owned by `tomcat`; read it with `sudo`. Record its size in bytes before and after each stop; the cut of a stop is the bytes between the two sizes, a line without a time stamp (a stack trace) belongs to the line before it, and a pass record is written at the end of the pass, so the passes around a stop are read from the whole file, which is copied into the evidence at the end of each stage. The pass details of the PV details page are not used, because its figure of the last job time is a running sum.
-- The time of a job of the loop is the gap between two consecutive lines "Need to consolidate", so that K lines give K - 1 times. The last job has no end line: the report gives it as not available, with the time to the end of the ETL instance as an upper bound that does not enter the maximum. The rehearsal proves the file, compares its times with the schedule, and checks with the final site file that it does not change the stop time of a rehearsal stop.
-
-Measurement
-
-- Stop the unit with `sudo systemctl stop <unit>`, which is what `make sd_stop` runs with its exit status ignored; keep the exit status. Take the stop duration from the monotonic properties of the unit, `InactiveEnterTimestampMonotonic` minus `ActiveExitTimestampMonotonic` (`systemctl show --timestamp=us+utc -p ...`), so that both values come from one clock. Take the UTC stamps from `ActiveExitTimestamp` and `InactiveEnterTimestamp`. Read `systemctl show -p Result` before the next start, because a start resets it.
-- The launcher prints one line `archappl-<service>: stopping pid <pid>` for each instance to the unit journal and no end line. The stop time of an instance is the gap to the next such line, and the stop time of mgmt is the gap to the end of the unit. The engine gap runs from the line of the engine to the line of the retrieval, the ETL gap from the line of the ETL instance to the line of the management instance, and the management gap from its line to `InactiveEnterTimestamp`.
-- Take a journal cursor before the stop (`journalctl -u <unit> --show-cursor -n 0 -q`). Cut the journal with it (`TZ=UTC journalctl -u <unit> --after-cursor=<cursor> -o short-iso-precise`; the original text of every line is kept, and the first and the last record of each cut are identified by their cursor and time, not only counted). The launcher lines, the error lines and the info lines are in the journal. The pass records, the line "Shutting down ETL threads." and the lines "Need to consolidate ..." are in the file `etl-pass.log`. Both are required evidence.
-- The cursor command returns three cases that the script tells apart: a line `-- cursor: ...` (use it), an empty output with status 0 (the unit has no entries, or the user may not read its entries; the engineer is a member of the group `systemd-journal` or uses `sudo`, and the script checks this before the first stop; take the cursor after the first start), and, for an `--after-cursor` read, the message `Failed to seek to cursor` (a lost cursor, cut by time stamps instead) or `-- No entries --` (an empty cut). Identify the first and the last record of a cut from a second read of the same cut in `-o export` format (`__CURSOR` and the time stamp).
-- The shipped level shows only the error lines: the per-PV lines and the count of left PVs described in the Summary. The consolidated PVs and the PVs that the loop did not reach therefore come from the listing of the three stores before and after the stop. The files of a PV are `<store_key>:<partition label>.pb` in each store. The key is the PV name with every separator of the installed property `siteNameSpaceSeparators` (`:`, `-` and `_` in the shipped `archappl.properties`) replaced by `/` (`ConvertPVNameToKey`); applied to the 903 PVs this rule reproduces the column `store_key` of the lists without a mismatch, and for the generated names only `:` occurs. The parsers of this item take the key from the column `store_key` of the lists and never derive it, and a PV name in an error line is mapped to its key with the same lists.
-- Check the completeness of the journal: the four launcher lines per stop, the first and the last line of the cut, the retention setting (`SystemMaxUse`) and the size of the journal after a stage. A cursor taken in a quiet journal may not be found afterwards (observed on systemd 239); check that the cut starts at the cursor, and otherwise cut by the timestamps of `ActiveExitTimestamp` and `InactiveEnterTimestamp`. A missing required line makes the stop Incomplete. The exception is a stop that the unit ended with SIGKILL, where the lines of the instances not stopped are absent by design and the result `timeout` is the observed outcome.
-- Freeze for every stop the rendered `policies.py`, the site `log4j2.xml`, the settings of journald and chrony (with `chronyc tracking`), the environment of the IOC and the unit file `stop-time-ioc.service`, the SHA-256 of `softIoc` and `caget`, the status file, the expectation files, `../CONFIG_SITE.local`, the installed `archappl.properties` and `archappl.conf`, the refs of this repository and of the source, the kernel and the JDK.
-- At the start of each run publish the stage, the start time and the intended end in a status file on the guest and in the terminal of the run, and keep the checkpoints in the evidence. The status file also records the actual end time. Keep the standard output, the standard error and the exit status of every command of the run, failed ones included (`archivePV`, `getPVStatus`, `make install`, `chronyc`, `journalctl`, `systemctl`), in the evidence directory before any reset or cleanup. No fault is injected in this test; a stop that the unit ends is an observed outcome.
-
-Claims, expectation and the fit
-
-- Claims, each with the verdict of the test framework (Passed, Failed, Incomplete). C1, per stop: the stop is measured with complete required evidence (the journal cut with the four launcher lines, the unit properties and result, the listings before and after, the frozen configuration, the cut of `etl-pass.log`); Passed when all are present and usable, Incomplete when any is missing or unusable. C2, per stop: the stop suffices (result `success`, duration at most `SYSTEMD_TIMEOUT_STOP_SECONDS`, no PV left); Passed when it holds, Failed when the evidence shows otherwise. A confirmed violation stays Failed even when other evidence of that stop is Incomplete. C3, the validation stop: its duration lies inside the written 95 percent prediction interval of one more stop of the main cell of 903 PVs; Passed, Failed or Incomplete in the same way.
-- A stop that the unit ended (`timeout`) is an observed outcome and the Failed result of C2, not a tool error. A failure of a query or of the parser is a tool error, is reported apart, and does not make a stop Failed; missing required evidence stays Incomplete. Overlap and a stop outside the rule (`off-rule`: the time after the boundary outside the window, or a listing that does not show hold + 2 files of every PV) are qualifiers: a qualified stop keeps its C1 and C2 results and is left out of the fit. A cell suffices when all its stops that are Passed for C1 are Passed for C2; the report states how many stops of the cell this covers.
-- Expected native status: the rehearsal records the exit status of `systemctl stop` for a normal stop and for a stop cut at `timeout`. The cut is exercised on the rehearsal guest by shortening `SYSTEMD_TIMEOUT_STOP_SECONDS`, a declared configuration change that the rehearsal reverts. The native status is stored apart from the verdict. The run stops as Incomplete when the guest is lost, the IOC does not serve the stage, the journal is not persistent, or the use of the root file system reaches 85 percent.
-- Expectation. A stop of the stage of N PVs has the expected duration a0 + N * b0. The rehearsal measures a0 and b0 from four stops (25 and 100 PVs, two stops each, hold 2; the 25 PVs are every fourth data row of `pvs.csv`, rows 4, 8, ..., 100 without the header line): `fit-line.bash rehearsal` fits the line through the four stops. The expectations of the main cells are written by `fit-line.bash expect` on the guest to `<evidence>/<run-id>/expectation.jsonl` before the cells run, which is the file that `--expectation` names, and its SHA-256 and the time go to the status file. They extrapolate from at most 100 PVs, and the report says so. The mark "excess of the ETL gap" rests on that extrapolation.
-- Fit. For the stops of the two main cells that follow the rule, `fit-line.bash line` fits duration = a + b * N by ordinary least squares, without weights, in `awk`. With two values of N the line runs through the two cell means; with n stops used the residual has n - 2 degrees of freedom (4 when all six stops are used), and the standard error of b follows from the pooled variance of the two cells. The report shows the mean, the smallest and the largest stop of each cell, the slope with its standard error and its 95 percent interval (the Student quantile t(0.975, df) from a table of published values for df 1 to 30 that the script carries with its source), the intercept, and the predicted PV count at which the line reaches the value of `SYSTEMD_TIMEOUT_STOP_SECONDS` and 80 percent of it. It gives each PV count twice: from the slope and from the upper end of its interval, which is the cautious value. A slope that is not positive has no PV count; the report then gives only a lower bound from the upper end. A cell with fewer than two stops that follow the rule makes the fit Incomplete. Two values of N cannot test linearity; the rehearsal stops lie beside the line as a plausibility check and do not enter the fit. The line is valid for this IOC and the 5-minute partition, and a prediction beyond 3000 PVs is an extrapolation. The outputs are rounded to 6 significant digits, and `fit-line.bash check <recorded fit>` compares the rounded text exactly.
-- Report apart, without a fit: the gap of the engine, of the ETL instance and of the management instance of every stop, the bytes of the short term store from the listing, a summary of the jobs of the loop at the stop (the number, the sum, the mean, the median, the longest with its PV; the individual gaps stay in the evidence) and the PV at which a SIGKILL cut the loop, and for each cell the longest `slowestMillis` and the longest pass duration of the pass records.
-- Validation. Before the validation stop runs, `fit-line.bash predict` writes the prediction file on the local host from the n stops of the main cell of 903 PVs that follow the rule: their mean plus and minus t(0.975, n - 1) times their sample standard deviation (divisor n - 1) times the square root of 1 + 1/n (with n = 3: t = 4.303 and the square root of 4/3). With fewer than two such stops the prediction and C3 are Incomplete. The file and its SHA-256 are copied to the evidence directory of the guest with `scp`, and `run-stop.bash` checks the hash and records it with the time in the status file before the stop. The validation stop agrees when it lies inside the interval; outside it, C3 is Failed, and the report names the differences that may explain it (file size, the cadence of the passes, the store ages, the page cache) without assigning one cause. One stop gives agreement or a flag, not an uncertainty of the line.
-- Limits that the report states: the stops of one cell run in sequence and the stops after the first merge into a medium term store that holds the data of the stops before them; the standard deviation of the stops can grow with N; the waveform of a `compress` record grows from 1 to 1000 elements in the first 1000 seconds after each restart of the IOC, so the bytes of the first stop of a stage are lower than the estimate; and the time of the line "Shutting down ETL threads." plus 5 seconds is an upper bound of the moment at which the ticker stops.
-
-Test scripts, evidence and tools
-
-- The scripts are new files of this repository in `tests/stop-time/`, a deliverable of this item that follows its own review and commit authority. All of them are Bash (D41: new tests are written in Bash; the arithmetic of the fit runs in `awk`, so the item adds no Python). They are: `gen-pvs.bash` (the 2097 PVs), `archive-stage.bash` (the archivePV POST of a stage and the wait until every PV is archived and connected), `run-cell.bash` (the stops of one cell in order, with `make sd_start` between them and a stop at a refusal or a repeat that is due), `run-stop.bash` (one stop: the checks before the stop, the phase window, the stop, the cuts, the listings, the status file, and for the validation stop the verdict of C3 against the prediction file), `rebuild-table.bash` (the table from the raw evidence), `fit-line.bash` (the subcommands `rehearsal`, `expect`, `line`, `predict` and `check` of this Scope) and `selftest.bash` (the test of the scripts themselves on the committed fixtures, see below). The `README.md` of the folder has the sections Recommended Test Sequence, Debugging and Workspace Retention, Test Execution and Verified Behaviors, a table of the exit statuses, the reason why the scripts do not use `tests/lib/common.bash`, and the sentence that `tests/run-all-tests.bash --local` does not run the folder. `tests/README.md` gets one sentence that names the folder as a test for the guest that `--local` does not run. The scripts hold no runtime evidence.
-- Interface of the scripts. `run-stop.bash` takes the options `--run <run-id>`, `--cell <name>` (`rehearsal-25`, `rehearsal-100`, `main-903`, `main-3000` or `validation-903`), `--stop <number>` (a number, or a number with the suffix `r` for a repeat), `--stage <N>`, `--partition <name>`, `--hold <n>`, `--unit <unit>`, `--evidence <directory>` (the parent of the run folders), `--pv-list <csv>` (repeatable), `--expectation <file>`, `--prediction <file>` (validation stop only), `--dry-run` and `--judge <stop folder>`; it reads `ARCHAPPL_STORAGE_TOP` and `AA_INSTALL_LOCATION` from `make -s print-...` of the checkout, runs as the engineer with `sudo` for the commands that need it, and writes one JSON record of the stop to `<evidence>/<run-id>/stops.jsonl`. `--dry-run` parses the options, runs every check before the stop and prints the commands of the stop without running them. `--judge <stop folder>` judges a recorded stop folder without a stop and exits with its verdict, which is how the verdicts are tested on the fixtures. `gen-pvs.bash <output folder>` writes `extra.db` and `extra.csv`. `rebuild-table.bash <evidence copy> <output.jsonl>` rebuilds the table from the raw files. `fit-line.bash <subcommand> <input> [<output>]` reads JSONL; `rehearsal` and `line` write text, `expect` writes `expectation.jsonl`, `predict` writes `prediction.json`, and `check` writes nothing and exits 0 on equal text and 1 on a difference. A refusal of the guard or of the usage exits with status 3 and a message before any side effect, apart from the verdicts 0, 1 and 2; the `README.md` says that status 2 means Incomplete here while `tests/run-all-tests.bash` uses 2 for an invalid usage and 77 for an incomplete system test.
-- Bash form of the scripts: `set -euo pipefail`, `function name {`, `TOP` resolved from `BASH_SOURCE` and `readonly`, one assertion for each claim, the counters `TEST_TOTAL`, `TEST_PASSED`, `TEST_FAILED`, `FAILED_DETAILS` and `INCOMPLETE_DETAILS`, the summary block, one EXIT handler, the exit status 0 for Passed, 1 for Failed, 2 for Incomplete, 130 and 143 for INT and TERM. `bash -n` and `shellcheck -x` pass without a finding on every script; this is a condition of the review of the pull request, not a gate of the repository.
-- Fixtures and the self-test. The folder `tests/stop-time/fixtures/` holds small files of the shapes that the scripts read: a journal cut with the four launcher lines, a unit record of `systemctl show`, a cut of `etl-pass.log` with pass records, the line "Shutting down ETL threads." and consolidation lines, listings of the three stores, a PV list, an expectation file, a prediction file, a recorded `stops.jsonl` and a recorded fit. They are sanitized excerpts of the rehearsal or, until the rehearsal ran, synthetic files in the same form; the `README.md` says which. `selftest.bash` runs on the local host without a guest and checks: the parsers on the fixtures and on copies with a launcher line removed, a cut without its cursor, a truncated log, a missing required field, a stack trace line and an empty cut (each with the expected Passed or Incomplete result, and a tool error that is not a product failure); the time handling on a known pair of stamps; `gen-pvs.bash` for the count, the names, the record form and the determinism; `fit-line.bash` on a known table (the slope, the intercept and the standard error against recorded values, the 30 table values, `check` failing on a changed digit, a slope that is not positive, and fewer than two stops); the verdict of C3 inside, outside and on the interval; the refusal of the guard and of a wrong `ARCHAPPL_STORAGE_TOP` with status 3; the exit statuses 0, 1 and 2 of `run-stop.bash --judge` on fixture stop folders that are Passed, Failed and Incomplete, and the checks of `run-stop.bash --dry-run`; and that `rebuild-table.bash` on copies leaves the originals byte-identical and agrees with the recorded `stops.jsonl` through `compare-evidence.py`. The self-test is the condition under which the pull request is reviewed; the rehearsal on the guest adds what the host cannot show.
-- `run-stop.bash` does not source `tests/lib/common.bash`, whose workspace under `/dev/shm`, its own EXIT trap and its exit at the first failure do not fit the scheme of the test framework; it has its own counters and the single EXIT handler, and the evidence directory is never the cleaned workspace. The folder is a test for the guest and is run explicitly there; `tests/run-all-tests.bash --local` does not call it, and the `README.md` says so. `run-stop.bash` refuses to run (status 3) unless the file `/etc/stop-time-guest` exists (the engineer creates it on the guest at the start) and `ARCHAPPL_STORAGE_TOP` is `/arch`; the script never runs `make conf.storage.rm`.
-- Evidence directory: `~/stop-time-evidence/<run-id>/` of the engineer on the guest, outside `ARCHAPPL_STORAGE_TOP` and outside scratch folders, so that `sudo make conf.storage.rm` does not reach it. It holds the status file, the journal cuts, the cuts and the copy of `etl-pass.log`, the listings, the output of every command, the expectation and prediction files and the frozen configuration. On failure or Incomplete the workspace is retained, and `KEEP_WORKSPACE=1` retains it on success too. Originals are frozen after each stop, and replays use separate copies.
-- Result location: the coverage table, the statement and the fit text are written as `report.md`, `coverage.md` and `fit.txt` into `~/stop-time-evidence/<run-id>/report/` on the host and copied, with their SHA-256, into the Verification Results and the Closure Evidence of this item in `docs/milestone-2.0.1.md` (the register holds the table and the statement; the raw evidence stays private on the host and the guest). The result changes no document of the repository; the deliverables add the folder `tests/stop-time/` with its `README.md` and one sentence in `tests/README.md`.
-- Record contract. Required fields: launcher line (time, service, pid), unit record (`ActiveExitTimestamp`, `InactiveEnterTimestamp`, both monotonic values, `Result`, `InvocationID`), pass record (`plannedAt`, `startedAt`, `endedAt`, `pvCount`, `jobsRun`, `jobsFailed`, `partitionsMoved`, `bytesMoved`, `slowestPv`, `slowestMillis`, `aborted`; the other fields are optional), consolidation line (time, PV), listing row (store, PV key, file, bytes, modification time). A missing required field makes the record Incomplete; a missing optional field does not. The parser runs on retained records and on copies of real records with a launcher line removed, a cut that misses its cursor and a truncated log, and each outcome is checked. The table keeps the original timestamp text and converts to UTC with microsecond precision. The status file `<evidence>/<run-id>/status` has `key=value` lines with the keys `run`, `cell`, `stop`, `stage`, `partition`, `hold`, `start_utc`, `intended_end_utc`, `actual_end_utc`, `b0_utc`, `e_planned_utc`, `e_used_utc`, `expectation_sha256`, `expectation_written_utc`, `prediction_sha256`, `prediction_written_utc`, `chrony_offset_s` and `pending`; `run-stop.bash` copies it as `status.<cell>.<stop>` into the folder of the stop before the stop and updates the live file after it. The expectation file `expectation.jsonl` holds one JSON record for each cell (`cell`, `n_pvs`, `expected_s`, `a0_s`, `b0_s_per_pv`), the prediction file `prediction.json` the fields `cell`, `n_stops`, `mean_s`, `sd_s`, `t`, `lower_s` and `upper_s`, and `run-stop.bash` writes one JSON record for each stop to `stops.jsonl` (the recorded table) with the per-stop fields of the Completion Criteria, the key `stop` carrying the suffix `r` of a repeat; the per-cell values (the longest `slowestMillis`, the longest pass, the ratio of the ETL gap per PV of the validation stop to that of `main-903`) come from `fit-line.bash line`. The contract file of `compare-evidence.py`, `tests/stop-time/stops-contract.json`, declares the keys `cell`, `stop` and `invocation_id`, the time stamps and the numbers with their units; `selftest.bash` uses the same file.
-- Tools of the test framework. `check-sources.py` checks the copied test PV set against an independent inventory: the inventory root is a folder extracted with `git archive` from `tests/archiver-soak/fixtures/` at the pinned commit of ansible-provision, made a Git working tree with `git init` (the checker lists its members with `git ls-files`), with a `SHA256SUMS` of all its `.db` and `.csv` files, and the candidate root is the copy on the guest; the check runs on the guest after the copy, with `git` installed there and the archive carried over with the copy; the generated files `extra.db` and `extra.csv` are checked by their own `SHA256SUMS` and the hash of the generator. `compare-evidence.py` compares the table that `rebuild-table.bash` rebuilds with the recorded table of the stops (JSONL records; a key without a value is left out of the record, because the tool treats an empty number as unresolved; keys cell, stop and the `InvocationID` of the unit; time stamps in UTC with `Z`; numbers with their units); the recorded table and the rebuilt table come from the same raw evidence by different paths, so their agreement shows that the rebuild reproduces the recording and is not an independent expectation. `bundle-evidence.py` is not used: it takes a receipt as its input, and no producer of a receipt for `rebuild-table.bash` exists in this item. Freezing a stop is: `run-stop.bash` writes `<stop folder>/SHA256SUMS` over every file of the stop folder after the stop, and the engineer writes `<evidence>/<run-id>/SHA256SUMS` over all stop folders and the live files at the end of each stage and at the end of the run. The evidence moves from the guest to the local host with `rsync -a` into `~/stop-time-evidence/<run-id>/` of the engineer on the host, followed by `sha256sum --check --strict` of both manifests there; the replay runs on a second copy under `~/stop-time-evidence/<run-id>-replay/`, and the originals are compared with their manifests after the replay.
-- Readiness is observed, not slept. The wait for the boundary is computed from the UTC clock, with the offset of `chronyc tracking` recorded for each stop; after the IOC restart each PV connection is verified before archiving; the stop is issued only when the listing shows hold + 2 files of every PV and the clock lies inside the window. The listing records its start and end, and the stop begins within 10 seconds after the listing ends.
-- Rehearse before the main cells: run the stages of 25 and 100 PVs through installation, archiving, accumulation with the rule, the stop, the final capture of logs, journal and listings, the building of the table and its replay from copies. Measure a0 and b0 with the four stops above and the stop times of engine and retrieval, check that the short term store holds about 10 samples per second for a 10 Hz PV, prove the commands of this Scope, and fix the reset procedure. Rehearse the failure paths: a stop cut at `timeout`, a missing launcher line, a lost cursor, a failed query, a truncated log and an interrupted stop, and show that a tool error is not recorded as a product failure. The rehearsal of 25 and 100 PVs establishes the tools and the commands, and cannot establish the behavior of 3000 PVs, of the hourly partition or of the full volume. It counts for no cell. Repair what blocks capture or judgment before the main cells. Exercise the tools of the table and the replay once on a declared replicate of the retained rehearsal evidence, copied to the member count and size of the largest cell (3000 PVs, 4 files of each PV, 7 stops); this tests the tools only and supports no claim about the appliance.
-- A corrected tool is run on the retained evidence as a candidate result, and the original result is kept. A stop is repeated only when a required observation cannot be recovered or the behavior of the target changed.
-- After a reboot of the guest: check `journalctl --list-boots` (the journal is persistent, so the cursors of the stops before the reboot stay valid; the monotonic values of a stop come from one boot), the units `epicsarchiverap-maven.service` and `stop-time-ioc.service` (both enabled; the appliance start after the boot is an auxiliary stop in the coverage table), the ten `MDEL` and `ADEL` fields, `chronyc tracking`, the guard file and the evidence directory, and continue with the B0 rule.
-- Disk estimate (an assumption that the rehearsal replaces with the measured sample size). The stage of 3000 PVs produces about 3980 scalar samples per second (1884 from the set of 903 PVs and 2097 generated) and 8 waveform samples per second. A scalar sample takes about 25 bytes in a plain file and a waveform sample about 8 kB (packed doubles), which gives about 165 kB per second or 590 MB per hour. A cell of the stage of 3000 PVs holds 4 files of 5 minutes (about 200 MB) in the short term store and the consolidated data of the same size in the medium term store. At the validation stop the short term store of 903 PVs holds hold + 2 files, three full hours and the file just opened (about 1.2 GB), and the medium term store holds the data of the same size after the stop. With the evidence, about 6 GB are data and evidence. The system, the JDK, Tomcat, the Maven cache and the EPICS Base copy take about 12 GB on the same disk, so the request names 30 GiB. Keep the use of the root file system below 85 percent, the threshold of the health check for the storage path.
-- Total time: accumulation and waits of the six stops of the main cells up to 20.5 minutes each (about 2 hours) and of the validation stop up to 4 hours; with the starts, stops, resets and checks of 7 stops the run takes about 8 hours without the rehearsal.
-
-Out of scope: a change of the default of `SYSTEMD_TIMEOUT_STOP_SECONDS`, of the ETL code or of the policies of the repository, apart from the new files of `tests/stop-time/` named in this Scope (the raised or changed `ARCHAPPL_STS_*` values are settings of the guest only); a change of `docs/README.install.md` or the systemd reference (a change follows the result and needs its own plan item and authority); heap sizing (M41); a stop during a running pass; the hold of 5; the 15-minute and the hourly matrices (M56 and M57; Deferred on 2026-10-19; reopened and Complete on 2026-10-21); any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`; the guest has its own installation at the same default paths); a run on Rocky Linux 8.10.
-
-##### Completion Criteria
-
-- A table lists for every stop of the main cells and the validation cell, with the keys cell, stop and the `InvocationID` of the unit, the qualifiers (overlap, off-rule, incomplete) and the verdicts C1, C2 and C3: the number of PVs, the files of each PV, the files and bytes of the short term store, the time after the boundary, the stop duration of the unit and of each instance, the unit result, the consolidated PVs and the left PVs, the jobs of the loop at the stop as a summary (the number of jobs, the sum, the mean, the median, the longest with its PV, the gap of the ETL instance divided by the PV count; the individual gaps between consecutive "Need to consolidate" lines stay in the evidence) and the PV at which a SIGKILL cut the loop, and for each cell the longest `slowestMillis` and the longest pass duration of the pass records. It names the refs, the kernel, the JDK, the policy values, the installed `TimeoutStopSec` and the value of `ETLPassStopWaitSeconds`, and for the validation stop the ratio of its ETL gap per PV to that of the cell `main-903`. A stop that the unit ended or that overlapped a pass is marked.
-- The journal cuts, the unit results, the listings and the frozen configuration reproduce the table. Their hashes and the identities of the rebuilding tools are frozen before the replay. The replay runs on copies, and the originals are unchanged.
-- A coverage table lists every cell and every stop with its result: observed stop, ended by the unit (SIGKILL, result `timeout`), overlapping a pass, off-rule, Incomplete (a required record is missing), not run, interrupted, or auxiliary (a start or stop that is not measured, with its reason). A cell or a stop that did not run is not counted as passed.
-- A statement gives the line of the stop time over the PV count with its standard error, the PV counts at which it reaches the stop timeout and 80 percent of it (from the slope and from the cautious end of its interval), the predicted stop time at 5000, 10000, 20000 and 50000 PVs (from the slope and from the cautious end, with the note that these are extrapolations beyond 3000 PVs), the sentence that the line and the PV counts assume that no pass runs at the stop and that a running job adds at most two waits of `ETLPassStopWaitSeconds` plus one left PV, the cells that suffice and that do not, and the result of the validation stop against its written interval.
-- The statement opens with a block of the conditions of the measurement: for each cell the partition and the hold, the database (SQLite), the memory and vCPU of the guest, the disk layout (the three tiers on one virtual disk), the operating system, the heap of each instance, the log level and the appender, the installed `TimeoutStopSec` and the value of `ETLPassStopWaitSeconds` (not in the installed file; the default), the PV mix as a table (policy, rate, waveforms, the 2097 generated 1 Hz PVs), and for each stop the bytes of the short term store and the average bytes per PV. It names what a site has to do to set each of the two values (`SYSTEMD_TIMEOUT_STOP_SECONDS` in `../CONFIG_SITE.local` followed by `make sd_install`; `ETLPassStopWaitSeconds` only through a change of `site-template/archappl.properties.in`), the cost of a PV left unconsolidated (its files move in the next pass of a store on a disk, and are lost on a reboot with a store on tmpfs), and the follow-up item and the two documents (`docs/README.install.md`, `docs/technicaldocs/README.systemd.md`) that a sizing rule would change. The statement does not change the documents.
-- Every stop has its verdicts for C1 and C2 and the validation stop its verdict for C3, as the Scope defines them; the summary of the run gives the counters and the exit status of the driver (0 Passed, 1 Failed, 2 Incomplete); the report files and their hashes are in the Verification Results of this item. The scripts of `tests/stop-time/`, their fixtures and their `README.md` are delivered; `selftest.bash` passes on the local host, and `bash -n` and `shellcheck -x` pass on every script.
-
-##### Dependencies And Decisions
-
-- G9: the guest. The order is: the owner accepts the plan, the owner authorizes the implementation, the second step of the implementation sends the request of G9 (the first step writes and self-tests the scripts on the local host), the provider completes G9, and then the steps that need the guest run. Owner decision of 2026-10-19: the item is In progress with step 1 (the scripts and their self-test on the local host), which needs no guest; G9 is the condition of steps 2 to 7, which do not start while G9 is Open. G9 is Complete since 2026-10-19. The guest stays running during the measurement, because each start after a shutdown needs the authorization of the owner of the provider. The disk size of the request comes from the estimate in the Scope.
-- Owner choices of 2026-10-19, taken before the acceptance of the plan: the stages of 903 and 3000 PVs (the choice follows the finding that the measurement of ansible-provision at 903 PVs is 13 seconds), the reuse of the 903 PVs of ansible-provision with 2097 generated PVs for the stage of 3000; the hold of 2; Debian 13, with Rocky Linux 8.10 deferred; the partition `PARTITION_5MIN` for the main cells and the shipped partition for the validation stop; the criterion of sufficiency; three stops for each main cell and one for the validation stop; no stop during a running pass and no hold of 5; SQLite as the database; the guest of 2 vCPU, 4 GiB and 30 GiB; the installation by the engineer with the local script and the account `tomcat`; the pass events from a log file; the verdict model of the test framework (C1, C2, C3); the scripts in `tests/stop-time/` of this repository; the use of `check-sources.py` and `compare-evidence.py` (not `bundle-evidence.py`, which needs a receipt producer); the override of the deadband applied and a lower bound of 30 seconds of the window; the Student quantile from a table of published values; the scripts in Bash with `awk` and no Python (D41), with committed fixtures and a self-test on the local host; a missed window continued at the next boundary without a restart; the report form of the Completion Criteria (conditions block, fixed PV counts, loop summary); no change of the documents within this item. M56 and M57 are Deferred on the same date (reopened and Complete on 2026-10-21).
-- The owner accepted the plan and authorized the implementation on 2026-10-19.
-- Owner decision of 2026-10-20: the two helpers that the measurement used on the guest, the archiving of a stage and the run of the stops of a cell, become `tests/stop-time/archive-stage.bash` and `tests/stop-time/run-cell.bash`, each with its purpose and usage in its header and in the `README.md` of the folder.
-- Owner decision of 2026-10-20: the excerpts of the rehearsal are added to the fixtures beside the synthetic files instead of replacing them; the synthetic files stay as the base of the damaged copies of the self-test, and no real validation stop exists before step 6.
-- Owner decision of 2026-10-19: `run-stop.bash` also takes the rehearsal cells `rehearsal-25` and `rehearsal-100`, so that the rehearsal stops are recorded in `stops.jsonl` and `fit-line.bash rehearsal` reads them.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-19 (the plan of commit `0ac24de`)
-Implementation Authorization: the owner authorized the implementation on 2026-10-19
-Superseded Plan Artifacts: none
-
-1. Write the scripts and the fixtures of `tests/stop-time/`, and pass the self-test on the local host (T1).
-2. Send the resource request of G9 and receive the handoff. On the guest install the appliance with the local SQLite installation, copy the EPICS Base binaries and install `libreadline8`, set the persistent journal and `chrony`, install the site log4j2 file for the pass events, copy the test PV set at the pinned commit and check it with `check-sources.py`, generate the 2097 PVs, and render the settings of the main cells; the PVs are archived in the sequence of each stage (T2).
-3. Rehearse with 25 and 100 PVs, including the failure paths and the stop cut at `timeout`. Measure a0 and b0 and the stop times of engine and retrieval, prove the commands, fix the reset procedure, exercise the tools on the replicated evidence, and replace the synthetic fixtures by sanitized excerpts of the rehearsal (T2).
-4. Write the expectation of the main cells with `fit-line.bash expect` and record its hash. Reset after the rehearsal, run the three stops of the stage of 903 PVs, reset, and run the three stops of the stage of 3000 PVs (T3, T4, T5).
-5. Freeze the evidence of the main cells (members, SHA-256, tool identities), move it to the local host with `rsync -a` and check its manifest there, fit the line, write the prediction of the validation stop with `fit-line.bash predict`, and copy it to the guest with its hash (T6).
-6. Change the policy to the shipped values, reset, and run the validation stop (T3, T4, T5).
-7. Freeze all evidence, move it to the local host, rebuild the table from copies, compare the validation stop with its written interval, compile the coverage table and the statement, and record the result without a change of the documents (T7, T8).
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Run `selftest.bash` of `tests/stop-time/` on the committed fixtures, and `bash -n` and `shellcheck -x` on every script | Local host | The self-test passes with exit status 0; the parsers, the generator, the fit, the C3 verdict, the guard and the exit statuses behave as the Scope states; `shellcheck -x` reports nothing |
-| T2 | VM | Rehearse with 25 and 100 PVs through installation, archiving, accumulation with the rule, the stop, final capture and the table with its replay, with the PVs served by a real `softIoc`; rehearse the failure paths (a stop cut at `timeout`, a missing launcher line, a lost cursor, a failed query, a truncated log, an interrupted stop); exercise the tools on the replicated evidence of the largest cell | Guest of G9; local host | Every step runs and its evidence is retained; a0, b0, the commands, the native statuses and the reset procedure are fixed; a tool error is not recorded as a product failure; defects that block capture or judgment are repaired; the fixtures are replaced by sanitized excerpts and T1 passes on them too |
-| T3 | VM | Stop the unit with `sudo systemctl stop` (the effect of `make sd_stop`) under the rule at each stop of the main cells and in the validation cell, after the expectation is written down | Guest of G9 | A stop duration of the unit and of each instance for every stop, next to its expectation, with the time after the boundary and the file count |
-| T4 | VM | At the shipped log level cut the journal of each stop with its cursor, read the error lines of the ETL instance, `systemctl show -p Result` of the unit before the next start and the journal line of the timeout; check the four launcher lines, the first and last line of the cut, and overlap | Guest of G9 | The PVs named as left, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
-| T5 | VM | List the three stores before and after each stop | Guest of G9 | After a stop without SIGKILL the short term store holds no file except those of the PVs that the error lines name as left (an empty file is deleted, not moved); after a stop that the unit ended the listing names the PVs that still have files |
-| T6 | Local | Freeze the evidence of the main cells (members, SHA-256, tool identities), fit the line with `fit-line.bash line`, and write the prediction of the validation stop with `fit-line.bash predict` and its hash before the stop runs | Local host | The line, its standard error and the interval are retained and reproduce from the frozen table with `fit-line.bash check` |
-| T7 | Local | Freeze all evidence, move it from the guest with a check of every member, rebuild the table from separate copies with `rebuild-table.bash`, compare it with the recorded `stops.jsonl` by `compare-evidence.py`, and judge C3 of the validation stop against the interval of T6 | Local host | Every value follows from the retained files, the originals are unchanged, the table agrees with the recorded table, and C3 uses the interval of T6 |
-| T8 | Review | Read the coverage table, the line and the statement against the table | Local host | Each claim names the stage and the stop duration that support it, the line reproduces from the retained table, and no cell that did not run counts as passed |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-19, 2026-10-20 | Local host (Debian 13) | Passed | `tests/stop-time/selftest.bash` on 2026-10-19 with the files of commit `943407e`, which adds the folder: 87 of 87 assertions Passed with exit status 0; on 2026-10-20 with the files of the commit that carries the tool repairs and the fixtures of the rehearsal: 128 of 128 Passed with exit status 0. Each run used `awk` once as GNU awk and once as mawk (the awk of the guest), and `bash -n` and `shellcheck -x` reported no finding on the five scripts. On 2026-10-20 with the helpers `archive-stage.bash` and `run-cell.bash` added and the pass window bound to the start of `run-stop.bash`: 138 of 138 Passed with exit status 0, once with GNU awk and once with mawk. On the first two dates a seeded defect in a copy of `rebuild-table.bash` (the PV word of the consolidation line) and in a copy of `fit-line.bash` (the factor of the prediction interval) each made the self-test exit 1 |
-| T2 | 2026-10-20 | Guest of G9 (Debian 13, source `a8d07955`, this repository `943407e` with the tool repairs below copied in; the copied files are those of the commit that carries the repairs, equal by SHA-256 to the local files); local host | Passed | Installation, the site log4j2 file, the persistent journal, `chrony`, the IOC unit and the copied PV set (`check-sources.py` Passed against the inventory of ansible-provision `635d76c`) are in place; a 10 Hz PV stores 601 samples in 60 seconds. Four rehearsal stops are Passed for C1 and C2: 25 PVs 1.312 s and 1.336 s, 100 PVs 1.580 s and 1.479 s (engine gap about 1.1 s, ETL gap 0.11 to 0.31 s, no PV left); `fit-line.bash rehearsal` gives a0 1.25554 s and b0 0.00273987 s per PV, and `expectation.jsonl` gives 3.72964 s for 903 PVs and 9.47515 s for 3000 PVs. Failure paths: a stop with `SYSTEMD_TIMEOUT_STOP_SECONDS` 1 ended in `timeout` after 1.08 s with all 100 PVs left and the exit status 0 of `systemctl stop`; a TERM to `run-stop.bash` gave status 143 and Incomplete with the evidence kept; damaged copies of a real stop folder (a launcher line removed, the cursor of the cut missing, a truncated log) are Incomplete, a cut by time stamps is Passed, and an unreadable file is a tool error (status 3). A lost cursor: `journalctl` answers a malformed cursor with status 1 and `Failed to seek to cursor`, but a well-formed cursor that the journal does not hold seeks to another position and returns the journal from its start (a live stop with such a cursor, given through the test hook `STOP_TIME_CURSOR`, cut 25 launcher lines of earlier stops); after the repair below a live stop with the same cursor fell back to the cut by the unit time stamps (`mode=time`, first record at the start of the stop, 4 launcher lines, Passed). A failed query: the appliance stopped 5 seconds after `run-stop.bash` started, so `getPVStatus` failed; after 900 seconds the script ended Incomplete (status 2) without a stop command and without a record in `stops.jsonl`. Tool repairs found by the rehearsal (the original records kept, the repaired tool run on copies as candidate results): the pass records are read from the whole `etl-pass.log` (`etl-pass.records`), `slowestMillis` and the pass duration count the passes of the accumulation of each stop, the rehearsal cells take no `--expectation`, an empty cut is not missing evidence when the unit ended the stop before the ETL instance, `run-stop.bash` cuts by the unit time stamps when the first record of the cursor cut is older than the moment the cursor was taken, `rebuild-table.bash` counts launcher lines from the start of the stop and marks a cut that starts more than 60 seconds before it as Incomplete, and three pipes whose reader can end early under `pipefail` were removed (one of them ended a live stop after the stop command with status 141; that stop is kept and repeated as `4r`), and a stop that ends before its record now writes `ended.txt` and `SHA256SUMS` into its folder and sets `pending` to the same stop before the stop command or to the repeat with the suffix `r` after it, while a recorded clean stop removes the key; on the guest a TERM during the wait gave status 143, a frozen folder and `pending=rehearsal-100/6`, a second run of the same stop moved the old folder aside as `.interrupted-<UTC>`, and a stop whose folder holds `stop-exit.txt` was refused with status 3 and left unchanged (the folders of the stops ended before this repair carry no `ended.txt`). The expectation of the main cells was written from the table recorded at the four rehearsal stops; with the repaired tool the same a0 and b0 come from the candidate results (the folder of `rehearsal-25` stop 1 with the pass records extracted after it), while the original folder of that stop is Incomplete for C1 without `etl-pass.records`, and a table rebuilt from the original folders gives a0 1.27133 s and b0 0.00258193 s per PV from the other three stops. A tool error of `rebuild-table.bash` at the end of a stop writes no record and ends the stop as one that ended before its record; this branch was not executed in a live stop: `run-stop.bash --judge` on a folder with an unreadable file gave status 3 and no record, and the end handling is the one that the interrupted stops above executed. A declared replicate of a rehearsal stop folder at the size of the largest cell (3000 PVs with 4 short term files each, 7 stop folders, 12000 listing rows of the short term store per stop) exercised the tools only: `rebuild-table.bash` built the 7 records in 3.2 s, its run on a copy agreed through `compare-evidence.py` (Passed), the originals stayed byte-identical, and `fit-line.bash line` and `check` ran on the table. Three real stop folders of the rehearsal (normal, timeout, interrupted) are fixtures in `tests/stop-time/fixtures/run-rehearsal/` beside the synthetic ones, and `selftest.bash` judges them again to the values recorded at the stop (128 of 128 assertions Passed with GNU awk and with mawk) |
-| T3 | 2026-10-20 | Guest of G9 (this repository `990786e`, source `a8d07955`, SQLite; `PARTITION_5MIN` for the main cells and `PARTITION_HOUR` for the validation stop, hold 2) | Passed | Six stops of the main cells, each about 30 seconds after its boundary E (30.17 s to 30.73 s), with hold + 2 files of every PV and no qualifier: `main-903` 2.34421 s, 2.3907 s and 2.23577 s against the expectation 3.72964 s; `main-3000` 7.80716 s, 6.60475 s and 6.67428 s against 9.47515 s. Engine gap 1.09 s to 1.28 s, ETL gap 1.02 s to 1.10 s at 903 PVs and 5.25 s to 6.40 s at 3000 PVs, management gap 0.05 s to 0.07 s. The validation stop (`PARTITION_HOUR`, 30.42 s after E at 01:00 UTC) took 3.7403 s: engine gap 1.209 s, ETL gap 2.296 s, management gap 0.116 s |
-| T4 | 2026-10-20 | Guest of G9 | Passed | Every stop of the main cells: unit result `success`, the four launcher lines, a cut from its cursor (`mode=cursor`), no error line of the ETL instance, no overlap with a pass (the longest pass of the cell `main-3000` took 9.41 s), C1 and C2 Passed; no stop was ended by the unit and none is Incomplete. The validation stop has the same: result `success`, four launcher lines, a cut from its cursor, no error line, no overlap (its longest pass took 0.88 s) |
-| T5 | 2026-10-20 | Guest of G9 | Passed | Before each stop of the main cells the listing showed hold + 2 = 4 files of every PV in the short term store; after each stop the short term store held no file and every PV was consolidated (903 and 3000 loop jobs, sums 0.96 s to 1.05 s and 5.17 s to 6.34 s, longest job 14 ms), so no PV was left. The validation stop had 4 files of every PV (1118597163 bytes, 1.24 MB per PV) before and no file after, with 903 loop jobs (sum 2.215 s, longest 119 ms) |
-| T6 | 2026-10-20 | Local host | Passed | The run folder (1019 files) moved from the guest with `rsync -a` and passed `sha256sum --check --strict` on the host; the tool identities are in `tool-identity.txt`. On a separate copy `rebuild-table.bash` reproduced the six records of the main cells exactly (`compare-evidence.py` Passed), and `fit-line.bash check` found the line of the rebuilt table equal to the recorded line. The line: intercept 0.297442 s, slope 0.00224376 s per PV, standard error 0.000187137 (df 4, t 2.776, interval 0.00172427 to 0.00276325); the timeout of 300 s at 133571 PVs and cautiously 108460, 80 percent of it at 106831 and 86746.5. The prediction of the validation stop from the three stops of `main-903`: mean 2.32356 s, sd 0.0795025 s, interval 1.92854 s to 2.71858 s, SHA-256 `73f66105047240e1b5edb83c730180f7ca12b2d0777f0f7d088301173a7f4f37`, copied to the guest and checked there before the stop. An independent computation gave the same line and interval |
-| T7 | 2026-10-20 | Local host | Passed | The run folder (1103 files, 197 MB) moved from the guest with `rsync -a` and passed `sha256sum --check --strict` on the host; a separate copy `st-20261019-replay-final` holds the rebuilt table and the tool identities. `rebuild-table.bash` rebuilt 11 records; `compare-evidence.py` against the recorded `stops.jsonl` found every unit duration, result, C2 and C3 equal and differences only in the pass statistics and in C1 of `rehearsal-25` stop 1, all from the tool repairs: the pass statistics count the passes from the start of `run-stop.bash` (start_utc of the status copy), because `etl-pass.log` runs on across resets and the window of the hourly partition reached back into the stage of 3000 PVs (the recorded longest pass of the validation stop, 9.41 s, belongs to that stage; its own is 0.88 s). The originals stayed unchanged. The run manifest leaves out the nested `SHA256SUMS` files; each real stop folder passed its own `SHA256SUMS` and `frozen/SHA256SUMS` on the host (22 manifests), the nested manifests are byte-equal on the host and the guest, and those of the declared copies (the damaged copies of the failure paths, the candidate copies and the replicate of the largest cell) differ by design. The run of the failure paths (`st-20261019-fail`, 268 files) moved to the host the same way and passed its manifest and the 8 manifests of its stop folders. The line of the rebuilt table equals the line of T6 apart from the added ratio of the validation stop. C3 of the validation stop: 3.7403 s outside the interval 1.92854 s to 2.71858 s of T6 (the hash of the prediction in the status copy equals the hash of T6), so C3 is Failed; its ETL gap per PV is 2.15936 times that of `main-903`. Report files on the host with SHA-256: `report.md` `1212c93a0d8b155c47ef222cef61a44a4140edfe49e52602532284d216643a03`, `coverage.md` `0828d6cc91da0ca8b76e774c29f152317b5edb5312ed5f7002772ea722cdffa5`, `fit-final.txt` `cc607c8e400bc73b42afe0456c703c6e3cc0b906af21454681f14a088777ff01` |
-| T8 | 2026-10-20 | Local host | Passed | Every value of `report.md` and `coverage.md` was recomputed from the rebuilt table, `fit-final.txt`, `prediction.json`, the frozen configuration and the PV lists: the 7 rows of the stop table, the line, its interval and PV counts, the predictions at 5000 to 50000 PVs, the cell means, the ratio of the validation stop, the gap ranges, the job times, the data sizes and the PV mix (110 `VeryFast` at 10 Hz, 10 `Fast` at 1 Hz, 10 `Medium` at 0.1 Hz, 773 `Default` at 1 Hz with 8 waveforms) agree; every claim names the cell and the stops that support it, the line reproduces from the retained table (T7), and no cell that did not run counts as passed (all three cells ran their planned stops) |
-
-##### Closure Evidence
-
-- Complete on 2026-10-20. Deliverables: `tests/stop-time/` (scripts, fixtures, `README.md`) in commits `943407e` and `990786e` and in the commit that carries this record (the helpers `archive-stage.bash` and `run-cell.bash` and the pass window bound to the start of `run-stop.bash`); the records of the run in `f589bb9` and this commit. Every test of the Test Plan is Passed (T1 to T8).
-- Report files on the host, `~/stop-time-evidence/st-20261019/report/`: `report.md` (SHA-256 `1212c93a0d8b155c47ef222cef61a44a4140edfe49e52602532284d216643a03`), `coverage.md` (`0828d6cc91da0ca8b76e774c29f152317b5edb5312ed5f7002772ea722cdffa5`), `fit-final.txt` (`cc607c8e400bc73b42afe0456c703c6e3cc0b906af21454681f14a088777ff01`); the raw evidence stays private on the host and the guest.
-- Conditions: Debian 13 guest of 2 vCPU, 4 GiB, one 30 GiB disk for the three tiers and SQLite; source `a8d07955`; heap 256M for each instance; root logger INFO with the file appender of the pass events; installed `TimeoutStopSec` 300 s; `ETLPassStopWaitSeconds` 60 s (the default, not in the installed file); the 903 PVs of ansible-provision (110 `VeryFast` at 10 Hz, 10 `Fast`, 10 `Medium` at 0.1 Hz, 773 `Default` with 8 waveforms) and 2097 generated 1 Hz PVs for the stage of 3000.
-
-| Cell | Stop | InvocationID | PVs | Partition | STS bytes per PV | After E (s) | Unit stop (s) | Engine (s) | ETL (s) | Mgmt (s) | Result | Left | Loop jobs | Loop sum (s) | Longest job (ms) | C1 | C2 | C3 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| main-903 | 1 | `495618cc` | 903 | PARTITION_5MIN | 105781 | 30.40 | 2.344 | 1.127 | 1.074 | 0.073 | success | 0 | 903 | 0.957 | 11 | Passed | Passed | — |
-| main-903 | 2 | `383d946a` | 903 | PARTITION_5MIN | 106106 | 30.37 | 2.391 | 1.156 | 1.096 | 0.067 | success | 0 | 903 | 1.045 | 9 | Passed | Passed | — |
-| main-903 | 3 | `2e966fe1` | 903 | PARTITION_5MIN | 106071 | 30.17 | 2.236 | 1.091 | 1.020 | 0.060 | success | 0 | 903 | 0.979 | 8 | Passed | Passed | — |
-| main-3000 | 1 | `9edb4d3f` | 3000 | PARTITION_5MIN | 45814 | 30.73 | 7.807 | 1.281 | 6.396 | 0.069 | success | 0 | 3000 | 6.340 | 12 | Passed | Passed | — |
-| main-3000 | 2 | `87e2ddbe` | 3000 | PARTITION_5MIN | 45410 | 30.51 | 6.605 | 1.266 | 5.252 | 0.052 | success | 0 | 3000 | 5.172 | 14 | Passed | Passed | — |
-| main-3000 | 3 | `41bd1478` | 3000 | PARTITION_5MIN | 45329 | 30.67 | 6.674 | 1.219 | 5.329 | 0.056 | success | 0 | 3000 | 5.278 | 12 | Passed | Passed | — |
-| validation-903 | 1 | `8bb533ed` | 903 | PARTITION_HOUR | 1238760 | 30.42 | 3.740 | 1.209 | 2.296 | 0.116 | success | 0 | 903 | 2.215 | 119 | Passed | Passed | Failed |
-
-- Statement. Over the six stops of the main cells the stop time of the unit is 0.297442 s + 0.00224376 s per PV (standard error 0.000187137, 95 percent interval of the slope 0.00172427 to 0.00276325). It reaches the stop timeout of 300 s at 133571 PVs and cautiously at 108460, and 80 percent of it at 106831 and cautiously at 86746.5; at 5000, 10000, 20000 and 50000 PVs it predicts 11.5 s, 22.7 s, 45.2 s and 112.5 s, cautiously 14.1 s, 27.9 s, 55.6 s and 138.5 s, extrapolations beyond 3000 PVs. Nearly all of the growth is the ETL instance (about 1.06 s at 903 PVs, 5.66 s at 3000), while the engine gap stays between 1.09 s and 1.28 s. The line and the PV counts assume that no pass runs at the stop; a running job adds at most two waits of `ETLPassStopWaitSeconds` and one left PV. All three cells suffice (every stop Passed for C1 and C2: result `success`, within the timeout, no PV left).
-- The validation stop on the shipped partition took 3.740 s, outside its written interval of 1.92854 s to 2.71858 s, so C3 is Failed; its ETL gap per PV is 2.15936 times that of `main-903`. Differences that may explain it, without one assigned cause: 1.24 MB per PV in the short term store against 0.106 MB (hour files against 5-minute files), a mean loop job of 2.46 ms against 1.06 to 1.16 ms and a longest job of 119 ms on a waveform PV, one pass an hour against one every 5 minutes, and 1.1 GB of short term data on a guest of 4 GiB.
-- A site sets the timeout with `SYSTEMD_TIMEOUT_STOP_SECONDS` in `../CONFIG_SITE.local` and `make sd_install`, and `ETLPassStopWaitSeconds` only through `site-template/archappl.properties.in`. A PV left unconsolidated keeps its files in the short term store, which move in the next pass on a disk and are lost at a reboot on tmpfs. A sizing rule would change `docs/README.install.md` and `docs/technicaldocs/README.systemd.md` and needs its own item; this item changes no document.
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
-Last Compared: none
-
-#### G9 - A guest with the disk capacity that the stop time measurement needs is available
-
-Origin: 2.0.1 / G9
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-M55 needs one Debian 13 guest. The requester is the session of this repository, and the provider is the session that owns the hypervisor and its provisioner. The provider creates a fresh guest for a requester of the same owner under its standing authorization when the capacity check passes; the owner of the requester authorizes the implementation of M55, whose second step sends the request, after the owner has accepted the plan. Responsible parties: the requester session (the request, the finished notice) and the provider session (creation, handoff, shutdown). Affected work: M55, and M56 and M57 if the owner reopens them; they would reuse the guest after a restart from its disk.
-
-The request carries these fields, with the purpose first:
-
-- Purpose: the measurement of the stop time of the unit on a SQLite installation (M55).
-- Platform: Debian 13, the bare profile `debian13` of the provisioner (not `debian13-archiver-dev`, which applies an appliance that would conflict with the installation of the engineer).
-- Resources: 2 vCPU (fixed by the provisioner), 4 GiB of memory (the default), 30 GiB of disk (the provisioner option `-z 30G`; the estimate of M55: about 6 GB for data and evidence and about 12 GB for the system, with a margin).
-- Duration: about 12 hours of running: about 4 hours for the installation and the rehearsal and about 8 hours for the measurement; the guest may be shut down in between and restarted by the requester.
-- State: a fresh base image; the disk is evidence to keep until the owner removes it.
-- Access: the requester connects by SSH with a key and uses `sudo` without a password.
-- Follow-up: none for the provider. The engineer installs the appliance, the EPICS Base binaries, `libreadline8` and `rsync`, and sets the persistent journal and `chrony` on the guest.
-
-##### Completion Criteria
-
-- The requester sends the request with every field above, and the provider answers with the outcome, the guest name, the path of the private handoff and every deviation from the request (for example a vCPU count other than 2).
-- The provider's verification of the running guest (provisioner status, key-only login, `sudo`, OS release, CPU, memory, disk) is in the handoff.
-- The requester sends a finished notice when its use ends and says that the disk is evidence to keep.
-
-##### Verification Results
-
-| Observed At | Result | Evidence |
-| --- | --- | --- |
-| 2026-10-19 | Passed | The provider created a fresh guest of the bare profile `debian13` and answered with the outcome `completed` and every field of the request, without a separate handoff file. Its verification: provisioner exit 0 and ready, 2 vCPU, 4096 MiB, Debian 13 (trixie), a 30 GiB disk with 27 GiB free on the root file system, key-only SSH, `sudo -n` without a password, cloud-init done without errors, `/opt` empty; no deviation from the request. Starting the guest again after a shutdown needs the authorization of the owner of the provider and a capacity check each time. |
-
-##### Closure Evidence
-
-- The guest was handed off on 2026-10-19 (Verification Results above); its name, address and access stay in the private records of the provider and the requester.
-- The requester sent the finished notice on 2026-10-20 after the evidence was copied and verified on its host, and asked to keep the disk as evidence; the provider answered that the guest is shut off and stays defined, with its disk, seed, creation record and address reservation kept until the owner decides on removal.
-
-#### M56 - Measure the stop time over the PV count with the 15-minute short term store partition
-
-Origin: 2.0.1 / M56
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-The main cells of M55 use the 5-minute short term store partition, and one validation stop uses the shipped partition. A 15-minute partition holds three times the data of the 5-minute partition in the same number of files and would show how the stop time grows between the two.
-
-##### Scope
-
-- Run the main cells of M55 (the stages of 903 and 3000 PVs with the hold of 2) once more with the short term store partition `PARTITION_15MIN`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest, with the rule, the order, the reset, the measurement and the verdicts of M55, and one stop for each cell. Write down the prediction of every cell from the line of M55 before the cells run. The line of M55 was fitted on the 5-minute partition, so a difference is reported without a single cause.
-- Extend `tests/stop-time/run-stop.bash` and `tests/stop-time/rebuild-table.bash` to the partition `PARTITION_15MIN` (900 s). The STS to MTS pass of this partition starts 5 minutes after each boundary, as on the hourly partition, so the stop lies between 30 and 90 seconds after E; `tests/stop-time/selftest.bash` gets a case for it.
-
-Out of scope: a change of the repository other than the partition support of `tests/stop-time/`, of the policies or of the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
-
-##### Completion Criteria
-
-- A table in the form of M55 lists the stops with the stop duration of the unit and of each instance, the files and bytes of the short term store, the time after the boundary, the unit result, the consolidated PVs, the left PVs, the refs and the method.
-- The statement gives for each cell the difference between the stop time and the prediction of the line of M55, and the verdicts C1 and C2 of M55 for each stop.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-10-19. The owner reduced M55 to the stages of 903 and 3000 PVs after the stop time of ansible-provision at 903 PVs (13 seconds) showed a per-PV part near 5 milliseconds. This item is Deferred until the result of M55. It reopens by a new dated decision when the result of M55 cannot be carried to the shipped partition: C3 of the validation stop is Failed, or the ETL gap per PV of the validation stop exceeds that of the cell `main-903` by more than 50 percent, or a stop time lies near the stop timeout.
-- M55 supplies the method, the PV set, the conditions and the line; the guest is a new one (decision of 2026-10-21 below).
-- Decision Date: 2026-10-21. The owner reopened this item: its reopening condition is met, because C3 of the validation stop of M55 is Failed (3.74 s on the shipped partition, outside the interval of the line of the main cells). The status returns from Deferred to Not started; the plan stays a draft until its acceptance.
-- Decision Date: 2026-10-21. The owner chose a fresh Debian 13 guest for this item and M57, so the disk of the guest of M55 stays unchanged as evidence; M56 runs first and M57 follows on the same guest. Both items run as scoped.
-- Decision Date: 2026-10-21. The scripts of M55 accept only the 5-minute and the hourly partition; the owner put their extension to `PARTITION_15MIN` into this item.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-21
-Implementation Authorization: the owner authorized the implementation on 2026-10-21
-Superseded Plan Artifacts: none
-
-1. Extend `run-stop.bash` and `rebuild-table.bash` to `PARTITION_15MIN` (900 s, the stop between 30 and 90 seconds after E) and add its case to `selftest.bash` (T6). The change lands by its own commit and push authority before step 2, or reaches the guest as a patch whose SHA-256 the results record.
-2. Request a fresh Debian 13 guest of 2 vCPU, 4 GiB and one 30 GiB disk from the provider session, and prepare it as M55 prepared its guest: the settings of M55 (persistent journal, file appender of the pass events, heap 256M), source `a8d07955`, this repository at the commit that carries step 1 or a later one (it also carries the rendering by the checkout owner of `0323fab`), with the commit used recorded in the results, the 903 PVs of ansible-provision and the 2097 generated PVs (T1).
-3. Set the partition `PARTITION_15MIN` in `../CONFIG_SITE.local` and run the reset of M55 with its policy change, which stops the unit first and renders (`make conf.archapplproperties`, `make conf.install`) and installs (`sudo make install`) inside it; archive the PVs on the fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
-4. Write down the predictions, then run the cells in the order of M55 (T2, T3). Under the rule of M55 a stop lies after the boundary E, B0 plus three partitions, so each stop waits up to one hour on this partition. The main cells take `--expectation` with the expectation file of the rehearsal of M55, `~/stop-time-evidence/st-20261019/expectation.jsonl` on the host, copied to the guest, as the main cells of M55 did.
-5. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5). The guest stays for M57.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | VM | Prepare the fresh guest as M55 prepared its guest, then set the partition `PARTITION_15MIN`, render with `make conf.archapplproperties` and `make conf.install`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Fresh guest | The partition and the hold of the cell are in the stored URL |
-| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Fresh guest | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
-| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Fresh guest | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
-| T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
-| T5 | Review | Read the coverage table and the comparison with the line of M55 | Local host | Each claim names the stage and the stop duration that support it, and no cell that did not run counts as passed |
-| T6 | Local | Run `tests/stop-time/selftest.bash` with the case of `PARTITION_15MIN`, and `run-stop.bash` with an unknown partition | Local host | The selftest passes, the 15-minute case uses 900 s and the window of 30 to 90 seconds, and an unknown partition is still refused |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-21 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | The guest was prepared with the settings of M55 (persistent journal of 1G with the rate limit of 30 s and 10000, `chrony`, the site `log4j2.xml` of M55 with the same SHA-256, heaps of 256M, the guard file), the ansible-provision fixtures at `635d76c` passed `check-sources.py` (8 files) and the 2097 generated PVs have the SHA-256 of M55. The EPICS Base copy needed `dbd` besides `bin` and `lib`: without it `softIoc` stopped with `Can't open file .../dbd/softIoc.dbd`. With `PARTITION_15MIN` in `../CONFIG_SITE.local` before the first installation, the rendered `policies.py` and the stored URL of a PV of each policy (Default, Fast, Medium, VeryFast) carry `partitionGranularity=PARTITION_15MIN&hold=2`; all 903 PVs and, after the reset, all 3000 PVs were `Being archived` and connected; the ten deadband records read -1 |
-| T2 | 2026-10-21 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | One stop of each cell under the rule of M55, exit status 0: `main-903` E 10:15:00Z, stop 30.74 s after E, unit 2.368 s; `main-3000` E 11:15:00Z, 31.02 s after E, unit 8.072 s; both `success`. A first start of `run-stop.bash` for `main-903` was refused with status 3 before any side effect, because no pass had written `etl-pass.log` yet; it was started again after the first pass. A first archivePV of the 3000 PVs returned HTTP 500 while the appliance was still starting and archived nothing; it was sent again when `getPVStatus` answered. Both refusals are kept in the evidence |
-| T3 | 2026-10-21 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | Both stops have the four launcher lines, the unit result, the listings before and after and the cut of `etl-pass.log` (C1 Passed); every PV had hold + 2 = 4 files before the stop and was consolidated (903 and 3000), no PV was left, no overlap and no off-rule mark (C2 Passed) |
-| T4 | 2026-10-21 | Local host | Passed | The evidence (136 files) was copied from the guest and checked against its `SHA256SUMS`; `rebuild-table.bash --stop` on a separate copy rebuilt both records with the 36 fields of the recorded `stops.jsonl` and no difference; the originals were unchanged afterwards |
-| T5 | 2026-10-21 | Local host | Passed | The table and the statement in Closure Evidence name the stage and the stop duration of every claim; both cells ran, one stop each, as scoped |
-| T6 | 2026-10-21 | Local host | Passed | `tests/stop-time/selftest.bash` exit 0, 149 of 149: `run-stop.bash` with `PARTITION_15MIN` passes the option checks and stops at the guard file, `PARTITION_30MIN` is refused with status 3 and the message that names the three partitions; a copy of the fixture stop `stop-01-passed` with one more pass planned two hours before E counts 1 pass in the window (slowest 850 ms) as `PARTITION_15MIN` and 2 (9999 ms) as `PARTITION_HOUR`. The same selftest with the earlier `rebuild-table.bash` failed the two 15-minute window assertions (2 passes, 9999 ms), so the case detects the 3600 s window; shellcheck reports nothing for the three changed scripts |
-
-##### Closure Evidence
-
-- Complete on 2026-10-21. The support of `PARTITION_15MIN` in `tests/stop-time/` landed in `4c8c9ee` on `origin/release-2.0.1` (T6); T1 to T6 Passed. Report on the host, `~/stop-time-evidence/m56-20261021/report/report.md` (SHA-256 `4d86cdbe2f7e450fd3de7c571cb9f109b3bfe64a9bc5957abe3393dbac89c7e9`); the raw evidence stays private on the host and the guest, whose disk is kept for M57.
-- Conditions: those of M55 (Debian 13 guest of 2 vCPU and 4 GiB with one 30 GiB disk, source `a8d07955`, heaps of 256M, root logger INFO with the file appender of the pass events, `TimeoutStopSec` 300 s, `ETLPassStopWaitSeconds` 60 s, the 903 PVs of ansible-provision and the 2097 generated PVs), with `PARTITION_15MIN` and hold 2, on a fresh guest and this repository at `877cf38`.
-
-| Cell | Stop | InvocationID | PVs | Partition | STS bytes per PV | After E (s) | Unit stop (s) | Engine (s) | ETL (s) | Mgmt (s) | Result | Left | Loop jobs | Loop sum (s) | Longest job (ms) | C1 | C2 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| main-903 | 1 | `a8fc26aa` | 903 | PARTITION_15MIN | 309672 | 30.74 | 2.368 | 1.101 | 1.146 | 0.071 | success | 0 | 903 | 1.096 | 15 | Passed | Passed |
-| main-3000 | 1 | `07340fc6` | 3000 | PARTITION_15MIN | 132072 | 31.02 | 8.072 | 1.203 | 6.727 | 0.071 | success | 0 | 3000 | 6.668 | 18 | Passed | Passed |
-
-- Statement. The predictions of the line of M55, written before the cells ran, are 2.32356 s at 903 PVs and 7.02872 s at 3000 PVs; the stops took 2.368 s (+0.045 s, +1.9 percent) and 8.072 s (+1.043 s, +14.8 percent). The stop at 903 PVs lies inside the range of the three stops of M55 on the 5-minute partition (2.236 s to 2.391 s); the stop at 3000 PVs lies above the longest of them (7.807 s). As in M55, the growth is the ETL instance (1.146 s and 6.727 s, against means of 1.063 s and 5.659 s in M55), while the engine gap stays near 1.1 s to 1.2 s. Differences that may explain the excess at 3000 PVs, without one assigned cause: about 2.9 times the bytes per PV in the short term store (132072 against 45329 to 45814), a mean loop job of 2.22 ms against 1.72 ms to 2.11 ms, and one stop against three. Both stops suffice (C1 and C2 Passed: result `success`, far inside the timeout of 300 s, no PV left).
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
-Last Compared: none
-
-#### M57 - Measure the stop time over the PV count with the shipped short term store partition
-
-Origin: 2.0.1 / M57
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-The main cells of M55 use the 5-minute short term store partition, and one validation stop uses the shipped partition. The main cells on the shipped partition would measure the stop time of the shipped state for each stage.
-
-##### Scope
-
-- Run the main cells of M55 (the stages of 903 and 3000 PVs with the hold of 2) once more with the short term store partition `PARTITION_HOUR`, set through `ARCHAPPL_STS_GRANULARITY` in `../CONFIG_SITE.local` of the guest, with the rule, the order, the reset, the measurement and the verdicts of M55, and one stop for each cell. Write down the prediction of every cell from the line of M55 before the cells run. The line of M55 was fitted on the 5-minute partition, so a difference is reported without a single cause.
-
-Out of scope: a change of the repository, the policies or the defaults; a change of the documents; a run on Rocky Linux 8.10; any run on the production appliance of the development host (ports 17665 to 17668, `/opt/epicsarchiverap-maven`, `/arch`).
-
-##### Completion Criteria
-
-- A table in the form of M55 lists the stops with the stop duration of the unit and of each instance, the files and bytes of the short term store, the time after the boundary, the unit result, the consolidated PVs, the left PVs, the refs and the method.
-- The statement gives for each cell the difference between the stop time and the prediction of the line of M55, and the verdicts C1 and C2 of M55 for each stop.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-10-19. The owner reduced M55 to the stages of 903 and 3000 PVs after the stop time of ansible-provision at 903 PVs (13 seconds) showed a per-PV part near 5 milliseconds. This item is Deferred until the result of M55. It reopens by a new dated decision when the result of M55 cannot be carried to the shipped partition: C3 of the validation stop is Failed, or the ETL gap per PV of the validation stop exceeds that of the cell `main-903` by more than 50 percent, or a stop time lies near the stop timeout.
-- M55 supplies the method, the PV set, the conditions and the line; the guest is a new one (decision of 2026-10-21 below).
-- M56 is a work ordering dependency: this item runs on the guest of M56 after M56.
-- Decision Date: 2026-10-21. The owner reopened this item: its reopening condition is met, because C3 of the validation stop of M55 is Failed (3.74 s on the shipped partition, outside the interval of the line of the main cells). The status returns from Deferred to Not started; the plan stays a draft until its acceptance.
-- Decision Date: 2026-10-21. The owner chose a fresh Debian 13 guest for this item and M56, so the disk of the guest of M55 stays unchanged as evidence; M56 runs first and M57 follows on the same guest. Both items run as scoped.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-21
-Implementation Authorization: the owner authorized the implementation on 2026-10-21
-Superseded Plan Artifacts: none
-
-1. On the guest of M56, set the partition `PARTITION_HOUR` in `../CONFIG_SITE.local` and run the reset of M55 with its policy change, which stops the unit first and renders (`make conf.archapplproperties`, `make conf.install`) and installs (`sudo make install`) inside it; archive the PVs on the fresh database, and check the rendered `policies.py` and the stored URL of one PV (T1).
-2. Write down the predictions, then run the cells in the order of M55 (T2, T3). Under the rule of M55 a stop lies after the boundary E, B0 plus three partitions, so each stop waits up to four hours on this partition, as the validation stop of M55 did. The main cells take `--expectation` with the expectation file of the rehearsal of M55, `~/stop-time-evidence/st-20261019/expectation.jsonl` on the host, copied to the guest, as the main cells of M55 did.
-3. Freeze the evidence, rebuild the table from copies and compare it with the predictions (T4, T5), then send the finished notice for the guest and ask to keep its disk as evidence.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | VM | Set the partition `PARTITION_HOUR`, render with `make conf.archapplproperties` and `make conf.install`, install, archive on a fresh database, and read the rendered `policies.py` and the stored URL of one PV | Guest of M56 | The partition and the hold of the cell are in the stored URL |
-| T2 | VM | Stop each cell once under the rule of M55 with the measurement commands that M55 proved | Guest of M56 | A stop duration of the unit and of each instance for every cell, with the unit result, the time after the boundary and the file count |
-| T3 | VM | Cut the journal of each stop, read the error lines, the unit result and the four launcher lines, check overlap, and list the three stores before and after the stop | Guest of M56 | The consolidated and the left PVs, the stops that the unit ended or that overlapped, and a stop with a missing required line marked Incomplete |
-| T4 | Local | Freeze the evidence, rebuild the table from copies, and compare it with the recorded table and the predictions | Local host | Every value follows from the retained files, and the originals are unchanged |
-| T5 | Review | Read the coverage table and the comparison with the line of M55 | Local host | Each claim names the stage and the stop duration that support it, and no cell that did not run counts as passed |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-21 | Guest of M56 (fresh Debian 13, 2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | The partition was set to `PARTITION_HOUR` in `../CONFIG_SITE.local`, and the reset of M55 ran with its policy change: `make sd_stop`, `make conf.archapplproperties` (the rendered `policies.py` carries `partitionGranularity=PARTITION_HOUR&hold=2`), `sudo make conf.storage.rm` (`/arch` gone), `sudo make conf.storage`, `make sql.update`, `sudo make sql.table.fill`, `sudo make sql.show`, `make conf.install`, `sudo make install`, `make sd_start`, each with exit status 0 and no file owned by root in the checkout. The IOC stage was written for 903 PVs, all 903 PVs were `Being archived` and connected, and the stored URL of `AASOAK:FAST:CH01` carries `PARTITION_HOUR&hold=2`; for the stage of 3000 PVs the reset was repeated (without the install, because the policy did not change), the IOC served the 2097 further PVs (`STOPTIME:E0001` and `E2097` read, the ten deadband records -1), all 3000 PVs were `Being archived` and connected, and the stored URL of `STOPTIME:E0001` carries `PARTITION_HOUR&hold=2` |
-| T2 | 2026-10-21 | Guest of M56 (fresh Debian 13, 2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | One stop of each cell under the rule of M55, exit status 0: `main-903` E 19:00:00Z (12:00 PDT), stop 31.04 s after E, unit 2.932 s; `main-3000` E 23:00:00Z (16:00 PDT), 30.67 s after E, unit 9.730 s; both `success`. The accumulation took (hold + 2) hourly partitions, so each stop waited about three hours after B0 |
-| T3 | 2026-10-21 | Guest of M56 (fresh Debian 13, 2 vCPU, 4 GiB, 30 GiB), source `a8d07955`, this repository `877cf38` | Passed | Both stops have the four launcher lines, the unit result, the listings before and after and the cut of `etl-pass.log` (C1 Passed); every PV had hold + 2 = 4 files before the stop and was consolidated (903 and 3000), no PV was left, no overlap and no off-rule mark (C2 Passed) |
-| T4 | 2026-10-21 | Local host | Passed | The evidence (138 files) was copied from the guest and checked against its `SHA256SUMS`; `rebuild-table.bash --stop` on a separate copy rebuilt both records with the 36 fields of the recorded `stops.jsonl` and no difference; the originals were unchanged afterwards |
-| T5 | 2026-10-21 | Local host | Passed | The table and the statement in Closure Evidence name the stage and the stop duration of every claim; both cells ran, one stop each, as scoped |
-
-##### Closure Evidence
-
-- Complete on 2026-10-21. The scripts and the guest are those of M56 (support of the partition in `4c8c9ee`, the result of M56 in `0029bc9`); T1 to T5 Passed. Report on the host, `~/stop-time-evidence/m57-20261021/report/report.md` (SHA-256 `8ef283e21485de33eca6be2786cdf18e0a60a7cdf26ab5bc2e4b23add0c62971`); the raw evidence stays private on the host and the guest.
-- The requester sent the finished notice for the guest on 2026-10-21 after the evidence was copied and verified on its host, and asked to keep the disk as evidence; the provider answered on 2026-10-21 that the guest is shut off and stays defined, with its disk, seed, creation record and address reservation kept until its owner decides on removal; its name, address and access stay in the private records of the provider and the requester.
-- Conditions: those of M55 and M56 (Debian 13 guest of 2 vCPU and 4 GiB with one 30 GiB disk, source `a8d07955`, heaps of 256M, root logger INFO with the file appender of the pass events, `TimeoutStopSec` 300 s, `ETLPassStopWaitSeconds` 60 s, the 903 PVs of ansible-provision and the 2097 generated PVs), with the shipped partition `PARTITION_HOUR` and hold 2, on the guest of M56 and this repository at `877cf38`.
-
-| Cell | Stop | InvocationID | PVs | Partition | STS bytes per PV | After E (s) | Unit stop (s) | Engine (s) | ETL (s) | Mgmt (s) | Result | Left | Loop jobs | Loop sum (s) | Longest job (ms) | C1 | C2 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| main-903 | 1 | `f82c6083` | 903 | PARTITION_HOUR | 1237210 | 31.04 | 2.932 | 1.113 | 1.652 | 0.086 | success | 0 | 903 | 1.592 | 115 | Passed | Passed |
-| main-3000 | 1 | `d6f5143d` | 3000 | PARTITION_HOUR | 531658 | 30.67 | 9.730 | 1.247 | 8.333 | 0.089 | success | 0 | 3000 | 8.276 | 94 | Passed | Passed |
-
-- Statement. The predictions of the line of M55, written before the cells ran, are 2.32356 s at 903 PVs and 7.02872 s at 3000 PVs; the stops took 2.932 s (+0.609 s, +26.2 percent) and 9.730 s (+2.701 s, +38.4 percent). Both stops lie above the 5-minute stops of M55 (2.236 s to 2.391 s at 903 PVs and 6.605 s to 7.807 s at 3000 PVs), and the stop at 903 PVs lies above the upper end 2.71858 s of the interval that M55 wrote for the validation stop; the validation stop of M55 (3.740 s) was longer than this one. As in M55 and M56, the growth is the ETL instance (1.652 s and 8.333 s, against 1.146 s and 6.727 s on the 15-minute partition and means of 1.063 s and 5.659 s on the 5-minute partition), while the engine gap stays near 1.1 s to 1.2 s. On the three partitions the stop time at 3000 PVs is 7.0 s (mean, 5 minutes), 8.1 s (15 minutes) and 9.7 s (one hour), one stop each for the last two. Differences that may explain the growth, without one assigned cause: the bytes per PV in the short term store (1237210 and 531658 against 309672 and 132072 on the 15-minute partition, 4.0 times, and about 11.7 times those of the 5-minute partition), a mean loop job of 1.76 ms and 2.76 ms against 1.22 ms and 2.22 ms on the 15-minute partition, and one stop for each cell. The two cells give a slope of 3.24 ms per PV between 903 and 3000 PVs on the shipped partition, against 2.24 ms of the line of M55; with the intercept of 5 ms this reaches the stop timeout of 300 s near 92500 PVs and 80 percent of it near 74000 PVs. That value is an extrapolation beyond 3000 PVs from two single stops, has no interval, and does not replace the line of M55. Both stops suffice (C1 and C2 Passed: result `success`, far inside the timeout of 300 s, no PV left). A site sizing rule would change `docs/README.install.md` and `docs/technicaldocs/README.systemd.md` and needs its own item; this item changes no document.
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
-Last Compared: none
-
-#### M58 - Keep the checkout writable for the engineer after `sudo make install` and `sudo make sql.fill`
-
-Origin: 2.0.1 / M58
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-The installation guide runs `sudo make install` in the checkout of the engineer, and the reset of M55 runs `sudo make sql.fill` there. Both leave rendered files owned by root in the checkout (`site-template/systemd/*`, `site-template/.versions`, `site-template/sql/archappl_sqlite_updated.sql`), and a later Make target that renders into the same folder as the engineer fails; observed on the guest of M55 on 2026-10-20, where `make sd_install` stopped with `cannot create .../site-template/systemd/override.conf: Permission denied`. M55 works around it by giving the files back to the engineer after each such command.
-
-##### Scope
-
-- Find every Make target that the documented sequences run with `sudo` and that writes into the checkout, and the files each leaves owned by root.
-- Separate rendering from installation (owner decision of 2026-10-20). The targets that run as root render nothing into the checkout: `install` installs the rendered systemd units and refuses, naming the rendering target, when one is missing or older than its template or the configuration (`configure/CONFIG*`, `configure/RELEASE*`, `../CONFIG_SITE.local`, `../RELEASE.local`); `sql.table.fill` loads the rendered schema. The rendering (`conf.systemd`, `src_version`, `sql.update`) runs as the engineer before them, and each rendering rule removes its file before it writes it, so that a file an earlier root run left in the checkout does not stop it. The removal stops instead when a path variable (`AA_SITE_TEMPLATE_PATH`, `SQL_AA_UPDATE_SQL`, `SQL_AA_UPDATE_SQLITE`) is empty, or when a file name variable (`SYSTEMD_OVERRIDE_FILENAME`, `SYSTEMD_FILENAME`, `APPNAME`) is empty or holds a path.
-- The callers follow: `scripts/install-local-common.bash` renders as the engineer before each root step, `docs/README.install.md` (the ordered sequence, the reinstall and the SQLite schema step) names the rendering step, and the reset of M55 names it too.
-- The local tests that drive these targets (`tests/phase1-logic.bash`, `tests/health-local.py`, `tests/database-config.py`) follow the split.
-- The book pages that show the installation and the schema load follow the split (owner decision of 2026-10-20): `book/src/install/sqlite.md`, `book/src/understand/build-and-install.md` and the generated `book/src/appendix/make-targets.md` change; `book/src/configure/installed-files.md` (the units come from their `.in` templates) and `book/src/install/reinstall.md` (it runs the installer) stay correct as they are.
-
-Out of scope: the ownership of the installed tree under the installation path and of the storage folders; a change of the database backend or of the installation scripts beyond the ownership.
-
-##### Completion Criteria
-
-- After the documented `sudo make install` and `sudo make sql.fill` on a fresh guest, `make sd_install` and `make conf.archapplproperties` run as the engineer without a permission error, or the guide names the command that makes them run.
-- The checkout holds no file owned by root after the documented sequence, or the guide states which files and why.
-
-##### Dependencies And Decisions
-
-- Decision Date: 2026-10-20. The owner placed the item in the Backlog, to be fixed after the measurement of M55.
-- Decision Date: 2026-10-20. The owner chose the remedy: separate rendering from installation, rather than giving the files back after a root step or documenting a step that restores the ownership.
-- Decision Date: 2026-10-20. The installation check runs on a fresh guest, not on the guest of M55, whose disk is evidence. The provider session creates such a guest on a complete request under its standing authorization, so the guest is a step of the plan and not an external gate.
-- Decision Date: 2026-10-20. The book pages that show the installation and the schema load are part of this item, and the reset of M55 is rewritten for the split.
-- Decision Date: 2026-10-20. A checkout installed before this item holds rendered files owned by root; the rendering rules remove such a file before they write it, instead of a step in the guide that restores the ownership.
-- M55 found the behavior and holds its evidence; its reset carries the workaround until this item closes.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-20
-Implementation Authorization: the owner authorized the implementation on 2026-10-20
-Superseded Plan Artifacts: none
-
-1. Rules: `configure/RULES_INSTALL`, `configure/RULES_SYSTEMD` and `configure/RULES_SQL` keep every write into the checkout in a rendering target and every root target free of such writes; `install` refuses with the name of the rendering target when a rendered file is missing (T1, T2).
-2. Callers: `scripts/install-local-common.bash` runs the rendering as the engineer before `root_make install` and before the SQLite schema load as root; `docs/README.install.md`, the four book pages and the reset of M55 name the rendering step (T2, T3).
-3. Local tests: adapt `tests/phase1-logic.bash` and `tests/database-config.py` to the split and run `tests/run-all-tests.bash --local` (T2).
-4. Request a fresh guest from the provider session, run the local installation and the reset of M55 on it, then the engineer targets; on a checkout that an installation before this item left with rendered files owned by root, run the rendering as the engineer (T4); then send the finished notice (T3, T4).
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | `make -n` of every target that the installer and the guide run as root (`install`, `sql.table.fill`, `sql.show`, `conf.storage`, `conf.storage.rm`, `tomcat.install`, `sd_health_stop`, `src_preinst`) | Local host | No command writes into the checkout; before the change `install` writes the four systemd files and `.versions`, and `sql.fill` writes `site-template/sql/archappl_sqlite_updated.sql` |
-| T2 | Local | `tests/run-all-tests.bash --local` with the adapted tests, and `install` without the rendered files | Local host | The local suite passes, and `install` refuses with the name of the rendering target |
-| T3 | VM | On a fresh guest run `scripts/install-local-sqlite.bash`, the reset of M55, then `make sd_install` and `make conf.archapplproperties` as the engineer, and list the files owned by root in the checkout | Fresh guest | The installation and the appliance start pass, the engineer targets run without a permission error, and no file in the checkout outside the source tree is owned by root |
-| T4 | VM | On the guest of T3, run `make sd_stop`, revert the checkout to `240e1e1`, remove the six rendered files (the four units in `site-template/systemd/`, `site-template/.versions`, `site-template/sql/archappl_sqlite_updated.sql`), run `sudo make install` and `sudo make sql.fill` there, apply the change of this item as a patch on `240e1e1`, then run `make conf.install` and `make sql.update` as the engineer, `sudo make install`, `make sd_start`, `make sd_install` and `make conf.archapplproperties`, and list the files owned by root in the checkout | Guest of T3 | Before the change the engineer rendering stops with a permission error; after it the rendering, the installation and the engineer targets pass, the appliance is active, and no file in the checkout outside the source tree is owned by root |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-20 | Local host | Passed | Before the change `make -n install` wrote the four systemd units and `site-template/.versions`, and `make -n sql.fill` wrote `site-template/sql/archappl_sqlite_updated.sql`. After it, `make -n` of `install`, `sql.table.fill`, `sql.show`, `conf.storage`, `conf.storage.rm`, `tomcat.install`, `sd_health_stop` and `src_preinst` prints no write into the checkout; the writes moved to `conf.install` (the four units and `.versions`) and `sql.update` (the schema copy), both run as the checkout owner; `make conf.install` with an invalid `DB_BACKEND` stops before it renders. The third-person review found that a unit rendered before a change of `../CONFIG_SITE.local` was installed unchanged (a timeout of 300 s after a change to 1 s); with the check of the age of the rendered file the install stops and names the newer input and `conf.install`, and after a new rendering it installs the changed value |
-| T2 | 2026-10-20 | Local host (Debian 13) | Passed | `tests/run-all-tests.bash --local` exit status 0 with the real EPICS Base, including the new check P1.19a (no write under the checkout by `make -n install` and `make -n sql.table.fill`; `install.systemd0` and `sql.table.fill` stop with status 2 and name `conf.install` and `sql.update` without their rendered files; `install.systemd0` stops on a unit older than its template or `../CONFIG_SITE.local` and installs the changed value after a new rendering; phase 1 287 of 287) and `SystemdFileTests`, which render with the `conf.*` unit rules before `install.systemd`. In a copy without rendered files `install.systemd0`, `install.override`, `install.health.service` and the MariaDB `sql.table.fill` each stopped with status 2 at the check line, before any privileged command. A run under the long scratch path failed one unrelated check (`make db.addAdmin` reports `ERROR 2001` instead of `ERROR 2002`), because the socket path of that check exceeds the length of a Unix socket path; under a short path it passes. Run again on 2026-10-20 with the removal of rendered files left by root and its guards (change SHA256 prefix `b1846312d8b0e978`): exit status 0, phase 1 290 of 290, including the rendering over a unit the checkout owner cannot write and the stop on a unit file name with a path |
-| T3 | 2026-10-20 | Fresh Debian 13 guest from the provider (2 vCPU, 4 GiB, 30 GiB), this repository `240e1e1` with the change applied as a patch, source `8f0d616a` | Passed | The first installation with `scripts/install-local-sqlite.bash -y` ran `conf.install` and `sql.update` as the engineer and `sql.table.fill` and `install` as root, exit status 0, appliance active, no file in the checkout outside the source tree owned by root. With the final change (the check of the age of the rendered files) the reinstall with `--tomcat existing` (a run without the choice stops at the Tomcat preparation, as the guide states) exited 0 with no file owned by root. The reset of M55 in its new order (`make sd_stop`, `make conf.archapplproperties`, `sudo make conf.storage.rm`, `sudo make conf.storage`, `make sql.update`, `sudo make sql.table.fill`, `sudo make sql.show`, `make conf.install`, `sudo make install`, `make sd_start`) exited 0 in every step, `/arch` was removed and recreated and the appliance answered again; then `make sd_install` and `make conf.archapplproperties` as the engineer exited 0 (the first failed with a permission error before this item), and no file in the checkout was owned by root |
-| T4 | 2026-10-20 | Guest of T3, this repository `240e1e1`, then the change applied as a patch (SHA256 prefix `b1846312d8b0e978`), source `8f0d616a` | Passed | At `240e1e1`, `sudo make install` and `sudo make sql.fill` exited 0 and left six files owned by root (the four units, `site-template/.versions`, `site-template/sql/archappl_sqlite_updated.sql`), and `make conf.systemd` as the engineer exited 2 with `cannot create .../site-template/systemd/override.conf: Permission denied`. With the change, `make conf.install` and `make sql.update` as the engineer exited 0 and left no file owned by root; `sudo make install`, `make sd_start` (appliance active after 60 s), `make sd_install` and `make conf.archapplproperties` exited 0, and no file in the checkout outside the source tree was owned by root. Evidence: guest `~/m58-evidence/t4` |
-
-##### Closure Evidence
-
-- Commit `0323fab7ad642a522a19f977e8f502362ec05697` ("Render install inputs as the checkout owner and install them as root") carries the rules, the installer, the tests, the guide, the book pages and this record; T1 to T4 Passed against it (T3 and T4 on the same change applied as a patch).
-- Landing: observed 2026-10-21 with `git ls-remote origin refs/heads/release-2.0.1`, which returned `0323fab7ad642a522a19f977e8f502362ec05697`; the 13 changed paths of `git diff --name-only 240e1e1 0323fab` are the paths of the commit.
-- The guest of T3 and T4 was returned to the provider session with a finished notice on 2026-10-21; its disk keeps the evidence.
-
-##### GitHub Projection
-
-Title: none
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists
-Last Compared: none
-
-#### M59 - Record the measured stop times in the systemd reference
-
-Origin: 2.0.1 / M59
-Identity History: none
-GitHub Issue: none
-Status: Complete
-
-##### Summary
-
-The measurements of M55, M56 and M57 give the stop time of the unit at 903 and 3000 PVs on the 5-minute, 15-minute and hourly short term store partitions. The systemd reference states that a site sets its own `SYSTEMD_TIMEOUT_STOP_SECONDS` after timing its stop, and holds no measured values. The owner judged the measurements too few for a sizing rule (D62) and chose to record them as measurements.
-
-##### Scope
-
-- Add one section to `docs/technicaldocs/README.systemd.md`: the conditions of the measurements (guest, database, hold, time of the stop after the partition boundary), the stop times of the six cells, the share of the ETL instance, and the limits of the measurements.
-- Every value of the section is a value of the Verification Results or the statements of M55, M56 and M57.
-- Replace the clause of the unit file paragraph that gave a test host with three PVs stopping in about 10 s by a pointer to the new section (D63).
-
-Out of scope: a sizing rule, a recommended timeout, an extrapolation beyond 3000 PVs, a change of the default of `SYSTEMD_TIMEOUT_STOP_SECONDS`, `docs/README.install.md`, and the book.
-
-##### Completion Criteria
-
-- The section states the conditions, the six cell values and the limits, and contains no rule, recommendation or extrapolation.
-- Every number of the section equals the value recorded in M55, M56 or M57.
-- The unit file paragraph names no stop time that disagrees with the section and points to it.
-
-##### Dependencies And Decisions
-
-- M55, M56 and M57 hold the measurements and their evidence.
-- Decision Date: 2026-10-23. D62: record the measurements only, in `docs/technicaldocs/README.systemd.md`.
-- Decision Date: 2026-10-23. D63: the owner ordered the register and the document to say the same about the test host sentence. This reopens the item with a third plan step; it is Complete again with T3.
-
-##### Implementation Plan
-
-Plan Status: accepted
-Plan Acceptance: accepted by the owner on 2026-10-23; step 3 added and accepted by the owner on 2026-10-23
-Implementation Authorization: the owner authorized the implementation on 2026-10-23, and step 3 on 2026-10-23
-Superseded Plan Artifacts: none
-
-1. Write the section before `## Instance lifecycle` of `docs/technicaldocs/README.systemd.md` from the statements of M55, M56 and M57 (T1).
-2. Run a second-person pass on the section, then correct the findings (T2).
-3. Replace the clause about a test host with three PVs in the unit file paragraph by a pointer to the section (T3).
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Extract every number of the new section and search each in the text of M55, M56 and M57 of this register | Local host | Every number appears in the cited rows or statements |
-| T2 | Local | Second-person pass over the section, `git diff --check`, and a search of the section for a recommendation or an extrapolation | Local host | No finding above the floor; no recommendation or extrapolation |
-| T3 | Local | `grep` of `docs/technicaldocs/README.systemd.md` and of `docs/` and `book/` for the old clause | Local host | The old clause is absent from the systemd reference and from the book; in this register it occurs only where D63 and M59 describe it; the pointer and the section heading each occur once |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | 2026-10-23 | Local host | Passed | The 25 distinct numbers of the section `Measured stop times` in `docs/technicaldocs/README.systemd.md` were extracted with a script and each was found in the text of M55, M56 and M57 of this register. The six cell values and the ETL values were then read against the statements of M55 (2.236 s to 2.391 s and 6.605 s to 7.807 s; ETL about 1.06 s and 5.66 s), M56 (2.368 s and 8.072 s) and M57 (2.932 s and 9.730 s; ETL 1.652 s and 8.333 s); the stops of M56 and M57 began 30.67 s to 31.04 s after the boundary, as the section states |
-| T2 | 2026-10-23 | Local host | Passed | Two second-person passes over the whole section. The first, from a site engineer who sizes the timeout, found three minor findings: the definition of the stop time, the word `stage` that the page does not explain, and the hold without a link; all three are applied. The second, from a maintainer who checks the values against this register, found nothing above the floor. `git diff --check` exit status 0; the section contains no recommended value, rule or extrapolation |
-| T3 | 2026-10-23 | Local host | Passed | `grep -c 'test host with three PVs'` and `grep -c 'about 10 s'` on `docs/technicaldocs/README.systemd.md` returned 0; `grep -rn 'about 10 s' docs book` found the phrase only in D63, in M59 and in two rows of M55 about samples per second; `grep -c 'Measured stop times below'` returned 1 and `grep -c '^## Measured stop times$'` returned 1. A second-person pass over the changed sentence, from a site engineer, found nothing above the floor |
-
-##### Closure Evidence
-
-- Commit `9f369e1ea23459367a9309266466d4fb6d82bdff` ("Document the measured stop times in the systemd reference") carries the section and this record; T1 and T2 Passed against it.
-- Landing: observed 2026-10-23 21:17 PDT (2026-10-24 04:17 UTC) with `git ls-remote origin refs/heads/release-2.0.1`, which returned `9f369e1ea23459367a9309266466d4fb6d82bdff`; the two changed paths of `git diff --name-only 377dc38 9f369e1` are `docs/milestone-2.0.1.md` and `docs/technicaldocs/README.systemd.md`.
-- The correction of the unit file paragraph (D63, T3) is carried by the commit that carries this line; `git log -- docs/technicaldocs/README.systemd.md` names it.
