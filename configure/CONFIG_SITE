@@ -19,11 +19,12 @@ DB_HOST_IPADDR=127.0.0.1
 DB_HOST_PORT=3306
 DB_HOST_NAME=127.0.0.1
 DB_ADMIN=admin
+## Temporary value for a first trial; set the password of the host in ../CONFIG_SITE.local. Ignored for sqlite.
 DB_ADMIN_PASS=admin
 DB_NAME=archappl
 DB_USER=archappl
+## Temporary value for a first trial; set the password of the host in ../CONFIG_SITE.local. Ignored for sqlite.
 DB_USER_PASS=archappl
-DB_BACKUP_PATH=db
 ## Configuration database backend: mariadb or sqlite. Set it in
 ## ../CONFIG_SITE.local; a default defined after the local includes below
 ## would override the site's value.
@@ -55,6 +56,7 @@ AA_SITE_TEMPLATE_PATH=$(TOP)/site-template
 # Derived paths expand when used, after the local configuration includes.
 ARCHAPPL_TOP=$(AA_INSTALL_LOCATION)
 ARCHAPPL_SITEID:=als
+## No file of this repository reads ARCHAPPL_VERSION; a site value has no effect.
 ARCHAPPL_VERSION:=$(SRC_VERSION)-$(ARCHAPPL_SITEID)
 ARCHAPPL_WARS_TARGET_PATH=$(TOP)/$(SRC_PATH)/target
 ARCHAPPL_SITEID_TEMPATE_PATH=$(AA_SITE_TEMPLATE_PATH)/siteid
@@ -75,6 +77,8 @@ AA_JAVA_MAXMETASPACE="256M"
 # https://www.openssl.org/blog/blog/2017/08/12/random/
 # AA_JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
 # For Java 21, we don't need this anymore.
+# A single option may be quoted. Write several options without quotes after the
+# equal sign; quotes around several options break make conf.archappl.
 AA_JAVA_OPTS=""
 #
 AA_USERID:=tomcat

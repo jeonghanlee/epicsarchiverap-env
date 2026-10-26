@@ -4,7 +4,7 @@
 
 This page lists every variable that the files under `configure/` assign, with the operator, the value that the file assigns and the comment written above it. A value is shown as written: `$(NAME)` and `${NAME}` refer to another variable and are expanded by Make when the variable is used. `make -s print-<variable_name>` prints the value that is in effect.
 
-An assignment with `:=` is evaluated once, where it is written. An assignment with `=` is evaluated each time the variable is used. An assignment with `?=` applies only when the variable has no value yet. A local file that `CONFIG_SITE`, `CONFIG_VARS` or `RELEASE` includes can replace any of them.
+An assignment with `:=` is evaluated once, where it is written. An assignment with `=` is evaluated each time the variable is used. An assignment with `?=` applies only when the variable has no value yet. A local file that `CONFIG_SITE`, `CONFIG_EPICSENV`, `CONFIG_VARS` or `RELEASE` includes replaces a variable only until a file that Make reads later assigns it with `:=` or `=`. An assignment with `?=` keeps the value of the local file.
 
 ## Variables set in configure/RELEASE
 
@@ -14,7 +14,7 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `SRC_URL` | `=` | `https://github.com/jeonghanlee` | Where the Source repository SRC_URL/SRC_NAME |
 | `SRC_NAME` | `:=` | `${APPNAME}` |  |
 | `SRC_TAG` | `:=` | `origin/modernize` | Which the source tag / branch / hash id would like to use latest master Placeholder for the site-specific version control SRC_TAG follows the remote-tracking branch of the source: the source update step fetches origin and checks out its tip. A bare branch name would keep an outdated local branch. A release that must build one fixed source sets a commit hash here instead. |
-| `SRC_VERSION` | `:=` | `$(SRC_TAG)` |  |
+| `SRC_VERSION` | `:=` | `$(SRC_TAG)` | Only ARCHAPPL_VERSION reads SRC_VERSION, and no file reads that; a site value has no effect. |
 
 ## Variables set in configure/CONFIG_SITE
 
@@ -30,11 +30,10 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `DB_HOST_PORT` | `=` | `3306` |  |
 | `DB_HOST_NAME` | `=` | `127.0.0.1` |  |
 | `DB_ADMIN` | `=` | `admin` |  |
-| `DB_ADMIN_PASS` | `=` | `admin` |  |
+| `DB_ADMIN_PASS` | `=` | `admin` | Temporary value for a first trial; set the password of the host in ../CONFIG_SITE.local. Ignored for sqlite. |
 | `DB_NAME` | `=` | `archappl` |  |
 | `DB_USER` | `=` | `archappl` |  |
-| `DB_USER_PASS` | `=` | `archappl` |  |
-| `DB_BACKUP_PATH` | `=` | `db` |  |
+| `DB_USER_PASS` | `=` | `archappl` | Temporary value for a first trial; set the password of the host in ../CONFIG_SITE.local. Ignored for sqlite. |
 | `DB_BACKEND` | `:=` | `mariadb` | Configuration database backend: mariadb or sqlite. Set it in ../CONFIG_SITE.local; a default defined after the local includes below would override the site's value. |
 | `DB_SOCKET` | `:=` | `(empty)` | MariaDB transport: empty connects over TCP to DB_HOST_NAME:DB_HOST_PORT; a Unix domain socket path (for example /var/lib/mysql/mysql.sock on Rocky 8, /run/mysqld/mysqld.sock on Debian 13) makes every MariaDB connection, the appliance and aa-env's own clients, use that socket. Ignored for sqlite. |
 | `ARCHAPPL_HOST_IPADDR` | `=` | `localhost` |  |
@@ -52,14 +51,14 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `AA_SITE_TEMPLATE_PATH` | `=` | `$(TOP)/site-template` |  |
 | `ARCHAPPL_TOP` | `=` | `$(AA_INSTALL_LOCATION)` | Derived paths expand when used, after the local configuration includes. |
 | `ARCHAPPL_SITEID` | `:=` | `als` |  |
-| `ARCHAPPL_VERSION` | `:=` | `$(SRC_VERSION)-$(ARCHAPPL_SITEID)` |  |
+| `ARCHAPPL_VERSION` | `:=` | `$(SRC_VERSION)-$(ARCHAPPL_SITEID)` | No file of this repository reads ARCHAPPL_VERSION; a site value has no effect. |
 | `ARCHAPPL_WARS_TARGET_PATH` | `=` | `$(TOP)/$(SRC_PATH)/target` |  |
 | `ARCHAPPL_SITEID_TEMPATE_PATH` | `=` | `$(AA_SITE_TEMPLATE_PATH)/siteid` |  |
 | `ARCHAPPL_SITEID_CLASSPATHFILES_PATH` | `=` | `$(ARCHAPPL_SITEID_TEMPATE_PATH)/classpathfiles` |  |
 | `MAVEN_FLAGS` | `:=` | `(empty)` | Maven command-line flags, such as -B or -gs /absolute/path/settings.xml. MAVEN_OPTS is Maven's JVM-options environment variable, not this Make hook. |
 | `AA_JAVA_HEAPSIZE` | `=` | `"256M"` | Per-instance defaults for VM testing; CONFIG_SRC uses the heap for Xms and Xmx. Four instances: 4 * 256 MiB heap = 1 GiB; metaspace caps add another 1 GiB. The combined 2 GiB is not a process-memory cap; allow additional memory for JVM native allocations, MariaDB and the OS. Validate with the intended PV load. Override AA_JAVA_HEAPSIZE in ../CONFIG_SITE.local for the measured workload. |
 | `AA_JAVA_MAXMETASPACE` | `=` | `"256M"` |  |
-| `AA_JAVA_OPTS` | `=` | `""` | https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for https://www.openssl.org/blog/blog/2017/08/12/random/ For Java 21, we don't need this anymore. |
+| `AA_JAVA_OPTS` | `=` | `""` | https://stackoverflow.com/questions/58991966/what-java-security-egd-option-is-for https://www.openssl.org/blog/blog/2017/08/12/random/ For Java 21, we don't need this anymore. A single option may be quoted. Write several options without quotes after the equal sign; quotes around several options break make conf.archappl. |
 | `AA_USERID` | `:=` | `tomcat` |  |
 | `AA_GROUPID` | `:=` | `$(AA_USERID)` |  |
 | `ARCHAPPL_STORAGE_TOP` | `=` | `/arch` | Storage folders, rendered into $(ARCHAPPL_POLICIES) and archappl.conf |
@@ -180,12 +179,12 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `SUDO_INFO` | `:=` | `$(shell test -w $(AA_INSTALL_LOCATION) 1>&2 2> /dev/null; echo $$?)` | IF INSTALL_LOCATIOIN is not WRITABLE, SUDO and SUDOBASH should be used SUDO_INFO 1 : SUDO is needed (NOT writable) SUDO_INFO 0 : SUDO is not needed |
 | `SUDO_CMD` | `:=` | `$(shell which sudo)` |  |
 | `SUDO` | `=` | `$(SUDO_CMD)` |  |
-| `SUDOBASH` | `:=` | `$(SUDO) -E bash -c` |  |
+| `SUDOBASH` | `:=` | `$(if $(SUDO_CMD),$(SUDO_CMD) -E ,)bash -c` |  |
 | `SUDO` | `:=` | `(empty)` |  |
 | `SUDOBASH` | `=` | `bash -c` |  |
 | `PATH` | `:=` | `$(JAVA_PATH):${PATH}` |  |
 | `MAVEN_CMD` | `:=` | `$(TOP)/$(SRC_PATH)/mvnw` | The Maven Wrapper committed in the source repository; needs make init first. |
-| `JAVA_CMD` | `=` | `$(JAVA_PATH)/java` |  |
+| `JAVA_CMD` | `=` | `$(JAVA_PATH)/java` | No file of this repository reads JAVA_CMD; a site value has no effect. |
 | `ARCHAPPL_MGMT_URL` | `:=` | `http://$(ARCHAPPL_HOST_IPADDR):$(ARCHAPPL_MGMT_PORT)/mgmt/bpl` |  |
 | `ARCHAPPL_ENGINE_URL` | `:=` | `http://$(ARCHAPPL_HOST_IPADDR):$(ARCHAPPL_ENGINE_PORT)/engine/bpl` |  |
 | `ARCHAPPL_ETL_URL` | `:=` | `http://$(ARCHAPPL_HOST_IPADDR):$(ARCHAPPL_ETL_PORT)/etl/bpl` |  |

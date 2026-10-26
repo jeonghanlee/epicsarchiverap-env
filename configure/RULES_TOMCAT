@@ -164,8 +164,10 @@ debian12.conf:
 	$(QUIET)echo "include \$$(TOP)/configure/os/debian12.mk" > $(TOP)/configure/CONFIG_SITE.local
 	$(QUIET)cat -b $(TOP)/configure/CONFIG_SITE.local
 
+## Legacy alias: CentOS 7 is not supported; the target selects the rocky8 preset.
 centos7.conf: rocky8.conf
 
+## Legacy alias: CentOS 8 is not supported; the target selects the rocky8 preset.
 centos8.conf: rocky8.conf
 
 rocky8.conf:

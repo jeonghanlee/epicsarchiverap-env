@@ -115,6 +115,8 @@ function drop_procedures
 
 }
 
+# ComponentDB heritage: this function and get_admin_crypt_password run a Python 2 helper of
+# ComponentDB. No command of this repository calls them, and they do not work here.
 function generate_admin_local_password
 {
     local db_name="$1"; shift;
@@ -494,6 +496,10 @@ case "$input" in
         fi
         execute_query "${DB_NAME}" "$additional_input";
         ;;
+    # addProject, updateCDBAdminPassword and showAdminCryptPassword are ComponentDB heritage.
+    # No command of this repository calls them, and they do not work here: addProject names the
+    # ComponentDB table item_project and the misspelled variable DB_NANE, and the other two run
+    # a Python 2 helper.
     addProject)
         project_name="${additional_input}";
         execute_query "${DB_NAME}" "INSERT into item_project (name) VALUES('$project_name')"
@@ -516,6 +522,7 @@ case "$input" in
         fi
         query_from_sql_file "${DB_NAME}" "${query_sql_file}" "$query_options"
         ;;
+    # ComponentDB heritage; see the note above addProject.
     updateCDBAdminPassword)
         python_path="$additional_input"
         # local python command instead of the system-wide
@@ -525,6 +532,7 @@ case "$input" in
         fi
         generate_admin_local_password  "${DB_NAME}" "${CDB_USER}" "${CDB_USER_PASS}" "$python_path" "$3"
         ;;
+    # ComponentDB heritage; see the note above addProject.
     showAdminCryptPassword)
         get_admin_crypt_password  "${DB_NAME}" "$additional_input" "$3"
         ;;

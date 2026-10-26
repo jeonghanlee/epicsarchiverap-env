@@ -22,8 +22,8 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `build.mvn3` | `info.mvn copy.sitespecific` | Build 3 |
 | `build.mvndeps` | `info.mvn copy.sitespecific` | Build 4 |
 | `build.war` | `info.mvn copy.sitespecific` | Build 4 |
-| `centos7.conf` | `rocky8.conf` |  |
-| `centos8.conf` | `rocky8.conf` |  |
+| `centos7.conf` | `rocky8.conf` | Legacy alias: CentOS 7 is not supported; the target selects the rocky8 preset. |
+| `centos8.conf` | `rocky8.conf` | Legacy alias: CentOS 8 is not supported; the target selects the rocky8 preset. |
 | `checkout` |  |  |
 | `clean` |  |  |
 | `clean.mvn` | `info.mvn` | Clean |

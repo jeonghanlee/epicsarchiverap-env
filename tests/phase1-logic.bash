@@ -328,6 +328,9 @@ mkdir -p "${root_env}"
 cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${root_env}/"
 rm -f "${root_env}/configure/"*.local "${root_env}/site-template/systemd/"*.service \
     "${root_env}/site-template/systemd/"*.timer "${root_env}/site-template/systemd/override.conf"
+# The copy keeps the modification times of the checkout. A file saved a minute ago would be named before the
+# input under test, so every copied input gets an old time.
+find "${root_env}/configure" "${root_env}/site-template" -type f -exec touch -d '10 minutes ago' {} +
 for root_target in install sql.table.fill; do
     root_rc=0
     make -C "${root_env}" -n --no-print-directory DB_BACKEND=sqlite "${root_target}" > "${WORKSPACE}/root-${root_target}.txt" 2>&1 || root_rc=$?
@@ -745,6 +748,19 @@ for st_case in root:/var/tmp shm:/dev/shm home:"${HOME}"; do
     if [[ "${st_out}" == *"lies under the home directory"* ]]; then st_got=yes; else st_got=no; fi
     assert_eq "${st_got}" "${st_want}" "conf.storage user-home warning for the ${st_kind} store"
 done
+# Without sudo, SUDOBASH is a plain bash -c; a leading dash would make Make ignore the failure of the command.
+st_nosudo=$(make -C "${st_env}" -n --no-print-directory conf.storage SUDO_INFO=1 SUDO_CMD= 2>&1 || true)
+if grep -q "^bash -c 'for path in" <<< "${st_nosudo}" && ! grep -q '^E bash' <<< "${st_nosudo}"; then
+    _record_pass "conf.storage without sudo runs a plain bash -c"
+else
+    _record_fail "conf.storage without sudo" "$(grep -m1 'bash -c' <<< "${st_nosudo}" | cut -c1-80)"
+fi
+st_sudo=$(make -C "${st_env}" -n --no-print-directory conf.storage SUDO_INFO=1 SUDO_CMD=/usr/bin/sudo 2>&1 || true)
+if grep -q "^/usr/bin/sudo -E bash -c 'for path in" <<< "${st_sudo}"; then
+    _record_pass "conf.storage with sudo keeps sudo -E bash -c"
+else
+    _record_fail "conf.storage with sudo" "$(grep -m1 'bash -c' <<< "${st_sudo}" | cut -c1-80)"
+fi
 st_conf="${st_env}/site-template/archappl.conf"
 make -C "${st_env}" -s conf.archappl > /dev/null 2>&1 || true
 case "$(cat "${st_conf}")" in
@@ -1093,6 +1109,27 @@ if [[ -f "${sc_dir}/etl/temp/etl.pid" && ! -f "${sc_dir}/mgmt/temp/mgmt.pid" && 
     _record_pass "shutdown keeps the pid file of a failed stop and removes the others"
 else
     _record_fail "shutdown pid files" "$(ls "${sc_dir}"/*/temp 2>&1)"
+fi
+
+# startup names a live process that its pid file holds, removes the file all the same, and stays silent for a dead pid
+# and for the pid 0, which kill -0 would accept as the process group.
+sleep 300 &
+sc_live=$!
+sleep 0 &
+sc_dead=$!
+wait "${sc_dead}"
+printf '%s\n' "${sc_live}" > "${sc_dir}/engine/temp/engine.pid"
+printf '%s\n' "${sc_dead}" > "${sc_dir}/etl/temp/etl.pid"
+printf '0\n' > "${sc_dir}/mgmt/temp/mgmt.pid"
+sc_run "${sc_dir}" startup
+kill "${sc_live}" 2> /dev/null || true
+wait "${sc_live}" 2> /dev/null || true
+if [[ ${SC_RC} -eq 0 ]] && grep -q "startup WARNING engine pid=${sc_live} is still running" "${sc_dir}/out.txt" \
+    && ! grep -q 'startup WARNING etl' "${sc_dir}/out.txt" && ! grep -q 'startup WARNING mgmt' "${sc_dir}/out.txt" \
+    && [[ ! -f "${sc_dir}/engine/temp/engine.pid" && ! -f "${sc_dir}/etl/temp/etl.pid" && ! -f "${sc_dir}/mgmt/temp/mgmt.pid" ]]; then
+    _record_pass "startup warns about a live pid, ignores a dead pid and the pid 0, and removes the pid files"
+else
+    _record_fail "startup pid warning" "rc=${SC_RC} out=$(cat "${sc_dir}/out.txt")"
 fi
 
 # status addresses the appliance by the source address of the route and falls back to the host name;

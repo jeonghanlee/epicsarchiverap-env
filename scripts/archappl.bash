@@ -73,9 +73,14 @@ function startup_archappl
 
     # shutdown_services is not the same as startup_services
     # Order is matter
-    local failed=0 status
+    local failed=0 status existing_pid
     for service in "${startup_services[@]}"; do
         pushdd "${archappl_top}/${service}"
+        # The pid file is removed before the start; name a live process that it still holds.
+        existing_pid=$(cat -- "temp/${service}.pid" 2> /dev/null || true)
+        if [[ ${existing_pid} =~ ^[1-9][0-9]*$ ]] && kill -0 "${existing_pid}" 2> /dev/null; then
+            printf '%s\n' "startup WARNING ${service} pid=${existing_pid} is still running; its pid file is removed" >&2
+        fi
         rm -rf "temp/${service}.pid"
         bash bin/startup.sh
         status=$?

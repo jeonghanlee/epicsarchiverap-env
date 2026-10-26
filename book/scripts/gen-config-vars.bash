@@ -15,7 +15,7 @@ files=(RELEASE CONFIG_SITE CONFIG_EPICSENV CONFIG_SYSTEMD CONFIG_VARS CONFIG_SQL
 
 This page lists every variable that the files under `configure/` assign, with the operator, the value that the file assigns and the comment written above it. A value is shown as written: `$(NAME)` and `${NAME}` refer to another variable and are expanded by Make when the variable is used. `make -s print-<variable_name>` prints the value that is in effect.
 
-An assignment with `:=` is evaluated once, where it is written. An assignment with `=` is evaluated each time the variable is used. An assignment with `?=` applies only when the variable has no value yet. A local file that `CONFIG_SITE`, `CONFIG_VARS` or `RELEASE` includes can replace any of them.
+An assignment with `:=` is evaluated once, where it is written. An assignment with `=` is evaluated each time the variable is used. An assignment with `?=` applies only when the variable has no value yet. A local file that `CONFIG_SITE`, `CONFIG_EPICSENV`, `CONFIG_VARS` or `RELEASE` includes replaces a variable only until a file that Make reads later assigns it with `:=` or `=`. An assignment with `?=` keeps the value of the local file.
 
 HEADER
     for file in "${files[@]}"; do

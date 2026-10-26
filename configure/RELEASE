@@ -20,6 +20,7 @@ SRC_NAME:=${APPNAME}
 #SRC_TAG:=61e1b4c5c819fc2473b27e2046cbab80fecc558c
 SRC_TAG:=origin/modernize
 #
+## Only ARCHAPPL_VERSION reads SRC_VERSION, and no file reads that; a site value has no effect.
 SRC_VERSION:=$(SRC_TAG)
 #SRC_VERSION:=${SRC_TAG}-2022-08-08
 

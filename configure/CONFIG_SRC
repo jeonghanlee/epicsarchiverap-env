@@ -16,7 +16,7 @@ SUDO_CMD := $(shell which sudo)
 #
 ifeq "$(SUDO_INFO)" "1"
 SUDO = $(SUDO_CMD)
-SUDOBASH := $(SUDO) -E bash -c
+SUDOBASH := $(if $(SUDO_CMD),$(SUDO_CMD) -E ,)bash -c
 else
 SUDO :=
 SUDOBASH = bash -c
@@ -29,6 +29,7 @@ PATH:=$(JAVA_PATH):${PATH}
 
 ## The Maven Wrapper committed in the source repository; needs make init first.
 MAVEN_CMD:=$(TOP)/$(SRC_PATH)/mvnw
+## No file of this repository reads JAVA_CMD; a site value has no effect.
 JAVA_CMD=$(JAVA_PATH)/java
 
 
