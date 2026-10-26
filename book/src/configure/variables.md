@@ -13,7 +13,7 @@ An assignment with `:=` is evaluated once, where it is written. An assignment wi
 | `APPNAME` | `:=` | `epicsarchiverap-maven` |  |
 | `SRC_URL` | `=` | `https://github.com/jeonghanlee` | Where the Source repository SRC_URL/SRC_NAME |
 | `SRC_NAME` | `:=` | `${APPNAME}` |  |
-| `SRC_TAG` | `:=` | `origin/modernize` | Which the source tag / branch / hash id would like to use latest master Placeholder for the site-specific version control SRC_TAG follows the remote-tracking branch of the source: the source update step fetches origin and checks out its tip. A bare branch name would keep an outdated local branch. A release that must build one fixed source sets a commit hash here instead. |
+| `SRC_TAG` | `:=` | `2026-10` | Which the source tag / branch / hash id would like to use Placeholder for the site-specific version control SRC_TAG names the tag of the source release that the installer fetches and builds. origin/master follows the branch tip; a bare branch name keeps an outdated local branch. |
 | `SRC_VERSION` | `:=` | `$(SRC_TAG)` | Only ARCHAPPL_VERSION reads SRC_VERSION, and no file reads that; a site value has no effect. |
 
 ## Variables set in configure/CONFIG_SITE

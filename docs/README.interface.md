@@ -4,7 +4,7 @@ The management web interface of the appliance (the Browse PVs page, the Archive 
 source repository `jeonghanlee/epicsarchiverap-maven`. Its pages, what each judgement shows and its starting values,
 the limits it keeps and the browsers it supports are described there:
 
-- [The management interface pages](https://github.com/jeonghanlee/epicsarchiverap-maven/blob/modernize/docs/book/src/interface.md)
+- [The management interface pages](https://github.com/jeonghanlee/epicsarchiverap-maven/blob/2026-10/docs/book/src/interface.md)
 
 ## What this repository keeps
 
@@ -16,6 +16,6 @@ the limits it keeps and the browsers it supports are described there:
 
 ## Selecting the source
 
-`SRC_TAG` in `configure/RELEASE` names the source commit or branch that every build uses. The interface is part of the
+`SRC_TAG` in `configure/RELEASE` names the source commit, tag or branch that every build uses. The interface is part of the
 source since `d0932d1b`; a source older than that builds with the earlier pages, and the installers stop with the
 message `The selected source does not carry the management interface`.

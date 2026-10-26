@@ -1,6 +1,6 @@
 # Reinstall or upgrade an appliance
 
-A reinstall replaces the installed payload of an appliance with the payload built from the current checkout. The same installer that performs the first installation performs the reinstall, and an upgrade is a reinstall after the selected source or the site inputs change. The installer fetches the source repository and builds the commit that `SRC_TAG` names; the default, `origin/modernize`, is the tip of the source branch on the day of the reinstall. To install the same source again, set `SRC_TAG` to its commit hash first, as in [Select the source commit to build](../build/select-commit.md). The [glossary](../appendix/glossary.md) explains the terms of this page.
+A reinstall replaces the installed payload of an appliance with the payload built from the current checkout. The same installer that performs the first installation performs the reinstall, and an upgrade is a reinstall after the selected source or the site inputs change. The installer fetches the source repository and builds the commit that `SRC_TAG` names; the default is the tag `2026-10`, so a reinstall builds the same source again. A checkout that follows a branch such as `origin/master` builds the tip of the day; to install the same source again, set `SRC_TAG` to a commit hash or tag first, as in [Select the source commit to build](../build/select-commit.md). The [glossary](../appendix/glossary.md) explains the terms of this page.
 
 ## Prerequisites
 

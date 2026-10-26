@@ -16,7 +16,7 @@ This page produces the four web application archive (WAR) files of the appliance
    make init
    ```
 
-   The command prints nothing when the clone exists, and it does not update an existing clone. To follow the branch tip, fetch and check it out:
+   The command prints nothing when the clone exists, and it does not update an existing clone. To update it to the reference that `SRC_TAG` names, fetch and check that reference out:
 
    ```bash
    git -C epicsarchiverap-maven-src fetch origin
@@ -27,13 +27,13 @@ This page produces the four web application archive (WAR) files of the appliance
 
    ```bash
    make -s print-SRC_TAG
-   git -C epicsarchiverap-maven-src rev-parse HEAD origin/modernize
+   git -C epicsarchiverap-maven-src rev-parse HEAD "$(make -s print-SRC_TAG)^{commit}"
    ```
 
-   The first command prints the reference and the second prints the same commit twice. After the fetch and `make srcupdate` above, the commit is the tip of the branch on the day of the run, in this form:
+   The first command prints the reference and the second prints the same commit twice. After the fetch and `make srcupdate` above, the commit is the commit that the reference names, in this form:
 
    ```text
-   origin/modernize
+   2026-10
    <commit_hash>
    <commit_hash>
    ```

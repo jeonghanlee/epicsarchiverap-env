@@ -115,10 +115,12 @@ For an existing installation, follow the [reinstall procedure](docs/README.insta
 To build against a different version of the source code:
 
 * First, set `SRC_TAG` in `configure/RELEASE.local` or `../RELEASE.local` to
-  the desired Git commit hash, tag, or branch name. Keep the tracked release
+  the desired Git commit hash, tag, or `origin/<branch>` (a bare branch name
+  keeps the older local branch of the clone). Keep the tracked release
   defaults in `configure/RELEASE` unchanged.
-* Then, run the following command to update the source code checkout:
+* Then, fetch the source repository and run the following command to update the source code checkout:
 
 ```bash
+git -C epicsarchiverap-maven-src fetch origin
 make srcupdate
 ```

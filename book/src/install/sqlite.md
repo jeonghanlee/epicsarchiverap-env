@@ -25,7 +25,7 @@ This page installs a systemd-managed appliance whose configuration database is a
    Before installation, offer the optional soft IOC test and validate exported EPICS_BASE, softIoc and caget.
    Repository: <checkout>
    OS: debian13
-   Source pin: origin/modernize
+   Source pin: 2026-10
    Install: /opt/epicsarchiverap-maven
    Backend: sqlite
    SQLite: /arch/config/archappl.sqlite

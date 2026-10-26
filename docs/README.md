@@ -20,7 +20,7 @@ Detailed guides covering installation, storage architecture, policy configuratio
 | Goal | Recommended Document |
 | :--- | :--- |
 | Install a local appliance with SQLite or MariaDB. | [Local systemd installation](./README.install.md#local-systemd-installation) |
-| Learn what a status on the System pages means and when it turns to Attention or Problem. | [Management interface](https://github.com/jeonghanlee/epicsarchiverap-maven/blob/modernize/docs/book/src/interface.md) |
+| Learn what a status on the System pages means and when it turns to Attention or Problem. | [Management interface](https://github.com/jeonghanlee/epicsarchiverap-maven/blob/2026-10/docs/book/src/interface.md) |
 | Set up `policies.py` or change the sampling rate. | [Storage & Policy Configuration Guide](./README.policies.md) |
 | Find which mathematical functions are available. | [Storage & Policy Configuration Guide](./README.policies.md) |
 | Diagnose why data is not moving to MTS yet. | [The Data Journey](./README.DataJourney.md) |

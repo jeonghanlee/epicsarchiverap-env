@@ -271,8 +271,8 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
 
 - `configure/RELEASE.local`: `SRC_TAG` — the source reference for
   https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). The default is
-  `origin/modernize`, the tip of the source branch: the source update step fetches origin and checks
-  out that tip. A release that must build one fixed source sets a commit hash. `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
+  the tag `2026-10`: the installer fetches origin and checks out that tag. A site that
+  follows the branch tip sets `origin/master`, and a build of one fixed commit sets its hash. `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
   is overridden here only when the source is hosted elsewhere. This file is not
   rewritten by the per-OS config targets. The selected source must carry the management interface,
   which it does from `d0932d1b`; the installers stop with `The selected source does not carry the

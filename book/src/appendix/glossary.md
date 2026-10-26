@@ -50,7 +50,7 @@ The terms below are the names that the repository and the source use. Each defin
 | pass | One run of the ETL jobs of the PVs that share a transition and a cadence |
 | payload | The files that the installer puts under `AA_INSTALL_LOCATION`: the four instance folders, the configuration files and `archappl.bash` |
 | PID | Process identifier; the file `temp/<component>.pid` of an instance holds its PID |
-| pin | A commit hash set in `SRC_TAG` so that every build uses the same source; the default `origin/modernize` follows the source branch instead |
+| pin | A commit hash or tag set in `SRC_TAG` so that every build uses the same source; the default is the tag `2026-10`, and `origin/master` follows the source branch instead |
 | policy | A named set of sampling and store settings that `policies.py` selects for a PV |
 | processing time | The time that a pass uses as its current time: the start of the pass minus 60 seconds; `T_PROCESS` on the page of the data journey |
 | PV | A process variable of the control system that the appliance archives |
@@ -62,7 +62,7 @@ The terms below are the names that the repository and the source use. Each defin
 | soft IOC | A software input/output controller that serves PVs without hardware; `verify-local-pv.bash` starts one |
 | softIoc | The EPICS program that runs a soft IOC; `verify-local-pv.bash` starts it for the test |
 | source tree | The clone of the source repository under `SRC_PATH` |
-| SRC_TAG | The source commit or branch that the installer fetches and builds; the default is `origin/modernize` |
+| SRC_TAG | The source commit, tag or branch that the installer fetches and builds; the default is the tag `2026-10` |
 | start-up pass | The pass that each driver with at least one PV runs when the ETL starts |
 | store | A folder tree of data files that a `pb://` URL describes: STS, MTS or LTS |
 | STS | The short term store, which receives the samples that `engine` writes |
