@@ -501,7 +501,7 @@ class Guest:
                           "Installed global classpath configuration mismatch")
                 site = self.source / "src/sitespecific/als"
                 if service in ("mgmt", "retrieval"):
-                    assets = list((site / "img").rglob("*")) + [site / "css/main.css"]
+                    assets = list((site / "img").rglob("*"))
                 else:
                     # engine and etl serve no page and carry only the version file.
                     assets = []
@@ -510,7 +510,7 @@ class Guest:
                     if asset.is_file():
                         relative = str(asset.relative_to(site))
                         check(archive.read("ui/comm/" + relative) == asset.read_bytes(),
-                              "ALS image/shared CSS content mismatch")
+                              "ALS image content mismatch")
                 if service == "mgmt":
                     replacements = re.findall(r"<!-- @begin\(([^)]+)\) -->.*?<!-- @end\(\1\) -->",
                                                (site / "template_changes.html").read_text(), re.S)

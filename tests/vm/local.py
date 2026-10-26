@@ -325,6 +325,19 @@ class EntrypointTests(unittest.TestCase):
             spec.loader.exec_module(driver)
             self.assertFalse(driver.local_suite_complete(output))
 
+    def test_unbracketed_real_base_skip_cannot_pass_local_suite(self):
+        environment = {key: value for key, value in os.environ.items() if key != 'AA_TEST_EPICS_BIN'}
+        result = subprocess.run(['python3', str(TOP / 'tests/local-install-epics.py')],
+                                env=environment, capture_output=True, text=True, timeout=300)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = result.stdout + result.stderr
+        self.assertIn('SKIP: real Base binary resolution', output)
+        self.assertNotIn('[SKIP]', output)
+        spec = importlib.util.spec_from_file_location('vm_driver', DRIVER)
+        driver = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(driver)
+        self.assertFalse(driver.local_suite_complete(output))
+
     def config(self):
         config = json.loads((DRIVER.parent / 'config.example.json').read_text())
         for image in config['images'].values():

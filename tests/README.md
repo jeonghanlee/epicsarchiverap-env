@@ -95,8 +95,18 @@ tests/run-all-tests.bash --local
 The stop time measurement in [stop-time/](stop-time/README.md) is a test for
 its own guest, and `--local` does not run it.
 
-The local suite reaches no database that it did not start: its MariaDB checks
-use a private server (see [Native database and PV checks](#native-database-and-pv-checks)).
+The first check of Phase 1 compares the current branch with `EXPECTED_BRANCH`,
+whose default is `modernize`, and prints `[WARN]` on another branch; the run
+does not fail. Name the branch to remove the warning:
+
+```bash
+EXPECTED_BRANCH=release-2.0.1 tests/run-all-tests.bash --local
+```
+
+The local suite reaches no database that it did not start. It runs the
+configuration tests of `database-config.py`; the private MariaDB server of the
+integration tests starts only with `database-config.py --integration` (see
+[Native database and PV checks](#native-database-and-pv-checks)).
 A database target run by hand (`sql.*`, `db.*`, `queryFile` of
 `mariadb_setup.bash`) reaches the server that `DB_HOST_NAME`, `DB_HOST_PORT`
 and `DB_SOCKET` name, by default the database `archappl` on `127.0.0.1:3306`,
@@ -202,6 +212,40 @@ Keep the printed exit status and the entire evidence directory, including
 `console.log` and its retained subdirectories. Inspect failures and skips in
 the console summary; a skipped check is not verification.
 
+## Checking that a test fails on a changed copy
+
+Three tests read the files they inspect from an environment variable, so that
+a run can show that the test fails on a changed copy. Without the variable a
+test reads the shipped files.
+
+| Variable | Test | The variable names |
+| --- | --- | --- |
+| `HEALTH_LAUNCHER_UNDER_TEST` | `tests/health-starting.bash` | A copy of `scripts/archappl.bash` |
+| `NO_ANT_TREE_UNDER_TEST` | `tests/no-ant.bash` | A copy of the repository: `Makefile`, `configure`, `scripts`, `site-template` and `README.md` |
+| `UI_STATIC_TREE_UNDER_TEST` | `tests/ui-static.bash` | A tree with the layout of the checks: each entry of `tests/ui-files.list` as `<root>/site-template/ui/<entry>`, for example `<root>/site-template/ui/mgmt/staticcontent/index.html`, next to `<root>/site-template/siteid` |
+
+Run the examples from the repository root. A change that the test is meant to
+catch must make it print `[FAIL]` and end with a non-zero exit status. A failing run keeps its workspace, a folder
+`archappl-test.XXXXXX` under `TMPDIR`, or under `/dev/shm` when `TMPDIR` is
+unset; remove the workspace and the copy (`${mutant}` or `${tree}`) when you
+are done. This copy of
+the launcher accepts a bound of 60 seconds, and the run prints
+`[FAIL] A bound of 60 is refused`:
+
+```bash
+mutant=$(mktemp -d) && sed 's/> 59/> 99/' scripts/archappl.bash > "${mutant}/launcher.bash"
+HEALTH_LAUNCHER_UNDER_TEST="${mutant}/launcher.bash" bash tests/health-starting.bash
+```
+
+This copy of the repository carries a `build.xml` in the site folder, and the
+run prints `[FAIL] The site folder holds no build.xml`:
+
+```bash
+tree=$(mktemp -d) && cp -a Makefile configure scripts site-template README.md "${tree}/"
+touch "${tree}/site-template/siteid/build.xml"
+NO_ANT_TREE_UNDER_TEST="${tree}" bash tests/no-ant.bash
+```
+
 ## Verified Behaviors
 
 ### Phase 1 — Logic
@@ -219,7 +263,6 @@ the console summary; a skipped check is not verification.
 - `sql.drop` and `sql.table.drop` reject SQLite and invalid backend values before invoking a database client, even when files with those target names exist. The real Make targets run for rejection cases; the MariaDB deletion command is checked only with a dry-run.
 - The five removed obsolete documents (`README.ant.md`, `README.centos7.md`, `README.centos8.md`, `README.javapkgs.md`, `README.macos.md`) are not referenced from any tracked Markdown file other than `CHANGELOG.md`, the milestone register and `tests/`; the check fails when the search itself cannot run, such as outside a Git work tree.
 - `CHANGELOG.md` is present; the misspelled `CHANGLOG.md` is gone.
-- The rendered build has no interface copy step: no `copy.ui` rule and no `scripts/prepare-ui.bash` appear in `make -n build`. The management interface is part of the source that `SRC_TAG` selects.
 - `ui-static.bash` checks the interface files of the source checkout that `SRC_TAG` selects (`AA_SOURCE_CLONE` overrides it; the files are listed in `tests/ui-files.list`; the checks are skipped with a message, and the group line reads `[SKIP]` instead of `[PASS]`, when no checkout exists) without running a browser: every management page keeps the marker blocks the site template replaces; every full page carries a content security policy with `script-src 'self'`; no page has an inline script, an event-handler or style attribute or a `javascript:` address; no file refers to jQuery or to an outside host, where only the target of a navigation link (`<a href>`) may name one, because the user follows it and the page does not request it (third-party files under `js/vendor` are covered by their integrity record); every element id that a page script reads exists in its page; every script and stylesheet a page names exists; no file turns text into markup (`innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`, `eval`); every server call of a management file is written with its literal `../bpl/` path, which the source repository's `StaticContentBPLCallsTest` needs; the site template `template_changes.html` names no jQuery; every text color of the shared stylesheet has a contrast of at least 4.5:1 on the page and on a selected row. The same script then runs against seventeen copies with one defect each, which it must refuse for the reason named, and against one copy with a navigation link to an outside host, which it must accept.
 - `checkfile` (expanded from the real `configure/RULES_FUNC` with `make -n`) selects the removal command for an existing file and no removal command for an absent one; its caller in `RULES_SQL` passes an unquoted path. This is a command-generation check, not an executed deletion test.
 - `serverxml.install` pairs engine and etl with their own `ARCHAPPL_SHUTDOWN_*_PORT` variables.
@@ -469,6 +512,7 @@ the line `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.` shows 
 - The package command runs from the configured source directory and invokes its Maven Wrapper with `clean package -DskipTests`.
 - Only simple unquoted environment assignments may precede the wrapper; another command such as `echo` does not pass the invocation check.
 - The five configuration-generation commands (`appliances.xml`, `archappl.properties`, `policies.py`, `context.xml` and `archappl.conf`) precede the site-overlay copy, which precedes the Maven package command.
+- The rendered build has no interface copy step: no `copy.ui` rule and no `scripts/prepare-ui.bash` appear in `make -n build`. The management interface is part of the source that `SRC_TAG` selects.
 - `MAVEN_FLAGS` is empty for this check; Phase 1 separately verifies nonempty flags across all six Maven targets.
 - The check does not clone sources, execute Java or Maven, generate configuration, provision storage, or inspect WARs and release artifacts. Source compilation tests belong to [epicsarchiverap-maven CI](https://github.com/jeonghanlee/epicsarchiverap-maven/actions); VM acceptance verifies the actual installed candidate independently.
 - Direct callers run the script `tests/phase2-compile.bash`. Both `--local` and `--phase=2` run Phase 1 followed by Phase 2.
@@ -499,7 +543,10 @@ Phase 4 driver. Obtain the VM owner and an
 interruption window outside any uninterrupted heap-load observation before
 running faults, reboots or lifecycle changes. The operator records each case's
 exact action and expected outcome before execution. Default names below must
-be replaced together when the installation is customized.
+be replaced together when the installation is customized. The T labels of the
+table below belong to this manual procedure only; the T labels of
+`tests/vm/guest.py` and `docs/README.vmtests.md` belong to the VM acceptance
+plan (T1 to T15).
 
 Retain the environment/source commit IDs, rendered configuration, systemd
 version, effective units including drop-ins, service account, MainPID, and four

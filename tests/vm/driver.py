@@ -35,6 +35,7 @@ ANSIBLE_SPECIES = {"socket": "archiver_dev_uds", "tcp": "archiver_dev_tcp",
                    "sqlite": "archiver_dev_sqlite"}
 NEGATIVE = tuple(f"{os_name}-build-failure" for os_name in OS_NAMES)
 MATRIX = POSITIVE + NEGATIVE
+# The keys vm and shutdown are not read: cloud-provision creates and shuts down the guests, and the driver does neither.
 DEFAULT_BOUNDS = {"vm": 1800, "build": 2700, "application": 300, "samples": 180,
                   "restart": 300, "command": 120, "shutdown": 90}
 FULL_REF = re.compile(r"[0-9a-f]{40}")
@@ -43,6 +44,7 @@ REQUIRED = {"cloud", "ansible", "candidate", "fixture", "images", "guest", "ssh"
 FIXTURE_REF = "5e6c12668c9c55f71ae1ba1c3a4384d86049b806"
 FIXTURE_SHA256 = "85778e0ed007ef196ab963a582c9ba7ddbff96bf68e91edab118d1e9ff497e32"
 UNITTEST_SKIPS = re.compile(r"\bskipped=[1-9][0-9]*\b")
+PLAIN_SKIPS = re.compile(r"^\s*SKIP:", re.MULTILINE)
 GUEST_HOSTNAME_LIMIT = 63
 
 
@@ -65,7 +67,8 @@ def utc():
 def local_suite_complete(output):
     """Require shell and unittest checks to run without skipped assertions."""
     return (isinstance(output, str) and "[SKIP]" not in output
-            and not UNITTEST_SKIPS.search(output))
+            and not UNITTEST_SKIPS.search(output)
+            and not PLAIN_SKIPS.search(output))
 
 
 def domain_mac(tree, network, uuid, name):

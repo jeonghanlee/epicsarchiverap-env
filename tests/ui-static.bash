@@ -167,7 +167,7 @@ assert_eq "${site_jquery}" "" "The site template template_changes.html does not 
 
 # ---- a PV name is a base name with an optional field --------------------------------------------
 # The server archives X:Y.RBV as a PV of its own, so the name patterns of the pages must accept it.
-for script in mgmt/staticcontent/js/browse.js retrieval/staticcontent/viewer/viewer.js; do
+for script in mgmt/staticcontent/js/browse.js mgmt/staticcontent/js/archive.js retrieval/staticcontent/viewer/viewer.js; do
     refused=$(python3 - "${UI}/${script}" <<'PY'
 import re, sys
 text = open(sys.argv[1], encoding="utf-8").read()
@@ -272,7 +272,7 @@ function expect_rejected {
     fi
     cp -a "${ROOT}/site-template/siteid/template_changes.html" "${tree}/site-template/siteid/template_changes.html"
     F="${tree}/site-template/${relative}" bash -c "${snippet}"
-    output=$(UI_STATIC_TREE_UNDER_TEST="${tree}" bash "${BASH_SOURCE[0]}" 2>&1) || status=$?
+    output=$(WORKSPACE="$(mktemp -d -p "${WORKSPACE}")" UI_STATIC_TREE_UNDER_TEST="${tree}" bash "${BASH_SOURCE[0]}" 2>&1) || status=$?
     if [[ "${status}" -eq 0 ]]; then
         _record_fail "A copy with ${description} is refused" "the checks passed"
     fi
@@ -293,7 +293,7 @@ function expect_accepted {
     fi
     cp -a "${ROOT}/site-template/siteid/template_changes.html" "${tree}/site-template/siteid/template_changes.html"
     F="${tree}/site-template/${relative}" bash -c "${snippet}"
-    output=$(UI_STATIC_TREE_UNDER_TEST="${tree}" bash "${BASH_SOURCE[0]}" 2>&1) || status=$?
+    output=$(WORKSPACE="$(mktemp -d -p "${WORKSPACE}")" UI_STATIC_TREE_UNDER_TEST="${tree}" bash "${BASH_SOURCE[0]}" 2>&1) || status=$?
     if [[ "${status}" -eq 0 ]]; then
         _record_pass "A copy with ${description} is accepted"
     else

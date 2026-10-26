@@ -51,4 +51,9 @@ bash -c 'source "$1"; installation_completed=1; trap report_exit EXIT; exit 130'
 [[ "$status" == 130 ]]
 grep -q 'Installation completed. Post-install verification stopped' "$workspace/interrupted.log"
 if grep -q 'Installation stopped during' "$workspace/interrupted.log"; then exit 1; fi
-printf 'PASS: readiness output unit checks (HTTP/privilege boundaries only). Evidence: %s\n' "$workspace"
+if [[ "${KEEP_WORKSPACE:-}" == 1 ]]; then
+    printf 'PASS: readiness output unit checks (HTTP/privilege boundaries only). Evidence: %s\n' "$workspace"
+else
+    rm -rf -- "${workspace:?}"
+    printf '%s\n' 'PASS: readiness output unit checks (HTTP/privilege boundaries only).'
+fi
