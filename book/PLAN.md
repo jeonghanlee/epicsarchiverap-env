@@ -38,6 +38,7 @@ Verification classes: **H** the commands run on this host as shown; **S** they r
 | Install an appliance with MariaDB over TCP | procedure | `scripts/install-local-mariadb-tcp.bash` | P: `--plan` |
 | Archive a test PV and check the stored samples | procedure | `scripts/verify-local-pv.bash`, `verify-local-pv-curl.bash` | S |
 | Reinstall or upgrade an appliance | procedure | `install-local-common.bash` (what an install replaces and keeps) | P |
+| Changes that the installer makes on the host | reference | `install-local-common.bash`, `configure/RULES_FUNC`, `site-template/systemd` | P |
 
 ### Part 3: Build from source
 
@@ -73,7 +74,7 @@ Verification classes: **H** the commands run on this host as shown; **S** they r
 | :--- | :--- | :--- | :--- |
 | The pages of the management interface | concept | `mgmt/staticcontent/*.html` of the selected source | S |
 | Judgements of the System pages | reference | `js/system/judge.js` `THRESHOLDS`; generated | S |
-| Find and pause a PV on the Work page | procedure | `js/work.js`, `index.html` | S |
+| Find and pause a PV on the Browse PVs page | procedure | `js/browse.js`, `index.html` | S |
 
 ### Part 7: Test the environment
 
@@ -111,12 +112,12 @@ The book has no tutorial. A tutorial would repeat "Install an appliance with SQL
 
 ## Status
 
-All 32 pages are written from the code and from commands run on the author's host. The classes of the plan hold as follows.
+All 35 pages are written from the code and from commands run on the author's host. The classes of the plan hold as follows.
 
 | Class | Pages | What ran |
 | :--- | :--- | :--- |
 | H | Part 1, Part 3, Part 4, the local suite, the appendices | The commands ran as shown on the author's host |
-| S | Operate pages, Work page procedure | Not run against an appliance: the host serves a live archive. The pages state this and quote the script source |
+| S | Operate pages, Browse PVs page procedure | Not run against an appliance: the host serves a live archive. The pages state this and quote the script source |
 | P | Part 2 install pages, VM tests | `--plan` and read-only commands ran; the pages state that the install step was not run |
 
 The generated pages are regenerated with `bash book/scripts/generate-all.bash` and checked with `bash book/scripts/check-generated.bash`.

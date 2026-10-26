@@ -1,6 +1,6 @@
 # VM verification operations
 
-The virtual machine (VM) operations prove the installation and the runtime behavior on fresh guests. The driver `tests/vm/driver.py` coordinates the provisioning tools that the configuration names and keeps independent evidence for each case. This page lists the inputs, the operations and the cases.
+The virtual machine (VM) operations prove the installation and the runtime behavior on fresh guests. The VM driver `tests/vm/driver.py` coordinates the provisioning tools that the configuration names and keeps independent evidence for each case. This page lists the inputs, the operations and the cases.
 
 ## Inputs of a run
 
@@ -17,14 +17,14 @@ A run uses a copy of `tests/vm/config.example.json` with real values. The exampl
 
 ## Operations of the VM driver
 
-| Operation | Command form | What the driver does |
+| Operation | Command form | What the VM driver does |
 | :--- | :--- | :--- |
 | Initialize a run | `bash tests/run-all-tests.bash --init --config <config_file> --evidence <new_directory>` | Validates the configuration, refuses an evidence directory that exists, writes `run.json` with the configuration and the checksums of `driver.py` and `guest.py`, and prints `PASS: run initialized; no guest was contacted` |
 | Run one case | `bash tests/run-all-tests.bash --case <case> --handoff <handoff_file> <run>` | Adopts the guest named in the handoff file, runs the runtime checks and the lifecycle checks for the case, and prints `PASS: case <case> recorded; only --verdict establishes acceptance` |
 | Verify cleanup | `bash tests/run-all-tests.bash --verify-cleanup <run>` | Checks the owned resources and prints `PASS: owned resources are absent and the baseline is preserved` |
 | Verdict | `bash tests/run-all-tests.bash --verdict <run>` | Prints `PASS`, `FAIL` or `INCOMPLETE` with exit status `0`, `1` or another value |
 
-Only the verdict establishes acceptance of a run. A case that ends with `PASS` is recorded, not accepted. The driver holds a lock on the run directory, so another operation on the same run is refused.
+Only the verdict establishes acceptance of a run. A case that ends with `PASS` is recorded, not accepted. The VM driver holds a lock on the run directory, so another operation on the same run is refused.
 
 ## Cases and exit statuses
 

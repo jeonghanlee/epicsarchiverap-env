@@ -70,4 +70,5 @@ The terms below are the names that the repository and the source use. Each defin
 | transition | The move from one store to the next: STS to MTS, and MTS to LTS |
 | URL | Uniform resource locator; the `pb://` form of a store is such a locator |
 | VM | Virtual machine; the fresh guest on which the VM verification operations run |
+| VM driver | The script `tests/vm/driver.py`; it runs the operations of a VM test run: initialize, case, cleanup verification and verdict |
 | WAR | The web application archive that the source build produces for each component |

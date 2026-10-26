@@ -491,7 +491,11 @@ Notes:
   the rendering target when its file is missing or older than its template or,
   for the units, than the configuration (`configure/CONFIG*`,
   `configure/RELEASE*`, `../CONFIG_SITE.local`, `../RELEASE.local`). After a
-  change of the configuration run step 5 again.
+  change of the configuration run step 5 again. The files that step 3 renders
+  (`archappl.conf`, `appliances.xml`, `archappl.properties`, `policies.py` and
+  `context.xml`) are installed without that check, and the WARs of step 4 carry
+  `appliances.xml`, `archappl.properties` and `policies.py`, so run steps 2 to 4
+  again as well, before step 8.
 - `make install` creates the service account (idempotent), stops any existing
   health timer/check before changing files, then installs the appliance and
   health pair. It reloads systemd before enabling the appliance and timer, with

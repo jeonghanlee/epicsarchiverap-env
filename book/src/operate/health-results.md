@@ -83,7 +83,7 @@ The status word `STARTING` and the reasons of the instance and storage tables ar
 
 ## The readiness block of the installer
 
-When the installer does not pass its startup checks within the wait (180 seconds by default), it prints `Verification could not pass within <N> seconds. Last observed results:` and the readiness block. It then prints the command that reads the service journal and ends with `ERROR: Installation verification did not pass; use the results above to identify the failed check.`
+When the installer does not pass its startup checks within the wait (180 seconds by default), it prints `Verification could not pass within <N> seconds. Last observed results:` and the readiness block. It then prints the command that reads the service journal. The next line is `ERROR: Installation verification did not pass; use the results above to identify the failed check.` Two last lines state that the appliance files are installed and that the installer does not roll back the installation, stop the appliance or restart it.
 
 The block has one line each for the appliance service, the health timer, the four process identities, the storage usage and the health check. It then lists the four components, each with a status line and, indented below it, its startup address. The appliance information follows with its address and, below it, its status. Each status carries one of these words:
 

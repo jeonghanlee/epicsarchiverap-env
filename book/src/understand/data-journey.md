@@ -2,6 +2,8 @@
 
 This document explains when and how the ETL (the part of the appliance that moves archived data from one storage tier to the next) moves the data of one PV (Process Variable, a named data channel of the control system) from Short Term Storage (STS) to Middle Term Storage (MTS) and from MTS to Long Term Storage (LTS). It follows one scenario with exact times. The times, the file contents and the sample counts of the scenario come from a run of the real ETL pass scheduler, the real ETL job and the real storage plugins with a simulated clock ([Runs that verify the scenario](#runs-that-verify-the-scenario)).
 
+The statements of this page are those of the verified document `docs/README.DataJourney.md`, and only the form follows the book, so some sentences are longer than the sentences of the other pages of the book.
+
 ## Terms and the two facts that answer most questions
 
 The Archiver Appliance stores the data of a PV in three tiers. STS receives the samples, MTS receives the STS files and appends them into larger files, and LTS keeps the data permanently. The ETL moves data from one tier to the next in **passes**. A pass starts at fixed times, and in each pass the parameters `hold` and `gather` decide which files move.

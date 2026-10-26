@@ -11,7 +11,7 @@ The `mgmt` application serves the management interface under `/mgmt/ui/`, and th
 | System: Overview | `/mgmt/ui/system.html` | Everyone | Three verdict lines and one row for each measure, with its meaning and a link to the detail |
 | System: Operations | `/mgmt/ui/operations.html` | The person who looks after the appliance | Samples, dropped samples, the write path, the stores and ETL, the processes and the configuration in effect |
 | System: Retrieval performance | `/mgmt/ui/retrieval.html` | A person whose data requests are slow | What the server reports about reading, and a data request measured in the browser |
-| Integration | `/mgmt/ui/integration.html` | Administrators | Channel Archiver configuration upload, external archiver data servers, and a comparison with a Channel Archiver |
+| System: External servers | `/mgmt/ui/external.html` | Administrators | The other EPICS Archiver Appliance clusters whose data this appliance serves: add or remove one |
 | Data viewer | `/retrieval/ui/viewer/archViewer.html` | Everyone | Charts for the PVs and the time span of the address, one chart for each unit |
 
 `archappl.bash status` prints the address of the Browse PVs page for the host.
@@ -28,7 +28,7 @@ The page has a field for PV names, one for each line or pasted as a list, and a 
 
 ## The System pages
 
-The three System pages share an appliance selector, which appears only when the cluster has more than one appliance, and a tab bar. Each page states, in a short block at the start of each section, the question the section answers, when the numbers are a problem and what to do. The judgements are listed in [Judgements of the System pages](judgements.md).
+The four System pages share a tab bar. The first three, Overview, Operations and Retrieval performance, also share an appliance selector, which appears only when the cluster has more than one appliance. Each of these three pages states, in a short block at the start of each section, the question the section answers, when the numbers are a problem and what to do. The judgements are listed in [Judgements of the System pages](judgements.md).
 
 ## Older addresses that forward to a page
 
@@ -39,7 +39,8 @@ A page that moved leaves a short page at its old address.
 | `/mgmt/ui/appliance.html` | `system.html` |
 | `/mgmt/ui/metrics.html` | `operations.html` |
 | `/mgmt/ui/storage.html` | `operations.html#stores` |
-| `/mgmt/ui/cacompare.html` | `integration.html` |
+| `/mgmt/ui/integration.html` | `external.html` |
+| `/mgmt/ui/cacompare.html` | `external.html` |
 | `/mgmt/ui/reports.html` | `index.html`; the reports are selections of the list on the Browse PVs page |
 | `/mgmt/ui/pvdetails.html?pv=<pv_name>` | `index.html#pv=<pv_name>`, which selects that PV on the Browse PVs page |
 

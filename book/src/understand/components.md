@@ -19,7 +19,7 @@ The ports are the variables `ARCHAPPL_MGMT_PORT`, `ARCHAPPL_ENGINE_PORT`, `ARCHA
 
 Each component has its own Tomcat instance in a folder of the same name under `AA_INSTALL_LOCATION`, for example `/opt/epicsarchiverap-maven/mgmt`. The rule `serverxml.install` writes the port of the component into the `conf/server.xml` of its instance. The rule `serveroption.install` installs the file `<component>.conf` of `site-template` into `conf/` of the instance.
 
-In this repository only `mgmt.conf` carries options: Java module arguments (`--add-modules`, `--add-exports`, `--add-opens`). The other three files are empty.
+In this repository only `mgmt.conf` carries options: Java module arguments (`--add-modules`, `--add-exports`, `--add-opens`). The other three files hold only comments.
 
 ## How the components find each other
 

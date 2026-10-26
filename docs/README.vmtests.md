@@ -250,5 +250,6 @@ The driver reads but does not edit `~/.ssh/known_hosts`; it keeps each guest's
 host key in the run directory. A guest recreated at an address that already has
 a stored key needs cloud-provision to refresh that key at creation. The driver needs no exclusive use of the network, because it
 creates nothing; cloud-provision avoids address collisions when it creates a
-guest. Each step of a case invocation has its own deadline in
-`DEFAULT_BOUNDS`; the shell that starts an invocation must outlive all of them.
+guest. Each waiting step of a case invocation has its own deadline in
+`DEFAULT_BOUNDS` (the keys `vm` and `shutdown` are not read, because cloud-provision
+creates and shuts down the guests); the shell that starts an invocation must outlive all of them.

@@ -96,12 +96,13 @@ make tomcat.exist
 
 ### Build, install, and verify
 
-Follow the [ordered install sequence](docs/README.install.md#ordered-sequence) after the host prerequisites and database setup above. Generate the configuration, build the four WARs, and load the MariaDB schema as the build user:
+Follow the [ordered install sequence](docs/README.install.md#ordered-sequence) after the host prerequisites and database setup above. Generate the configuration, build the four WARs, render the systemd units, and load the MariaDB schema as the build user:
 
 ```bash
 make db.conf
 make conf.archapplproperties
 make build.mvn
+make conf.install
 make sql.fill
 make sql.show
 ```

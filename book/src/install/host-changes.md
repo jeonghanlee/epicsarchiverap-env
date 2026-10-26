@@ -95,8 +95,8 @@ The file is `ARCHAPPL_SQLITE_FILE` (`/arch/config/archappl.sqlite`).
 
 ## Passwords and who can read them
 
-- The installers do not generate passwords. `DB_ADMIN_PASS` and `DB_USER_PASS` default to the fixed repository values `admin` and `archappl`.
 - The SQLite installer creates no database account and reads no database password. The rest of this section applies to the MariaDB installers.
+- The installers do not generate passwords. `DB_ADMIN_PASS` and `DB_USER_PASS` default to the fixed repository values `admin` and `archappl`. They are temporary values for a first trial: set the passwords of the host in `../CONFIG_SITE.local` before the installer prepares the accounts.
 - A host that keeps the defaults has an administrative account with a server-wide grant and a password that every installation shares.
 - The installer renders the passwords in clear text into `site-template/mariadb.conf` and `site-template/context.xml` in the checkout. It renders `mariadb.conf` with `umask 077`, so only the checkout owner can read it. The installer runs with `umask 022`, so a newly rendered `context.xml` is readable by every user of the host. An existing file keeps its earlier mode.
 - `conf/context.xml` of each instance holds `DB_USER_PASS` and has the mode 644, so every user of the host can read it.
@@ -116,7 +116,7 @@ The file is `ARCHAPPL_SQLITE_FILE` (`/arch/config/archappl.sqlite`).
 - The shipped connectors name no `address`, so Tomcat listens on all local addresses. This is the default that the Tomcat 9 documentation gives for the connector attribute `address`.
 - The shutdown port of each instance is `-1`, which disables it.
 - The shared Tomcat folder gets the connector port `TOMCAT_DEFAULT_PORT` (8083 by default) in its own `conf/server.xml`. The four instances use the ports above from their own `conf/server.xml`.
-- `archappl.bash loglevel` sends plain HTTP requests without credentials to the `mgmt` port.
+- The `mgmt` web application declares no security constraint, so every `/mgmt/bpl` action (archive, delete and the others) is open to any client that reaches the port. `archappl.bash loglevel` sends such plain HTTP requests without credentials.
 - MariaDB over TCP uses `DB_HOST_NAME` and `DB_HOST_PORT` (`127.0.0.1` and `3306` by default).
 - The installer configures no firewall. Decide who may reach these ports before you use a shared host.
 
@@ -132,6 +132,15 @@ The installers need network access to these places:
 | The Tomcat download site | The installer installs Tomcat |
 
 The build time and the disk space depend on the host and on the Maven cache. This book gives no measured value.
+
+## What a site hardens itself
+
+The installers set values for a first trial. A site that shares the host with other users, or opens the ports to other hosts, hardens four points itself. The first two points apply to the MariaDB installers, because the SQLite installer reads no database password.
+
+- **The passwords.** Set `DB_ADMIN_PASS` and `DB_USER_PASS` in `../CONFIG_SITE.local` before the installer prepares the accounts. With `--existing-db`, `DB_USER_PASS` must match the password of the existing application account.
+- **The mode of `conf/context.xml`.** The file of each instance holds `DB_USER_PASS` and has the mode 644. Restrict who can read it, but keep it readable by the service account `AA_USERID`, and repeat the change after a [reinstall](reinstall.md), which overwrites the installed files. The copies `site-template/context.xml` and `site-template/mariadb.conf` in the checkout hold the same password and keep the mode they had when first rendered, so restrict them too.
+- **The connector addresses.** The shipped connectors name no `address`, so Tomcat listens on all local addresses, and the installer configures no firewall. Decide with a firewall which hosts may reach the ports 17665 to 17668.
+- **The management port.** The `mgmt` port accepts every `/mgmt/bpl` action (archive, delete, `archappl.bash loglevel` and the others) without credentials from any client that can reach it. The firewall decision of the previous point covers it.
 
 ## Undo an installation
 
