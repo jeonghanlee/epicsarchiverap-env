@@ -6,12 +6,12 @@ The repository turns the source commit that `SRC_TAG` selects and a set of site 
 
 | Stage | Target | What it does |
 | :--- | :--- | :--- |
-| 1. Fetch the source | `make init` | Runs `clone`, which clones `SRC_GITURL` into `SRC_PATH` and checks out the reference `SRC_TAG`, and `update`, which runs `git submodule update --init`. |
-| 2. Generate the configuration | `make conf` | Runs `conf.archapplproperties` and `conf.storage`, whose commands run with `sudo`. It writes `appliances.xml`, `archappl.properties` and `policies.py` from their `.in` templates and prepares the storage folders. |
+| 1. Fetch the source | `make init` | Runs `clone`, which clones `SRC_GITURL` into `SRC_PATH` and checks out the reference `SRC_TAG` only when the folder is absent, and `update`, which runs `git submodule update --init`. An existing clone stays at its commit: `git -C epicsarchiverap-maven-src fetch origin` and `make srcupdate` move it to `SRC_TAG`. |
+| 2. Generate the configuration | `make conf` | Runs `conf.archapplproperties` and `conf.storage`; only the commands of `conf.storage` run with `sudo`. It writes `appliances.xml`, `archappl.properties` and `policies.py` from their `.in` templates and prepares the storage folders. |
 | 3. Apply the site inputs | `copy.sitespecific` | Replaces `src/sitespecific/<site_id>` of the source tree with `site-template/siteid`, where `<site_id>` is the value of `ARCHAPPL_SITEID`. |
 | 4. Build the WARs | `make build.mvn` | Runs `mvnw clean package -DskipTests` in the source tree with `ARCHAPPL_SITEID` set. |
 | 5. Render the units | `make conf.install` | Runs as the checkout owner: renders the systemd override, service and health units from their `.in` templates and records the source commit in `site-template/.versions`. |
-| 6. Install | `make install` | Runs as root: stops the health monitor, installs the four instances, the generated configuration files and the units of stage 5, and enables the service. It renders nothing into the checkout and stops, naming `make conf.install`, when a unit of stage 5 is missing or older than its template or the configuration. |
+| 6. Install | `make install` | Runs as root: stops the health monitor, installs the four instances, the generated configuration files and the units of stage 5, and enables the service. It renders nothing into the checkout and stops, naming `make conf.install`, when a unit of stage 5 is missing or older than its template or the configuration, before it stops the health monitor or changes the payload. |
 
 `make build` runs stage 2 and then stage 4, which runs stage 3 first, so one target covers everything up to the WAR files. `make install` does not build.
 
@@ -29,12 +29,15 @@ The three generated files are copied into `site-template/siteid/classpathfiles`.
 
 ## What stage 6 installs
 
-The dry run `make -n install` lists the steps, in order:
+The dry run `make -n install` lists the steps, in order. It only prints the check of step 1 and does not report a missing or stale unit:
 
-1. Install the instances `mgmt`, `engine`, `etl` and `retrieval` under `AA_INSTALL_LOCATION`.
-2. Install `archappl.conf`, `appliances.xml`, `archappl.properties` and `policies.py` into `AA_INSTALL_LOCATION`.
-3. Write the port numbers of `appliances.xml` into the `server.xml` of each instance.
-4. Install `scripts/archappl.bash` into `AA_INSTALL_LOCATION`.
-5. Install the systemd override, service and health units that stage 5 rendered, reload systemd, and enable the service.
+1. Check that the four units of stage 5 are rendered and current (`install.rendered`, which the target `install` runs first).
+2. Stop the health monitor (`sd_health_stop`, which the target `install` depends on).
+3. Create the service account (`site-template/usergroup.postinst`, which can run again without harm) and the directory `AA_INSTALL_LOCATION`.
+4. Install the instances `mgmt`, `engine`, `etl` and `retrieval` under `AA_INSTALL_LOCATION`.
+5. Install `archappl.conf`, `appliances.xml`, `archappl.properties` and `policies.py` into `AA_INSTALL_LOCATION`.
+6. Write the port numbers of `appliances.xml` into the `server.xml` of each instance.
+7. Install `scripts/archappl.bash` into `AA_INSTALL_LOCATION`.
+8. Install the systemd override, service and health units that stage 5 rendered, reload systemd, and enable the service.
 
 The page [Files of an installation](../configure/installed-files.md) lists the result.

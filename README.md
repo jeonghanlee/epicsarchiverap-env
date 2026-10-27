@@ -55,6 +55,9 @@ sudo bash scripts/install_os_packages.bash
 make debian13.conf
 make init
 ```
+
+On another supported system, replace `make debian13.conf` with the target of that system: `make rocky8.conf`, `make rocky10.conf`, `make ubuntu24.conf` or `make ubuntu26.conf`.
+
 ### MariaDB
 MariaDB stores appliance configuration, including archive requests, PV type information, aliases, and external data server definitions. Archived samples are stored in `.pb` files in the STS, MTS, and LTS directories, not in MariaDB.
 

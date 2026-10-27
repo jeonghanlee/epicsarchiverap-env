@@ -6,7 +6,7 @@ This book describes `epicsarchiverap-env`, the Make-driven environment that buil
 
 The repository performs four jobs, each driven by a Make target:
 
-- It clones the source repository named by `SRC_GITURL` into `SRC_PATH` and checks out the reference `SRC_TAG`, a commit, a tag or a branch.
+- It clones the source repository named by `SRC_GITURL` into `SRC_PATH` when the folder is absent and checks out the reference `SRC_TAG`, a commit, a tag or a branch; an existing clone is moved with `git -C epicsarchiverap-maven-src fetch origin` and `make srcupdate`.
 - It copies the site inputs of `site-template/siteid` over the source tree.
 - It builds the four web applications of the appliance (`mgmt`, `engine`, `etl` and `retrieval`) as web application archive (WAR) files with the Maven Wrapper of the source.
 - It installs a local appliance with SQLite or with MariaDB over a Unix socket or over Transmission Control Protocol (TCP), using the installers `install-local-sqlite.bash`, `install-local-mariadb-uds.bash` and `install-local-mariadb-tcp.bash` in `scripts/`.
