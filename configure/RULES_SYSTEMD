@@ -29,6 +29,16 @@ conf.systemd.show: $(show_systemd_RULES)
 
 install.systemd: $(install_systemd_RULES)
 
+# install runs this first, so that a missing or stale rendering stops it before
+# it stops the monitor or changes the payload. The install.* rules check again.
+.PHONY: install.rendered
+## Stop with status 2 unless the four systemd files are rendered and current; install runs it first
+install.rendered: $(SYSTEMD_OVERRIDE_FILENAME).in $(SYSTEMD_FILENAME).in $(APPNAME)-health.service.in $(APPNAME)-health.timer.in
+	$(call require_rendered,$(basename $(word 1,$^)),$(word 1,$^),conf.install)
+	$(call require_rendered,$(basename $(word 2,$^)),$(word 2,$^),conf.install)
+	$(call require_rendered,$(basename $(word 3,$^)),$(word 3,$^),conf.install)
+	$(call require_rendered,$(basename $(word 4,$^)),$(word 4,$^),conf.install)
+
 install.systemd.show: $(show_install_systemd_RULES)
 
 # The conf.* rules remove the rendered file before they write it, so that a

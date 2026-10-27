@@ -302,7 +302,11 @@ NO_ANT_TREE_UNDER_TEST="${tree}" bash tests/no-ant.bash
   under the checkout. `install.systemd0` stops with exit status 2 and names
   `make conf.install` when the rendered unit is missing or older than its
   template or `../CONFIG_SITE.local`, and installs the changed site value after
-  a new rendering. `sql.table.fill` stops with exit status 2 and names
+  a new rendering. `make install` stops the same way before its first change
+  when the units are not rendered and names the first of them, `override.conf`.
+  `install.rendered` passes with all four units rendered, and for each of the
+  four files, missing or older than its template, it stops and names that file
+  and `make conf.install`. `sql.table.fill` stops with exit status 2 and names
   `make sql.update` without the rendered schema.
 - The rendering rules write as the checkout owner: `conf.systemd0` renders over
   a unit the checkout owner cannot write, and stops with exit status 2,

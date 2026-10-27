@@ -9,7 +9,7 @@ show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 .PHONY: install install.files services.install
 
 ## Install as root what conf.install and the build rendered; run make conf.install as the checkout owner first
-install: sd_health_stop
+install: install.rendered sd_health_stop
 	$(QUIET)$(MAKE) install.files
 
 # Monitor shutdown completes before any payload is changed; enable never starts it.

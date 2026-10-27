@@ -349,6 +349,16 @@ if grep -q 'run make conf.install as the checkout owner first' "${WORKSPACE}/roo
 else
     _record_fail "install.systemd0 names conf.install" "$(head -1 "${WORKSPACE}/root-unrendered.txt")"
 fi
+# make install checks every rendered file before it stops the monitor or changes the payload, so SUDO=false
+# reaches the check and not a privileged command.
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=sqlite SUDO=false install > "${WORKSPACE}/root-install-unrendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "install stops before its first change without the rendered units"
+if grep -q 'override.conf is not rendered; run make conf.install as the checkout owner first' "${WORKSPACE}/root-install-unrendered.txt"; then
+    _record_pass "install names the first unrendered file, override.conf, and conf.install before its first change"
+else
+    _record_fail "install names the first unrendered file, override.conf, and conf.install before its first change" "$(head -1 "${WORKSPACE}/root-install-unrendered.txt")"
+fi
 # A rendered unit older than its template or the site configuration is stale:
 # the install stops and names conf.install, and a new rendering passes.
 printf 'SYSTEMD_TIMEOUT_STOP_SECONDS=7\n' > "${WORKSPACE}/CONFIG_SITE.local"
@@ -376,6 +386,35 @@ case "$(cat "${WORKSPACE}/root-units/epicsarchiverap-maven.service" 2> /dev/null
     *"TimeoutStopSec=7s"*) _record_pass "The installed unit carries the changed site value" ;;
     *) _record_fail "The installed unit carries the changed site value" "TimeoutStopSec=7s missing" ;;
 esac
+# install.rendered passes when all four systemd files are rendered after the change. For each of them in turn, a
+# missing file and a file older than its template stop it with exit status 2 and name that file and conf.install.
+make -C "${root_env}" -s SUDO= conf.systemd > "${WORKSPACE}/root-render-all.txt" 2>&1
+root_rc=0
+make -C "${root_env}" -s SUDO=false install.rendered > "${WORKSPACE}/root-rendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "install.rendered passes with all four units rendered"
+for rendered_name in override.conf epicsarchiverap-maven.service epicsarchiverap-maven-health.service epicsarchiverap-maven-health.timer; do
+    rendered_file="${root_env}/site-template/systemd/${rendered_name}"
+    rm -f "${rendered_file}"
+    root_rc=0
+    make -C "${root_env}" -s SUDO=false install.rendered > "${WORKSPACE}/root-rendered-missing.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 2 "install.rendered stops when ${rendered_name} is not rendered"
+    if grep -q "${rendered_name} is not rendered; run make conf.install" "${WORKSPACE}/root-rendered-missing.txt"; then
+        _record_pass "install.rendered names the missing ${rendered_name} and conf.install"
+    else
+        _record_fail "install.rendered names the missing ${rendered_name} and conf.install" "$(head -1 "${WORKSPACE}/root-rendered-missing.txt")"
+    fi
+    make -C "${root_env}" -s SUDO= conf.systemd > "${WORKSPACE}/root-render-all.txt" 2>&1
+    touch -d '1 hour ago' "${rendered_file}"
+    root_rc=0
+    make -C "${root_env}" -s SUDO=false install.rendered > "${WORKSPACE}/root-rendered-stale.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 2 "install.rendered stops when ${rendered_name} is older than its template"
+    if grep -q "${rendered_name} is older than .*; run make conf.install" "${WORKSPACE}/root-rendered-stale.txt"; then
+        _record_pass "install.rendered names the stale ${rendered_name} and conf.install"
+    else
+        _record_fail "install.rendered names the stale ${rendered_name} and conf.install" "$(head -1 "${WORKSPACE}/root-rendered-stale.txt")"
+    fi
+    make -C "${root_env}" -s SUDO= conf.systemd > "${WORKSPACE}/root-render-all.txt" 2>&1
+done
 # A rendered unit that the checkout owner cannot write, as a root run of an
 # earlier install leaves it, is removed and rendered again.
 chmod 444 "${root_env}/site-template/systemd/epicsarchiverap-maven.service"

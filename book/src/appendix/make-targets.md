@@ -75,7 +75,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `help` |  |  |
 | `info.mvn` |  | Maven and Java |
 | `init` | `clone update` | Clone and update Source |
-| `install` | `sd_health_stop` | Install as root what conf.install and the build rendered; run make conf.install as the checkout owner first |
+| `install` | `install.rendered sd_health_stop` | Install as root what conf.install and the build rendered; run make conf.install as the checkout owner first |
 | `install.engine` |  |  |
 | `install.etl` |  |  |
 | `install.files` | `src_install services.install serveroption.install install.systemd` |  |
@@ -87,6 +87,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `install.override` | `override.conf.in` |  |
 | `install.override.show` |  |  |
 | `install.pkgs` |  |  |
+| `install.rendered` | `override.conf.in epicsarchiverap-maven.service.in epicsarchiverap-maven-health.service.in epicsarchiverap-maven-health.timer.in` | Stop with status 2 unless the four systemd files are rendered and current; install runs it first |
 | `install.retrieval` |  |  |
 | `install.systemd` | `install.override install.systemd0 install.health.service install.health.timer` |  |
 | `install.systemd.show` | `install.override.show install.systemd0.show install.health.service.show install.health.timer.show` |  |

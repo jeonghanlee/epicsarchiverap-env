@@ -23,7 +23,7 @@ The selected source and site configuration come from Make settings.
 Existing appliance payloads are replaced; database contents and stores remain.
 
   --plan             Print the steps without installing or starting anything
-  -y, --yes          Run without the installation confirmation
+  -y, --yes          Run without the confirmation and the soft IOC test question
   --skip-packages    Use the host-provided prerequisites
   --tomcat ACTION    existing: use as service user; replace: back up and install
   --socket PATH      MariaDB UDS path; otherwise DB_SOCKET or the OS default
@@ -41,7 +41,7 @@ With --existing-db, DB_USER_PASS must match the existing application account pas
 Set DB_ADMIN_PASS and DB_USER_PASS in ../CONFIG_SITE.local before preparing accounts.
 UDS uses DB_SOCKET or the OS default; TCP clears DB_SOCKET and requires DB_HOST_NAME=127.0.0.1.
 TCP uses DB_HOST_PORT and prepares the admin account at 127.0.0.1.
-TCP account preparation needs local root socket authentication; --existing-db skips it.
+Account preparation needs local root socket authentication; --existing-db skips it.
 The OS preset rewrites configure/CONFIG_SITE.local as documented.
 No VM, tag, release or automatic rollback is performed.
 ```
