@@ -331,6 +331,11 @@ rm -f "${root_env}/configure/"*.local "${root_env}/site-template/systemd/"*.serv
 # The copy keeps the modification times of the checkout. A file saved a minute ago would be named before the
 # input under test, so every copied input gets an old time.
 find "${root_env}/configure" "${root_env}/site-template" -type f -exec touch -d '10 minutes ago' {} +
+# A clean checkout holds none of the rendered configuration files that install reads, and the dry run of install
+# names them as prerequisites, so they are rendered in the copy first.
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=sqlite conf.archapplproperties > "${WORKSPACE}/root-config.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "conf.archapplproperties renders the configuration files in the copy"
 for root_target in install sql.table.fill; do
     root_rc=0
     make -C "${root_env}" -n --no-print-directory DB_BACKEND=sqlite "${root_target}" > "${WORKSPACE}/root-${root_target}.txt" 2>&1 || root_rc=$?
