@@ -496,7 +496,7 @@ This procedure does not promise rollback after power loss or a forced kill.
 
 ## Ordered sequence
 
-The sequence starts after the host preparation: the OS packages and `make <os>.conf`, and Tomcat (`make tomcat.get`, `make tomcat.install`, `make tomcat.exist`; see README.md). An upgrade of a running host needs none of them when Tomcat is already installed; do not run `make tomcat.install` over a live Tomcat.
+The sequence starts after the host preparation: the OS packages and `make <os>.conf`, and Tomcat (`make tomcat.get`, `make tomcat.install`, `make tomcat.exist`; see [Make targets of the repository](../book/src/appendix/make-targets.md)). An upgrade of a running host needs none of them when Tomcat is already installed; do not run `make tomcat.install` over a live Tomcat.
 
 `U` runs as an ordinary build user; `R` requires root (an automation role that
 runs every step as root is also valid — the internal `sudo` is a no-op when
