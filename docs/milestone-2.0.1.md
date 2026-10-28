@@ -99,6 +99,7 @@ D9, D17, D21 and D29 retain historical decisions from the closed 2.0.0 generatio
 | D68 | Accept the result of the check of D67 as Release Verification 3 of release 2.0.1 at the tag `2026-10` (`e0a8e66e`), recorded in `docs/reports/clean-install-20261028.md` (`c40934e`): six clean installations and two soft IOC checks, all Pass. The accepted evidence has one failure path (on Debian 13) and no installed-file comparison; the eight-case run of the VM driver had a build-failure case on each operating system and that comparison. This decision does not settle Release Verification 2 or Release Verification 6. | 2026-10-27 |
 | D69 | Verify the released installation (Release Verification 6) at the immutable tag `2.0.1` the same way as D67: a fresh guest for each accepted operating system follows the install pages as written, with the SQLite installer, and the documented verification closes the check. The guest holds EPICS Base, because the soft IOC check of the installer needs it. The VM driver is not used. | 2026-10-27 |
 | D70 | Close Release Verification 2 for release 2.0.1 at the tag `2026-10` (`e0a8e66e`) and the branch tip `5c51bc3`: the local suite with the real EPICS Base, the real build with the site overlay, the rejection of a site `build.xml` and the database integration test with a real MariaDB all pass. M45 / T2 and M46 / T3 need guests and the VM verifier; D67 replaces the driver run, so they are not run at this source and their earlier passes on older candidates stay as history. The owner accepts this limit. | 2026-10-28 |
+| D71 | Plan the release verification of the next release with fewer repeated checks: each check proves one claim from stated inputs and runs again only when those inputs change, and a change to a file that no test reads does not run the suite. The owner sets this direction after the verification of release 2.0.1, which built the sources and ran the local suite several times for the same tree. The existing checks keep their assertions; M62 carries the work. | 2026-10-28 |
 
 ### Assignment History
 
@@ -2488,6 +2489,7 @@ Current-candidate checks below were executed before commit on the working-tree f
 | Tests | M47 | Replace the Python tests with Bash tests | Carry-forward | Open | No | D41 | Every test of shell code and every driver check runs as Bash under `tests/`; only a test of Python code stays Python; [detail](#m47---replace-the-python-tests-with-bash-tests) |
 | Install | M49 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Deferred | No | D55 | A value that an operator wrote into `configure/CONFIG_SITE.local` survives the installers, or the installers refuse and say where site values go; the owner chose the stop in D55 and scheduled it for the release after 2.0.1; [detail](#m49---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | Tests | M61 | Fix the findings of the review of the VM driver | Carry-forward | Deferred | No | D67 | The Must-Fix finding and the Minor findings of the 2026-10-27 review of `tests/vm` are fixed or decided, and the check `build_proof` agrees with the installers; deferred 2026-10-27 under D67; [detail](#m61---fix-the-findings-of-the-review-of-the-vm-driver) |
+| Tests | M62 | Reduce the repeated checks of the release verification plan | Carry-forward | Open | No | D71 | A release verification plan lists each check once with the claim it proves and the inputs it reads, and a check runs again only when those inputs change; [detail](#m62---reduce-the-repeated-checks-of-the-release-verification-plan) |
 
 ### Backlog Details
 
@@ -3039,6 +3041,70 @@ Superseded Plan Artifacts: none
 ##### GitHub Projection
 
 Title: Fix the findings of the review of the VM driver
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M62 - Reduce the repeated checks of the release verification plan
+
+Origin: 2.0.1 / M62
+Identity History: none
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+D71 sets the direction. In the cycle of release 2.0.1 the sources were built and the local suite ran several times for one tree: the suite before each commit, the real build with the site overlay in Release Verification 2, and a build inside every installation of Release Verification 3 and 6.
+
+The row is Open because its scope and order are unsettled: the owner has set the direction, not a schedule or an acceptance rule.
+
+##### Scope
+
+- List each check of the release verification plan of release 2.0.1 with the claim it proves and the inputs it reads (files, sources, hosts).
+- Find the checks that prove the same claim from the same inputs, and propose which one stays.
+- State the rule for a re-run: a check runs again only when one of its inputs changed; a change to a file that no test reads does not run the suite.
+
+Out of scope: removing a check that proves a different claim; changing what a test asserts; the VM driver (M61 and M47).
+
+##### Completion Criteria
+
+- The plan of the next release lists each check once with its claim, its inputs and its re-run trigger.
+- No two checks of that plan prove the same claim from the same inputs.
+
+##### Dependencies And Decisions
+
+- D71 sets the direction. A dated owner decision on scope and order is required before it can become Not started.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After the owner decision, build the list of checks of release 2.0.1 from the Release Verification Plan and the Integrated Verification table.
+2. Mark each overlap and propose the check that stays.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Review | Derive for each check of the drafted plan the claim it proves and the inputs it reads, then compare every pair | The register of the next release | No two checks prove the same claim from the same inputs |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | The register of the next release | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Reduce the repeated checks of the release verification plan
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none; no issue exists yet
