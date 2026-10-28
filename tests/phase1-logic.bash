@@ -28,7 +28,7 @@ remaining=$(grep -rl 'CONFIG_COMMON' "${TOP}/configure/" 2>/dev/null || true)
 assert_empty "${remaining}" "No CONFIG_COMMON references in configure/"
 
 # P1.3 OS preset files exist as separately tracked Makefile fragments.
-for preset in debian12 debian13 rocky8; do
+for preset in debian12 debian13 rocky8 rocky10 ubuntu24 ubuntu26; do
     assert_file "${TOP}/configure/os/${preset}.mk" "configure/os/${preset}.mk present"
 done
 
@@ -36,8 +36,8 @@ done
 make -C "${TOP}" -n build > "${WORKSPACE}/make-n-build.txt" 2>&1
 assert_status $? 0 "make -n build parses"
 
-# P1.5 Both OS conf targets parse and reference their preset.
-for target in debian12.conf debian13.conf rocky8.conf; do
+# P1.5 OS configuration targets parse and reference their preset.
+for target in debian12.conf debian13.conf rocky8.conf rocky10.conf ubuntu24.conf ubuntu26.conf; do
     out=$(make -C "${TOP}" -n "${target}" 2>&1)
     rc=$?
     if [[ ${rc} -ne 0 ]]; then
@@ -319,6 +319,133 @@ case "${unit_text}" in
     *ExecStop=*|*Type=forking*) _record_fail "Appliance unit has no ExecStop and is not forking" "found one in ${unit_out}" ;;
     *) _record_pass "Appliance unit has no ExecStop and is not forking" ;;
 esac
+# P1.19a The targets that run as root render nothing into the checkout: a
+# dry run of install and of the SQLite schema load writes no file under the
+# checkout, and an install rule without its rendered file stops and names the
+# rendering target. SUDO=false keeps any privileged command from running.
+root_env="${WORKSPACE}/root-env"
+mkdir -p "${root_env}"
+cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${root_env}/"
+rm -f "${root_env}/configure/"*.local "${root_env}/site-template/systemd/"*.service \
+    "${root_env}/site-template/systemd/"*.timer "${root_env}/site-template/systemd/override.conf"
+# The copy keeps the modification times of the checkout. A file saved a minute ago would be named before the
+# input under test, so every copied input gets an old time.
+find "${root_env}/configure" "${root_env}/site-template" -type f -exec touch -d '10 minutes ago' {} +
+# A clean checkout holds none of the rendered configuration files that install reads, and the dry run of install
+# names them as prerequisites, so they are rendered in the copy first.
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=sqlite conf.archapplproperties > "${WORKSPACE}/root-config.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "conf.archapplproperties renders the configuration files in the copy"
+for root_target in install sql.table.fill; do
+    root_rc=0
+    make -C "${root_env}" -n --no-print-directory DB_BACKEND=sqlite "${root_target}" > "${WORKSPACE}/root-${root_target}.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 0 "make -n ${root_target} runs"
+    if grep -E "> *${root_env}/" "${WORKSPACE}/root-${root_target}.txt" | grep -qv '>&2'; then
+        _record_fail "make -n ${root_target} writes nothing into the checkout" "$(grep -E "> *${root_env}/" "${WORKSPACE}/root-${root_target}.txt" | head -1)"
+    else
+        _record_pass "make -n ${root_target} writes nothing into the checkout"
+    fi
+done
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=sqlite SUDO=false install.systemd0 > "${WORKSPACE}/root-unrendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "install.systemd0 stops without the rendered unit"
+if grep -q 'run make conf.install as the checkout owner first' "${WORKSPACE}/root-unrendered.txt"; then
+    _record_pass "install.systemd0 names conf.install"
+else
+    _record_fail "install.systemd0 names conf.install" "$(head -1 "${WORKSPACE}/root-unrendered.txt")"
+fi
+# make install checks every rendered file before it stops the monitor or changes the payload, so SUDO=false
+# reaches the check and not a privileged command.
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=sqlite SUDO=false install > "${WORKSPACE}/root-install-unrendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "install stops before its first change without the rendered units"
+if grep -q 'override.conf is not rendered; run make conf.install as the checkout owner first' "${WORKSPACE}/root-install-unrendered.txt"; then
+    _record_pass "install names the first unrendered file, override.conf, and conf.install before its first change"
+else
+    _record_fail "install names the first unrendered file, override.conf, and conf.install before its first change" "$(head -1 "${WORKSPACE}/root-install-unrendered.txt")"
+fi
+# A rendered unit older than its template or the site configuration is stale:
+# the install stops and names conf.install, and a new rendering passes.
+printf 'SYSTEMD_TIMEOUT_STOP_SECONDS=7\n' > "${WORKSPACE}/CONFIG_SITE.local"
+for stale_input in "${root_env}/site-template/systemd/epicsarchiverap-maven.service.in" "${WORKSPACE}/CONFIG_SITE.local"; do
+    # Each case starts from a rendering that is newer than every input, and
+    # then makes one input newer than it.
+    make -C "${root_env}" -s SUDO= conf.systemd0 > "${WORKSPACE}/root-render.txt" 2>&1
+    touch -d '2 minutes ago' "${root_env}/site-template/systemd/epicsarchiverap-maven.service.in" "${WORKSPACE}/CONFIG_SITE.local"
+    touch -d '1 minute ago' "${root_env}/site-template/systemd/epicsarchiverap-maven.service"
+    touch "${stale_input}"
+    root_rc=0
+    make -C "${root_env}" -s SUDO=false install.systemd0 > "${WORKSPACE}/root-stale.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 2 "install.systemd0 stops on a unit older than $(basename "${stale_input}")"
+    if grep -q "is older than .*/$(basename "${stale_input}"); run make conf.install" "${WORKSPACE}/root-stale.txt"; then
+        _record_pass "install.systemd0 names the newer $(basename "${stale_input}") and conf.install"
+    else
+        _record_fail "install.systemd0 names the newer $(basename "${stale_input}") and conf.install" "$(head -1 "${WORKSPACE}/root-stale.txt")"
+    fi
+done
+make -C "${root_env}" -s SUDO= conf.systemd0 > "${WORKSPACE}/root-render.txt" 2>&1
+root_rc=0
+make -C "${root_env}" -s SUDO= SYSTEMD_PATH="${WORKSPACE}/root-units" install.systemd0 > "${WORKSPACE}/root-fresh.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "install.systemd0 installs a unit rendered after the change"
+case "$(cat "${WORKSPACE}/root-units/epicsarchiverap-maven.service" 2> /dev/null)" in
+    *"TimeoutStopSec=7s"*) _record_pass "The installed unit carries the changed site value" ;;
+    *) _record_fail "The installed unit carries the changed site value" "TimeoutStopSec=7s missing" ;;
+esac
+# install.rendered passes when all four systemd files are rendered after the change. For each of them in turn, a
+# missing file and a file older than its template stop it with exit status 2 and name that file and conf.install.
+make -C "${root_env}" -s SUDO= conf.systemd > "${WORKSPACE}/root-render-all.txt" 2>&1
+root_rc=0
+make -C "${root_env}" -s SUDO=false install.rendered > "${WORKSPACE}/root-rendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "install.rendered passes with all four units rendered"
+for rendered_name in override.conf epicsarchiverap-maven.service epicsarchiverap-maven-health.service epicsarchiverap-maven-health.timer; do
+    rendered_file="${root_env}/site-template/systemd/${rendered_name}"
+    rm -f "${rendered_file}"
+    root_rc=0
+    make -C "${root_env}" -s SUDO=false install.rendered > "${WORKSPACE}/root-rendered-missing.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 2 "install.rendered stops when ${rendered_name} is not rendered"
+    if grep -q "${rendered_name} is not rendered; run make conf.install" "${WORKSPACE}/root-rendered-missing.txt"; then
+        _record_pass "install.rendered names the missing ${rendered_name} and conf.install"
+    else
+        _record_fail "install.rendered names the missing ${rendered_name} and conf.install" "$(head -1 "${WORKSPACE}/root-rendered-missing.txt")"
+    fi
+    make -C "${root_env}" -s SUDO= conf.systemd > "${WORKSPACE}/root-render-all.txt" 2>&1
+    touch -d '1 hour ago' "${rendered_file}"
+    root_rc=0
+    make -C "${root_env}" -s SUDO=false install.rendered > "${WORKSPACE}/root-rendered-stale.txt" 2>&1 || root_rc=$?
+    assert_status "${root_rc}" 2 "install.rendered stops when ${rendered_name} is older than its template"
+    if grep -q "${rendered_name} is older than .*; run make conf.install" "${WORKSPACE}/root-rendered-stale.txt"; then
+        _record_pass "install.rendered names the stale ${rendered_name} and conf.install"
+    else
+        _record_fail "install.rendered names the stale ${rendered_name} and conf.install" "$(head -1 "${WORKSPACE}/root-rendered-stale.txt")"
+    fi
+    make -C "${root_env}" -s SUDO= conf.systemd > "${WORKSPACE}/root-render-all.txt" 2>&1
+done
+# A rendered unit that the checkout owner cannot write, as a root run of an
+# earlier install leaves it, is removed and rendered again.
+chmod 444 "${root_env}/site-template/systemd/epicsarchiverap-maven.service"
+root_rc=0
+make -C "${root_env}" -s SUDO= conf.systemd0 > "${WORKSPACE}/root-readonly.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 0 "conf.systemd0 renders over a unit the checkout owner cannot write"
+# The unit file name holds no path; a name with a path stops before the removal.
+root_rc=0
+make -C "${root_env}" -s SUDO= SYSTEMD_FILENAME=systemd/epicsarchiverap-maven.service conf.systemd0 > "${WORKSPACE}/root-pathname.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "conf.systemd0 stops on a unit file name with a path"
+if [[ -f "${root_env}/site-template/systemd/epicsarchiverap-maven.service" ]]; then
+    _record_pass "The rendered unit remains after a file name with a path"
+else
+    _record_fail "The rendered unit remains after a file name with a path" "file removed"
+fi
+rm -f "${WORKSPACE}/CONFIG_SITE.local"
+rm -f "${root_env}/site-template/sql/"*_updated.sql
+root_rc=0
+make -C "${root_env}" -s DB_BACKEND=mariadb SUDO=false sql.table.fill > "${WORKSPACE}/root-sql-unrendered.txt" 2>&1 || root_rc=$?
+assert_status "${root_rc}" 2 "sql.table.fill stops without the rendered schema"
+if grep -q 'run make sql.update as the checkout owner first' "${WORKSPACE}/root-sql-unrendered.txt"; then
+    _record_pass "sql.table.fill names sql.update"
+else
+    _record_fail "sql.table.fill names sql.update" "$(head -1 "${WORKSPACE}/root-sql-unrendered.txt")"
+fi
+
 launcher_rc=0
 bash -n "${TOP}/scripts/archappl.bash" || launcher_rc=$?
 assert_status "${launcher_rc}" 0 "Launcher parses"
@@ -665,19 +792,40 @@ for st_case in root:/var/tmp shm:/dev/shm home:"${HOME}"; do
     if [[ "${st_out}" == *"lies under the home directory"* ]]; then st_got=yes; else st_got=no; fi
     assert_eq "${st_got}" "${st_want}" "conf.storage user-home warning for the ${st_kind} store"
 done
+# Without sudo, SUDOBASH is a plain bash -c; a leading dash would make Make ignore the failure of the command.
+st_nosudo=$(make -C "${st_env}" -n --no-print-directory conf.storage SUDO_INFO=1 SUDO_CMD= 2>&1 || true)
+if grep -q "^bash -c 'for path in" <<< "${st_nosudo}" && ! grep -q '^E bash' <<< "${st_nosudo}"; then
+    _record_pass "conf.storage without sudo runs a plain bash -c"
+else
+    _record_fail "conf.storage without sudo" "$(grep -m1 'bash -c' <<< "${st_nosudo}" | cut -c1-80)"
+fi
+st_sudo=$(make -C "${st_env}" -n --no-print-directory conf.storage SUDO_INFO=1 SUDO_CMD=/usr/bin/sudo 2>&1 || true)
+if grep -q "^/usr/bin/sudo -E bash -c 'for path in" <<< "${st_sudo}"; then
+    _record_pass "conf.storage with sudo keeps sudo -E bash -c"
+else
+    _record_fail "conf.storage with sudo" "$(grep -m1 'bash -c' <<< "${st_sudo}" | cut -c1-80)"
+fi
 st_conf="${st_env}/site-template/archappl.conf"
 make -C "${st_env}" -s conf.archappl > /dev/null 2>&1 || true
 case "$(cat "${st_conf}")" in
     *$'\nARCHAPPL_STORAGE_ALARM_PERCENT=85\n'*) _record_pass "archappl.conf carries ARCHAPPL_STORAGE_ALARM_PERCENT=85 by default" ;;
     *) _record_fail "archappl.conf carries ARCHAPPL_STORAGE_ALARM_PERCENT=85 by default" "missing in ${st_conf}" ;;
 esac
-printf 'ARCHAPPL_STORAGE_ALARM_PERCENT:=70\n' > "${st_env}/../CONFIG_SITE.local"
+case "$(cat "${st_conf}")" in
+    *$'\nARCHAPPL_HEALTH_STARTING_SECONDS=10\n'*) _record_pass "archappl.conf carries ARCHAPPL_HEALTH_STARTING_SECONDS=10 by default" ;;
+    *) _record_fail "archappl.conf carries ARCHAPPL_HEALTH_STARTING_SECONDS=10 by default" "missing in ${st_conf}" ;;
+esac
+printf 'ARCHAPPL_STORAGE_ALARM_PERCENT:=70\nARCHAPPL_HEALTH_STARTING_SECONDS:=20\n' > "${st_env}/../CONFIG_SITE.local"
 rm -f "${st_conf}"
 make -C "${st_env}" -s conf.archappl > /dev/null 2>&1 || true
 rm -f "${st_env}/../CONFIG_SITE.local"
 case "$(cat "${st_conf}")" in
     *$'\nARCHAPPL_STORAGE_ALARM_PERCENT=70\n'*) _record_pass "A threshold in ../CONFIG_SITE.local reaches archappl.conf" ;;
     *) _record_fail "A threshold in ../CONFIG_SITE.local reaches archappl.conf" "the shipped default won" ;;
+esac
+case "$(cat "${st_conf}")" in
+    *$'\nARCHAPPL_HEALTH_STARTING_SECONDS=20\n'*) _record_pass "A starting bound in ../CONFIG_SITE.local reaches archappl.conf" ;;
+    *) _record_fail "A starting bound in ../CONFIG_SITE.local reaches archappl.conf" "the shipped default won" ;;
 esac
 st_java=$(command -v java || true)
 if [[ -z "${st_java}" ]]; then
@@ -767,7 +915,7 @@ case "$(cat "${so_ctx}")" in
 esac
 assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=''" "Empty DB_SOCKET renders an empty value in mariadb.conf"
 so_cmds=$(socket_commands)
-assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root" "Empty DB_SOCKET keeps the root command"
+assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --host=localhost --protocol=socket" "Empty DB_SOCKET keeps root on the local socket"
 for so_role in admin user backup; do
     case "$(grep "^${so_role}=" <<< "${so_cmds}" || true)" in
         *'--port=3306 --host=127.0.0.1 --protocol=tcp') _record_pass "Empty DB_SOCKET keeps the TCP ${so_role} command" ;;
@@ -786,7 +934,7 @@ case "$(cat "${so_ctx}")" in
 esac
 assert_eq "$(grep '^DB_SOCKET=' "${so_conf}" || true)" "DB_SOCKET=${so_path}" "DB_SOCKET reaches mariadb.conf"
 so_cmds=$(socket_commands)
-assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --socket=${so_path}" "DB_SOCKET reaches the root command"
+assert_eq "$(grep '^root=' <<< "${so_cmds}" || true)" "root=sudo mysql --user=root --host=localhost --protocol=socket --socket=${so_path}" "DB_SOCKET reaches the root command"
 for so_role in admin user backup; do
     so_line=$(grep "^${so_role}=" <<< "${so_cmds}" || true)
     if [[ "${so_line}" == *"--protocol=socket --socket=${so_path}" && "${so_line}" != *--host=* && "${so_line}" != *--port=* ]]; then
@@ -864,9 +1012,300 @@ else
     done
 fi
 
+# P1.28 startup, shutdown and restart report a failed instance script in their exit status, and
+# no action runs an instance without archappl.conf. The shipped launcher runs from a copy next to
+# an archappl.conf and four instance directories whose bin/startup.sh and bin/shutdown.sh are
+# the command boundary: each records its call and exits with a chosen status. A mutated copy of
+# the launcher must show the defect the check is written for.
+sc_instances="mgmt engine etl retrieval"
+sc_prepare() {
+    local dir="$1" launcher="$2" svc
+    rm -rf "${dir}"
+    mkdir -p "${dir}"
+    cp "${launcher}" "${dir}/archappl.bash"
+    printf 'SC_MARK=configured\n' > "${dir}/archappl.conf"
+    : > "${dir}/calls.log"
+    for svc in ${sc_instances}; do
+        mkdir -p "${dir}/${svc}/bin" "${dir}/${svc}/temp"
+        # shellcheck disable=SC2016
+        printf '#!/usr/bin/env bash\necho "startup %s" >> "%s/calls.log"\nexit "${SC_START_%s:-0}"\n' \
+            "${svc}" "${dir}" "${svc}" > "${dir}/${svc}/bin/startup.sh"
+        # shellcheck disable=SC2016
+        printf '#!/usr/bin/env bash\necho "shutdown %s" >> "%s/calls.log"\nexit "${SC_STOP_%s:-0}"\n' \
+            "${svc}" "${dir}" "${svc}" > "${dir}/${svc}/bin/shutdown.sh"
+    done
+}
+sc_run() {
+    local dir="$1" action="$2"
+    : > "${dir}/calls.log"
+    SC_RC=0
+    bash "${dir}/archappl.bash" "${action}" > "${dir}/out.txt" 2>&1 || SC_RC=$?
+}
+sc_calls() { grep -c "^$1 " "${sc_dir}/calls.log" || true; }
+
+sc_dir="${WORKSPACE}/launcher-actions"
+sc_prepare "${sc_dir}" "${TOP}/scripts/archappl.bash"
+
+sc_run "${sc_dir}" startup
+assert_status "${SC_RC}" 0 "startup exits 0 when every instance script succeeds"
+assert_eq "$(sc_calls startup)" 4 "startup runs the four instance scripts"
+sc_run "${sc_dir}" shutdown
+assert_status "${SC_RC}" 0 "shutdown exits 0 when every instance script succeeds"
+sc_run "${sc_dir}" restart
+assert_status "${SC_RC}" 0 "restart exits 0 when every instance script succeeds"
+assert_eq "$(sc_calls shutdown)/$(sc_calls startup)" "4/4" "restart stops and starts the four instances"
+
+export SC_START_engine=1
+sc_run "${sc_dir}" startup
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 4 ]] && grep -q 'startup ERROR engine status=1' "${sc_dir}/out.txt"; then
+    _record_pass "startup exits non-zero for a failed instance script, names it and starts the others"
+else
+    _record_fail "startup reports a failed instance script" "rc=${SC_RC} calls=$(sc_calls startup) out=$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" restart
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "restart exits non-zero when an instance script fails to start"
+else
+    _record_fail "restart reports a failed start" "rc=${SC_RC} calls=$(sc_calls startup)"
+fi
+unset SC_START_engine
+
+export SC_STOP_etl=3
+sc_run "${sc_dir}" shutdown
+if [[ ${SC_RC} -ne 0 && "$(sc_calls shutdown)" == 4 ]] && grep -q 'shutdown ERROR etl status=3' "${sc_dir}/out.txt"; then
+    _record_pass "shutdown exits non-zero for a failed instance script, names it and stops the others"
+else
+    _record_fail "shutdown reports a failed instance script" "rc=${SC_RC} calls=$(sc_calls shutdown) out=$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" restart
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 0 ]] && grep -q 'no instance was started' "${sc_dir}/out.txt"; then
+    _record_pass "restart stops and starts nothing when a shutdown fails"
+else
+    _record_fail "restart stops on a failed shutdown" "rc=${SC_RC} starts=$(sc_calls startup) out=$(cat "${sc_dir}/out.txt")"
+fi
+unset SC_STOP_etl
+
+rm -f "${sc_dir}/archappl.conf"
+for sc_action in startup shutdown restart; do
+    sc_run "${sc_dir}" "${sc_action}"
+    if [[ ${SC_RC} -ne 0 && ! -s "${sc_dir}/calls.log" ]]; then
+        _record_pass "${sc_action} without archappl.conf exits non-zero and runs no instance script"
+    else
+        _record_fail "${sc_action} without archappl.conf" "rc=${SC_RC} calls=$(cat "${sc_dir}/calls.log")"
+    fi
+done
+# A valid file whose last command returns non-zero is still a readable configuration.
+printf 'SC_MARK=configured\n[[ -n "${SC_UNSET_MARK:-}" ]] && SC_MARK=other\n' > "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" startup
+if [[ ${SC_RC} -eq 0 && "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "startup runs with a valid archappl.conf whose last command fails"
+else
+    _record_fail "startup with a valid archappl.conf" "rc=${SC_RC} calls=$(sc_calls startup) out=$(cat "${sc_dir}/out.txt")"
+fi
+# A file that is not valid shell stops every action that runs instances.
+printf 'SC_MARK=(configured\n' > "${sc_dir}/archappl.conf"
+for sc_action in startup shutdown restart service; do
+    sc_run "${sc_dir}" "${sc_action}"
+    if [[ ${SC_RC} -ne 0 && ! -s "${sc_dir}/calls.log" ]] && grep -q 'no instance was touched' "${sc_dir}/out.txt"; then
+        _record_pass "${sc_action} with an archappl.conf that is not valid shell exits non-zero and runs no instance"
+    else
+        _record_fail "${sc_action} with an invalid archappl.conf" "rc=${SC_RC} calls=$(cat "${sc_dir}/calls.log")"
+    fi
+done
+rm -f "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" service
+if [[ ${SC_RC} -ne 0 ]] && grep -q 'no instance was touched' "${sc_dir}/out.txt"; then
+    _record_pass "service without archappl.conf exits non-zero before it starts an instance"
+else
+    _record_fail "service without archappl.conf" "rc=${SC_RC} out=$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" help
+if [[ ${SC_RC} -eq 1 ]] && grep -q 'possible args' "${sc_dir}/out.txt"; then
+    _record_pass "help prints the usage without archappl.conf"
+else
+    _record_fail "help without archappl.conf" "rc=${SC_RC}"
+fi
+
+# The usage names every action the case accepts, spells its heading right and no longer lists h.
+sc_run "${sc_dir}" help
+sc_usage_ok=1
+for sc_word in 'possible args' 'health --systemd <unit> <own_unit> <allowance>' 'storage all' 'help      : this screen'; do
+    grep -qF -- "${sc_word}" "${sc_dir}/out.txt" || sc_usage_ok=0
+done
+if grep -qE '^ +h +:' "${sc_dir}/out.txt"; then sc_usage_ok=0; fi
+if [[ ${sc_usage_ok} -eq 1 ]]; then
+    _record_pass "The usage names health --systemd, storage all and help, and does not list h"
+else
+    _record_fail "The usage text" "$(cat "${sc_dir}/out.txt")"
+fi
+sc_run "${sc_dir}" h
+if [[ ${SC_RC} -eq 1 ]] && grep -q 'possible args' "${sc_dir}/out.txt"; then
+    _record_pass "h is an unknown argument: it prints the usage and exits 1 like any other"
+else
+    _record_fail "h behaves as an unknown argument" "rc=${SC_RC}"
+fi
+
+# shutdown keeps the pid file of an instance whose stop failed and removes the others.
+printf 'SC_MARK=configured\n' > "${sc_dir}/archappl.conf"
+for sc_svc in ${sc_instances}; do printf '1\n' > "${sc_dir}/${sc_svc}/temp/${sc_svc}.pid"; done
+SC_STOP_etl=3 sc_run "${sc_dir}" shutdown
+if [[ -f "${sc_dir}/etl/temp/etl.pid" && ! -f "${sc_dir}/mgmt/temp/mgmt.pid" && ! -f "${sc_dir}/engine/temp/engine.pid" ]]; then
+    _record_pass "shutdown keeps the pid file of a failed stop and removes the others"
+else
+    _record_fail "shutdown pid files" "$(ls "${sc_dir}"/*/temp 2>&1)"
+fi
+
+# startup names a live process that its pid file holds, removes the file all the same, and stays silent for a dead pid
+# and for the pid 0, which kill -0 would accept as the process group.
+sleep 300 &
+sc_live=$!
+sleep 0 &
+sc_dead=$!
+wait "${sc_dead}"
+printf '%s\n' "${sc_live}" > "${sc_dir}/engine/temp/engine.pid"
+printf '%s\n' "${sc_dead}" > "${sc_dir}/etl/temp/etl.pid"
+printf '0\n' > "${sc_dir}/mgmt/temp/mgmt.pid"
+sc_run "${sc_dir}" startup
+kill "${sc_live}" 2> /dev/null || true
+wait "${sc_live}" 2> /dev/null || true
+if [[ ${SC_RC} -eq 0 ]] && grep -q "startup WARNING engine pid=${sc_live} is still running" "${sc_dir}/out.txt" \
+    && ! grep -q 'startup WARNING etl' "${sc_dir}/out.txt" && ! grep -q 'startup WARNING mgmt' "${sc_dir}/out.txt" \
+    && [[ ! -f "${sc_dir}/engine/temp/engine.pid" && ! -f "${sc_dir}/etl/temp/etl.pid" && ! -f "${sc_dir}/mgmt/temp/mgmt.pid" ]]; then
+    _record_pass "startup warns about a live pid, ignores a dead pid and the pid 0, and removes the pid files"
+else
+    _record_fail "startup pid warning" "rc=${SC_RC} out=$(cat "${sc_dir}/out.txt")"
+fi
+
+# status addresses the appliance by the source address of the route and falls back to the host name;
+# an ip command is the command boundary.
+sc_stub="${sc_dir}/stub"
+mkdir -p "${sc_stub}"
+printf '#!/usr/bin/env bash\necho "8.8.8.8 dev eth0 src 10.0.0.5 uid 1000"\n' > "${sc_stub}/ip"
+chmod +x "${sc_stub}/ip"
+PATH="${sc_stub}:${PATH}" sc_run "${sc_dir}" status
+if grep -qF 'http://10.0.0.5:' "${sc_dir}/out.txt" && ! grep -qF 'http://1000:' "${sc_dir}/out.txt"; then
+    _record_pass "status takes the address from the src field of a route without via"
+else
+    _record_fail "status address" "$(grep -n 'http://' "${sc_dir}/out.txt")"
+fi
+printf '#!/usr/bin/env bash\nexit 2\n' > "${sc_stub}/ip"
+PATH="${sc_stub}:${PATH}" sc_run "${sc_dir}" status
+if ! grep -qF 'http://:' "${sc_dir}/out.txt" && grep -qF "http://${HOSTNAME}:" "${sc_dir}/out.txt"; then
+    _record_pass "status falls back to the host name when the route has no address"
+else
+    _record_fail "status fallback address" "$(grep -n 'http://' "${sc_dir}/out.txt")"
+fi
+# The health heading no longer claims a verification before the check ran.
+if grep -qF '>>> Process and storage health' "${sc_dir}/out.txt" && ! grep -qF 'Verified process' "${sc_dir}/out.txt"; then
+    _record_pass "status names the health section without claiming a result"
+else
+    _record_fail "status health heading" "$(grep -n '>>>' "${sc_dir}/out.txt")"
+fi
+rm -f "${sc_dir}/archappl.conf"
+
+# Each defect restored in a copy of the launcher must be seen by the scenario above.
+sc_mutant="${WORKSPACE}/launcher-mutant.bash"
+# shellcheck disable=SC2016
+sed 's/return "${failed}"/return 0/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+SC_START_engine=1 sc_run "${sc_dir}" startup
+assert_status "${SC_RC}" 0 "A launcher that drops the instance status exits 0 on a failed start (the check sees it)"
+SC_STOP_etl=3 sc_run "${sc_dir}" shutdown
+assert_status "${SC_RC}" 0 "A launcher that drops the instance status exits 0 on a failed stop (the check sees it)"
+sed 's/if ! shutdown_archappl; then$/if false; then/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+SC_STOP_etl=3 sc_run "${sc_dir}" restart
+if [[ "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "A launcher that ignores a failed shutdown in restart starts the instances (the check sees it)"
+else
+    _record_fail "Mutant that ignores a failed shutdown in restart" "starts=$(sc_calls startup)"
+fi
+sed 's/^    if (( conf_status != 0 )); then$/    if false; then/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+rm -f "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" startup
+if [[ "$(sc_calls startup)" == 4 ]]; then
+    _record_pass "A launcher that skips the configuration check runs the instances (the check sees it)"
+else
+    _record_fail "Mutant without the configuration check" "calls=$(sc_calls startup)"
+fi
+sc_run "${sc_dir}" service
+if ! grep -q 'no instance was touched' "${sc_dir}/out.txt"; then
+    _record_pass "A launcher that skips the configuration check does not refuse service (the check sees it)"
+else
+    _record_fail "Mutant without the configuration check for service" "out=$(cat "${sc_dir}/out.txt")"
+fi
+# shellcheck disable=SC2016
+sed 's/^    \. "${SC_TOP}\/archappl.conf"$/    . "${SC_TOP}\/archappl.conf" || conf_status=$?/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+printf 'SC_MARK=configured\n[[ -n "${SC_UNSET_MARK:-}" ]] && SC_MARK=other\n' > "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" startup
+if [[ ${SC_RC} -ne 0 && "$(sc_calls startup)" == 0 ]]; then
+    _record_pass "A launcher that takes the status of the last command in the file refuses a valid file (the check sees it)"
+else
+    _record_fail "Mutant that uses the status of the last command" "rc=${SC_RC} calls=$(sc_calls startup)"
+fi
+
+# shellcheck disable=SC2016
+sed 's/^        if (( status == 0 )); then$/        if true; then/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+for sc_svc in ${sc_instances}; do printf '1\n' > "${sc_dir}/${sc_svc}/temp/${sc_svc}.pid"; done
+SC_STOP_etl=3 sc_run "${sc_dir}" shutdown
+if [[ ! -f "${sc_dir}/etl/temp/etl.pid" ]]; then
+    _record_pass "A launcher that removes the pid file of a failed stop is seen by the check"
+else
+    _record_fail "Mutant that removes the pid file of a failed stop" "pid file kept"
+fi
+# shellcheck disable=SC2016
+sed "s/src=\$(ip -4 route get 8.8.8.8 2> \/dev\/null | awk .*/src=\$(ip -4 route get 8.8.8.8 | awk '{print \$7}' | tr -d '\\\\n')/" "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+printf 'SC_MARK=configured\n' > "${sc_dir}/archappl.conf"
+printf '#!/usr/bin/env bash\necho "8.8.8.8 dev eth0 src 10.0.0.5 uid 1000"\n' > "${sc_dir}/stub-ip"
+mkdir -p "${sc_dir}/mstub"
+cp "${sc_dir}/stub-ip" "${sc_dir}/mstub/ip"
+chmod +x "${sc_dir}/mstub/ip"
+PATH="${sc_dir}/mstub:${PATH}" sc_run "${sc_dir}" status
+if grep -qF 'http://1000:' "${sc_dir}/out.txt"; then
+    _record_pass "A launcher that prints the seventh field of the route is seen by the check"
+else
+    _record_fail "Mutant with the seventh field" "$(grep -n 'http://' "${sc_dir}/out.txt")"
+fi
+sed "s/'>>> Process and storage health'/'>>> Verified process and storage health'/" "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+printf 'SC_MARK=configured\n' > "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" status
+if grep -qF 'Verified process' "${sc_dir}/out.txt"; then
+    _record_pass "A launcher that claims a verification before the check is seen by the check"
+else
+    _record_fail "Mutant with the Verified heading" "heading unchanged"
+fi
+sed 's/possible args/possbile args/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sc_prepare "${sc_dir}" "${sc_mutant}"
+rm -f "${sc_dir}/archappl.conf"
+sc_run "${sc_dir}" help
+if ! grep -qF 'possible args' "${sc_dir}/out.txt"; then
+    _record_pass "A usage with the misspelled heading is seen by the check"
+else
+    _record_fail "Mutant with the misspelled heading" "heading unchanged"
+fi
+
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.
 python3 "${TOP}/tests/health-local.py"
 
+# Instances that have not executed Java yet, through the real launcher health.
+bash "${TOP}/tests/health-starting.bash"
+
+# No Ant in the configuration, and the site id reaches every Maven call.
+bash "${TOP}/tests/no-ant.bash"
+
+# The prepared interface files: markers, content security, inline code, element ids, and rejection of defects.
+bash "${TOP}/tests/ui-static.bash"
+
 python3 "${TOP}/tests/database-config.py"
+bash "${TOP}/tests/local-install-output.bash"
+python3 "${TOP}/tests/local-install-epics.py"
+
+# VM CLI validation runs without virtualization or network.
+python3 "${TOP}/tests/vm/local.py"

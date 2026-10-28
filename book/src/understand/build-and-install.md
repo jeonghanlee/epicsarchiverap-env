@@ -1,0 +1,43 @@
+# Build and install stages of the repository
+
+The repository turns the source commit that `SRC_TAG` selects and a set of site inputs into four web application archive (WAR) files, and it installs them as a systemd-managed appliance. This page lists the stages, in order, and the target that runs each one.
+
+## The stages of build and install
+
+| Stage | Target | What it does |
+| :--- | :--- | :--- |
+| 1. Fetch the source | `make init` | Runs `clone`, which clones `SRC_GITURL` into `SRC_PATH` and checks out the reference `SRC_TAG` only when the folder is absent, and `update`, which runs `git submodule update --init`. An existing clone stays at its commit: `git -C epicsarchiverap-maven-src fetch origin` and `make srcupdate` move it to `SRC_TAG`. |
+| 2. Generate the configuration | `make conf` | Runs `conf.archapplproperties` and `conf.storage`; only the commands of `conf.storage` run with `sudo`. It writes `appliances.xml`, `archappl.properties` and `policies.py` from their `.in` templates and prepares the storage folders. |
+| 3. Apply the site inputs | `copy.sitespecific` | Replaces `src/sitespecific/<site_id>` of the source tree with `site-template/siteid`, where `<site_id>` is the value of `ARCHAPPL_SITEID`. |
+| 4. Build the WARs | `make build.mvn` | Runs `mvnw clean package -DskipTests` in the source tree with `ARCHAPPL_SITEID` set. |
+| 5. Render the units | `make conf.install` | Runs as the checkout owner: renders the systemd override, service and health units from their `.in` templates and records the source commit in `site-template/.versions`. |
+| 6. Install | `make install` | Runs as root: stops the health monitor, installs the four instances, the generated configuration files and the units of stage 5, and enables the service. It renders nothing into the checkout and stops, naming `make conf.install`, when a unit of stage 5 is missing or older than its template or the configuration, before it stops the health monitor or changes the payload. |
+
+`make build` runs stage 2 and then stage 4, which runs stage 3 first, so one target covers everything up to the WAR files. `make install` does not build.
+
+## What stage 2 writes
+
+The three generated files are copied into `site-template/siteid/classpathfiles`. The source build packs that folder into the WAR files, so the files are part of every web application. A second copy of each file is installed into `AA_INSTALL_LOCATION`.
+
+| File | Template | Carries |
+| :--- | :--- | :--- |
+| `appliances.xml` | `appliances.xml.in` | The identity and the addresses of the components |
+| `archappl.properties` | `archappl.properties.in` | The engine and the retrieval properties, for example the minimum sampling period |
+| `policies.py` | `policies.py.in` | The storage policies and the store uniform resource locators (URLs) |
+
+`conf.storage` runs with `sudo`: it creates `ARCHAPPL_STORAGE_TOP` and the three store folders. The target `conf.archapplproperties` generates the files without `sudo`; `make conf.archapplproperties build.mvn` therefore builds the WAR files without touching the storage folders.
+
+## What stage 6 installs
+
+The dry run `make -n install` lists the steps, in order. It only prints the check of step 1 and does not report a missing or stale unit:
+
+1. Check that the four units of stage 5 are rendered and current (`install.rendered`, which the target `install` runs first).
+2. Stop the health monitor (`sd_health_stop`, which the target `install` depends on).
+3. Create the service account (`site-template/usergroup.postinst`, which can run again without harm) and the directory `AA_INSTALL_LOCATION`.
+4. Install the instances `mgmt`, `engine`, `etl` and `retrieval` under `AA_INSTALL_LOCATION`.
+5. Install `archappl.conf`, `appliances.xml`, `archappl.properties` and `policies.py` into `AA_INSTALL_LOCATION`.
+6. Write the port numbers of `appliances.xml` into the `server.xml` of each instance.
+7. Install `scripts/archappl.bash` into `AA_INSTALL_LOCATION`.
+8. Install the systemd override, service and health units that stage 5 rendered, reload systemd, and enable the service.
+
+The page [Files of an installation](../configure/installed-files.md) lists the result.

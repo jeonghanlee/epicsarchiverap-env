@@ -1,0 +1,5 @@
+2026-10-19T20:05:02.000Z DEBUG [ETL-1] org.epics.archiverappliance.etl.common.ETLPassDriver - ETL pass of transition sts to mts : ETLPassRecord[plannedAt=2026-10-19T20:05:00Z, startedAt=2026-10-19T20:05:00.100Z, endedAt=2026-10-19T20:05:02Z, pvCount=3, jobsRun=3, jobsFailed=0, partitionsMoved=3, bytesMoved=3000, slowestPv=STOPTIME:E0001, slowestMillis=850, aborted=false]
+2026-10-19T20:05:42.500Z DEBUG [main] org.epics.archiverappliance.etl.common.ETLPassDriver - Shutting down ETL threads.
+2026-10-19T20:05:43.000Z DEBUG [main] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source sts for pv STOPTIME:E0001 for storage mts
+2026-10-19T20:05:45.000Z DEBUG [main] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source sts for pv STOPTIME:E0002 for storage mts
+2026-10-19T20:05:48.000Z DEBUG [main] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source sts for pv STOPTIME:E0003 for storage mts

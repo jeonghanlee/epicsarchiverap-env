@@ -17,10 +17,10 @@ org.epics.archiverappliance.mgmt.bpl.ArchivePVAction.minimumSamplingPeriod = @AR
 # This is a compromise between various factors including garbage collection, IOPS of the short term store and memory availability.
 org.epics.archiverappliance.config.PVTypeInfo.secondsToBuffer = @ARCHAPPL_SECONDS_TO_BUFFER@
 
-# Per FRIB/PSI, we have a configuration knob to increase/decrease the sample buffer size used by the engine for all PV's.
-# This is a double - by default 1.0 which means we leave the buffer size computation as is.
-# If you want to increase buffer size globally to 150% of what is normally computed, set this to 1.5
-org.epics.archiverappliance.config.PVTypeInfo.sampleBufferCapacityAdjustment = @ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT@
+# Seconds of write delay that every sample buffer of the engine absorbs before it drops a sample.
+# A buffer holds the samples expected within secondsToBuffer plus this margin converted to samples at the PV's sampling period.
+# The default and the minimum are 1.0; a smaller value is raised to 1.0.
+org.epics.archiverappliance.config.PVTypeInfo.sampleBufferMarginSeconds = @ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS@
 
 
 # The getData retrieval calls support a usereduced parameter which is the entry into sparsification.

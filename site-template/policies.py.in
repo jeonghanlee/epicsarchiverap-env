@@ -56,9 +56,11 @@ def getFieldsArchivedAsPartOfStream():
     return ['HIHI', 'HIGH', 'LOW', 'LOLO', 'LOPR', 'HOPR', 'DRVH', 'DRVL']
 
 
-# We use the environment variables ARCHAPPL_SHORT_TERM_FOLDER and
-# ARCHAPPL_MEDIUM_TERM_FOLDER to determine the location of the STS and the
-# MTS in the appliance
+# make conf.policies substitutes the folders of the STS, the MTS and the LTS
+# (ARCHAPPL_SHORT_TERM_FOLDER, ARCHAPPL_MEDIUM_TERM_FOLDER and
+# ARCHAPPL_LONG_TERM_FOLDER), the host address (ARCHAPPL_HOST_IPADDR), the
+# partition granularity of each tier and the hold of the STS and the MTS into the
+# URLs below
 STS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=STS&rootFolder=@ARCHAPPL_SHORT_TERM_FOLDER@&partitionGranularity=@ARCHAPPL_STS_GRANULARITY@&hold=@ARCHAPPL_STS_HOLD@&gather=1&consolidateOnShutdown=true'
 MTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=MTS&rootFolder=@ARCHAPPL_MEDIUM_TERM_FOLDER@&partitionGranularity=@ARCHAPPL_MTS_GRANULARITY@&hold=@ARCHAPPL_MTS_HOLD@&gather=1'
 LTS_BASE_URL = 'pb://@ARCHAPPL_HOST_IPADDR@?name=LTS&rootFolder=@ARCHAPPL_LONG_TERM_FOLDER@&partitionGranularity=@ARCHAPPL_LTS_GRANULARITY@'

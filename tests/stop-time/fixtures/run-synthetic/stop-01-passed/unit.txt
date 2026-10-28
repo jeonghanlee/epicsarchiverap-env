@@ -1,0 +1,6 @@
+ActiveExitTimestamp=Mon 2026-10-19 20:05:40.000000 UTC
+ActiveExitTimestampMonotonic=1000000000
+InactiveEnterTimestamp=Mon 2026-10-19 20:05:53.000000 UTC
+InactiveEnterTimestampMonotonic=1013000000
+Result=success
+InvocationID=0123456789abcdef0123456789abcdef

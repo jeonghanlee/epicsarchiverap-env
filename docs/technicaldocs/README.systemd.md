@@ -54,9 +54,36 @@ alone, which sends SIGTERM to each JVM in the stop order and waits for it to
 leave; Tomcat's shutdown hook stops the webapps, and the ETL consolidates its
 `consolidateOnShutdown` stores in that path. Processes still alive at
 `TimeoutStopSec` receive SIGKILL, which cuts a consolidation short, so the
-timeout is sized from a measured stop: a test host with three PVs stopped in
-about 10 s, the 300 s default leaves room for a loaded ETL, and a site sets
-its own value after timing its stop. There is no `ExecStop`.
+timeout is sized from a measured stop: the measured values are in the section
+Measured stop times below, the 300 s default leaves room for a loaded ETL, and
+a site sets its own value after timing its stop. There is no `ExecStop`.
+
+## Measured stop times
+
+The stop time of the unit was measured on one appliance whose short term store held data. This section reports the measurements; it gives no sizing rule and no recommended value of `SYSTEMD_TIMEOUT_STOP_SECONDS`.
+
+| PVs | 5-minute partition | 15-minute partition | 1-hour partition |
+| --- | --- | --- | --- |
+| 903 | 2.236 s to 2.391 s (three stops) | 2.368 s (one stop) | 2.932 s (one stop) |
+| 3000 | 6.605 s to 7.807 s (three stops) | 8.072 s (one stop) | 9.730 s (one stop) |
+
+Each value is the time the unit took to stop, from `ActiveExitTimestamp` to `InactiveEnterTimestamp`, read from the monotonic properties of the unit. The conditions of every stop were:
+
+- One Debian 13 guest with 2 vCPU and 4 GiB of memory; the short, medium and long term stores on one virtual disk.
+- SQLite as the database; a hold of 2 in the short term store ([policy guide](../README.policies.md)), so each PV had four files in the store at the stop.
+- The 3000 PVs are the 903 PVs of the test set plus 2097 generated PVs at 1 Hz.
+- The stop began about 30 seconds after a partition boundary, with no ETL pass running.
+- Every stop ended with the unit result `success`; every PV was consolidated and none was left.
+
+The growth with the PV count is almost entirely the ETL instance. On the 5-minute partition it took about 1.06 s at 903 PVs and 5.66 s at 3000 PVs (means of three stops); on the 1-hour partition it took 1.652 s and 8.333 s (one stop). The engine instance stayed near 1.1 s to 1.3 s in the stops on the 5-minute partition.
+
+The measurements have these limits:
+
+- The values for the 15-minute and the 1-hour partition are single stops.
+- The three stores shared one virtual disk. A site with its short term store on tmpfs or SSD and its medium term store on another disk or on NFS can differ.
+- Only two PV counts were measured; the values are not extended beyond 3000 PVs.
+- A stop during a running ETL pass was not measured and can take longer.
+- The default of 300 s lies far above every measured value.
 
 ## Instance lifecycle
 
@@ -86,8 +113,11 @@ stream:
 
 Both files write the same priority prefix and read the root level from
 `ARCHAPPL_ROOT_LOGGER_LEVEL` (default `INFO`), which `archappl.conf` exports;
-set it in `../CONFIG_SITE.local`, then run `make conf.archapplproperties`,
-`make install` and `make sd_restart`. Both files
+set it in `../CONFIG_SITE.local`, then run `make conf.archapplproperties`.
+Apply the generated settings using the
+[stop/install/start procedure](../README.install.md#reinstall-and-upgrade).
+Stop the appliance before installing its WARs and logging libraries.
+Both files
 carry `monitorInterval="30"`: a level edited in the site file, or in an
 instance's installed `$CATALINA_BASE/log4j/log4j2-tomcat.xml`, takes effect
 within about 30 seconds without a restart. A site file starts as a copy of
@@ -123,8 +153,9 @@ an edited site file. It reaches the WAR-level configuration only: Tomcat's
 own loggers and the `java.util.logging` loggers, such as the CA client's,
 follow `log4j2-tomcat.xml`. The command exits 2 for an invalid argument, a
 missing `curl`, or an installed `archappl.conf` without `ARCHAPPL_MGMT_PORT`
-(written before the command existed; run `make conf.archapplproperties` and
-`make install` again), and exits 1 when the request fails: with the service
+(regenerate with `make conf.archapplproperties`, then follow the
+[stop/install/start procedure](../README.install.md#reinstall-and-upgrade)),
+and exits 1 when the request fails: with the service
 stopped, or when the BPL answers with a status other than 200.
 
 The launcher's own lines (`started pid`, `stopping pid`, `process <pid> is
@@ -159,7 +190,7 @@ state and never restarts anything. Monitoring provides no survivor guarantee.
 
 This section describes the shipped contract. Runtime acceptance evidence,
 including target systemd compatibility, is tracked in
-[M23](../milestone-265f580.md#m23---make-a-dead-instance-visible-to-systemd).
+[M23](../milestone-2.0.0.md#m23---make-a-dead-instance-visible-to-systemd).
 HTTP readiness, sample continuity and retrieval correctness require separate
 application checks.
 
@@ -172,8 +203,8 @@ sudo -u tomcat /opt/epicsarchiverap-maven/archappl.bash health
 ```
 
 The Linux-only `health` command checks every instance in startup order. Each
-line names the instance, the observed PID when available, and `PRESENT`, `FAIL`
-or `ERROR` with a reason. Storage lines follow for `ARCHAPPL_STORAGE_TOP` and
+line names the instance, the observed PID when available, and `PRESENT`,
+`STARTING`, `FAIL` or `ERROR` with a reason. Storage lines follow for `ARCHAPPL_STORAGE_TOP` and
 each configured STS, MTS and LTS directory, including separate filesystems.
 Older configurations without tier paths check only `ARCHAPPL_STORAGE_TOP`.
 Each storage line has the form
@@ -182,21 +213,42 @@ Each storage line has the form
 above `ARCHAPPL_STORAGE_ALARM_PERCENT` (default 85), or `ERROR` when `df`
 cannot read the store (`storage-unreadable`) or the threshold is not a percent
 from 1 to 100 (`storage-invalid-threshold`); when `archappl.conf` does not
-load, the line is `storage path=- ERROR <cause>`. An aggregate line follows
-and names each failing cause: `health FAIL one-or-more-invalid-instances`,
+load, the line is `storage path=- ERROR <cause>`. An aggregate line follows.
+When no instance fails and at least one is starting, it is
+`health STARTING instances-starting; application-readiness-not-checked`.
+Otherwise it names each failing cause: `health FAIL one-or-more-invalid-instances`,
 `health FAIL storage-threshold`, or, when both hold,
 `health FAIL one-or-more-invalid-instances; storage-threshold`. It reads the installed
 configuration, validates each PID file, checks the actual Java executable,
 Tomcat bootstrap arguments, `catalina.base`, `catalina.home`, process state and
 start time, then repeats observations to reject inconsistent identities. It
-does not delete PID files or signal processes. Other launcher commands retain
-their existing behavior; `status` is a diagnostic listing, not this check.
+does not delete PID files or signal processes. `status` prints UI URLs and journal commands, then
+runs this same process/storage check and returns its exit status.
+
+The launcher records the PID of `bin/run.sh` at once. That process becomes
+`catalina.sh` and then Java by `exec`, so for a fraction of a second after a
+start the PID file names a shell of the start chain. An instance line in that
+window is `STARTING run-script` or `STARTING catalina-script`, not a failure.
+The first stage is recognized by the instance's `bin/run.sh` in the command
+line, the second by `catalina.sh run` with `CATALINA_BASE` of the instance in
+the process environment. A start older than `ARCHAPPL_HEALTH_STARTING_SECONDS`
+(default 10) is `FAIL startup-timeout`. The value is a whole number from 1 to
+59, below the scheduled startup allowance of 60 seconds; any other value is
+`ERROR starting-invalid-bound`. The upper limit is fixed, because a manual `health`
+run does not know the startup allowance, which a site can change with
+`SYSTEMD_HEALTH_STARTUP_SECONDS`. When a site sets an allowance below its bound,
+the scheduled check can report `STARTING`, exit status 1, for a start older than
+the allowance. A site sets the value in `../CONFIG_SITE.local`;
+the installer writes it into `archappl.conf`, which the launcher loads before it
+reads the variable, so the scheduled check uses it. A process that is not in the
+start chain and does not run the configured Java stays
+`FAIL wrong-java-executable`.
 
 | Exit | Meaning |
 | --- | --- |
 | 0 | Four expected JVM processes verified and the store's filesystem below the alarm threshold at the observation; no application-readiness claim |
-| 1 | One or more missing, dead or invalid instances, or the store's filesystem at or above the alarm threshold |
-| 2 | Inspection incomplete, including unreadable/invalid configuration, inaccessible process identity, or an unreadable store or invalid threshold |
+| 1 | One or more missing, dead or invalid instances, an instance still starting, or the store's filesystem at or above the alarm threshold; the aggregate line tells them apart |
+| 2 | Inspection incomplete, including unreadable/invalid configuration, inaccessible process identity, an unreadable store, an invalid threshold or an invalid startup bound |
 
 Exit 2 takes precedence when failures and inspection errors coexist. A
 scheduled check that skips because the appliance is inactive or stopping prints

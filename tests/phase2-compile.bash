@@ -76,4 +76,10 @@ for config_file in appliances.xml archappl.properties policies.py context.xml ar
     esac
 done
 
+# P2.5 The build no longer copies interface files: the rendered build has no interface copy step.
+case "${build_output}" in
+    *prepare-ui*|*"copy.ui"*) _record_fail "Build has no interface copy step" "the rendered build still names it" ;;
+    *) _record_pass "The rendered build has no interface copy step" ;;
+esac
+
 phase_pass "Phase 2: Build wrapper"

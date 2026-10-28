@@ -2,6 +2,7 @@
 """Run the shipped configuration targets and shell consumers in isolation."""
 
 import socket
+import http.server
 import sys
 import time
 from pathlib import Path
@@ -9,11 +10,24 @@ import shutil
 import os
 import subprocess
 import tempfile
+import threading
 import unittest
 import xml.etree.ElementTree as ET
 
 
 TOP = Path(__file__).resolve().parents[1]
+SOURCE_TOP = Path(os.environ.get("AA_TEST_SOURCE_PATH", str(TOP / "epicsarchiverap-maven-src")))
+SCHEMA_TOP = SOURCE_TOP / "src/main/org/epics/archiverappliance/config/persistence"
+DB_TARGETS = ("db.conf", "db.conf.show", "db.secure", "db.addAdmin",
+              "db.rmAdmin", "db.create", "db.drop", "db.show")
+SQL_TARGETS = ("sql.fill", "sql.show", "sql.update", "sql.update.show",
+               "sql.table.fill", "sql.table.show", "sql.drop", "sql.table.drop")
+QUERY_TARGETS = ("PVRequests.show", "DataServers.show", "PVAliases.show", "PVTypeInfo.show")
+HELPER_ACTIONS = ("secureSetup", "localAdminAdd", "hostnameAdminAdd", "localAdminRemove",
+                  "hostnameAdminRemove", "adminAdd", "adminRemove", "dbCreate",
+                  "dbUserCreate", "dbShow", "dbUserDrop", "userDrop", "dbDrop", "isDb",
+                  "dbBackup", "dbBackupList", "dbRestore", "tableShow", "tableDrop",
+                  "aaShow", "query", "queryFile")
 
 
 class DatabaseConfigTests(unittest.TestCase):
@@ -59,6 +73,25 @@ class DatabaseConfigTests(unittest.TestCase):
                     self.assertEqual(self.value(template / "mariadb.conf", key), password)
                 self.assertFalse((self.root / "INJECTED").exists())
 
+    def test_supported_os_presets_preserve_custom_java_paths(self):
+        custom = "/custom/review-jdk21"
+        (self.root.parent / "CONFIG_SITE.local").write_text(f"JAVA_HOME := {custom}\n")
+        for preset in ("debian13", "rocky8", "rocky10", "ubuntu24", "ubuntu26"):
+            with self.subTest(preset=preset):
+                self.make(preset + ".conf")
+                self.assertEqual(self.make("print-JAVA_HOME").decode().strip(), custom)
+                self.assertEqual(self.make("print-JAVA_PATH").decode().strip(), custom + "/bin")
+
+    def test_database_help_describes_supported_schema_creation(self):
+        self.make("db.conf")
+        run = subprocess.run(["bash", "scripts/mariadb_setup.bash", "tableCreate"],
+                             cwd=self.root, capture_output=True, timeout=30)
+        self.assertEqual(run.returncode, 1)
+        output = run.stdout + run.stderr
+        self.assertIn(b"make sql.fill", output)
+        for command in (b"tableCreate", b"viewCreate", b"sProcCreate", b"allCreate", b"allViews", b"allDrop"):
+            self.assertNotIn(command, output)
+
     def test_password_from_local_override_file(self):
         password = "Local& |/'\" $HOME #literal"
         value = password.replace("$", "$$").replace("#", "\\#")
@@ -68,6 +101,299 @@ class DatabaseConfigTests(unittest.TestCase):
         resource = ET.parse(template / "context.xml").find("Resource")
         self.assertEqual(resource.attrib["password"], password)
         self.assertEqual(self.value(template / "mariadb.conf", "DB_USER_PASS"), password)
+
+    def test_database_password_file_is_private_on_creation_and_replacement(self):
+        config = self.root / "site-template/mariadb.conf"
+        for existing in (False, True):
+            with self.subTest(existing=existing):
+                if existing:
+                    config.chmod(0o666)
+                self.run_command(["bash", "-c", "umask 000; make --no-print-directory -s db.conf"])
+                self.assertEqual(config.stat().st_mode & 0o777, 0o600)
+                self.assertEqual(self.value(config, "DB_USER_PASS"), "archappl")
+
+    def test_installers_require_clean_source_inputs_in_checkouts_and_worktrees(self):
+        source = self.root / "source"
+        self.run_command(["git", "clone", "--quiet", "--shared", str(SOURCE_TOP), str(source)])
+        exclude = source / ".git/info/exclude"
+        exclude.parent.mkdir(parents=True, exist_ok=True)
+        with exclude.open("a") as output:
+            output.write("\n/.mvn/maven.config\n/.mvn/jvm.config\n/.mvn/extensions.xml\n")
+        worktree = self.root / "source-worktree"
+        self.run_command(["git", "-C", str(source), "worktree", "add", "--quiet", "--detach", str(worktree), "HEAD"])
+        for tree in (source, worktree):
+            (self.root / "configure/CONFIG_VARS.local").write_text(f"SRC_PATH:={tree.name}\n")
+            site = tree / "src/sitespecific/als"
+            site.mkdir(parents=True, exist_ok=True)
+            (site / "GeneratedReviewMarker.txt").write_text("Generated site overlay.\n")
+            for mode in ("sqlite", "mariadb-uds", "mariadb-tcp"):
+                entry = ["bash", f"scripts/install-local-{mode}.bash", "--plan", "--skip-packages"]
+                with self.subTest(tree=tree.name, mode=mode):
+                    self.run_command(entry)
+                    marker = tree / "src/resources/main/ReviewPinMarker.txt"
+                    marker.write_text("Untracked build input.\n")
+                    self.run_command(["git", "-C", str(tree), "diff", "--quiet"])
+                    run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn(b"untracked files", run.stderr)
+                    marker.unlink()
+                    marker = tree / "src/resources/main/ReviewPinMarker.swp"
+                    marker.write_text("Ignored build input.\n")
+                    run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn(b"ignored build inputs", run.stderr)
+                    marker.unlink()
+                    for name in ("maven.config", "jvm.config", "extensions.xml"):
+                        with self.subTest(config=name):
+                            marker = tree / ".mvn" / name
+                            marker.parent.mkdir(parents=True, exist_ok=True)
+                            marker.write_text("Ignored Maven build configuration.\n")
+                            self.run_command(["git", "-C", str(tree), "check-ignore", str(marker)])
+                            run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                            self.assertNotEqual(run.returncode, 0)
+                            self.assertIn(b"ignored build inputs", run.stderr)
+                            self.assertIn(f".mvn/{name}".encode(), run.stderr)
+                            marker.unlink()
+                    tracked = tree / "pom.xml"
+                    original = tracked.read_bytes()
+                    tracked.write_bytes(original + b"\n<!-- Local source modification. -->\n")
+                    run = subprocess.run(entry, cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn(b"tracked changes", run.stderr)
+                    tracked.write_bytes(original)
+
+    def test_tomcat_choices_and_backup_preserve_existing_files(self):
+        # Run shipped functions, real Make targets, and real directory moves.
+        script = (self.root / "scripts/install-local-common.bash").read_text()
+        functions, invocation = script.rsplit('\nmain "$@"; exit "$?"', 1)
+        self.assertFalse(invocation.strip())
+        harness = self.root / "scripts/tomcat-functions.bash"
+        harness.write_text(functions + "\n")
+        home = self.root / "tomcat"
+        (home / "bin").mkdir(parents=True)
+        marker = home / "bin/catalina.sh"
+        marker.write_text("#!/bin/sh\nexit 0\n")
+        marker.chmod(0o640)
+        original = marker.read_bytes()
+        preset = self.root / "configure/CONFIG_SITE.local"
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={home}\n")
+        setup = ('source "$1"; tomcat_home="$2"; service_user=review; '
+                 'service_unit=review.service; ')
+        command = setup + 'choose_tomcat; printf "Selected: %s\\n" "$tomcat_action"'
+        for reply, action in ((b"1\n", b"existing"), (b"2\n", b"replace")):
+            with self.subTest(choice=reply):
+                output = self.run_command(
+                    ["bash", "-c", command, "review", str(harness), str(home)], input=reply)
+                self.assertIn(b"Selected: " + action, output)
+                self.assertEqual(marker.read_bytes(), original)
+        for prefix, reply in (("", b""), ("", b"x\n"), ("yes=1; ", b"")):
+            self.run_command(["bash", "-c", setup + prefix + 'choose_tomcat',
+                              "review", str(harness), str(home)], expected=1, input=reply)
+            self.assertEqual(marker.read_bytes(), original)
+
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={self.root}/default-tomcat\n")
+        for prefix, reply, expected in (("", b"1\n", 0), ("", b"2\n", 1),
+                                        ("plan=1; ", b"", 0)):
+            run = subprocess.run(["bash", "-c", setup + prefix + 'choose_tomcat',
+                                  "review", str(harness), str(home)],
+                                 input=reply, cwd=self.root, capture_output=True, timeout=30)
+            self.assertEqual(run.returncode, expected, run.stdout + run.stderr)
+            self.assertIn(b"2) Unavailable", run.stdout)
+            self.assertNotIn(b"2) Back up", run.stdout)
+            self.assertEqual(marker.read_bytes(), original)
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={home}\n")
+
+        boundary = self.root / "boundary"
+        boundary.mkdir()
+        sudo = boundary / "sudo"
+        sudo.write_text('#!/bin/bash\nset -eu\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\n'
+                        'while (( $# )); do\ncase "$1" in\n'
+                        '-n|--) shift ;;\n-u) shift 2 ;;\n*) break ;;\nesac\ndone\n'
+                        'exec "$@"\n')
+        sudo.chmod(0o755)
+        systemctl = boundary / "systemctl"
+        systemctl.write_text('#!/bin/bash\nset -eu\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\n'
+                             'case "$*" in\n*LoadState*) printf "loaded\\n" ;;\n'
+                             '*ActiveState*) printf "%s\\n" "${TEST_ACTIVE_STATE:-inactive}" ;;\n'
+                             'stop*) exit 0 ;;\n*) exit 1 ;;\nesac\n')
+        systemctl.chmod(0o755)
+        log = self.root / "boundary.log"
+        env = dict(os.environ, BOUNDARY_LOG=str(log), TEST_ACTIVE_STATE="active")
+        command = setup + 'PATH="$3:$PATH"; backup_tomcat'
+        args = ["bash", "-c", command, "review", str(harness), str(home), str(boundary)]
+        self.run_command(args, expected=1, env=env)
+        self.assertEqual(marker.read_bytes(), original)
+        self.assertFalse(list(self.root.glob("tomcat.backup.*")))
+
+        env["TEST_ACTIVE_STATE"] = "inactive"
+        self.run_command(args, env=env)
+        backups = list(self.root.glob("tomcat.backup.*"))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual((backups[0] / "tomcat/bin/catalina.sh").read_bytes(), original)
+        self.assertFalse(home.exists())
+        trace = log.read_text()
+        self.assertLess(trace.rindex("stop review.service"), trace.index("mktemp"))
+        self.assertLess(trace.index("sd_health_stop"), trace.index("mktemp"))
+        home.symlink_to(backups[0] / "tomcat", target_is_directory=True)
+        self.run_command(args, expected=1, env=env)
+        self.assertEqual(len(list(self.root.glob("tomcat.backup.*"))), 1)
+
+        # A readable launcher must still be rejected if sudo denies service access.
+        home.unlink()
+        home.mkdir()
+        (home / "bin").mkdir()
+        launcher = home / "bin/catalina.sh"
+        launcher.write_bytes(original)
+        launcher.chmod(0o100)
+        command = setup + 'PATH="$3:$PATH"; tomcat_action=existing; prepare_tomcat'
+        args = ["bash", "-c", command, "review", str(harness), str(home), str(boundary)]
+        run = subprocess.run(args, cwd=self.root, capture_output=True, env=env, timeout=30)
+        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+        self.assertIn(b"Service user review cannot read", run.stderr)
+        self.assertIn(f"-n -u review -- test -r {launcher}", log.read_text())
+        launcher.chmod(0o755)
+        sudo.write_text('#!/bin/bash\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\nexit 1\n')
+        command = setup + 'PATH="$3:$PATH"; tomcat_action=existing; prepare_tomcat'
+        args = ["bash", "-c", command, "review", str(harness), str(home), str(boundary)]
+        run = subprocess.run(args, cwd=self.root, capture_output=True, env=env, timeout=30)
+        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+        self.assertIn(b"Service user review cannot execute", run.stderr)
+        self.assertIn(f"-n -u review -- test -x {launcher}", log.read_text())
+
+        for mode in ("sqlite", "mariadb-uds", "mariadb-tcp"):
+            entry = ["bash", f"scripts/install-local-{mode}.bash", "--plan", "--skip-packages"]
+            self.run_command(entry + ["--tomcat", "existing"])
+            self.run_command(entry + ["--tomcat", "invalid"], expected=1)
+            self.run_command(entry + ["--tomcat"], expected=1)
+
+    def test_tomcat_replacement_rejects_protected_paths_before_side_effects(self):
+        script = (self.root / "scripts/install-local-common.bash").read_text()
+        functions, invocation = script.rsplit('\nmain "$@"; exit "$?"', 1)
+        self.assertFalse(invocation.strip())
+        harness = self.root / "scripts/tomcat-path-functions.bash"
+        harness.write_text(functions + "\n")
+        home = self.root / "runtime/tomcat"
+        (home / "bin").mkdir(parents=True)
+        marker = home / "bin/catalina.sh"
+        marker.write_bytes(b"Existing Tomcat launcher.\n")
+        marker.chmod(0o640)
+        original = marker.read_bytes()
+        boundary = self.root.parent / "boundary"
+        boundary.mkdir()
+        log = boundary / "commands.log"
+        for name in ("sudo", "systemctl", "wget", "curl"):
+            tool = boundary / name
+            tool.write_text('#!/bin/bash\nprintf "%s\\n" "$*" >> "$BOUNDARY_LOG"\nexit 97\n')
+            tool.chmod(0o755)
+        env = dict(os.environ, BOUNDARY_LOG=str(log))
+        preset = self.root / "configure/CONFIG_SITE.local"
+        variables = self.root / "configure/CONFIG_VARS.local"
+        setup = 'source "$1"; PATH="$2:$PATH"; read_settings; '
+        arguments = ["bash", "-c", "", "review", str(harness), str(boundary)]
+        keys = ("SRC_PATH", "AA_INSTALL_LOCATION", "ARCHAPPL_STORAGE_TOP",
+                "ARCHAPPL_SHORT_TERM_FOLDER", "ARCHAPPL_MEDIUM_TERM_FOLDER",
+                "ARCHAPPL_LONG_TERM_FOLDER", "ARCHAPPL_SQLITE_FILE")
+        cases = [("checkout", self.root, [])]
+        for key in keys:
+            # Both containment directions and equality must fail.
+            for relation, protected in (("equal", home), ("child", home / "protected"),
+                                         ("parent", home.parent)):
+                cases.append((f"{key}-{relation}", home, [(key, protected)]))
+            alias = self.root.parent / f"alias-{key}"
+            alias.symlink_to(home, target_is_directory=True)
+            cases.append((f"{key}-alias", home, [(key, alias)]))
+        for name, candidate, overrides in cases:
+            with self.subTest(path=name):
+                preset.write_text(f"TOMCAT_INSTALL_LOCATION:={candidate}\n" +
+                                  "".join(f"{key}:={path}\n" for key, path in overrides
+                                          if key != "SRC_PATH"))
+                variables.write_text("".join(f"{key}:={path}\n" for key, path in overrides
+                                             if key == "SRC_PATH"))
+                for action in ("tomcat_action=replace; prepare_tomcat",
+                               "plan=1; tomcat_action=replace; prepare_tomcat",
+                               "backup_tomcat"):
+                    arguments[2] = setup + action
+                    run = subprocess.run(arguments, cwd=self.root, capture_output=True,
+                                         env=env, timeout=30)
+                    self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                    self.assertIn(b"Unsafe Tomcat replacement path", run.stderr)
+                    self.assertFalse(log.exists(), "No download or service command may run")
+                    self.assertEqual(marker.read_bytes(), original)
+                    self.assertTrue((self.root / "Makefile").is_file())
+                if candidate == home:
+                    arguments[2] = setup + 'choose_tomcat'
+                    run = subprocess.run(arguments, input=b"2\n", cwd=self.root,
+                                         capture_output=True, env=env, timeout=30)
+                    self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                    self.assertIn(b"2) Unavailable", run.stdout)
+                    self.assertFalse(log.exists())
+
+        # A shared parent and a lexical prefix are not directory overlap.
+        preset.write_text(f"TOMCAT_INSTALL_LOCATION:={home}\n" +
+                          "".join(f"{key}:={home}-other\n" for key in keys if key != "SRC_PATH"))
+        variables.write_text(f"SRC_PATH:={home}-other\n")
+        arguments[2] = setup + 'validate_tomcat_replacement'
+        self.run_command(arguments, env=env)
+        arguments[2] = setup + 'choose_tomcat; printf "Selected: %s\\n" "$tomcat_action"'
+        self.assertIn(b"Selected: replace", self.run_command(arguments, input=b"2\n", env=env))
+        self.assertFalse(log.exists())
+        self.assertEqual(marker.read_bytes(), original)
+
+    def test_installer_readiness_obeys_deadline(self):
+        # Invoke the shipped functions without running the system installation.
+        script = (self.root / "scripts/install-local-common.bash").read_text()
+        functions, invocation = script.rsplit('\nmain "$@"; exit "$?"', 1)
+        self.assertFalse(invocation.strip())
+        harness = self.root / "scripts/readiness-functions.bash"
+        harness.write_text(functions + "\n")
+        boundary = self.root / "boundary"
+        boundary.mkdir()
+        sudo = boundary / "sudo"
+
+        class SlowResponse(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                time.sleep(3)
+                try:
+                    self.send_response(200)
+                    self.end_headers()
+                    self.wfile.write(b'{"status":"STARTUP_COMPLETE"}')
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SlowResponse)
+        self.addCleanup(server.server_close)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(server.shutdown)
+        url = f"http://127.0.0.1:{server.server_port}/startupState"
+        command = (
+            'source "$1"; PATH="$2:$PATH"; timeout=1; service_user=review; '
+            'install_path=/unused; service_unit=review.service; health_timer=review.timer; '
+            'component_urls=("$3" "$3" "$3" "$3"); mgmt_url="$3"; wait_ready'
+        )
+        # Only the outer privilege boundary is replaced; HTTP uses real curl.
+        for action in ("exit 1", "sleep 10"):
+            with self.subTest(privilege_boundary=action):
+                sudo.write_text(f"#!/bin/sh\n{action}\n")
+                sudo.chmod(0o755)
+                started = time.monotonic()
+                run = subprocess.run(
+                    ["bash", "-c", command, "review", str(harness), str(boundary), url],
+                    cwd=self.root, capture_output=True, timeout=3,
+                )
+                elapsed = time.monotonic() - started
+                self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                self.assertIn(b"within 1 seconds", run.stderr)
+                self.assertLess(elapsed, 2)
+
+        command = (
+            'source "$1"; run_before_deadline "$((SECONDS + 5))" true; '
+            'run_before_deadline "$SECONDS" true'
+        )
+        self.run_command(["bash", "-c", command, "review", str(harness)], expected=124)
 
     def test_configured_database_name_reaches_runtime(self):
         template = self.root / "site-template"
@@ -117,10 +443,77 @@ class DatabaseConfigTests(unittest.TestCase):
                 run = subprocess.run(args, capture_output=True, text=True, timeout=10)
                 self.assertEqual(run.returncode, 77)
                 self.assertNotIn("[PASS]", run.stdout + run.stderr)
-                self.assertIn("[SKIP]", run.stderr)
+                self.assertIn("INCOMPLETE", run.stderr)
                 if args[-1] == "--system":
-                    self.assertIn("Phase 3", run.stderr)
-                    self.assertIn("Phase 4", run.stderr)
+                    self.assertIn("Phase 3", run.stdout)
+                    self.assertIn("Phase 4", run.stdout)
+
+    def test_sqlite_database_targets_skip_without_prerequisites(self):
+        self.make("db.conf", "DB_BACKEND=mariadb")
+        template = self.root / "site-template"
+        config = template / "mariadb.conf"
+        original = config.read_bytes()
+        (template / "mariadb.conf.in").unlink()
+        (self.root / "scripts/mariadb_setup.bash").unlink()
+        for target in DB_TARGETS:
+            (self.root / target).touch()
+        for existing in (True, False):
+            if not existing:
+                config.unlink()
+            for target in DB_TARGETS:
+                with self.subTest(target=target, existing=existing):
+                    out = self.make(target, "DB_BACKEND=sqlite")
+                    self.assertIn(f"[SKIP] {target}".encode(), out)
+                    self.assertEqual(config.read_bytes() if config.exists() else None,
+                                     original if existing else None)
+
+    def test_invalid_backends_fail_before_database_prerequisites(self):
+        self.make("db.conf", "DB_BACKEND=mariadb")
+        config = self.root / "site-template/mariadb.conf"
+        original = config.read_bytes()
+        (self.root / "scripts/mariadb_setup.bash").unlink()
+        for target in DB_TARGETS + SQL_TARGETS + QUERY_TARGETS:
+            (self.root / target).touch()
+            for backend in ("postgres", "", "mariadb sqlite", "mariadb "):
+                with self.subTest(target=target, backend=backend):
+                    run = subprocess.run(["make", "-s", target, f"DB_BACKEND={backend}"],
+                                         cwd=self.root, capture_output=True, timeout=30)
+                    self.assertNotEqual(run.returncode, 0, run.stdout + run.stderr)
+                    self.assertIn(b"DB_BACKEND must be one of", run.stderr)
+                    self.assertEqual(config.read_bytes(), original)
+                    self.assertFalse((self.root / "site-template/sql/archappl_sqlite_updated.sql").exists())
+
+    def test_sqlite_queries_and_deletion_reject_without_helper(self):
+        (self.root / "scripts/mariadb_setup.bash").unlink()
+        for target in QUERY_TARGETS + ("sql.drop", "sql.table.drop"):
+            with self.subTest(target=target):
+                (self.root / target).touch()
+                run = subprocess.run(["make", "-s", target, "DB_BACKEND=sqlite"],
+                                     cwd=self.root, capture_output=True, timeout=30)
+                self.assertNotEqual(run.returncode, 0)
+                self.assertIn(b"not supported for DB_BACKEND=sqlite", run.stderr)
+
+    def test_standalone_helper_rejects_before_reading_configuration(self):
+        config = self.root / "site-template/mariadb.conf"
+        config.write_text("touch CONFIG_READ\nexit 99\n")
+        for backend in ("sqlite", "postgres", "", "mariadb sqlite"):
+            for action in HELPER_ACTIONS:
+                with self.subTest(backend=backend, action=action):
+                    env = dict(os.environ, DB_BACKEND=backend)
+                    run = subprocess.run(["bash", "scripts/mariadb_setup.bash", action],
+                                         cwd=self.root, env=env, capture_output=True, timeout=30)
+                    self.assertEqual(run.returncode, 2, run.stdout + run.stderr)
+                    self.assertIn(b"DB_BACKEND", run.stderr)
+                    self.assertFalse((self.root / "CONFIG_READ").exists())
+        config.unlink()
+        (self.root.parent / "CONFIG_SITE.local").write_text("DB_BACKEND:=sqlite\n")
+        env = dict(os.environ)
+        env.pop("DB_BACKEND", None)
+        run = subprocess.run(["bash", "scripts/mariadb_setup.bash", "dbShow"],
+                             cwd=self.root, env=env, capture_output=True, timeout=30)
+        self.assertEqual(run.returncode, 2)
+        self.assertIn(b"not supported for DB_BACKEND=sqlite", run.stderr)
+        self.assertNotIn(b"No such file", run.stderr)
 
 
 class DatabaseIntegrationTests(unittest.TestCase):
@@ -130,11 +523,34 @@ class DatabaseIntegrationTests(unittest.TestCase):
     run_command = DatabaseConfigTests.run_command
     make = DatabaseConfigTests.make
 
+    def test_real_sqlite_schema_load_and_list(self):
+        schema = SCHEMA_TOP / "archappl_sqlite.sql"
+        self.assertTrue(schema.is_file(), "Real SQLite source schema is required")
+        db = Path(self.temp.name) / "sqlite/archappl.sqlite"
+        options = ["DB_BACKEND=sqlite", "SUDO=", "SQLITE_RUN_AS=",
+                   "AA_USERID=" + self.run_command(["id", "-un"]).decode().strip(),
+                   "AA_GROUPID=" + self.run_command(["id", "-gn"]).decode().strip(),
+                   f"ARCHAPPL_SQLITE_FILE={db}", f"SQL_AA_ORIG_SQLITE={schema}"]
+        self.make("db.conf", "DB_BACKEND=mariadb")
+        config = self.root / "site-template/mariadb.conf"
+        before = config.read_bytes()
+        self.make(*DB_TARGETS, *options)
+        self.make("sql.fill", *options)
+        self.make("sql.fill", *options)
+        tables = self.make("sql.show", *options)
+        for table in (b"ArchivePVRequests", b"ExternalDataServers", b"PVAliases", b"PVTypeInfo"):
+            self.assertIn(table, tables)
+        self.run_command(["sqlite3", str(db), "DROP TABLE PVAliases;"])
+        self.make("sql.fill", *options)
+        self.assertIn(b"PVAliases", self.make("sql.show", *options))
+        self.assertEqual(config.read_bytes(), before)
+
     def test_real_database_credentials_and_account_identity(self):
         server = shutil.which("mariadbd") or "/usr/sbin/mariadbd"
         self.assertTrue(Path(server).is_file(), "mariadbd is required")
         datadir = Path(self.temp.name) / "data"
         sock = Path(self.temp.name) / "db.sock"
+        general_log = Path(self.temp.name) / "general.log"
         with socket.socket() as probe:
             probe.bind(("127.0.0.1", 0))
             port = probe.getsockname()[1]
@@ -143,7 +559,8 @@ class DatabaseIntegrationTests(unittest.TestCase):
         process = subprocess.Popen(
             [server, "--no-defaults", f"--datadir={datadir}", f"--socket={sock}",
              f"--pid-file={datadir}/server.pid", f"--port={port}", "--bind-address=127.0.0.1",
-             f"--log-error={datadir}/server.log", "--skip-log-bin"],
+             f"--log-error={datadir}/server.log", "--skip-log-bin",
+             "--general-log", f"--general-log-file={general_log}"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         def stop():
             process.terminate()
@@ -179,13 +596,44 @@ class DatabaseIntegrationTests(unittest.TestCase):
         helper = ["bash", "scripts/mariadb_setup.bash"]
         self.run_command(helper + ["adminAdd"])
         self.run_command(helper + ["hostnameAdminAdd"])
-        schema = TOP / "epicsarchiverap-maven-src/src/main/org/epics/archiverappliance/config/persistence/archappl_mysql.sql"
+        defaults = Path(self.temp.name) / "root-client.cnf"
+        defaults.write_text(f"[client]\nprotocol=tcp\nhost=127.0.0.1\nport=1\nsocket={sock}\n")
+        defaults.chmod(0o600)
+        original_sudo = sudo.read_bytes()
+        # Only privilege transport changes; the actual client reads conflicting defaults.
+        sudo.write_text('#!/bin/bash\n[[ "$1" == mysql ]] || exit 2\nshift\n'
+                        'exec mysql "--defaults-extra-file=$ROOT_CLIENT_DEFAULTS" "$@"\n')
+        try:
+            for transport in ([f"DB_SOCKET={sock}"], ["DB_SOCKET="]):
+                self.make("db.conf", *common, *transport)
+                self.run_command(helper + ["adminAdd"],
+                                 env=dict(os.environ, ROOT_CLIENT_DEFAULTS=str(defaults)))
+                self.run_command(helper + ["hostnameAdminAdd"],
+                                 env=dict(os.environ, ROOT_CLIENT_DEFAULTS=str(defaults)))
+        finally:
+            sudo.write_bytes(original_sudo)
+        self.make("db.secure", *common, f"DB_SOCKET={sock}")
+        self.assertIn(b"root@localhost", self.run_command(
+            ["mysql", "--no-defaults", "--user=root", "--protocol=tcp", "--host=127.0.0.1",
+             f"--port={port}", "-N", "-B", "-e", "SELECT CURRENT_USER()"]
+        ))
+        # The clock boundary gives backup collision cases a deterministic filename.
+        date = wrappers / "date"
+        date.write_text('#!/bin/bash\nif [[ $# == 1 && $1 == +%y%m%d%H%M ]]; then '
+                        'printf "%s\\n" 2601010000; else exec /usr/bin/date "$@"; fi\n')
+        date.chmod(0o700)
+        schema = SCHEMA_TOP / "archappl_mysql.sql"
         self.assertTrue(schema.is_file(), "Real source schema is required")
         (self.root.parent / "CONFIG_SITE.local").write_text(f"DB_SOCKET := {sock} # local socket\n")
         for transport in ([], ["DB_SOCKET="]):
             with self.subTest(transport=transport):
                 self.make("db.conf", *common, *transport)
-                self.run_command(helper + ["dbUserCreate"])
+                create_output = self.run_command(helper + ["dbUserCreate"])
+                self.assertNotIn(b"Password", create_output)
+                self.assertNotRegex(create_output.decode(), r"\*[0-9A-Fa-f]{40}\b")
+                host = "127.0.0.1" if transport else "localhost"
+                identity = self.run_command(helper + ["query", "SELECT CURRENT_USER()"])
+                self.assertIn(f"review_user@{host}".encode(), identity)
                 self.make("sql.fill", f"SQL_AA_ORIG_SQL={schema}")
                 self.run_command(helper + ["query", "SELECT 'query-ok'"])
                 sql = Path(self.temp.name) / "query file.sql"
@@ -193,16 +641,98 @@ class DatabaseIntegrationTests(unittest.TestCase):
                 self.assertIn(b"file-ok", self.run_command(helper + ["queryFile", str(sql), "-N"]))
                 self.run_command(helper + ["query", "INSERT INTO ExternalDataServers (serverid, serverinfo) VALUES ('review-marker', 'http://localhost');"])
                 self.assertIn(b"review-marker", self.make("DataServers.show"))
-                backup = Path(self.temp.name) / "backup path"
+                config = self.root / "site-template/mariadb.conf"
+                before_config = config.read_bytes()
+                before_log = general_log.read_bytes()
+                for backend in ("sqlite", "postgres", "", "mariadb sqlite"):
+                    for target in DB_TARGETS + SQL_TARGETS + QUERY_TARGETS:
+                        if backend == "sqlite" and target in SQL_TARGETS[:-2]:
+                            continue
+                        args = ["make", "-s", target, *common, f"DB_BACKEND={backend}"]
+                        if backend == "sqlite" and target in DB_TARGETS:
+                            self.assertIn(b"[SKIP]", self.run_command(args))
+                        else:
+                            self.run_command(args, expected=2)
+                    for action in HELPER_ACTIONS:
+                        self.run_command(helper + [action], expected=2,
+                                         env=dict(os.environ, DB_BACKEND=backend))
+                self.assertEqual(general_log.read_bytes(), before_log,
+                                 "Skip/rejection must not connect to MariaDB")
+                self.assertEqual(config.read_bytes(), before_config)
+                self.assertIn(b"review-marker", self.make("DataServers.show"))
+                backup = Path(self.temp.name) / ("backup " + host)
                 self.run_command(helper + ["dbBackup", str(backup)])
                 archive = next(backup.glob("review_archive_*.sql.gz"))
+                self.run_command(["gzip", "-t", str(archive)])
+                self.assertEqual(archive.stat().st_mode & 0o777, 0o600)
+                original = archive.read_bytes()
+                self.run_command(helper + ["dbBackup", str(backup)], expected=1)
+                self.assertEqual(archive.read_bytes(), original)
+                collision = Path(self.temp.name) / ("symlink " + host)
+                collision.mkdir()
+                link = collision / archive.name
+                link.symlink_to(collision / "absent")
+                self.run_command(helper + ["dbBackup", str(collision)], expected=1)
+                self.assertTrue(link.is_symlink())
+                self.assertFalse(link.exists())
+                # The filesystem boundary creates a competitor at publication time.
+                publisher = wrappers / "ln"
+                publisher.write_text('#!/bin/bash\nprintf "%s\\n" competitor > "${*: -1}"\n'
+                                     'exec /usr/bin/ln "$@"\n')
+                publisher.chmod(0o700)
+                competing = Path(self.temp.name) / ("competing " + host)
+                try:
+                    self.run_command(helper + ["dbBackup", str(competing)], expected=1)
+                    self.assertEqual((competing / archive.name).read_text(), "competitor\n")
+                    self.assertEqual(list(competing.iterdir()), [competing / archive.name])
+                finally:
+                    publisher.unlink()
+                self.run_command(root + ["-e", f"REVOKE LOCK TABLES ON review_archive.* FROM 'review_user'@'{host}'"])
+                failed = Path(self.temp.name) / ("failed " + host)
+                self.run_command(helper + ["dbBackup", str(failed)], expected=1)
+                self.assertEqual(list(failed.iterdir()), [])
+                self.run_command(helper + ["dbBackup", str(backup)], expected=1)
+                self.assertEqual(archive.read_bytes(), original)
                 stamp = archive.name[len("review_archive_"):-len(".sql.gz")]
                 self.run_command(helper + ["query", "DELETE FROM ExternalDataServers"])
                 self.run_command(helper + ["dbRestore", stamp, str(backup)])
                 self.assertIn(b"review-marker", self.make("DataServers.show"))
                 self.run_command(helper + ["tableShow"])
+                self.run_command(helper + ["aaShow", "ReviewMissingTable"], expected=1)
+                # The empty-table result succeeds; a real missing table must fail through Make.
+                self.run_command(helper + ["query", "DELETE FROM ExternalDataServers"])
+                self.make("DataServers.show")
+                self.run_command(helper + ["query", "DROP TABLE ExternalDataServers"])
+                self.run_command(["make", "--no-print-directory", "-s", "DataServers.show"], expected=2)
                 self.run_command(helper + ["tableDrop"])
-                self.run_command(helper + ["dbUserDrop"])
+                # Primary account changes succeed; a real denied metadata query must propagate.
+                self.run_command(root + ["-e", " ".join(
+                    f"REVOKE SELECT ON *.* FROM 'review_admin'@'{admin_host}'; "
+                    f"GRANT SELECT ON review_archive.* TO 'review_admin'@'{admin_host}' WITH GRANT OPTION;"
+                    for admin_host in ("localhost", "127.0.0.1"))])
+                try:
+                    for action, exists in (("dbUserCreate", True), ("userDrop", False),
+                                           ("dbUserCreate", True), ("dbUserDrop", False)):
+                        run = subprocess.run(helper + [action], cwd=self.root,
+                                             capture_output=True, timeout=30)
+                        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                        self.assertIn(b"Listing", run.stderr)
+                        accounts = self.run_command(root + ["-e",
+                            f"SELECT User FROM mysql.user WHERE User='review_user' AND Host='{host}'"])
+                        self.assertEqual(bool(accounts.strip()), exists)
+                finally:
+                    self.run_command(root + ["-e", " ".join(
+                        f"GRANT SELECT ON *.* TO 'review_admin'@'{admin_host}' WITH GRANT OPTION;"
+                        for admin_host in ("localhost", "127.0.0.1"))])
+                self.run_command(helper + ["dbUserCreate"])
+                output = self.run_command(helper + ["userDrop"])
+                self.assertNotRegex(output.decode(), r"\*[0-9A-Fa-f]{40}\b")
+                self.assertNotIn(b"authentication_string", output)
+                self.run_command(helper + ["dbUserCreate"])
+                output = self.make("db.drop", *common, *transport)
+                self.assertNotRegex(output.decode(), r"\*[0-9A-Fa-f]{40}\b")
+                self.assertNotIn(b"Password", output)
+                self.assertNotIn(b"authentication_string", output)
         self.make("db.conf", *common, f"DB_SOCKET={sock}")
         self.run_command(helper + ["hostnameAdminRemove"])
         self.run_command(helper + ["adminRemove"])

@@ -3,13 +3,11 @@
 ## The JDK is the distro package from configure/os/<os>.pkgs; Maven comes
 ## from the source repository's Maven Wrapper (see MAVEN_CMD in CONFIG_SRC).
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-ANT_HOME=/usr/share/ant
 TOMCAT_MAJOR_VER:=9
 TOMCAT_INSTALL_LOCATION=$(AA_INSTALL_PATH)/tomcat$(TOMCAT_MAJOR_VER)
 TOMCAT_HOME=$(TOMCAT_INSTALL_LOCATION)
 
 JAVA_PATH=$(JAVA_HOME)/bin
-ANT_PATH=$(ANT_HOME)/bin
 
 ### MariaDB defaults (overridable via CONFIG_SITE.local)
 ## MariaDB is expected to listen on the loopback only (127.0.0.1); exposing it
@@ -21,11 +19,12 @@ DB_HOST_IPADDR=127.0.0.1
 DB_HOST_PORT=3306
 DB_HOST_NAME=127.0.0.1
 DB_ADMIN=admin
+## Temporary value for a first trial; set the password of the host in ../CONFIG_SITE.local. Ignored for sqlite.
 DB_ADMIN_PASS=admin
 DB_NAME=archappl
 DB_USER=archappl
+## Temporary value for a first trial; set the password of the host in ../CONFIG_SITE.local. Ignored for sqlite.
 DB_USER_PASS=archappl
-DB_BACKUP_PATH=db
 ## Configuration database backend: mariadb or sqlite. Set it in
 ## ../CONFIG_SITE.local; a default defined after the local includes below
 ## would override the site's value.
@@ -57,18 +56,11 @@ AA_SITE_TEMPLATE_PATH=$(TOP)/site-template
 # Derived paths expand when used, after the local configuration includes.
 ARCHAPPL_TOP=$(AA_INSTALL_LOCATION)
 ARCHAPPL_SITEID:=als
+## No file of this repository reads ARCHAPPL_VERSION; a site value has no effect.
 ARCHAPPL_VERSION:=$(SRC_VERSION)-$(ARCHAPPL_SITEID)
 ARCHAPPL_WARS_TARGET_PATH=$(TOP)/$(SRC_PATH)/target
 ARCHAPPL_SITEID_TEMPATE_PATH=$(AA_SITE_TEMPLATE_PATH)/siteid
 ARCHAPPL_SITEID_CLASSPATHFILES_PATH=$(ARCHAPPL_SITEID_TEMPATE_PATH)/classpathfiles
-
-ANT_OPTS=-Dant.home=$(ANT_HOME)
-ANT_OPTS+=-Dant.library.dir=$(ANT_HOME)/lib
-#ANT_OPTS+=--execdebug
-ANT_OPTS+=-Dver=$(ARCHAPPL_VERSION)
-ANT_OPTS+=-Dwardest=$(ARCHAPPL_WARS_TARGET_PATH)
-ANT_OPTS+=-Dtomcathome=$(TOMCAT_HOME)
-ANT_OPTS+=-Darchapplsite=$(ARCHAPPL_SITEID)
 
 ## Maven command-line flags, such as -B or -gs /absolute/path/settings.xml.
 ## MAVEN_OPTS is Maven's JVM-options environment variable, not this Make hook.
@@ -85,12 +77,14 @@ AA_JAVA_MAXMETASPACE="256M"
 # https://www.openssl.org/blog/blog/2017/08/12/random/
 # AA_JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom"
 # For Java 21, we don't need this anymore.
+# A single option may be quoted. Write several options without quotes after the
+# equal sign; quotes around several options break make conf.archappl.
 AA_JAVA_OPTS=""
 #
 AA_USERID:=tomcat
 AA_GROUPID:=$(AA_USERID)
 
-## appliances.xml
+## Storage folders, rendered into $(ARCHAPPL_POLICIES) and archappl.conf
 #
 ARCHAPPL_STORAGE_TOP=/arch
 ARCHAPPL_SHORT_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/sts/ArchiverStore
@@ -99,6 +93,10 @@ ARCHAPPL_LONG_TERM_FOLDER=$(ARCHAPPL_STORAGE_TOP)/lts/ArchiverStore
 ## Usage percent of the store's filesystem at or above which the launcher's
 ## health check reports FAIL storage-threshold. Set it in ../CONFIG_SITE.local.
 ARCHAPPL_STORAGE_ALARM_PERCENT:=85
+## Seconds after a start within which the launcher's health check reports
+## STARTING; an older start without a ready instance is FAIL startup-timeout.
+## The valid range is 1 to 59. Set it in ../CONFIG_SITE.local.
+ARCHAPPL_HEALTH_STARTING_SECONDS:=10
 ## SQLite database file of the sqlite backend, on the archive volume.
 ARCHAPPL_SQLITE_FILE=$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite
 ## Store partition granularity and ETL hold per tier, rendered into
@@ -117,16 +115,17 @@ ARCHAPPL_LTS_GRANULARITY:=PARTITION_YEAR
 #
 ARCHAPPL_MINIMUM_SAMPLING_PERIOD:=0.1
 ARCHAPPL_SECONDS_TO_BUFFER:=10
-ARCHAPPL_SAMPLE_BUFFER_CAPACITY_ADJUSTMENT:=1.0
+## Seconds of write delay a sample buffer absorbs; the engine raises a value below 1.0 to 1.0
+ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS:=1.0
 
 
 ARCHAPPL_SINGLE_IDENTITY=appliance0
-## The following three files will in $(AA_INSTALL_LOCATION)
+## Files that are installed into $(AA_INSTALL_LOCATION). The three files that are
+## rendered into the classpathfiles folder (appliances.xml, archappl.properties and
+## policies.py) are also packed into WEB-INF/classes of every WAR file as defaults.
 #
 ARCHAPPL_APPLIANCES:=appliances.xml
 ARCHAPPL_CONF:=archappl.conf
-## WAR/WEB-INF/classes
-## RULES_INSTALL
 ARCHAPPL_POLICIES:=policies.py
 ARCHAPPL_PROPERTIES:=archappl.properties
 ## Root level of the WAR and Tomcat log4j2 configurations, exported to the

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
 #  author  : Jeong Han Lee
-#  email   : jeonghan.lee@gmail.com
 #  version : 0.1.0
 #  date    : Wed 14 Sep 2022 10:46:23 AM PDT
 
@@ -15,6 +14,22 @@ SC_SCRIPT="$(realpath "$0")";
 SC_TOP="${SC_SCRIPT%/*}"
 LOGDATE="$(date +%y%m%d%H%M)"
 ENV_TOP="${SC_TOP}/.."
+
+# Reject an unselected backend before reading MariaDB configuration or clients.
+if [[ ! ${DB_BACKEND+x} ]]; then
+    DB_BACKEND=$(make -C "${ENV_TOP}" --no-print-directory -s print-DB_BACKEND) || exit 2
+fi
+case "$DB_BACKEND" in
+    mariadb) ;;
+    sqlite)
+        printf '%s\n' 'mariadb_setup.bash is not supported for DB_BACKEND=sqlite; no database was changed.' >&2
+        exit 2
+        ;;
+    *)
+        printf "DB_BACKEND must be one of: mariadb sqlite (got '%s')\n" "$DB_BACKEND" >&2
+        exit 2
+        ;;
+esac
 
 AA_SITE_TEMPLATE_PATH=$(make -C "${ENV_TOP}" -s print-AA_SITE_TEMPLATE_PATH)
 
@@ -51,19 +66,17 @@ function usage
 	echo "          dbBackupList       : show all backup DB list at default -${DEFAULT_DB_BACKUP_PATH}.";
 	echo "          dbRestore          : restore the DB into the running sql at default -${DEFAULT_DB_BACKUP_PATH}.";
 	echo "";
-	echo "          tableCreate        : create the tables";
 	echo "          tableDrop          : drop   the tables";
 	echo "          tableShow          : show   the tables";
-	echo "          viewCreate         : create the views";
-	echo "          viewDrop           : drop   the views";
-	echo "          viewShow           : show   the views";
-	echo "          sProcCreate        : create the stored_procedures";
-	echo "          sProcDrop          : drop   the stored_procedures";
-	echo "          sProcShow          : show   the stored_procedures";
-	echo "";
-	echo "          allCreate          : create the tables, views, and stored_procedures";
-	echo "          allViews           : show the tables, views, and stored_procedures";
-	echo "          allDrop            : drop the tables, views, and stored_procedures";
+	echo "          aaShow [table]     : show appliance table rows (PVTypeInfo by default)";
+	echo "          isDb               : check whether the configured database exists";
+	echo "          userDrop           : drop the application account; keep its database";
+	echo "          localAdminAdd      : add the administrator at localhost";
+	echo "          hostnameAdminAdd   : add the administrator at DB_HOST_NAME";
+	echo "          adminRemove        : remove the administrator at localhost";
+	echo "          localAdminRemove   : remove the administrator at localhost";
+	echo "          hostnameAdminRemove: remove the administrator at DB_HOST_NAME";
+	echo "          Schema creation    : use make sql.fill";
 	echo "";
 	echo "          query \"sql query\"    : Send any sql query to DB -${DB_NAME}-"
 	echo "          queryFile \"sql file\" : Send a query through a sql file to DB -${DB_NAME}-";
@@ -86,7 +99,10 @@ function drop_procedures
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        outputs=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}')
+        if ! outputs=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}'); then
+            clientFailMessage "Listing procedures for removal in ${db_name}"
+            return 1
+        fi
         # shellcheck disable=SC2086
 
         printf "\n";
@@ -99,6 +115,8 @@ function drop_procedures
 
 }
 
+# ComponentDB heritage: this function and get_admin_crypt_password run a Python 2 helper of
+# ComponentDB. No command of this repository calls them, and they do not work here.
 function generate_admin_local_password
 {
     local db_name="$1"; shift;
@@ -195,6 +213,7 @@ function backup_db
     local dbDir;
     local db_exist;
     local backup_file;
+    local backup_temp;
 
     db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
 
@@ -207,13 +226,27 @@ function backup_db
 	    mkdir -p "${db_backup_path}"
 	fi
 	backup_file="${db_backup_path}/${db_name}_${LOGDATE}.sql.gz"
-	# The backup fails when either the dump or gzip fails; the partial file is
-	# removed so it cannot be mistaken for a backup.
-	if ! ( set -o pipefail; "${SQL_BACKUP_CMD[@]}" "${db_name}" | gzip -9 > "${backup_file}" ); then
-	    rm -f "${backup_file}"
-	    printf "\nBacking up >> %s << into >> %s << failed.\n\n" "${db_name}" "${backup_file}" >&2
-	    exit 1;
-	fi
+        if [[ -e "$backup_file" || -L "$backup_file" ]]; then
+            printf 'Backup already exists; refusing to overwrite: %s\n' "$backup_file" >&2
+            return 1
+        fi
+        # A private temporary file holds the complete dump. A same-directory
+        # hard link publishes it atomically without replacing a competing file.
+        (
+            set -o pipefail
+            backup_temp=$(mktemp -- "${db_backup_path}/.${db_name}_${LOGDATE}.XXXXXXXX") || exit 1
+            trap 'rm -f -- "$backup_temp"' EXIT
+            trap 'exit 130' INT
+            trap 'exit 143' TERM
+            if ! "${SQL_BACKUP_CMD[@]}" "${db_name}" | gzip -9 > "$backup_temp"; then
+                printf 'Database backup failed; no backup published: %s\n' "$backup_file" >&2
+                exit 1
+            fi
+            if ! ln -T -- "$backup_temp" "$backup_file"; then
+                printf 'Cannot publish backup without replacing an existing path: %s\n' "$backup_file" >&2
+                exit 1
+            fi
+        )
     fi
 }
 
@@ -289,7 +322,10 @@ function show_archappl
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        tables=$("${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SELECT * FROM ${table_name}" | awk '{print $1}')
+        if ! tables=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SELECT * FROM $(sql_identifier "$table_name")" | awk '{print $1}'); then
+            clientFailMessage "Reading ${db_name}.${table_name}"
+            return 1
+        fi
         printf "\n";
         # shellcheck disable=SC2206
         declare -a  table_array=( ${tables} )
@@ -460,6 +496,10 @@ case "$input" in
         fi
         execute_query "${DB_NAME}" "$additional_input";
         ;;
+    # addProject, updateCDBAdminPassword and showAdminCryptPassword are ComponentDB heritage.
+    # No command of this repository calls them, and they do not work here: addProject names the
+    # ComponentDB table item_project and the misspelled variable DB_NANE, and the other two run
+    # a Python 2 helper.
     addProject)
         project_name="${additional_input}";
         execute_query "${DB_NAME}" "INSERT into item_project (name) VALUES('$project_name')"
@@ -482,6 +522,7 @@ case "$input" in
         fi
         query_from_sql_file "${DB_NAME}" "${query_sql_file}" "$query_options"
         ;;
+    # ComponentDB heritage; see the note above addProject.
     updateCDBAdminPassword)
         python_path="$additional_input"
         # local python command instead of the system-wide
@@ -491,6 +532,7 @@ case "$input" in
         fi
         generate_admin_local_password  "${DB_NAME}" "${CDB_USER}" "${CDB_USER_PASS}" "$python_path" "$3"
         ;;
+    # ComponentDB heritage; see the note above addProject.
     showAdminCryptPassword)
         get_admin_crypt_password  "${DB_NAME}" "$additional_input" "$3"
         ;;

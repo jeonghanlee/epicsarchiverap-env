@@ -2,6 +2,14 @@
 sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show
 sql_db_RULES:=$(addprefix db., $(sql_db_RULES_NAMES))
 
+# Helpers receive the same backend selection as the invoking Make target.
+export DB_BACKEND
+.PHONY: $(sql_db_RULES)
+
+ifeq "$(DB_BACKEND)" "sqlite"
+$(sql_db_RULES):
+	$(QUIET)printf '[SKIP] %s: MariaDB setup is not needed for DB_BACKEND=sqlite.\n' "$@"
+else ifeq "$(DB_BACKEND)" "mariadb"
 db.conf: export RENDER_DB_ADMIN_HOST = $(DB_ADMIN_HOST)
 db.conf: export RENDER_DB_ADMIN = $(DB_ADMIN)
 db.conf: export RENDER_DB_ADMIN_PASS = $(DB_ADMIN_PASS)
@@ -15,7 +23,7 @@ db.conf: export RENDER_DB_SOCKET = $(strip $(DB_SOCKET))
 db.conf: $(SQL_CONFIG_FILE).in
 	$(call checkfile,$(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE))
 	$(QUIET) echo ">>> Generate $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)"
-	$(QUIET)bash $(TOP)/scripts/render-db-config.bash shell "$<" "$(basename $<)" DB_ADMIN_HOST DB_ADMIN DB_ADMIN_PASS DB_HOST_NAME DB_HOST_IPADDR DB_NAME DB_HOST_PORT DB_USER DB_USER_PASS DB_SOCKET
+	$(QUIET)umask 077; bash $(TOP)/scripts/render-db-config.bash shell "$<" "$(basename $<)" DB_ADMIN_HOST DB_ADMIN DB_ADMIN_PASS DB_HOST_NAME DB_HOST_IPADDR DB_NAME DB_HOST_PORT DB_USER DB_USER_PASS DB_SOCKET
 
 db.conf.show:
 	$(QUIET)cat -b $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)
@@ -41,10 +49,16 @@ db.drop: mariadb_setup.bash db.conf
 db.show: mariadb_setup.bash db.conf
 	$(QUIET)bash $< dbShow
 
+else
+$(sql_db_RULES):
+	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))
+endif
+
 #sed "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" ${aa_deploy_db_tables} > ${aa_deploy_db_tables_new};
 
-sql_sql_RULES_NAMES:=fill show update update.show table.fill table.show table.drop
-sql_sql_RULES:=$(addprefix sql., $(sql_db_RULES_NAMES))
+sql_sql_RULES_NAMES:=fill show update update.show table.fill table.show drop table.drop
+sql_sql_RULES:=$(addprefix sql., $(sql_sql_RULES_NAMES))
+.PHONY: $(sql_sql_RULES)
 
 sql.fill: sql.update sql.table.fill
 
@@ -59,8 +73,12 @@ sql.drop: sql.table.drop
 # sure the service account exists (src_preinst), then runs sqlite3 as that
 # account through SQLITE_RUN_AS and feeds the schema on standard
 # input, since that account may not read a checkout under a private home.
+# sql.update removes the rendered copy before it writes it, so that a copy left
+# owned by root in the checkout does not stop the checkout owner; the removal
+# runs only on a non-empty path and stops the rule otherwise.
 ifeq "$(DB_BACKEND)" "sqlite"
 sql.update:
+	$(QUIET)test -n "$(SQL_AA_UPDATE_SQLITE)" && rm -f -- "$(SQL_AA_UPDATE_SQLITE)"
 	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
 	            -e "s/CREATE TRIGGER /CREATE TRIGGER IF NOT EXISTS /g" \
 	            < $(SQL_AA_ORIG_SQLITE) > $(SQL_AA_UPDATE_SQLITE)
@@ -69,15 +87,21 @@ sql.update.show:
 	$(QUIET)echo ">>> $(SQL_AA_UPDATE_SQLITE)"
 	$(QUIET)cat -b $(SQL_AA_UPDATE_SQLITE)
 
-sql.table.fill: src_preinst
+# sql.table.fill loads the schema that sql.update rendered; it renders nothing,
+# so that a root run writes nothing into the checkout. The check runs before
+# src_preinst, so a missing or stale schema stops before the account is touched.
+sql.table.fill:
+	$(call require_rendered,$(SQL_AA_UPDATE_SQLITE),$(SQL_AA_ORIG_SQLITE),sql.update,$(SQL_AA_ORIG_SQLITE))
+	$(QUIET)$(MAKE) src_preinst
 	$(QUIET)$(SUDO) $(INSTALL) -d -o $(AA_USERID) -g $(AA_GROUPID) $(dir $(ARCHAPPL_SQLITE_FILE))
 	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) < $(SQL_AA_UPDATE_SQLITE)
 
 sql.table.show:
 	$(QUIET)echo "\n>>> $(ARCHAPPL_SQLITE_FILE) Tables"
 	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) .tables
-else
+else ifeq "$(DB_BACKEND)" "mariadb"
 sql.update:
+	$(QUIET)test -n "$(SQL_AA_UPDATE_SQL)" && rm -f -- "$(SQL_AA_UPDATE_SQL)"
 	$(QUIET)sed -e "s/CREATE TABLE /CREATE TABLE IF NOT EXISTS /g" \
 	            -e "s/) ENGINE=InnoDB;/) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/g" \
 	            < $(SQL_AA_ORIG_SQL) > $(SQL_AA_UPDATE_SQL)
@@ -87,20 +111,24 @@ sql.update.show:
 	$(QUIET)cat -b $(SQL_AA_UPDATE_SQL)
 
 sql.table.fill: mariadb_setup.bash
+	$(call require_rendered,$(SQL_AA_UPDATE_SQL),$(SQL_AA_ORIG_SQL),sql.update,$(SQL_AA_ORIG_SQL))
 	$(QUIET)bash $< "queryFile" "$(SQL_AA_UPDATE_SQL)"
 
 sql.table.show: mariadb_setup.bash
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables"
 	$(QUIET)bash $< tableShow
+else
+sql.update sql.update.show sql.table.fill sql.table.show:
+	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))
 endif
 
+aa_tables_RULES:=PVRequests.show DataServers.show PVAliases.show PVTypeInfo.show
+.PHONY: $(aa_tables_RULES)
+
+ifeq "$(DB_BACKEND)" "mariadb"
 sql.table.drop: mariadb_setup.bash
-	$(call check_db_backend)
-	$(if $(filter mariadb,$(DB_BACKEND)),,$(error sql.drop/sql.table.drop is not supported for DB_BACKEND=sqlite; no database was changed))
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables Drop"
 	$(QUIET)bash $< tableDrop
-
-aa_tables_RULES:=PVRequests.show DataServers.show PVAliases.show PVTypeInfo.show
 
 PVRequests.show: mariadb_setup.bash
 	$(QUIET)bash $< "aaShow" "ArchivePVRequests"
@@ -113,4 +141,11 @@ PVAliases.show: mariadb_setup.bash
 
 PVTypeInfo.show: mariadb_setup.bash
 	$(QUIET)bash $< "aaShow" "PVTypeInfo"
+else ifeq "$(DB_BACKEND)" "sqlite"
+sql.table.drop $(aa_tables_RULES):
+	$(error $@ is not supported for DB_BACKEND=sqlite; no database was changed)
+else
+sql.table.drop $(aa_tables_RULES):
+	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))
+endif
 # end-of-line

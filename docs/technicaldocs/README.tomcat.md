@@ -63,6 +63,7 @@ The Archiver Appliance uses the following port numbers
 17665 : mgmt url
 17666 : engine url
 17667 : etl url
+17668 : retrieval url
 ```
 
 However, the generic tomcat still uses 8080, which conflicts with other services such as Payara and ChannelFinder, so we change it to 8083 in case one would like to use the tomcat native service for another purpose.

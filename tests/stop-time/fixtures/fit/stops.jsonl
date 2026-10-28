@@ -1,0 +1,11 @@
+{"cell": "main-903", "stop": "1", "n_pvs": 903, "duration_s": 12.5, "etl_gap_s": 9.1, "slowest_ms_max": 850, "pass_duration_max_s": 1.9, "c1": "Passed", "c2": "Passed"}
+{"cell": "main-903", "stop": "2", "n_pvs": 903, "duration_s": 13.0, "etl_gap_s": 9.4, "slowest_ms_max": 850, "pass_duration_max_s": 1.9, "c1": "Passed", "c2": "Passed"}
+{"cell": "main-903", "stop": "3", "n_pvs": 903, "duration_s": 14.1, "etl_gap_s": 10.2, "slowest_ms_max": 850, "pass_duration_max_s": 1.9, "c1": "Passed", "c2": "Passed"}
+{"cell": "main-3000", "stop": "4", "n_pvs": 3000, "duration_s": 20.2, "etl_gap_s": 15.3, "slowest_ms_max": 850, "pass_duration_max_s": 1.9, "c1": "Passed", "c2": "Passed"}
+{"cell": "main-3000", "stop": "5", "n_pvs": 3000, "duration_s": 21.0, "etl_gap_s": 16.0, "slowest_ms_max": 850, "pass_duration_max_s": 1.9, "c1": "Passed", "c2": "Passed"}
+{"cell": "main-3000", "stop": "6", "n_pvs": 3000, "duration_s": 19.4, "etl_gap_s": 14.8, "slowest_ms_max": 850, "pass_duration_max_s": 1.9, "c1": "Passed", "c2": "Passed"}
+{"cell": "validation-903", "stop": "1", "n_pvs": 903, "duration_s": 15.2, "etl_gap_s": 11.0, "c1": "Passed", "c2": "Passed", "c3": "Passed"}
+{"cell": "rehearsal-25", "stop": "7", "n_pvs": 25, "duration_s": 3.1, "c1": "Passed", "c2": "Passed"}
+{"cell": "rehearsal-25", "stop": "8", "n_pvs": 25, "duration_s": 3.3, "c1": "Passed", "c2": "Passed"}
+{"cell": "rehearsal-100", "stop": "9", "n_pvs": 100, "duration_s": 3.6, "c1": "Passed", "c2": "Passed"}
+{"cell": "rehearsal-100", "stop": "10", "n_pvs": 100, "duration_s": 3.5, "c1": "Passed", "c2": "Passed"}

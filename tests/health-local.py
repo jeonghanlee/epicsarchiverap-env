@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 import select
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -92,6 +93,58 @@ class HealthTests(WorkspaceTest):
         output = self.health(1)
         self.all_reported(output)
         self.assertEqual(output.count("missing-pid-file"), 4)
+
+    def test_launcher_help_names_supported_restart_command(self):
+        self.configure()
+        run = subprocess.run(["bash", str(self.launcher), "help"],
+                             text=True, capture_output=True, timeout=8)
+        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+        self.assertIn("restart", run.stderr)
+        self.assertNotIn("restartup", run.stderr)
+
+    def test_status_reports_missing_and_unrelated_processes(self):
+        self.configure()
+        child = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(child.wait)
+        self.addCleanup(child.terminate)
+        for populated in (False, True):
+            with self.subTest(populated=populated):
+                if populated:
+                    for name in SERVICES:
+                        self.pid(name, f"{child.pid}\n".encode())
+                run = subprocess.run(["bash", str(self.launcher), "status"],
+                                     text=True, capture_output=True, timeout=8)
+                self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                self.all_reported(run.stdout)
+                reason = "wrong-java-executable" if populated else "missing-pid-file"
+                self.assertEqual(run.stdout.count(reason), 4)
+                self.assertNotIn("exists.", run.stdout)
+                self.assertNotIn(" PRESENT verified-process-presence", run.stdout)
+                self.assertIsNone(child.poll())
+
+    def test_storage_preserves_literal_paths_and_failure_status(self):
+        store = self.root / "store$(touch STORAGE_EVALUATED)`touch STORAGE_BACKTICK`"
+        store.mkdir()
+        (store / "sample").write_text("sample\n")
+        self.config.write_text("ARCHAPPL_STORAGE_TOP=" + shlex.quote(str(store)) + "\n")
+        boundary = self.root / "boundary"
+        boundary.mkdir()
+        sudo = boundary / "sudo"
+        # Only privilege transport is replaced; the shipped launcher and real du run.
+        sudo.write_text('#!/bin/bash\n[[ "$1" == -- && "$2" == du ]] || exit 2\nshift\nexec "$@"\n')
+        sudo.chmod(0o700)
+        env = dict(os.environ, PATH=str(boundary) + os.pathsep + os.environ["PATH"])
+        for option in ([], ["all"]):
+            run = subprocess.run(["bash", str(self.launcher), "storage", *option],
+                                 cwd=self.root, env=env, text=True, capture_output=True, timeout=8)
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+            self.assertIn(store.name, run.stdout)
+            self.assertFalse((self.root / "STORAGE_EVALUATED").exists())
+            self.assertFalse((self.root / "STORAGE_BACKTICK").exists())
+        self.config.write_text("ARCHAPPL_STORAGE_TOP=" + shlex.quote(str(self.root / "absent")) + "\n")
+        run = subprocess.run(["bash", str(self.launcher), "storage"],
+                             cwd=self.root, env=env, text=True, capture_output=True, timeout=8)
+        self.assertNotEqual(run.returncode, 0, run.stdout + run.stderr)
 
     def test_invalid_pid_files_are_preserved(self):
         self.configure()
@@ -241,8 +294,12 @@ class SystemdFileTests(WorkspaceTest):
                                     ("-j8", "/srv/aa-test", "aa-test")):
             with self.subTest(jobs=jobs):
                 # The shipped global .NOTPARALLEL remains in force in both runs.
-                self.make(jobs, "install.systemd", f"AA_INSTALL_LOCATION={install}",
-                          f"AA_USERID={user}", f"AA_GROUPID={user}")
+                # conf.systemd renders the units that conf.install renders, without
+                # its record of the source commit, which needs the source clone;
+                # install.systemd installs the rendered files and renders nothing itself.
+                site = (f"AA_INSTALL_LOCATION={install}", f"AA_USERID={user}", f"AA_GROUPID={user}")
+                self.make(jobs, "conf.systemd", *site)
+                self.make(jobs, "install.systemd", *site)
                 for name in ("epicsarchiverap-maven.service", "epicsarchiverap-maven-health.service",
                              "epicsarchiverap-maven-health.timer", "tomcat9.service.d/override.conf"):
                     path = self.units / name
@@ -271,6 +328,7 @@ class SystemdFileTests(WorkspaceTest):
 
     def test_site_timing_overrides(self):
         (self.root.parent / "CONFIG_SITE.local").write_text("SYSTEMD_HEALTH_STARTUP_SECONDS=90\nSYSTEMD_HEALTH_INTERVAL_SECONDS=20\n")
+        self.make("conf.health.service", "conf.health.timer")
         self.make("install.health.service", "install.health.timer")
         self.assertIn(".service 90\n", (self.units / "epicsarchiverap-maven-health.service").read_text())
         self.assertIn("OnUnitInactiveSec=20s\n", (self.units / "epicsarchiverap-maven-health.timer").read_text())
@@ -345,7 +403,7 @@ class SystemdFileTests(WorkspaceTest):
                         self.assertIn(f'CATALINA_HOME="{expected_home}"', config)
                         self.assertIn("ARCHAPPL_MGMT_PORT=18765\n", config)
                         self.assertEqual(self.make("-s", "print-TOMCAT_INSTALL_LOCATION").strip(), str(expected_install))
-                        self.assertIn(f"-Dtomcathome={expected_home}", self.make("-s", "print-ANT_OPTS"))
+                        self.assertEqual(self.make("-s", "print-TOMCAT_HOME").strip(), str(expected_home))
                         install_commands = self.make("-n", "tomcat.src_install")
                         self.assertIn(f'tar -C "{expected_install}"', install_commands)
                         appliances = ET.parse(template / "appliances.xml").getroot().find("appliance")

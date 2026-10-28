@@ -1,0 +1,127 @@
+2026-10-20T09:10:30.307999+00:00 guest bash[59250]: archappl-engine: stopping pid 59270
+2026-10-20T09:10:30.308380+00:00 guest systemd[1]: Stopping epicsarchiverap-maven.service - EPICS Archiver Appliance for als...
+2026-10-20T09:10:30.316537+00:00 guest archappl-engine[59269]: INFO  [Thread-22] org.epics.archiverappliance.config.DefaultConfigService - Shutting down startup scheduled executor...
+2026-10-20T09:10:30.316847+00:00 guest archappl-engine[59269]: INFO  [Thread-22] org.epics.archiverappliance.engine.pv.EngineContext - Shutting down the engine scheduler for misc tasks.
+2026-10-20T09:10:30.317122+00:00 guest archappl-engine[59269]: INFO  [Thread-22] org.epics.archiverappliance.engine.pv.EngineContext - the archive engine will shutdown
+2026-10-20T09:10:31.325280+00:00 guest archappl-engine[59269]: INFO  [Thread-22] org.epics.archiverappliance.engine.pv.EngineContext - the archive engine has been shutdown
+2026-10-20T09:10:31.326361+00:00 guest archappl-engine[59269]: INFO  [Thread-22] com.hazelcast.core.LifecycleService - appliance0_ENGINE [archappl] [5.7.0] HazelcastClient 5.7.0 (20260512 - b9df48a) is SHUTTING_DOWN
+2026-10-20T09:10:31.337456+00:00 guest archappl-engine[59269]: INFO  [Thread-22] com.hazelcast.client.impl.connection.ClientConnectionManager - appliance0_ENGINE [archappl] [5.7.0] Removed connection to endpoint: [127.0.0.1]:16670:08ed5366-48f8-4a49-a88c-c774a104427e, connection: ClientConnection{alive=false, connectionId=1, channel=NioChannel{/127.0.0.1:43047->/127.0.0.1:16670}, remoteAddress=[127.0.0.1]:16670, remoteUuid=08ed5366-48f8-4a49-a88c-c774a104427e, clusterUuid=628a90f5-e55f-402b-902a-71053a3f42d6, lastReadTime=2026-10-20 02:10:28.535, lastWriteTime=2026-10-20 02:10:28.535, closedTime=2026-10-20 02:10:31.328}
+2026-10-20T09:10:31.337784+00:00 guest archappl-engine[59269]: INFO  [Thread-22] com.hazelcast.core.LifecycleService - appliance0_ENGINE [archappl] [5.7.0] HazelcastClient 5.7.0 (20260512 - b9df48a) is CLIENT_DISCONNECTED
+2026-10-20T09:10:31.340557+00:00 guest archappl-mgmt[59260]: INFO  [hz.appliance0.IO.thread-in-0] com.hazelcast.internal.server.tcp.TcpServerConnection - [127.0.0.1]:16670 [archappl] [5.7.0] Connection[id=1, /127.0.0.1:16670->/127.0.0.1:43047, qualifier=null, endpoint=[127.0.0.1]:43047, remoteUuid=00816030-307f-42b0-b9c6-f38939108827, alive=false, connectionType=JVM, planeIndex=-1] closed. Reason: Connection closed by the other side
+2026-10-20T09:10:31.342835+00:00 guest archappl-engine[59269]: INFO  [Thread-22] com.hazelcast.core.LifecycleService - appliance0_ENGINE [archappl] [5.7.0] HazelcastClient 5.7.0 (20260512 - b9df48a) is SHUTDOWN
+2026-10-20T09:10:31.372691+00:00 guest systemd[1]: epicsarchiverap-maven.service: State 'stop-sigterm' timed out. Killing.
+2026-10-20T09:10:31.372765+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59250 (bash) with signal SIGKILL.
+2026-10-20T09:10:31.372866+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59260 (cat) with signal SIGKILL.
+2026-10-20T09:10:31.372899+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59262 (java) with signal SIGKILL.
+2026-10-20T09:10:31.373533+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59277 (cat) with signal SIGKILL.
+2026-10-20T09:10:31.373553+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59278 (java) with signal SIGKILL.
+2026-10-20T09:10:31.373624+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59288 (cat) with signal SIGKILL.
+2026-10-20T09:10:31.373642+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59289 (java) with signal SIGKILL.
+2026-10-20T09:10:31.373790+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59295 (java) with signal SIGKILL.
+2026-10-20T09:10:31.373802+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59300 (java) with signal SIGKILL.
+2026-10-20T09:10:31.373812+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59306 (GC Thread#0) with signal SIGKILL.
+2026-10-20T09:10:31.373823+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59308 (G1 Conc#0) with signal SIGKILL.
+2026-10-20T09:10:31.373833+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59310 (G1 Refine#0) with signal SIGKILL.
+2026-10-20T09:10:31.373847+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59311 (GC Thread#0) with signal SIGKILL.
+2026-10-20T09:10:31.373859+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59314 (G1 Service) with signal SIGKILL.
+2026-10-20T09:10:31.373871+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59315 (G1 Refine#0) with signal SIGKILL.
+2026-10-20T09:10:31.373882+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59317 (G1 Service) with signal SIGKILL.
+2026-10-20T09:10:31.373892+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59319 (G1 Conc#0) with signal SIGKILL.
+2026-10-20T09:10:31.373903+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59323 (G1 Service) with signal SIGKILL.
+2026-10-20T09:10:31.373914+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59340 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377503+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59343 (VM Thread) with signal SIGKILL.
+2026-10-20T09:10:31.377513+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59346 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377516+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59353 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377528+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59358 (Service Thread) with signal SIGKILL.
+2026-10-20T09:10:31.377531+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59359 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377536+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59360 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377541+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59364 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377544+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59365 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377547+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59366 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377550+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59367 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377553+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59369 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377556+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59370 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377566+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59378 (VM Thread) with signal SIGKILL.
+2026-10-20T09:10:31.377570+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59388 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377573+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59405 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377576+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59406 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377579+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59457 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377588+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59458 (GC Thread#1) with signal SIGKILL.
+2026-10-20T09:10:31.377593+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59459 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377602+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59461 (Log4j2-TF-2-Sch) with signal SIGKILL.
+2026-10-20T09:10:31.377605+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59463 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377614+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59474 (Tomcat JDBC Poo) with signal SIGKILL.
+2026-10-20T09:10:31.377617+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59475 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377627+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59479 (Log4j2-TF-2-Sch) with signal SIGKILL.
+2026-10-20T09:10:31.377630+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59480 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377633+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59481 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377636+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59482 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377645+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59483 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377648+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59494 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377651+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59497 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377654+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59501 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377657+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59502 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377660+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59503 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377663+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59504 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377666+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59513 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377675+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59515 (Log4j2-TF-2-Sch) with signal SIGKILL.
+2026-10-20T09:10:31.377678+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59977 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377681+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59978 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377683+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59979 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377686+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59980 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377689+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59981 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377692+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59982 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377696+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59984 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377699+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59999 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377701+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60001 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377704+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60002 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377707+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60003 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377710+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60004 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377713+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60005 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377717+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60006 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377719+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60007 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377722+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60008 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377725+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60009 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377728+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60010 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377731+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60011 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377733+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60013 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377736+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60056 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377739+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60063 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377742+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60064 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377746+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60065 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377749+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60066 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377752+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60067 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377754+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60068 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377757+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60069 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377760+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60070 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377763+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60071 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377766+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60072 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377776+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60073 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377779+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60074 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377782+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60075 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377785+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60076 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377788+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60077 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377790+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60089 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377800+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60354 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377803+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60355 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377806+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60358 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.377808+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 60566 (n/a) with signal SIGKILL.
+2026-10-20T09:10:31.378019+00:00 guest systemd[1]: epicsarchiverap-maven.service: Main process exited, code=killed, status=9/KILL
+2026-10-20T09:10:31.378043+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59262 (java) with signal SIGKILL.
+2026-10-20T09:10:31.378056+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59278 (java) with signal SIGKILL.
+2026-10-20T09:10:31.378073+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59295 (java) with signal SIGKILL.
+2026-10-20T09:10:31.378081+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59306 (GC Thread#0) with signal SIGKILL.
+2026-10-20T09:10:31.378089+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59314 (G1 Service) with signal SIGKILL.
+2026-10-20T09:10:31.378098+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59319 (G1 Conc#0) with signal SIGKILL.
+2026-10-20T09:10:31.378106+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59323 (G1 Service) with signal SIGKILL.
+2026-10-20T09:10:31.378112+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59343 (VM Thread) with signal SIGKILL.
+2026-10-20T09:10:31.378120+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59358 (Service Thread) with signal SIGKILL.
+2026-10-20T09:10:31.378126+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59378 (VM Thread) with signal SIGKILL.
+2026-10-20T09:10:31.378133+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59458 (GC Thread#1) with signal SIGKILL.
+2026-10-20T09:10:31.378140+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59461 (Log4j2-TF-2-Sch) with signal SIGKILL.
+2026-10-20T09:10:31.378148+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59474 (Tomcat JDBC Poo) with signal SIGKILL.
+2026-10-20T09:10:31.378155+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59479 (Log4j2-TF-2-Sch) with signal SIGKILL.
+2026-10-20T09:10:31.378162+00:00 guest systemd[1]: epicsarchiverap-maven.service: Killing process 59515 (Log4j2-TF-2-Sch) with signal SIGKILL.
+2026-10-20T09:10:31.385697+00:00 guest systemd[1]: epicsarchiverap-maven.service: Failed with result 'timeout'.
+2026-10-20T09:10:31.385864+00:00 guest systemd[1]: Stopped epicsarchiverap-maven.service - EPICS Archiver Appliance for als.
+2026-10-20T09:10:31.385999+00:00 guest systemd[1]: epicsarchiverap-maven.service: Consumed 1min 30.314s CPU time, 1.5G memory peak.

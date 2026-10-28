@@ -16,7 +16,6 @@
 #
 #
 # Author  : Jeong Han Lee
-# email   : JeongLee@lbl.gov
 # Date    : Friday, May  1 14:41:59 PDT 2020
 # version : 0.0.2
 

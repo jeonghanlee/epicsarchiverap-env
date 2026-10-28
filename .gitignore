@@ -64,6 +64,9 @@ context.xml
 test*
 !/tests/
 !/tests/**
+# The test chapter of the book is a tracked folder, not a test artifact.
+!/book/src/test/
+!/book/src/test/**
 *.service
 /site-template/systemd/*.timer
 override.conf
@@ -79,3 +82,8 @@ apache-tomcat*
 # updated.sql was generated through RULES_SQL
 archappl_mysql_updated.sql
 archappl_sqlite_updated.sql
+# Python bytecode cache
+__pycache__/
+
+# mdBook output
+/book/site/

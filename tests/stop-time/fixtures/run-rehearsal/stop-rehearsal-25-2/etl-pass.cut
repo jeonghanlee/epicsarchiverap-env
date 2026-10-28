@@ -1,0 +1,26 @@
+2026-10-20T08:00:32.008Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Shutting down ETL threads.
+2026-10-20T08:00:32.009Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:SLOW:CH06 for storage MTS
+2026-10-20T08:00:32.019Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:N1:N2:N3:CH02 for storage MTS
+2026-10-20T08:00:32.023Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:N1:N2:N3:CH06 for storage MTS
+2026-10-20T08:00:32.027Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:LONG_SECTION_NAME:SUBSYSTEM_DEVICE_READBACK_VALUE_06 for storage MTS
+2026-10-20T08:00:32.029Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:LONG_SECTION_NAME:SUBSYSTEM_DEVICE_READBACK_VALUE_10 for storage MTS
+2026-10-20T08:00:32.032Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK-DASH:S1-CH-04 for storage MTS
+2026-10-20T08:00:32.034Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:DB:CH08 for storage MTS
+2026-10-20T08:00:32.037Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:S1:CH04 for storage MTS
+2026-10-20T08:00:32.039Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:SLOW:CH02 for storage MTS
+2026-10-20T08:00:32.041Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:DB:CH04 for storage MTS
+2026-10-20T08:00:32.044Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:S1:CH08 for storage MTS
+2026-10-20T08:00:32.046Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:ENUM:CH01 for storage MTS
+2026-10-20T08:00:32.047Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK-DASH:S1-CH-08 for storage MTS
+2026-10-20T08:00:32.048Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:N1:N2:N3:CH10 for storage MTS
+2026-10-20T08:00:32.050Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:WF:CH02 for storage MTS
+2026-10-20T08:00:32.067Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:S1_UND:CH_02 for storage MTS
+2026-10-20T08:00:32.069Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:S1_UND:CH_06 for storage MTS
+2026-10-20T08:00:32.070Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:STR:CH02 for storage MTS
+2026-10-20T08:00:32.071Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:FAST:CH08 for storage MTS
+2026-10-20T08:00:32.072Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:LONG_SECTION_NAME:SUBSYSTEM_DEVICE_READBACK_VALUE_02 for storage MTS
+2026-10-20T08:00:32.074Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:FAST:CH04 for storage MTS
+2026-10-20T08:00:32.075Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:S1_UND:CH_10 for storage MTS
+2026-10-20T08:00:32.076Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:SLOW:CH10 for storage MTS
+2026-10-20T08:00:32.077Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:PFX_A:PFX_B:LEAF04 for storage MTS
+2026-10-20T08:00:32.086Z DEBUG [Thread-2] org.epics.archiverappliance.etl.common.PBThreeTierETLPVLookup - Need to consolidate data from etl source STS for pv AASOAK:PFX_A:PFX_B:LEAF08 for storage MTS

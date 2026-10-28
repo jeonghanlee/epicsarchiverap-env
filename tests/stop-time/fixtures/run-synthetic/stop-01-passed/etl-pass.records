@@ -1,0 +1,1 @@
+2026-10-19T20:05:02.000Z DEBUG [ETL-1] org.epics.archiverappliance.etl.common.ETLPassDriver - ETL pass of transition sts to mts : ETLPassRecord[plannedAt=2026-10-19T20:05:00Z, startedAt=2026-10-19T20:05:00.100Z, endedAt=2026-10-19T20:05:02Z, pvCount=3, jobsRun=3, jobsFailed=0, partitionsMoved=3, bytesMoved=3000, slowestPv=STOPTIME:E0001, slowestMillis=850, aborted=false]

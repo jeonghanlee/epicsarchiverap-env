@@ -5,6 +5,7 @@
 # package is listed.
 wget
 curl
+jq
 git
 sed
 gawk

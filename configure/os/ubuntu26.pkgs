@@ -1,0 +1,18 @@
+# Ubuntu 26.04 LTS (resolute) prerequisites. Maven uses the source Maven Wrapper.
+wget
+curl
+jq
+git
+sed
+gawk
+unzip
+make
+gcc
+tree
+mariadb-server
+mariadb-client
+libmariadb-dev
+libmariadb-dev-compat
+sqlite3
+openjdk-21-jdk-headless
+chrony
