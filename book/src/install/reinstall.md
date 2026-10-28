@@ -56,6 +56,8 @@ A reinstall replaces the installed payload of an appliance with the payload buil
 
    The installer asks two questions before it changes anything. The first offers the optional soft IOC test: `Run the PV acquisition/storage/retrieval test after installation? [y/N]`. The default is `N`. The second asks for a confirmation: `Install packages, build, prepare the database, replace the appliance and start it? [y/N]`. The option `-y` skips both questions. A run without a terminal and without `-y` stops with `Non-interactive stdin; use --yes`. Answer `y` to the confirmation.
 
+   When you answer `y` to the first question, the installer runs the soft IOC test after the installation and asks one more question when the test passes: `Select [1/2]:`. The answer `1`, an empty answer or the end of the input stops the soft IOC and leaves the test PV paused. The answer `2` resumes the test PV and keeps the soft IOC running. The installer waits for this answer.
+
    Later, when the checkout owner cannot execute the existing Tomcat and you gave no `--tomcat`, the installer asks `Tomcat choice [1/2; anything else cancels]:`. Answer `1` to use the existing Tomcat, or `2` to back it up and install the configured version, which stops the appliance.
 
    The appliance keeps running during the build. It is stopped from `appliance stop` until the end of `startup verification`. The stop takes up to 300 seconds (`SYSTEMD_TIMEOUT_STOP_SECONDS`), the `chown -R` of the storage folders counts as downtime, and the start waits up to 180 seconds.

@@ -135,12 +135,13 @@ The build time and the disk space depend on the host and on the Maven cache. Thi
 
 ## What a site hardens itself
 
-The installers set values for a first trial. A site that shares the host with other users, or opens the ports to other hosts, hardens four points itself. The first two points apply to the MariaDB installers, because the SQLite installer reads no database password.
+The installers set values for a first trial. A site that shares the host with other users, or opens the ports to other hosts, hardens five points itself. The first two points and the fifth point apply to the MariaDB installers, because the SQLite installer reads no database password and starts no MariaDB server.
 
 - **The passwords.** Set `DB_ADMIN_PASS` and `DB_USER_PASS` in `../CONFIG_SITE.local` before the installer prepares the accounts. With `--existing-db`, `DB_USER_PASS` must match the password of the existing application account.
 - **The mode of `conf/context.xml`.** The file of each instance holds `DB_USER_PASS` and has the mode 644. Restrict who can read it, but keep it readable by the service account `AA_USERID`, and repeat the change after a [reinstall](reinstall.md), which overwrites the installed files. The copies `site-template/context.xml` and `site-template/mariadb.conf` in the checkout hold the same password and keep the mode they had when first rendered, so restrict them too.
 - **The connector addresses.** The shipped connectors name no `address`, so Tomcat listens on all local addresses, and the installer configures no firewall. Decide with a firewall which hosts may reach the ports 17665 to 17668.
 - **The management port.** The `mgmt` port accepts every `/mgmt/bpl` action (archive, delete, `archappl.bash loglevel` and the others) without credentials from any client that can reach it. The firewall decision of the previous point covers it.
+- **The MariaDB listener.** The installers leave the network settings of the MariaDB server as the package sets them. On Rocky Linux 8 the server listens on all addresses on port 3306, because `bind-address` is a comment in `/etc/my.cnf.d/mariadb-server.cnf`; on Debian 13 it listens on `127.0.0.1`. Decide with a firewall which hosts may reach port 3306, or set the MariaDB option `bind-address` to `127.0.0.1` in the server configuration and restart `mariadb.service`.
 
 ## Undo an installation
 
