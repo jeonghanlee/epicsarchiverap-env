@@ -26,9 +26,9 @@ Docker is not a prerequisite.
 
 [VM installation and runtime tests](../docs/README.vmtests.md) describes the
 components, the run and case model, the guest handoff, cleanup verification,
-and the verdict. The canonical
-[VM installation and runtime plan](../docs/milestone-2.0.1.md#m10---automate-vm-installation-and-runtime-tests)
-owns acceptance criteria and observed results. Local checks cannot establish
+and the verdict. The historical
+[VM installation and runtime plan](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md#m10---automate-vm-installation-and-runtime-tests)
+records acceptance criteria and observed results for release 2.0.1. Local checks cannot establish
 installation or runtime acceptance.
 
 ## Execution Inputs
@@ -642,7 +642,9 @@ secondary JVM failures even when expected from dependencies; their existence
 alone neither proves monitor interference nor violates a survivor promise.
 Unclear attribution or an unexecuted case remains Pending. Do not change the
 45-second criterion after a failure. Record actual command, timestamp, target,
-exit status and retained evidence in the canonical M23 verification rows.
+exit status and retained evidence in the owning work item's Verification Results
+in the [current work register](../docs/milestone-9576820.md), using the checks in the
+[recorded process-monitoring verification](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.0.md#m23---make-a-dead-instance-visible-to-systemd).
 
 ## Incomplete system test result
 

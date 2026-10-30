@@ -4,7 +4,7 @@ This repository provides the configuration environment for the [EPICS Archiver A
 
 The source repository builds with Maven and stays close to the community version of the Archiver Appliance. See that repository for the build system and its differences.
 
-**Release**: [2.0.1](https://github.com/jeonghanlee/epicsarchiverap-env/releases/tag/2.0.1); the changes are in [CHANGELOG.md](CHANGELOG.md). Implementation status and observed verification results are recorded in the [work register](docs/milestone-2.0.1.md).
+**Release**: [2.0.1](https://github.com/jeonghanlee/epicsarchiverap-env/releases/tag/2.0.1); the changes are in [CHANGELOG.md](CHANGELOG.md). Implementation status and observed verification results are recorded in the [work register](docs/milestone-9576820.md).
 
 ## Install and look at an appliance on this host
 

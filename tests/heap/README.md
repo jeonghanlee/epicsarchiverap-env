@@ -9,7 +9,7 @@ identities and the accepted 100/500/903 PV stage populations.
 
 It writes a JSON inventory to stdout and does not execute the preserved tools,
 modify either checkout, contact an appliance or create a VM. The canonical
-[heap measurement plan](../../docs/milestone-2.0.1.md#m41---measure-per-component-heap-needs-by-archiving-load)
+[heap measurement plan](../../docs/milestone-9576820.md#m7---measure-per-component-heap-needs-by-archiving-load)
 owns runtime prerequisites, authorization and T1-T5 acceptance.
 
 ## Invocation

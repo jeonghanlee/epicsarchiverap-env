@@ -2,7 +2,8 @@
 
 The scripts of this folder measure how long the appliance unit takes to stop
 as a function of the number of archived PVs, on a dedicated guest. The plan,
-the claims and the result belong to item M55 of `docs/milestone-2.0.1.md`.
+the claims and the result are preserved in the
+[recorded stop-time measurement](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md#m55---measure-the-stop-time-of-the-appliance-with-data-in-the-short-term-store).
 `tests/run-all-tests.bash --local` does not run this folder; the measurement
 runs on the guest, and the self-test runs on the local host.
 
@@ -32,7 +33,7 @@ runs on the guest, and the self-test runs on the local host.
 4. Guest: run the stops of the cells `main-903` and `main-3000` with
    `run-cell.bash`. A stop leaves the appliance stopped; `run-cell.bash` runs
    `make sd_start` before each further stop. Between the two cells run the
-   reset of item M55 in `docs/milestone-2.0.1.md` and archive the PVs of the
+   reset in the [recorded measurement procedure](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md#m55---measure-the-stop-time-of-the-appliance-with-data-in-the-short-term-store) and archive the PVs of the
    next stage with `archive-stage.bash`.
 5. Local host: copy the evidence, run `rebuild-table.bash` on a copy, compare it
    with the recorded `stops.jsonl` through `compare-evidence.py`, run

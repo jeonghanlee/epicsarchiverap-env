@@ -15,7 +15,7 @@ verification, and the verdict.
 Ansible roles and operators, which ansible-provision owns; Make targets, which
 `configure/` and `Makefile` define. Commands for running the tests are in
 `tests/README.md`. Acceptance criteria, the T1-T15 labels, and observed results
-are in `docs/milestone-2.0.1.md`, M10.
+are preserved in the [release 2.0.1 VM acceptance record](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md#m10---automate-vm-installation-and-runtime-tests).
 
 ## Component responsibilities
 

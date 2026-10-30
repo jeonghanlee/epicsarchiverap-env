@@ -8,7 +8,7 @@ Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env, GitHub milestone none yet
 Peer register: aa-maven (jeonghanlee/epicsarchiverap-maven) `docs/milestone-daff1b7.md` on branch modernize, observed at `3c96141d394ebc4b6f81bb12f6db29858a1fb6bd` on 2026-09-20 by reading that path in a fetched clone (prior observation: `3528249462d54b295e9a9277882f7f3c0fc1cc62` on 2026-09-15 through the GitHub contents API)
 
-Next session entry point: read `docs/milestone-2.0.1.md` for current work.
+Next session entry point: read `docs/milestone-9576820.md` for current work.
 The 2.0.0 cycle remains closed. Surviving work and its authority transfer to
 the 2.0.1 canonical document in this synchronization change.
 The closure observations below retain their original dates and commit scope;
@@ -188,13 +188,13 @@ under their recorded separate authorizations. M2
 | M38 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-25) | this synchronization commit | this synchronization commit |
 | M40 (`docs/milestone-2.0.0.md`) | Backlog section, branch modernize | Milestone section, branch modernize (assigned 2026-09-28) | this synchronization commit | this synchronization commit |
 | M10, M13, M27, M14 (`docs/milestone-2.0.0.md`) | Milestone section, branch maven | Backlog section, branch maven (transferred 2026-09-29, D30) | this synchronization commit | this synchronization commit |
-| 265f580 / M10 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
-| 265f580 / M14 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
-| 265f580 / M41 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
-| 265f580 / M13 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
-| 265f580 / M27 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
-| 265f580 / M42 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
-| 265f580 / G6 | docs/milestone-2.0.0.md, release-2.0.1 | docs/milestone-2.0.1.md, release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M10 | docs/milestone-2.0.0.md, release-2.0.1 | [release-2.0.1 register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md), release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M14 | docs/milestone-2.0.0.md, release-2.0.1 | [release-2.0.1 register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md), release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M41 | docs/milestone-2.0.0.md, release-2.0.1 | [release-2.0.1 register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md), release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M13 | docs/milestone-2.0.0.md, release-2.0.1 | [release-2.0.1 register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md), release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M27 | docs/milestone-2.0.0.md, release-2.0.1 | [release-2.0.1 register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md), release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / M42 | docs/milestone-2.0.0.md, release-2.0.1 | [release-2.0.1 register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md), release-2.0.1 | this synchronization commit | this synchronization commit |
+| 265f580 / G6 | docs/milestone-2.0.0.md, release-2.0.1 | [release-2.0.1 register](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md), release-2.0.1 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
