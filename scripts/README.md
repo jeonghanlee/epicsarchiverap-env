@@ -21,7 +21,7 @@ confirming installation.
 
 ## Script responsibilities and callers
 
-This directory contains 13 Bash files. The three entry scripts above select the
+The three entry scripts above select the
 database mode; the remaining scripts have these responsibilities:
 
 | Script | Caller | Responsibility |
@@ -33,6 +33,8 @@ database mode; the remaining scripts have these responsibilities:
 | [check_storage_placement.bash](check_storage_placement.bash) | `make conf.storage` | Reports storage placement warnings; warnings do not fail the target |
 | [archappl.bash](archappl.bash) | Installed systemd service or operator | Runs the four instances, checks process/storage health, and manages application log levels |
 | [mariadb_setup.bash](mariadb_setup.bash) | Make database rules | Dispatches database, account, schema, backup, and restore operations |
+| [database_common.bash](database_common.bash) | Database dispatcher | Resolves Make settings, rejects stale configuration and checks offline state |
+| [sqlite_database.bash](sqlite_database.bash) | Database dispatcher | Service-account SQLite clients, file locking, lifecycle, queries, backup and restore |
 | [mariadb_generic_function.bash](mariadb_generic_function.bash) | Sourced by `mariadb_setup.bash` | Builds MariaDB client arguments and executes SQL operations |
 | [verify-local-pv.bash](verify-local-pv.bash) | Installer or operator | Starts a soft IOC and checks changing CA values against retrieved samples |
 | [verify-local-pv-curl.bash](verify-local-pv-curl.bash) | CSV client during PV verification | Records retrieval HTTP evidence and checks the returned PV identity |

@@ -683,7 +683,7 @@ function prepare_database {
                 [[ "$root_port" =~ ^[0-9]+$ ]] || die 'Cannot identify the local MariaDB server port'
                 (( 10#$root_port == 10#$db_port )) || die 'Local root socket and configured TCP port identify different servers'
             fi
-            run env DB_BACKEND=mariadb bash "$REPO/scripts/mariadb_setup.bash" hostnameAdminAdd
+            run env DB_BACKEND=mariadb bash -p "$REPO/scripts/mariadb_setup.bash" hostnameAdminAdd
         else
             run_make db.addAdmin
         fi
@@ -767,7 +767,9 @@ function main {
     read_settings
     if (( ! plan )); then
         for tool in curl jq unzip sha512sum systemctl timeout; do require_command "$tool"; done
-        if [[ "$backend" == sqlite ]]; then require_command sqlite3; else require_command mysql; fi
+        if [[ "$backend" == sqlite ]]; then
+            for tool in sqlite3 lsof runuser; do require_command "$tool"; done
+        else require_command mysql; fi
         [[ -d /run/systemd/system ]] || die 'A running systemd host is required'
         java_home=$(make_value JAVA_HOME)
         [[ -x "$java_home/bin/javac" ]] || die 'Configured JAVA_HOME does not contain a JDK'

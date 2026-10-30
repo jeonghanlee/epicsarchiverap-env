@@ -75,18 +75,18 @@ row queries, and account listing after account changes.
 ## Schema and table targets
 
 Schema generation reads `SQL_AA_ORIG_SQL` from the selected source checkout.
-It writes `SQL_AA_UPDATE_SQL` with the configured database name and uses
+It writes `SQL_AA_UPDATE_SQL` and uses
 `CREATE TABLE IF NOT EXISTS` for repeatable schema loading.
 
 | Make target | Behavior |
 | --- | --- |
 | `sql.fill` | Loads the source schema using the application account |
 | `sql.show` | Lists the configuration database tables |
-| `sql.drop` | Drops the configuration database tables |
-| `PVRequests.show` | Displays `ArchivePVRequests` rows |
-| `DataServers.show` | Displays `ExternalDataServers` rows |
-| `PVAliases.show` | Displays `PVAliases` rows |
-| `PVTypeInfo.show` | Displays `PVTypeInfo` rows |
+| `sql.drop` | Drops every user table, retaining the database |
+| `PVRequests.show` | Displays numbered `ArchivePVRequests.pvName` values |
+| `DataServers.show` | Displays numbered `ExternalDataServers.serverid` values |
+| `PVAliases.show` | Displays numbered `PVAliases.pvName` values |
+| `PVTypeInfo.show` | Displays numbered `PVTypeInfo.pvName` values |
 
 The schema contains `ArchivePVRequests`, `ExternalDataServers`, `PVAliases`,
 and `PVTypeInfo`. Use `make sql.fill` for schema creation; the helper does
@@ -116,3 +116,100 @@ configured administrator. These operations cover the configuration database
 only; retain separate backups of the archive stores.
 
 
+
+## Backend operation contract
+
+The existing `scripts/mariadb_setup.bash` dispatcher selects `DB_BACKEND`.
+Invoke it directly or with `bash -p`, including under sudo. Make passes resolved
+settings; direct invocations resolve the same Makefiles with explicit database
+environment values overriding them, including empty values. MariaDB compares
+current settings with `mariadb.conf` without executing that file. Missing or
+changed settings require `make db.conf`; a timestamp match is insufficient.
+Targets already depending on `db.conf` prepare it explicitly. Installing changed
+`context.xml` and `archappl.conf` and restarting the appliance is required to
+change its running database identity. Helpers never deploy or restart services.
+
+| Operation | MariaDB | SQLite |
+| --- | --- | --- |
+| `db.conf`, `db.conf.show` | Generate/display client settings | Successful skip |
+| `db.secure`, `db.addAdmin`, `db.rmAdmin` | Server/account administration | Unsupported, status 2 |
+| `db.create`, `db.drop`, `db.show` | Database plus application account lifecycle; list databases | Create empty valid file, remove file, print existing absolute file path |
+| `sql.update`, `sql.update.show` | Generate/display modified shipped schema | Same; guards tables and triggers with IF NOT EXISTS |
+| `sql.fill`, `sql.table.fill` | Load schema | Load schema as service account; can initialize missing file |
+| `sql.show`, `sql.table.show` | List tables | List existing file tables without creating a missing file |
+| `sql.drop`, `sql.table.drop` | Drop all user tables | Drop all user tables in one transaction, excluding engine internals |
+| Four application `.show` targets | Numbered first-column identifiers | Same, preserving spaces |
+
+Direct `dbCreate`/`dbDrop` are database-only; `dbUserCreate`/`dbUserDrop`
+include MariaDB accounts and reject SQLite. `dbShow`, `isDb`, `tableShow`,
+`tableDrop`, `aaShow`, `query`, `queryFile`, `querySFile`, `dbBackup`,
+`dbBackupList` and `dbRestore` support both backends. `isDb` exits 0 for
+present, 1 for absent and 2 for inspection/configuration failure.
+`aaShow [table]` defaults to `PVTypeInfo`; an empty table succeeds and a
+missing table fails. Row ordering is unspecified. Account actions
+`secureSetup`, `localAdminAdd`, `hostnameAdminAdd`, `localAdminRemove`,
+`hostnameAdminRemove`, `adminAdd`, `adminRemove` and `userDrop` are MariaDB-only.
+The legacy `addProject`, `updateCDBAdminPassword` and `showAdminCryptPassword`
+actions reject before configuration access.
+
+`query [sql]` returns native client output; its default lists MariaDB databases
+or SQLite user tables. `queryFile [file] [options] [verbose]` reads native SQL;
+`querySFile` is its alias. MariaDB defaults to the shipped `default_query.sql`.
+Only the separate output flags `-N`, `--skip-column-names`, `-B`, `--batch`,
+`-r`, `--raw`, `-t` and `--table` are accepted in its option string. Combined
+or abbreviated flags, connection options, SQL-execution options and positional
+arguments fail before any connection. SQLite requires an explicit file and
+empty options. Verbose is empty/NO or YES. SQL errors return failure.
+Native SQL may explicitly address other databases; these actions do not
+translate or sandbox operator SQL.
+
+### Maintenance and SQLite files
+
+Creation, schema load, table/database deletion, raw SQL, backup and restore
+require the appliance and its health service/timer to be inactive. Stop them
+explicitly with `make sd_health_stop` and `make sd_stop`, then check actual
+state. The helper independently verifies state, rejects unknown/error states,
+and never stops services itself. Absent units permit initial provisioning.
+Keep independent clients and service starts out of the maintenance window;
+MariaDB itself stays running. Read-only inspection and backup listing may
+run live.
+
+SQLite requires an absolute path on a supported local filesystem, a regular
+non-symlink file, and ownership matching `AA_USERID` and `AA_GROUPID`. Clients
+run as that account. New files are 0600 and new private directories 0700;
+existing directories are checked, not recursively changed. Non-root callers
+need noninteractive sudo. Privileged `lsof` inspection rejects open database,
+WAL or shared-memory references before maintenance. A per-file advisory lock
+serializes helpers; SQLite busy waits are limited to 5 seconds and each client
+operation to 30 seconds. These checks do not prevent arbitrary external opens
+after inspection.
+
+Create retains a valid existing database and initializes an empty file without
+appliance tables. Corrupt files fail. Table deletion retains the file. Database
+deletion uses SQLite checkpoint/journal cleanup, then removes only the main
+file if side files are absent. An absent database with no side files succeeds;
+orphan WAL/shared-memory files require recovery. Never remove WAL independently.
+
+### Backup and restore arguments
+
+Use `dbBackup [directory]`, `dbBackupList [directory]`, and
+`dbRestore stamp [directory]`. MariaDB defaults to `<checkout>/<DB_NAME>_sql_backup`
+and retains the compressed SQL naming above. Restore requires an existing
+database and validates gzip input before import. An import error may leave
+partial changes; there is no automatic rollback or service restart.
+
+SQLite defaults to `<ARCHAPPL_SQLITE_FILE>.backups` and names backups
+`<database-basename>_<YYYYmmddTHHMMSSZ>.sqlite3`. The SQLite backup API creates
+a consistent temporary file; DELETE journal mode and `quick_check` validate
+it before publication without overwriting an existing path. Listing prints
+sorted matching names, ignores private temporary files and does not need the
+main database. A missing/unreadable backup directory fails; an empty one succeeds.
+
+SQLite restore requires the database and WAL/shared-memory paths to be absent,
+including no zero-length file or symlink. To replace a database, back it up,
+run `db.drop`, then restore. Restore validates the backup read-only, stages and
+validates a private file, then publishes without replacing a competing path.
+The source backup remains unchanged. The appliance enables WAL on its next JDBC
+open. Failed publication leaves any competing destination unchanged. Uncatchable
+interruption may leave private temporary files; no completed backup is reported.
+Cross-backend restore and archive-store backup are outside this interface.

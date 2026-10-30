@@ -29,7 +29,7 @@ while [[ $text =~ @([A-Z_][A-Z_0-9]*)@ ]]; do
                     value=${value//$'\r'/\&#13;}
                     value=${value//$'\t'/\&#9;}
                     ;;
-                shell) printf -v value '%q' "$value" ;;
+                shell) LC_ALL=C printf -v value '%q' "$value" ;;
                 *) printf 'Unknown rendering mode: %s\n' "$mode" >&2; exit 2 ;;
             esac
             break

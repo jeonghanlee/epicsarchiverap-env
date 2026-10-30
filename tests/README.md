@@ -265,7 +265,7 @@ NO_ANT_TREE_UNDER_TEST="${tree}" bash tests/no-ant.bash
   from `../CONFIG_SITE.local`, and the real Make configuration derives its
   matching `JAVA_PATH`.
 - The real `conf.storage` applies ownership to tier directories and existing files outside the archive root. The shipped launcher reads the rendered configuration and reports every storage path, including an unreadable tier and `/dev/shm`. These checks do not start an appliance JVM or install Tomcat.
-- `sql.drop` and `sql.table.drop` reject SQLite and invalid backend values before invoking a database client, even when files with those target names exist. The real Make targets run for rejection cases; the MariaDB deletion command is checked only with a dry-run.
+- `sql.drop` and `sql.table.drop` reject invalid backend values before invoking a database client, even when files with those target names exist. The real Make targets run for rejection cases; both supported backend deletion commands are checked by dry-run; actual deletion runs in the disposable-guest suite.
 - The five removed obsolete documents (`README.ant.md`, `README.centos7.md`, `README.centos8.md`, `README.javapkgs.md`, `README.macos.md`) are not referenced from any tracked Markdown file other than `CHANGELOG.md`, the milestone register and `tests/`; the check fails when the search itself cannot run, such as outside a Git work tree.
 - `CHANGELOG.md` is present; the misspelled `CHANGLOG.md` is gone.
 - `ui-static.bash` checks the interface files of the source checkout that `SRC_TAG` selects (`AA_SOURCE_CLONE` overrides it; the files are listed in `tests/ui-files.list`; the checks are skipped with a message, and the group line reads `[SKIP]` instead of `[PASS]`, when no checkout exists) without running a browser: every management page keeps the marker blocks the site template replaces; every full page carries a content security policy with `script-src 'self'`; no page has an inline script, an event-handler or style attribute or a `javascript:` address; no file refers to jQuery or to an outside host, where only the target of a navigation link (`<a href>`) may name one, because the user follows it and the page does not request it (third-party files under `js/vendor` are covered by their integrity record); every element id that a page script reads exists in its page; every script and stylesheet a page names exists; no file turns text into markup (`innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`, `eval`); every server call of a management file is written with its literal `../bpl/` path, which the source repository's `StaticContentBPLCallsTest` needs; the site template `template_changes.html` names no jQuery; every text color of the shared stylesheet has a contrast of at least 4.5:1 on the page and on a selected row. The same script then runs against seventeen copies with one defect each, which it must refuse for the reason named, and against one copy with a navigation link to an outside host, which it must accept.
@@ -361,12 +361,9 @@ NO_ANT_TREE_UNDER_TEST="${tree}" bash tests/no-ant.bash
   without `mariadb.service`; `DB_BACKEND=postgres` stops both. `SQLITE_RUN_AS`
   expands to `sudo -u <account>` for a user-run build and to
   `runuser -u <account> --` when `id -u` reports 0 (an `id` in `PATH` that
-  prints 0). With the real `sqlite3` and the source tree's
-  `archappl_sqlite.sql`, run as the current user (`SUDO=`, `SQLITE_RUN_AS=`),
-  `sql.fill` creates the file, succeeds again, restores a dropped table and
-  succeeds on a WAL-mode file, every `CREATE` in the modified copy carries
-  `IF NOT EXISTS`, the MariaDB copy is untouched, and `sql.show` lists the four
-  tables; without `sqlite3` or the source tree this part prints `[SKIP]`.
+  prints 0). The real `sql.update` renders the shipped SQLite schema with
+  guarded CREATE statements. Runtime loading, reload, WAL, ownership and
+  deletion require the disposable-guest database suite.
 - From an isolated copy run as the current user (`SUDO=`, `SUDOBASH="bash -c"`),
   the real `conf.storage` succeeds for a store under `/var/tmp`, under
   `/dev/shm` and under the user's home, prints the root-filesystem warning
@@ -395,15 +392,9 @@ NO_ANT_TREE_UNDER_TEST="${tree}" bash tests/no-ant.bash
   the path. Root commands explicitly use `localhost` and the socket protocol,
   with `--socket=<path>` when configured. The SQLite render is the same with and without
   `DB_SOCKET`. No database client runs.
-- The account and database targets stop when the database client fails: from
-  an isolated copy, with the real `mysql` client unable to connect, `make
-  db.create`, `db.drop`, `db.show`, `db.addAdmin` and `db.rmAdmin` and the
-  `mariadb_setup.bash` commands `dbCreate`, `dbDrop`, `dbShow`, `userDrop`,
-  `hostnameAdminAdd` and `hostnameAdminRemove` each exit non-zero with
-  `ERROR 2002` and a message naming the failed step on stderr. The admin
-  command meets a closed loopback port; the root command meets a missing
-  socket through `DB_SOCKET`, with a pass-through `sudo` first in `PATH`.
-  Without a `mysql` client this part prints `[SKIP]`.
+- Real database client failures and maintenance preconditions run in the
+  disposable systemd guest suite. Local logic checks do not substitute sudo
+  or claim to verify those privileged paths.
 
 ### Native database and PV checks
 
@@ -413,8 +404,8 @@ loading, backup/restore, private backup permissions, rejection of an existing
 backup or symlink, failed dump cleanup, and a file appearing during publication.
 Account deletion output must omit password hashes. The root cleanup target
 preserves the existing authentication method. SQLite uses its real source schema.
-Conflicting root client defaults select TCP and a closed port; account preparation
-must reach the private server through its socket for both appliance transports.
+The private server uses real root execution for account preparation; no sudo
+or client wrapper is substituted.
 An empty table query succeeds, while missing-table queries fail through the
 helper and the real Make target.
 Denied account metadata queries return nonzero after successful primary account
@@ -662,12 +653,11 @@ acceptance.
 `--local` also runs `database-config.py`: it renders the real templates,
 parses their XML, sources their shell assignments, compares the runtime DB
 name with both backend resources, and checks the system-phase exit contract.
-It executes all eight SQLite `db.*` targets with missing prerequisites and
-both present and absent MariaDB configuration, checking explanatory success
-and unchanged configuration. Invalid backend values reject every DB/SQL/query
-target; unsupported SQLite deletion/query operations reject even when files
-matching target names exist. Standalone helper operations reject SQLite and
-invalid selectors before reading configuration.
+It verifies SQLite `db.conf`/`db.conf.show` skips without prerequisites or
+MariaDB configuration access. SQLite account operations and invalid backend
+values reject before client access. Supported deletion dispatch is checked by
+dry-run; real deletion belongs to the guest suite. Generated configuration is
+never executed as code by the standalone helper.
 It also verifies that a failed `conf.archappl` substitution returns nonzero
 without creating or replacing the output, and that inline comments on
 `DB_SOCKET` leave JDBC and shell clients using the same transport and path.
@@ -696,36 +686,24 @@ archive-tier, or SQLite-file overlap, including symlink aliases, before any
 download, service command, or backup. Separate sibling paths remain eligible.
 It does not verify a host Tomcat reinstall or service-account permissions.
 
-For actual MariaDB account, schema, query, backup and restore operations, and
-SQLite schema load/list operations:
+The existing Python integration checks remain available on a disposable
+systemd guest with root, Python 3.7 or newer, and real SQLite/MariaDB tools.
+On Rocky 8, use `python3.9` from the `python39` package instead of the default
+Python 3.6 interpreter. The test accepts either `mariadbd`/`mariadb-install-db`
+or `mysqld`/`mysql_install_db` from the installed MariaDB packages.
+A private MariaDB server
+checks account identities, special-character passwords, schema loading,
+backup/restore, dump failure, publication races and unrelated-account preservation.
+The SQLite case uses the real source schema and service-account path. No sudo,
+client, clock or publication command is substituted.
 
 ```bash
-python3 tests/database-config.py --integration
+sudo env AA_TEST_DISPOSABLE_HOST=YES python3 tests/database-config.py --integration
 ```
 
-`AA_TEST_SOURCE_PATH` selects an alternate source checkout or a tree containing
-the exact source schema files at their original paths; the default is
-`epicsarchiverap-maven-src`.
-
-This requires `mariadb-install-db`, `mariadbd`, `mysql`, `mysqldump`,
-`sqlite3`, and the source checkout's `archappl_mysql.sql` and
-`archappl_sqlite.sql`. It creates a private datadir, socket
-and loopback listener and stops that server at exit. The only substitute is
-a pass-through `sudo` at the privilege boundary; SQL runs through the shipped
-setup script and the real client/server. The socket setting comes from a local
-override with an inline comment. Both TCP and socket connections use
-a password containing shell, XML and SQL special characters. The test also
-checks that removing a configured admin preserves unrelated `admin` accounts.
-Account creation output must contain neither a `Password` column nor a MariaDB
-password hash over either connection.
-The private server's general log must remain unchanged while SQLite `db.*`
-skips and unsupported/invalid targets and helper actions reject; the generated
-MariaDB configuration and application data remain unchanged. SQLite uses the
-shipped schema and real Make targets, checks repeated loading and missing-table
-restoration, and preserves MariaDB configuration. Account/privilege selection
-uses the current OS user for SQLite; host account provisioning is outside this
-check.
-It does not verify host sudo policy or Tomcat runtime authentication.
+`AA_TEST_SOURCE_PATH` selects the source checkout; the default is
+`epicsarchiverap-maven-src`. Missing disposable-host authorization exits 77.
+These checks do not replace the Bash suite or real appliance installation tests.
 
 `install-payload.py` accepts two real Maven `target` directories and an
 `--old-log4j` directory containing real old log4j JARs. It runs the shipped
@@ -747,3 +725,40 @@ python3 tests/install-payload.py /path/old/target /path/new/target --old-log4j /
 Exit 0 means all four payload comparisons, state-preservation checks, invalid
 artifact cases and destination-rejection cases passed. The printed workspace
 contains the installation log.
+
+## Database operation verification
+
+`database-operations.bash` runs shipped Make targets and the public database
+helper against the selected source checkout's real schemas. It requires a
+disposable systemd guest, root, `AA_TEST_DISPOSABLE_HOST=YES`, SQLite, lsof,
+and MariaDB in every mode: destructive checks also verify that the unselected
+backend is unchanged. It retains a fresh `/tmp/aa-database-test.*`
+workspace and command output. It creates a dedicated service account and test
+unit and uses real database clients; it must never run on a production host.
+
+```bash
+sudo env AA_TEST_DISPOSABLE_HOST=YES bash -p tests/database-operations.bash sqlite
+sudo env AA_TEST_DISPOSABLE_HOST=YES bash -p tests/database-operations.bash mariadb-uds
+sudo env AA_TEST_DISPOSABLE_HOST=YES bash -p tests/database-operations.bash mariadb-tcp
+```
+
+The optional second argument selects the real source checkout. This suite
+checks schema reload, first-column identifiers, queries, backup/restore,
+complete table names containing spaces and backticks, empty table lists,
+all-user-table deletion, offline refusal and MariaDB option rejection before
+connection. MariaDB checks require `C.UTF-8` and cover non-ASCII settings
+generated and consumed under every combination of `C` and `C.UTF-8`, with
+unchanged values accepted and changed values refused.
+Local tests retain rendering and invalid-backend checks; they
+cannot establish privileged service-account or systemd maintenance behavior.
+The milestone's T1-T5 acceptance also requires failure/race cases and six fresh
+Debian/Rocky installations, including persistence through real appliance restarts.
+Passing this script alone does not complete that acceptance matrix.
+
+`bash tests/database-settings.bash` checks Make settings precedence, stale
+configuration, literal credential values and the same locale combinations.
+It requires the real `mysql` client and `C.UTF-8` locale, but no database
+server: accepted settings must reach an intentionally missing socket, while
+changed settings must be refused before connection. Exit 77 means the client
+is unavailable; exit 0 means all assertions passed. Its printed temporary
+workspace retains the generated configuration and command output.

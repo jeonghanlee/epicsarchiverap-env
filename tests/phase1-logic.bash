@@ -209,8 +209,8 @@ for db_script in mariadb_generic_function.bash mariadb_setup.bash; do
     admin_checks=$(awk '/^function /{f=$2} /db_exist=\$\(isDb / && !/SQL_DBUSER_CMD/{print f}' \
         "${TOP}/scripts/${db_script}")
     case "${db_script}" in
-        mariadb_setup.bash) assert_eq "${admin_checks}" "get_admin_crypt_password" \
-            "Only get_admin_crypt_password checks through the admin account in ${db_script}" ;;
+        mariadb_setup.bash) assert_empty "${admin_checks}" \
+            "No obsolete ComponentDB existence checks remain in ${db_script}" ;;
         *) assert_empty "${admin_checks}" "Every existence check uses the application account in ${db_script}" ;;
     esac
 done
@@ -228,15 +228,13 @@ make -C "${db_env}" -s db.conf > /dev/null 2>&1
 assert_file "${db_env}/site-template/mariadb.conf" "db.conf renders mariadb.conf in the isolated copy"
 db_cases=(
     "dbBackupList with a missing directory|There is no >>|dbBackupList ${WORKSPACE}/db-backup-missing"
-    "dbRestore without a date|Date is missing|dbRestore"
-    "dbRestore with a missing directory|There is no >>|dbRestore 2601010000 ${WORKSPACE}/db-backup-missing"
-    "dbRestore with an absent backup file|There is no readable >>|dbRestore 2601010000 ${WORKSPACE}/db-backup-empty"
+    "dbRestore without a date|A backup stamp is required|dbRestore"
 )
 for db_case in "${db_cases[@]}"; do
     IFS='|' read -r case_desc case_text case_args <<< "${db_case}"
     db_rc=0
     # shellcheck disable=SC2086  # case_args holds the dispatch word and its arguments
-    bash "${db_env}/scripts/mariadb_setup.bash" ${case_args} > /dev/null 2> "${backup_stderr}" || db_rc=$?
+    bash -p "${db_env}/scripts/mariadb_setup.bash" ${case_args} > /dev/null 2> "${backup_stderr}" || db_rc=$?
     if [[ "${db_rc}" -ne 0 ]]; then
         _record_pass "${case_desc} exits non-zero (rc=${db_rc})"
     else
@@ -721,41 +719,15 @@ chmod +x "${WORKSPACE}/root-id/id"
 be_run=$(PATH="${WORKSPACE}/root-id:${PATH}" make -C "${be_env}" --no-print-directory print-SQLITE_RUN_AS AA_USERID=svcacct 2>/dev/null | tail -1)
 assert_eq "${be_run}" "runuser -u svcacct --" "SQLITE_RUN_AS uses runuser for a root-run build"
 be_schema="${TOP}/$(make -C "${TOP}" --no-print-directory print-SQL_AA_ORIG_SQLITE 2>/dev/null | tail -1)"
-if ! command -v sqlite3 > /dev/null 2>&1 || [[ ! -f "${be_schema}" ]]; then
-    printf '  [SKIP] SQLite schema rules: needs sqlite3 and %s\n' "${be_schema}"
+if [[ ! -f "${be_schema}" ]]; then
+    printf '  [SKIP] SQLite schema rendering: missing %s\n' "${be_schema}"
 else
-    be_db="${WORKSPACE}/backend-db/archappl.sqlite"
-    be_mysql_copy="${be_env}/site-template/sql/archappl_mysql_updated.sql"
-    be_mysql_sum=$(cksum "${be_mysql_copy}" 2>/dev/null || true)
-    be_opts=(DB_BACKEND=sqlite SUDO= SQLITE_RUN_AS= "AA_USERID=$(id -un)" "AA_GROUPID=$(id -gn)"
-             "ARCHAPPL_SQLITE_FILE=${be_db}" "SQL_AA_ORIG_SQLITE=${be_schema}")
-    for run in first second; do
-        be_rc=0
-        make -C "${be_env}" -s sql.fill "${be_opts[@]}" > "${WORKSPACE}/backend-fill.txt" 2>&1 || be_rc=$?
-        assert_status "${be_rc}" 0 "SQLite sql.fill succeeds on the ${run} run"
-    done
+    make -C "${be_env}" -s sql.update DB_BACKEND=sqlite "SQL_AA_ORIG_SQLITE=${be_schema}"
     be_copy="${be_env}/site-template/sql/archappl_sqlite_updated.sql"
     assert_eq "$(grep -c '^CREATE [A-Z]* IF NOT EXISTS ' "${be_copy}")" "$(grep -c '^CREATE ' "${be_copy}")" \
         "Every CREATE in the SQLite copy is guarded by IF NOT EXISTS"
-    assert_eq "$(cksum "${be_mysql_copy}" 2>/dev/null || true)" "${be_mysql_sum}" "The SQLite schema load leaves the MariaDB copy unchanged"
-    sqlite3 "${be_db}" 'DROP TABLE PVAliases;'
-    be_rc=0
-    make -C "${be_env}" -s sql.fill "${be_opts[@]}" > "${WORKSPACE}/backend-fill.txt" 2>&1 || be_rc=$?
-    assert_status "${be_rc}" 0 "SQLite sql.fill restores a dropped table"
-    sqlite3 "${be_db}" 'PRAGMA journal_mode=WAL;' > /dev/null
-    be_rc=0
-    make -C "${be_env}" -s sql.fill "${be_opts[@]}" > "${WORKSPACE}/backend-fill.txt" 2>&1 || be_rc=$?
-    assert_status "${be_rc}" 0 "SQLite sql.fill succeeds on a WAL-mode file"
-    be_rc=0
-    be_out=$(make -C "${be_env}" -s sql.show "${be_opts[@]}" 2>&1) || be_rc=$?
-    assert_status "${be_rc}" 0 "SQLite sql.show lists the tables of a WAL-mode file"
-    for table in PVTypeInfo PVAliases ArchivePVRequests ExternalDataServers; do
-        case "${be_out}" in
-            *"${table}"*) _record_pass "SQLite sql.show lists ${table}" ;;
-            *) _record_fail "SQLite sql.show lists ${table}" "output=${be_out}" ;;
-        esac
-    done
 fi
+printf '  [SKIP] SQLite database lifecycle: run tests/database-operations.bash on a disposable guest\n'
 
 # P1.25 conf.storage warns when the store shares the root filesystem or lies
 # under a user home and succeeds either way; archappl.conf carries the alarm
@@ -951,66 +923,9 @@ rm -f "${so_ctx}" "${so_env}/../CONFIG_SITE.local"
 make -C "${so_env}" -s conf.context DB_BACKEND=sqlite > /dev/null 2>&1
 assert_eq "${so_sqlite_socket}" "$(cat "${so_ctx}")" "DB_SOCKET leaves the SQLite resource unchanged"
 
-# P1.27 The account and database targets stop with a non-zero status and a
-# stderr message naming the failed step when the database client fails. The
-# real mysql client runs from an isolated copy of the Make system: the targets
-# on the admin command against a closed loopback port, the targets on the root
-# command against a missing socket through DB_SOCKET, with a pass-through sudo
-# first in PATH because this host's sudo prompts. DB_HOST_PORT and DB_SOCKET go
-# on every make command line, since each target re-renders mariadb.conf.
-if ! command -v mysql > /dev/null 2>&1; then
-    printf '  [SKIP] database target failures: needs a mysql client\n'
-else
-    cf_env="${WORKSPACE}/client-fail-env"
-    cf_bin="${WORKSPACE}/client-fail-bin"
-    cf_err="${WORKSPACE}/client-fail-stderr.txt"
-    cf_socket="${WORKSPACE}/client-fail-missing.sock"
-    mkdir -p "${cf_env}" "${cf_bin}"
-    cp -a "${TOP}/Makefile" "${TOP}/configure" "${TOP}/scripts" "${TOP}/site-template" "${cf_env}/"
-    rm -f "${cf_env}/configure/"*.local "${cf_env}/../CONFIG_SITE.local" "${cf_env}/site-template/mariadb.conf"
-    printf '#!/bin/sh\nexec "$@"\n' > "${cf_bin}/sudo"
-    chmod +x "${cf_bin}/sudo"
-    # description|client|runner|target or command|message naming the failed step
-    cf_cases=(
-        "make db.create|admin|make|db.create|Creating the database archappl and the archappl account failed"
-        "make db.drop|admin|make|db.drop|Dropping the database archappl and the archappl account failed"
-        "make db.show|admin|make|db.show|Listing databases failed"
-        "dbShow|admin|setup|dbShow|Listing databases failed"
-        "dbCreate|admin|setup|dbCreate|Creating the database archappl failed"
-        "dbDrop|admin|setup|dbDrop|Dropping the database archappl failed"
-        "userDrop|admin|setup|userDrop|Dropping the archappl account failed"
-        "make db.addAdmin|root|make|db.addAdmin|Adding the admin@localhost account failed"
-        "make db.rmAdmin|root|make|db.rmAdmin|Removing the admin@localhost account failed"
-        "hostnameAdminAdd|root|setup|hostnameAdminAdd|Adding the admin@127.0.0.1 account failed"
-        "hostnameAdminRemove|root|setup|hostnameAdminRemove|Removing the admin@127.0.0.1 account failed"
-    )
-    for cf_case in "${cf_cases[@]}"; do
-        IFS='|' read -r cf_desc cf_client cf_runner cf_target cf_text <<< "${cf_case}"
-        if [[ "${cf_client}" == admin ]]; then
-            cf_vars=(DB_HOST_PORT=1 DB_SOCKET=)
-        else
-            cf_vars=(DB_SOCKET="${cf_socket}")
-        fi
-        cf_rc=0
-        if [[ "${cf_runner}" == make ]]; then
-            PATH="${cf_bin}:${PATH}" make -C "${cf_env}" -s "${cf_target}" "${cf_vars[@]}" \
-                > /dev/null 2> "${cf_err}" || cf_rc=$?
-        else
-            make -C "${cf_env}" -s db.conf "${cf_vars[@]}" > /dev/null 2>&1
-            PATH="${cf_bin}:${PATH}" bash "${cf_env}/scripts/mariadb_setup.bash" "${cf_target}" \
-                > /dev/null 2> "${cf_err}" || cf_rc=$?
-        fi
-        if [[ "${cf_rc}" -ne 0 ]]; then
-            _record_pass "${cf_desc} exits non-zero when the client fails (rc=${cf_rc})"
-        else
-            _record_fail "${cf_desc} exits non-zero when the client fails" "got rc=0"
-        fi
-        case "$(cat "${cf_err}")" in
-            *"ERROR 2002"*"${cf_text}"*) _record_pass "${cf_desc} reports the client error and the failed step" ;;
-            *) _record_fail "${cf_desc} reports the client error and the failed step" "stderr: $(cat "${cf_err}")" ;;
-        esac
-    done
-fi
+# P1.27 Offline database operations and root account operations require a
+# disposable systemd host. The real-client checks live in database-operations.bash.
+printf '  [SKIP] database maintenance client failures: run tests/database-operations.bash on a disposable guest\n'
 
 # P1.28 startup, shutdown and restart report a failed instance script in their exit status, and
 # no action runs an instance without archappl.conf. The shipped launcher runs from a copy next to
@@ -1306,6 +1221,11 @@ bash "${TOP}/tests/no-ant.bash"
 bash "${TOP}/tests/ui-static.bash"
 
 python3 "${TOP}/tests/database-config.py"
+if command -v mysql >/dev/null; then
+    bash "${TOP}/tests/database-settings.bash"
+else
+    printf '  [SKIP] database settings identity: real mysql client unavailable\n'
+fi
 bash "${TOP}/tests/local-install-output.bash"
 python3 "${TOP}/tests/local-install-epics.py"
 

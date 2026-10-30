@@ -3,13 +3,27 @@ sql_db_RULES_NAMES:=conf secure addAdmin rmAdmin conf.show create drop show
 sql_db_RULES:=$(addprefix db., $(sql_db_RULES_NAMES))
 
 # Helpers receive the same backend selection as the invoking Make target.
-export DB_BACKEND
+DATABASE_SETTINGS_KEYS := DB_BACKEND DB_ADMIN_HOST DB_ADMIN DB_ADMIN_PASS DB_HOST_NAME DB_HOST_IPADDR DB_NAME DB_HOST_PORT DB_USER DB_USER_PASS DB_SOCKET ARCHAPPL_SQLITE_FILE AA_USERID AA_GROUPID AA_SITE_TEMPLATE_PATH SYSTEMD_FILENAME SYSTEMD_HEALTH_SERVICE SYSTEMD_HEALTH_TIMER
+export $(DATABASE_SETTINGS_KEYS)
+export AA_DATABASE_SETTINGS_READY := 1
+.PHONY: _database.settings
+_database.settings:
+	@printf '%s\0' $(foreach key,$(DATABASE_SETTINGS_KEYS),"$$$(key)")
 .PHONY: $(sql_db_RULES)
 
 ifeq "$(DB_BACKEND)" "sqlite"
-$(sql_db_RULES):
+db.conf db.conf.show:
 	$(QUIET)printf '[SKIP] %s: MariaDB setup is not needed for DB_BACKEND=sqlite.\n' "$@"
+db.secure db.addAdmin db.rmAdmin:
+	$(error $@ is not supported for DB_BACKEND=sqlite)
+db.create: mariadb_setup.bash
+	$(QUIET)bash -p $< dbCreate
+db.drop: mariadb_setup.bash
+	$(QUIET)bash -p $< dbDrop
+db.show: mariadb_setup.bash
+	$(QUIET)bash -p $< dbShow
 else ifeq "$(DB_BACKEND)" "mariadb"
+db.conf: export RENDER_DB_BACKEND = $(DB_BACKEND)
 db.conf: export RENDER_DB_ADMIN_HOST = $(DB_ADMIN_HOST)
 db.conf: export RENDER_DB_ADMIN = $(DB_ADMIN)
 db.conf: export RENDER_DB_ADMIN_PASS = $(DB_ADMIN_PASS)
@@ -23,31 +37,31 @@ db.conf: export RENDER_DB_SOCKET = $(strip $(DB_SOCKET))
 db.conf: $(SQL_CONFIG_FILE).in
 	$(call checkfile,$(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE))
 	$(QUIET) echo ">>> Generate $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)"
-	$(QUIET)umask 077; bash $(TOP)/scripts/render-db-config.bash shell "$<" "$(basename $<)" DB_ADMIN_HOST DB_ADMIN DB_ADMIN_PASS DB_HOST_NAME DB_HOST_IPADDR DB_NAME DB_HOST_PORT DB_USER DB_USER_PASS DB_SOCKET
+	$(QUIET)umask 077; bash $(TOP)/scripts/render-db-config.bash shell "$<" "$(basename $<)" DB_BACKEND DB_ADMIN_HOST DB_ADMIN DB_ADMIN_PASS DB_HOST_NAME DB_HOST_IPADDR DB_NAME DB_HOST_PORT DB_USER DB_USER_PASS DB_SOCKET
 
 db.conf.show:
 	$(QUIET)cat -b $(AA_SITE_TEMPLATE_PATH)/$(SQL_CONFIG_FILE)
 
 db.secure: mariadb_setup.bash db.conf
-	$(QUIET)bash $< secureSetup
+	$(QUIET)bash -p $< secureSetup
 
 db.addAdmin: mariadb_setup.bash db.conf
-	$(QUIET)bash $< adminAdd
+	$(QUIET)bash -p $< adminAdd
 
 db.rmAdmin: mariadb_setup.bash db.conf
-	$(QUIET)bash $< adminRemove
+	$(QUIET)bash -p $< adminRemove
 
 # Create DB : DB_NAME
 db.create: mariadb_setup.bash db.conf
 	$(QUIET)echo "\n>>> Create $(DB_NAME) with $(DB_USER)"
-	$(QUIET)bash $< dbUserCreate
+	$(QUIET)bash -p $< dbUserCreate
 
 # Drop DB and DB USER
 db.drop: mariadb_setup.bash db.conf
-	$(QUIET)bash $< dbUserDrop
+	$(QUIET)bash -p $< dbUserDrop
 
 db.show: mariadb_setup.bash db.conf
-	$(QUIET)bash $< dbShow
+	$(QUIET)bash -p $< dbShow
 
 else
 $(sql_db_RULES):
@@ -71,7 +85,7 @@ sql.drop: sql.table.drop
 # every CREATE guarded by IF NOT EXISTS, and loads it into the selected backend,
 # so a second run is harmless and restores a missing table. SQLite first makes
 # sure the service account exists (src_preinst), then runs sqlite3 as that
-# account through SQLITE_RUN_AS and feeds the schema on standard
+# account through the validated database helper and feeds the schema on standard
 # input, since that account may not read a checkout under a private home.
 # sql.update removes the rendered copy before it writes it, so that a copy left
 # owned by root in the checkout does not stop the checkout owner; the removal
@@ -90,15 +104,13 @@ sql.update.show:
 # sql.table.fill loads the schema that sql.update rendered; it renders nothing,
 # so that a root run writes nothing into the checkout. The check runs before
 # src_preinst, so a missing or stale schema stops before the account is touched.
-sql.table.fill:
+sql.table.fill: mariadb_setup.bash
 	$(call require_rendered,$(SQL_AA_UPDATE_SQLITE),$(SQL_AA_ORIG_SQLITE),sql.update,$(SQL_AA_ORIG_SQLITE))
 	$(QUIET)$(MAKE) src_preinst
-	$(QUIET)$(SUDO) $(INSTALL) -d -o $(AA_USERID) -g $(AA_GROUPID) $(dir $(ARCHAPPL_SQLITE_FILE))
-	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) < $(SQL_AA_UPDATE_SQLITE)
+	$(QUIET)bash -p $< queryFile "$(SQL_AA_UPDATE_SQLITE)"
 
-sql.table.show:
-	$(QUIET)echo "\n>>> $(ARCHAPPL_SQLITE_FILE) Tables"
-	$(QUIET)$(SQLITE_RUN_AS) $(SQLITE_CMD) $(ARCHAPPL_SQLITE_FILE) .tables
+sql.table.show: mariadb_setup.bash
+	$(QUIET)bash -p $< tableShow
 else ifeq "$(DB_BACKEND)" "mariadb"
 sql.update:
 	$(QUIET)test -n "$(SQL_AA_UPDATE_SQL)" && rm -f -- "$(SQL_AA_UPDATE_SQL)"
@@ -112,11 +124,11 @@ sql.update.show:
 
 sql.table.fill: mariadb_setup.bash
 	$(call require_rendered,$(SQL_AA_UPDATE_SQL),$(SQL_AA_ORIG_SQL),sql.update,$(SQL_AA_ORIG_SQL))
-	$(QUIET)bash $< "queryFile" "$(SQL_AA_UPDATE_SQL)"
+	$(QUIET)bash -p $< "queryFile" "$(SQL_AA_UPDATE_SQL)"
 
 sql.table.show: mariadb_setup.bash
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables"
-	$(QUIET)bash $< tableShow
+	$(QUIET)bash -p $< tableShow
 else
 sql.update sql.update.show sql.table.fill sql.table.show:
 	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))
@@ -125,25 +137,22 @@ endif
 aa_tables_RULES:=PVRequests.show DataServers.show PVAliases.show PVTypeInfo.show
 .PHONY: $(aa_tables_RULES)
 
-ifeq "$(DB_BACKEND)" "mariadb"
+ifneq ($(filter x$(DB_BACKEND)x,xmariadbx xsqlitex),)
 sql.table.drop: mariadb_setup.bash
 	$(QUIET)echo "\n>>> $(DB_NAME) Tables Drop"
-	$(QUIET)bash $< tableDrop
+	$(QUIET)bash -p $< tableDrop
 
 PVRequests.show: mariadb_setup.bash
-	$(QUIET)bash $< "aaShow" "ArchivePVRequests"
+	$(QUIET)bash -p $< "aaShow" "ArchivePVRequests"
 
 DataServers.show: mariadb_setup.bash
-	$(QUIET)bash $< "aaShow" "ExternalDataServers"
+	$(QUIET)bash -p $< "aaShow" "ExternalDataServers"
 
 PVAliases.show: mariadb_setup.bash
-	$(QUIET)bash $< "aaShow" "PVAliases"
+	$(QUIET)bash -p $< "aaShow" "PVAliases"
 
 PVTypeInfo.show: mariadb_setup.bash
-	$(QUIET)bash $< "aaShow" "PVTypeInfo"
-else ifeq "$(DB_BACKEND)" "sqlite"
-sql.table.drop $(aa_tables_RULES):
-	$(error $@ is not supported for DB_BACKEND=sqlite; no database was changed)
+	$(QUIET)bash -p $< "aaShow" "PVTypeInfo"
 else
 sql.table.drop $(aa_tables_RULES):
 	$(error DB_BACKEND must be one of: $(DB_BACKENDS) (got '$(DB_BACKEND)'))

@@ -6,7 +6,7 @@ This page installs a systemd-managed appliance whose configuration database is M
 
 - A host prepared as in [Prepare the host for the appliance](prepare-host.md).
 - An ordinary user that owns the checkout and can use `sudo`. The installer authenticates `sudo` once at the start (`sudo -v`) and does not refresh it, so a later `sudo` asks for the password again once the timestamp has expired. An unattended run (`-y`, no terminal) needs `sudo` without a password prompt; otherwise it stops at the start, before any change.
-- A host that runs systemd, with the JDK under `JAVA_HOME` and these commands: `make`, `git`, `realpath`, `bash`, `sudo`, `flock`, `curl`, `jq`, `unzip`, `sha512sum`, `systemctl` and `timeout`, plus `sqlite3` for the SQLite installer or `mysql` for the MariaDB installers. The installer stops with a message when one of these is missing. A host without Tomcat, or a run with `--tomcat replace`, also needs `wget`, which the installer does not check; the package list of [Prepare the host for the appliance](prepare-host.md) includes it.
+- A host that runs systemd, with the JDK under `JAVA_HOME` and these commands: `make`, `git`, `realpath`, `bash`, `sudo`, `flock`, `curl`, `jq`, `unzip`, `sha512sum`, `systemctl` and `timeout`, plus `sqlite3`, `lsof`, and `runuser` for the SQLite installer or `mysql` for the MariaDB installers. The installer stops with a message when one of these is missing. A host without Tomcat, or a run with `--tomcat replace`, also needs `wget`, which the installer does not check; the package list of [Prepare the host for the appliance](prepare-host.md) includes it.
 - Optional: an exported `EPICS_BASE` with `softIoc` and `caget`, for the soft IOC test that the installer offers. Without it, the answer `y` to the test question stops the installer before it changes anything.
 - What the installer changes on the host and the network access that it needs, as [Changes that the installer makes on the host](host-changes.md) lists them.
 - The passwords of the database accounts, set in `../CONFIG_SITE.local`: `DB_ADMIN_PASS` for the administrative account and `DB_USER_PASS` for the application account. The defaults in `configure/CONFIG_SITE` are the fixed values `admin` and `archappl`, the same for every installation. A host that keeps them has a server-wide administrative account with a public password, so set your own. [Changes that the installer makes on the host](host-changes.md) says where the installer writes the passwords and who can read them.
@@ -29,7 +29,7 @@ This page installs a systemd-managed appliance whose configuration database is M
    Prepare DB/accounts: 1
    + sudo -- systemctl start mariadb.service
    Require the local root socket server port to match TCP port 3306 before preparing accounts.
-   + env DB_BACKEND=mariadb bash <checkout>/scripts/mariadb_setup.bash hostnameAdminAdd
+   + env DB_BACKEND=mariadb bash -p <checkout>/scripts/mariadb_setup.bash hostnameAdminAdd
    + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=mariadb DB_SOCKET= db.create
    + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=mariadb DB_SOCKET= sql.fill
    + make --no-print-directory -C <checkout> ARCHAPPL_SITEID=als DB_BACKEND=mariadb DB_SOCKET= sql.show

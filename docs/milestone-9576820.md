@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Open M1 in `docs/milestone-9576820.md`. Inventory the shipped database-operation entrypoints, compare their current behavior with M1 Scope and Test Plan, and prepare the detailed operation matrix and lifecycle choices for plan acceptance. Then follow M2, M3 and M4 in that order. M5, M6 and M7 remain Deferred; their later order is not authorization to resume.
+Next session entry point: Open M1 in `docs/milestone-9576820.md`. Review the implemented operation contract and passing T1-T5 evidence, then prepare repository landing under separate commit/push authorization. Acceptance and implementation were authorized on 2026-10-30. D13 and D14 remain the accepted decisions on command reuse and table-deletion scope. Then follow M2, M3 and M4 in that order. M5, M6 and M7 remain Deferred; their later order is not authorization to resume.
 
 ## Scope
 
@@ -21,12 +21,12 @@ Out of scope for this assignment update: product implementation, VM provisioning
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| DB | M1 | Apply backend selection to all database operations | Carry-forward | Not started | Yes | D4, D11 | Selected-backend queries, deletion, lifecycle, backup and restore pass real database tests; [detail](#m1---apply-backend-selection-to-all-database-operations) |
+| DB | M1 | Apply backend selection to all database operations | Carry-forward | In progress | No | D4, D11, D13, D14 | Selected-backend queries, deletion, lifecycle, backup and restore pass real database tests; [detail](#m1---apply-backend-selection-to-all-database-operations) |
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Not started | No | M1, D7, D11 | Installers refuse extra assignments before overwriting generated OS configuration; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | Tests | M3 | Replace the Python tests with Bash tests | Carry-forward | Not started | No | M2, D6, D11 | Shell and Make tests run in Bash with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-bash-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | No | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. M1 is the next plan-preparation entry point.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. M1 implementation and required verification are finished; repository landing remains pending.
 
 ### Decisions
 
@@ -44,6 +44,8 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D10 | Keep surviving Backlog work unassigned; no next numbered release line is open. | 2026-10-28 |
 | D11 | Assign M1, M2, M3 and M4 to the current development cycle in that order and prepare their existing scopes for execution. These are work-order dependencies, not asserted technical constraints. Supersede the earlier deferral or unassigned scheduling conditions for these four items, including the requirement to wait for a numbered release for M2. Keep draft plans unaccepted and implementation unauthorized until their separate approvals. | 2026-10-29 |
 | D12 | Keep M7 deferred and defer M5 and M6. Their later reconsideration order is M5, M6, M7, after M4. Each requires a new dated resumption decision; the order does not waive measurement, resource or plan-acceptance requirements. | 2026-10-29 |
+| D13 | Extend the existing database commands for M1 instead of adding a parallel common command set. Keep db.create, db.drop and db.show as the public entrypoints and select their behavior through DB_BACKEND. Preserve MariaDB database-and-account creation and deletion; replace SQLite skipping for these entrypoints with file lifecycle and inspection operations. This selects the command interface for the draft plan, not full plan acceptance or implementation authorization. | 2026-10-29 |
+| D14 | Preserve the existing table-deletion scope for M1: sql.drop and sql.table.drop remove every user table in the selected database on both backends, including tables beyond the four shipped appliance tables. Do not target database-engine internal tables. Keep the database or SQLite file itself; db.drop remains the separate database-removal operation. This selects deletion scope for the draft plan, not full plan acceptance or implementation authorization. | 2026-10-30 |
 
 ### ID Migration
 
@@ -75,11 +77,11 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 Origin: 9576820 / M2
 Identity History: M2 -> M1 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
-Backend isolation safeguards are implemented in commit 3560216c5315088a05bb2e9dea263eac075c52bf: SQLite `db.*` commands skip, and unsupported operations or invalid selections reject before side effects. SQLite deletion, application-table queries, lifecycle, backup and restore are assigned for plan preparation by D11; implementation has not started. Database identity corrections already honor `DB_NAME`, `DB_ADMIN` and the JDBC resource name; they do not implement this remaining scope.
+The working tree implements the accepted backend operation contract through the existing Make targets and database dispatcher. SQLite supports file lifecycle, schema loading, queries, all-user-table deletion, backup and restore; only its client-configuration targets skip. Shared settings validation rejects stale MariaDB configuration, and offline operations check the appliance and health units before database access. T1-T5 passed on 2026-10-30, including six fresh installations. Repository landing remains pending; M1 is not Complete.
 
 ##### Scope
 
@@ -93,10 +95,17 @@ Backend isolation safeguards are implemented in commit 3560216c5315088a05bb2e9de
 - Implement SQLite table deletion and application-table queries against the
   source repository's shipped schema. Specify handling of associated triggers,
   missing databases, file ownership, WAL files and active appliance connections.
+- Preserve the all-user-table scope of `sql.drop` and `sql.table.drop` under
+  D14 on both backends, including additional user tables. Exclude engine
+  internal tables and retain the database or SQLite file itself.
 - Define backend-specific behavior for database creation, removal, inspection,
   backup and restore. MariaDB account and server administration have no SQLite
   equivalent: make the command boundary explicit and return a clear error for
   unsupported operations without contacting MariaDB under SQLite selection.
+- Extend the existing `db.create`, `db.drop` and `db.show` entrypoints under
+  D13. Retain MariaDB database-and-account creation and deletion, and define
+  SQLite file creation, removal and inspection through those same targets.
+  Do not introduce a parallel common command set for these operations.
 - Keep database identity consistent across Make, generated configuration,
   helper scripts and JDBC. Honor `DB_NAME` on MariaDB and the configured file
   on SQLite; define how stale generated configuration is detected or refreshed.
@@ -106,7 +115,10 @@ Backend isolation safeguards are implemented in commit 3560216c5315088a05bb2e9de
 Out of scope: automatic data migration or replication between engines,
 application schema redesign, PV archive-file deletion, and DB performance
 tuning. The current deletion guard is a partial safeguard, not completion of
-this work.
+this work. Raw SQL translation and sandboxing are also outside scope:
+`query` and file-query actions execute operator-supplied native SQL, which can
+explicitly name other databases. Isolation guarantees apply to helper-selected
+connections and generated operations, not arbitrary SQL supplied by an operator.
 
 ##### Completion Criteria
 
@@ -120,50 +132,403 @@ this work.
   unsupported operations and client failures return nonzero status.
 - Disposable-database tests verify the selected database's result and that the
   other database's schema and rows remain unchanged, including deletion tests.
+- Table deletion removes both the shipped appliance tables and an additional
+  user table from the selected database while retaining the database or file;
+  subsequent schema loading restores the shipped appliance schema.
 - The install and operator documentation describes the same behavior as the
   commands, with no unconditional MariaDB step in the SQLite procedure.
 
 ##### Dependencies And Decisions
 
-- D11 assigns this work to the current development cycle and changes Deferred to Not started on 2026-10-29, superseding the scheduling restrictions of D4 and D10. The full operation plan still requires acceptance before implementation.
+- D11 assigns this work to the current development cycle and changes Deferred to Not started on 2026-10-29, superseding the scheduling restrictions of D4 and D10. The full operation plan was accepted and implementation authorized on 2026-10-30.
+- D13 selects extension of the existing command interface on 2026-10-29. SQLite `db.create`, `db.drop` and `db.show` will perform operations instead of returning the current successful skip. The detailed lifecycle and interface contracts below were accepted on 2026-10-30.
+- D14 selects all user tables in the selected database as the scope of `sql.drop` and `sql.table.drop` on 2026-10-30. The existing MariaDB implementation in `scripts/mariadb_generic_function.bash`, `drop_tables`, enumerates base tables rather than restricting deletion to the four shipped tables. SQLite will follow that scope while retaining its database file; database removal remains `db.drop`.
 - The prerequisite isolation safeguards are complete at 3560216c5315088a05bb2e9dea263eac075c52bf; they are evidence, not a remaining work dependency.
-- Preparation starts by inventorying the real Make targets and setup-script query, deletion, lifecycle, backup and restore entrypoints against the existing Scope and Test Plan. Record unresolved lifecycle choices before seeking plan acceptance.
+- The operation inventory identifies the current command surface. The accepted contract specifies the behavior for every entrypoint. The acceptance and implementation authorization are recorded separately below.
+
+###### Operation Inventory And Intended Behavior
+
+The inventory covers 20 Make targets from `configure/RULES_SQL` and 26 active
+dispatch actions from `scripts/mariadb_setup.bash`. MariaDB database clients
+use the configured TCP endpoint or Unix domain socket; root account
+administration retains its separate local socket authentication path.
+Every entrypoint must reject an invalid backend before configuration writes
+or database access. The behavior below is governed by the accepted contract, D13, D14 and the Scope.
+
+| Make targets | MariaDB behavior | SQLite behavior |
+| --- | --- | --- |
+| `db.create`, `db.drop` | Create database and application account; remove database and application account, with the offline precondition below | Create an empty valid database or remove the selected file under D13; retain a valid existing file on create |
+| `db.show` | List databases through the configured administrator | Print the existing selected database's absolute path; fail if missing, unreadable or invalid |
+| `db.conf`, `db.conf.show` | Generate private client configuration; display it only on explicit request | Keep the successful skip and do not read or write MariaDB configuration |
+| `db.secure`, `db.addAdmin`, `db.rmAdmin` | Existing server and administrator-account operations | No equivalent; return an unsupported-operation error without accessing MariaDB as required by Scope |
+| `sql.update`, `sql.update.show` | Generate and display the modified shipped MariaDB schema | Generate and display the modified shipped SQLite schema |
+| `sql.fill`, `sql.table.fill` | Generate/load or load the selected schema through the application account | Generate/load or load the selected schema as the service account; preserve repeatable loading |
+| `sql.show`, `sql.table.show` | List selected database tables | List selected file tables without creating a missing file; absence is an error |
+| `sql.drop`, `sql.table.drop` | Drop every base table in the selected database | Drop every user table under D14, excluding engine internal tables; retain the file |
+| `PVRequests.show` | Query `ArchivePVRequests` | Query the same shipped table in the selected file |
+| `DataServers.show` | Query `ExternalDataServers` | Query the same shipped table in the selected file |
+| `PVAliases.show` | Query `PVAliases` | Query the same shipped table in the selected file |
+| `PVTypeInfo.show` | Query `PVTypeInfo` | Query the same shipped table in the selected file |
+
+| Direct helper actions | Current behavior and plan boundary |
+| --- | --- |
+| `secureSetup`, `localAdminAdd`, `hostnameAdminAdd`, `localAdminRemove`, `hostnameAdminRemove`, `adminAdd`, `adminRemove`, `userDrop` | MariaDB-only administration; retain valid MariaDB behavior and reject SQLite before configuration access |
+| `dbCreate`, `dbShow`, `dbDrop`, `isDb` | Support both backends with the selected database/file; `dbCreate` and `dbDrop` remain database-only on MariaDB |
+| `dbUserCreate`, `dbUserDrop` | Retain MariaDB database-and-account behavior; reject SQLite because it has no database accounts. SQLite Make lifecycle targets call `dbCreate` and `dbDrop` |
+| `tableShow`, `tableDrop`, `aaShow` | Generic table operations; standalone routing must agree with the corresponding Make targets |
+| `query`, `queryFile`, `querySFile` | Support both backends using native SQL under the argument and output rules below; `querySFile` is an alias of `queryFile` |
+| `dbBackup`, `dbBackupList`, `dbRestore` | Keep the existing action names and argument positions; use the backend-specific backup formats below |
+| `addProject`, `updateCDBAdminPassword`, `showAdminCryptPassword` | Return an explicit unsupported-action error before configuration access for both backends; do not execute the nonfunctional ComponentDB paths |
+
+###### Accepted Operation Contract
+
+The following concrete policies replace the earlier unresolved alternatives.
+The complete contract was accepted and implementation authorized on 2026-10-30,
+with D13 and D14 unchanged.
+
+**Interface and configuration.** Extend `scripts/mariadb_setup.bash` as the
+existing public dispatcher for both backends. Internal functions may be split
+into sourced files, but no second public command set is introduced. Keep
+SQLite `db.conf` and `db.conf.show` as successful skips so the shared installer
+can retain its `db.conf` step. All other unsupported actions return status 2
+with a diagnostic before reading a backend's generated settings.
+
+Make keeps its normal settings precedence and forwards the resolved database
+settings explicitly to the helper. Direct invocation resolves the same Make
+settings, with explicitly supplied database environment variables treated as
+overrides. The resolver must distinguish an unset value from an explicitly
+empty value. Do not let sourcing an old generated file replace that selection.
+Under MariaDB, compare generated connection/account settings with the current
+resolved values and reject missing or mismatched configuration before database
+access, naming `db.conf` as the required preparation. Existing Make targets
+with an explicit `db.conf` prerequisite may retain that preparation step;
+other operations do not silently regenerate configuration. SQLite never
+sources MariaDB configuration. Do not expose passwords during comparison.
+
+Include backend, database/file, host, port, socket, account and credential
+values in the comparison; timestamps alone cannot validate command-line
+overrides. Rendering and installation must keep `context.xml` and
+`archappl.conf` consistent with the same selection. An installed appliance
+uses its installed settings until configuration is installed and the service
+restarted. Queries and deletion do not rewrite those files or restart services.
+
+**SQLite files and output.** Require an absolute, nonempty database path on a
+local filesystem; reject a symlink or non-regular database file. Run database
+clients as `AA_USERID` with `AA_GROUPID`; create new database files with mode
+0600 and new private database/backup directories with mode 0700. Existing
+directories are checked for access, not recursively changed. Existing files
+must have the expected owner and be writable by the service account for a
+write operation; otherwise fail without changing ownership or content.
+
+`db.create`/`dbCreate` initializes a missing or zero-length file as a valid
+empty SQLite database, without appliance tables. A valid existing database is
+retained; a corrupt file is rejected without truncation. `sql.fill` remains
+the schema-loading operation and may initialize a missing database as part
+of installation. Database-content reads require an existing valid file and
+must not create one. `isDb` may report absence, and `dbBackupList` only inspects
+the backup directory; neither requires an existing database. `db.show`/`dbShow`
+prints its absolute path followed by
+a newline. SQLite `tableShow` uses the existing SQLite table-list format.
+For both backends, `isDb` returns 0 for present, 1 for absent and 2 for an
+inspection/configuration error; it must not turn a failed client call into a
+successful absence result. Its diagnostic names the selected database/file.
+
+The four application-table queries and `aaShow [table]` retain the numbered
+first-column display: `pvName` for `PVTypeInfo`, `PVAliases` and
+`ArchivePVRequests`, and `serverid` for `ExternalDataServers`. No full-JSON
+output is promised. Read
+complete first-column values without splitting identifiers on whitespace;
+row order is unspecified. An empty table succeeds; a missing table fails.
+`aaShow` defaults to `PVTypeInfo` and treats its argument as one quoted table
+identifier, not a SQL fragment.
+
+`query [sql]` preserves native client output. Without SQL, MariaDB retains
+`SHOW DATABASES`; SQLite lists user-table names in the selected file.
+`queryFile [file] [options] [verbose]` and its `querySFile` alias read SQL from
+the named file. For MariaDB, retain the option/verbose argument positions and
+resolve the default to the shipped `site-template/sql/default_query.sql`.
+The option string may contain only these exact, whitespace-separated output
+flags: `-N`, `--skip-column-names`, `-B`, `--batch`, `-r`, `--raw`, `-t` and
+`--table`. An empty string is valid. Do not evaluate shell text, expand
+variables, accept abbreviated options, or accept combined short flags.
+Reject every other token before any database connection, including the
+existence check performed by `isDb`. This excludes connection/account options
+such as `--host`, `--port`, `--socket`, `--protocol`, `--user`, `--password`
+and `--database`, option-file selectors, additional SQL execution options,
+error-suppression options and positional database names. Diagnostics must not
+echo credential values. Connection identity comes only from the validated
+configuration; extra client options cannot override it.
+SQLite requires an explicit SQL file, accepts no client-option string, and
+accepts empty/NO or YES for verbose output. Unsupported options fail before
+opening the database. There is no SQL-dialect conversion. SQLite uses batch
+error handling so an earlier failed statement cannot be hidden by a later
+successful statement. Raw SQL remains an explicit operator action, including
+its transaction and cross-database effects.
+
+**Offline operations.** Database creation, schema loading, table/database
+deletion, backup and restore require the appliance and its health timer/service
+to be inactive on both backends. Read-only inspection and application-table
+queries may run while the appliance is active. Raw SQL actions require the
+offline precondition because their contents are not classified as read-only.
+The helper verifies actual unit states; a query error or unknown state fails.
+Absent units permit initial provisioning on a functioning systemd host. The
+operator stops units explicitly using the existing health-stop and appliance
+stop operations; the helper never stops, starts or kills a service itself.
+Verify inactivity rather than relying on `sd_stop`'s exit status, because
+that Make target currently ignores stop errors.
+
+Before an offline SQLite operation, inspect open references to the database,
+WAL and shared-memory files with sufficient privilege; an observed user or an
+inspection failure rejects the operation. Serialize this helper's operations
+for the same canonical file with an advisory lock. This is a maintenance
+contract: the operator must prevent independent clients or an external
+service start during maintenance. The checks do not claim to prevent arbitrary
+processes from opening a file after inspection. MariaDB maintenance likewise
+requires other writers to be stopped; the database server itself remains up.
+
+SQLite client lock waits are bounded to 5 seconds and each client operation
+to 30 seconds. Timeout, interruption and client errors return nonzero. Table
+deletion enumerates user tables inside a transaction, quotes each name and
+rolls back on error. Engine internal tables are never targeted. SQLite
+`db.drop`/`dbDrop` opens the valid database, completes WAL checkpoint/cleanup
+through SQLite and closes it before unlinking the exact database path. If
+side files remain or cleanup cannot complete, fail without unlinking the
+database; do not delete WAL files independently. A missing database with no
+side files is an idempotent success; orphan side files or a corrupt database
+require separate recovery. MariaDB retains its native DDL behavior; do not
+promise rollback of a partially completed multi-step database/account action.
+
+**Backup and restore.** Keep `dbBackup [directory]`, `dbBackupList [directory]`
+and `dbRestore stamp [directory]`. All backup/restore operations use the offline
+precondition. Backup listing does not require a stopped appliance. MariaDB
+retains its configured-name `.sql.gz` format, existing timestamp syntax,
+default directory and no-overwrite publication. Restore requires an existing
+selected MariaDB database and validates gzip input before import. A database
+import error can leave partial changes; return failure and leave the appliance
+stopped. No automatic rollback or service restart is promised.
+
+SQLite defaults to the directory `<ARCHAPPL_SQLITE_FILE>.backups` and names
+each backup `<database-basename>_<YYYYmmddTHHMMSSZ>.sqlite3`. Use the SQLite
+CLI `.backup` operation into a private temporary file, not a raw copy of the
+main database. Convert the completed backup to DELETE journal mode, require
+`PRAGMA quick_check` to return `ok`, and publish without replacing an existing
+path. The result is one self-contained database file with mode 0600. A failed
+backup publishes no completed backup and removes only its own temporary file
+when cleanup is possible; an uncatchable interruption may leave that private
+temporary file, which listing must ignore.
+
+SQLite backup listing prints sorted matching backup filenames, one per line;
+an existing empty directory succeeds, a missing/unreadable directory fails.
+SQLite restore requires an absent destination database and absent WAL/shared-
+memory side files. An existing destination, including a zero-length file or
+symlink, is rejected before alteration. To replace a database, the operator
+explicitly backs it up and invokes `db.drop` before restore. Validate the
+selected backup read-only, stage its database content in a private file in the
+destination directory, validate again, then publish without overwriting a
+competing destination. Before publication, this operation creates no final
+database path; if another actor creates that path, reject publication and
+preserve the competing object unchanged. After successful publication the
+destination must be a complete valid database with the service account
+ownership. The source backup is never changed. Re-enabling WAL is the
+appliance's normal JDBC open behavior. Cross-backend restore is unsupported.
+
+SQLite mechanism references: [CLI backup commands](https://www.sqlite.org/cli.html),
+[Backup API](https://www.sqlite.org/backup.html), and
+[WAL file lifecycle](https://www.sqlite.org/wal.html#the_wal_file).
+These describe database mechanisms, not verification of the planned helper.
+The Debian/Rocky tests must establish the behavior of their installed clients.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-10-30; complete M1 operation contract accepted.
+Implementation Authorization: 2026-10-30; explicit authorization to implement the accepted M1 plan.
 Superseded Plan Artifacts: none
 
-1. Define the operation matrix and database lifecycle policy, including the
-   MariaDB-only administration boundary and standalone script invocation.
-2. Apply shared backend validation and route generic operations to the matching
-   client and database identity. Implement missing SQLite operations.
-3. Align documentation and exercise the complete matrix on disposable databases
-   using the shipped rules, scripts and source schemas.
+1. Record acceptance and implementation authorization for this operation
+   contract, keeping D13 and D14 unchanged. Both were granted on 2026-10-30.
+   The accepted contract supplies the operation test expectations.
+2. Update `configure/CONFIG_SQL`, `configure/RULES_SQL` and the setup/helper
+   path to validate the effective backend and database identity before side
+   effects. Reuse the existing public targets and implement the accepted
+   standalone interface. Verify all inventoried entrypoints through T1 and
+   stale-configuration cases through T5. Propagate `isDb` inspection failures
+   through every caller; do not interpret them as database absence. Reject the
+   three nonfunctional legacy actions explicitly and document `querySFile`.
+3. Implement SQLite queries and table deletion through the real client under
+   the service account. Use schemas selected through `configure/RELEASE` and
+   `SQL_TOP_PATH`, preserve associated triggers on reload, quote discovered
+   table identifiers, and follow the accepted locking policy. T2 verifies
+   exact query results, both deletion targets and the unselected databases.
+4. Implement the accepted lifecycle, backup and restore contract in the helper
+   path while retaining MariaDB account behavior and backup compatibility.
+   Add the shared offline-state check and file-level operation lock. T3
+   verifies file ownership, WAL data, failures and interruption behavior;
+   it must not claim atomic restore unless the real path proves it.
+5. Align `configure/RULES_PROPERTIES`, `scripts/render-db-config.bash` and
+   `scripts/install-local-common.bash` where the accepted policy requires it.
+   T5 checks generated and installed JDBC identity; T4 exercises the actual
+   local installation entry scripts and service startup on both operating
+   systems. Do not substitute the deferred M4 VM-driver work for these paths.
+6. Update `docs/README.install.md`, `docs/technicaldocs/README.mariadb.md`,
+   `scripts/README.md` and `tests/README.md` with the same operation contract.
+   Write new checks in Bash under D6 and adjust existing assertions that
+   require SQLite lifecycle commands to skip or supported queries to reject.
+   Do not perform the separate M3 Python-to-Bash conversion here. Record real
+   T1-T5 results, source/environment revisions and any incomplete cases before
+   considering closure.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Command routing | Run every entrypoint with both backends, both local configuration locations, command-line overrides and invalid values | Isolated epicsarchiverap-env checkout and disposable databases | Selected client and identity agree; invalid or unsupported operations fail before side effects |
-| T2 | Database integration | Load the shipped schemas, insert records, query all four tables, drop tables and reload through real targets | SQLite and MariaDB over TCP and Unix domain socket | Expected schema and rows in the selected database; unselected database unchanged |
-| T3 | Database lifecycle | Exercise creation, removal, backup and restore, including a non-default name or file, WAL mode and defined active-connection handling | Disposable databases under the service account | Documented lifecycle and ownership; backup restores the expected rows; failures propagate |
-| T4 | Deployment | Follow the documented sequence for each backend and exercise the appliance configuration database | Debian 13 and Rocky Linux 8 disposable VMs | JDBC, helpers and service dependencies use the selected backend consistently |
+| T1 | Command routing | Run every entrypoint with both backends, both local configuration locations, command-line overrides and invalid values | Isolated checkout and disposable databases on systemd test guests for offline operations | Selected client and identity agree; invalid or unsupported operations fail before side effects |
+| T2 | Database integration | Load the shipped schemas, insert distinguishable rows, query all four tables, create an additional user table, exercise sql.drop and sql.table.drop with fresh data between cases | SQLite and MariaDB over TCP and Unix domain socket on systemd test guests | Each query returns the expected identifiers/content under the accepted output contract; both deletion targets remove all user tables and retain the database/file; reload restores shipped schema and triggers; unselected database unchanged |
+| T3 | Database lifecycle | Exercise db.create, db.drop, db.show and direct lifecycle actions, backup/list/restore, non-default identity, WAL mode, active connections and real failure cases | Disposable databases under the service account on systemd test guests | Offline actions reject active/unknown states; restored rows match the backup; existing SQLite restore destinations and backup collisions remain unchanged; failures preserve the documented state |
+| T4 | Deployment | Run the actual local SQLite, MariaDB TCP and MariaDB UDS installation entry scripts, then exercise configuration persistence through the running appliance | Debian 13 and Rocky Linux 8 disposable VMs; six OS/backend-transport cases | Installed JDBC, helpers and service dependencies agree; real configuration survives restart; SQLite installation needs no MariaDB configuration or service |
+| T5 | Configuration identity | Generate settings for identity A, select B without regeneration, invoke real Make/helper paths, then render/install B settings and restart the appliance | Isolated checkout, disposable A/B databases or files and the T4 guests | Direct/stale consumers reject before access; explicit preparation targets may generate B settings; A remains unchanged; Make, helpers and installed JDBC select B after deployment/restart |
+
+T1 covers all 20 Make targets and 26 dispatched helper actions above, including
+explicit unsupported results. Exercise both local settings files, command-line
+overrides and direct helper environment/inherited settings. Invalid selections
+must fail before generating files or connecting to either backend.
+Include empty values, unsupported legacy/account actions, argument errors and
+the `querySFile` alias. Check the `isDb` present/absent/error distinction with
+real connection refusal or denied access, not a mocked client. Confirm that
+SQLite configuration skips still allow the shared installer sequence.
+For both file-query aliases, test each allowed MariaDB output flag and the
+empty option string against a real database, checking the requested format
+and unchanged connection identity. Reject connection/account overrides in
+long, short and attached-value forms, option-file selectors, SQL execution
+options, unknown/abbreviated/combined flags and positional database names.
+Include an allowed flag followed by a forbidden token. Observe real disposable
+server connection logs to verify rejection before even the `isDb` connection;
+schema equality alone is not evidence of no connection. Check that credential
+values do not appear in rejection output. SQLite rejects every nonempty
+client-option string under the accepted contract.
+
+T2 uses the actual source checkout's `archappl_mysql.sql` and
+`archappl_sqlite.sql`, not a replacement schema. Record their revision and
+hashes. Insert valid, distinct fixture rows into `PVTypeInfo`, `PVAliases`,
+`ArchivePVRequests` and `ExternalDataServers`; assert expected identifiers and
+any fields promised by the accepted output contract, not just exit status.
+Compare complete first-column values, including identifiers containing spaces;
+do not assert undocumented row order or full JSON output. An empty existing
+table must succeed; a missing table must fail. Verify the
+SQLite update triggers by changing rows and observing `last_modified` after a
+clock interval sufficient to distinguish timestamps. Include a valid quoted
+user-table name and foreign-key relationships in deletion coverage. Recreate
+the additional table before testing the second deletion alias. Compare schema
+and rows in both a second database/file on the same backend and the unselected
+backend before and after each destructive case.
+
+T3 includes existing/missing/corrupt SQLite files, parent-directory permissions,
+service-user ownership, retained WAL data, refusal with a live writer, locked
+databases and the 5-second lock/30-second operation bounds. Use real systemd
+units and client processes to check active, inactive, absent and inaccessible
+states; inability to observe a state is failure, not proof of inactivity.
+Verify that commands never stop/restart the appliance automatically. Create
+failures through real client permissions,
+real locks, unreadable or corrupt backup input, existing backup destinations
+and process interruption. Confirm the documented target state after each
+failure and restored rows after a successful backup/restore. Verify SQLite
+restore refusal before changing an existing target, successful restore into an
+absent target, and preservation of a competing target created during staging.
+After `db.drop`, verify that `isDb` reports absence, `dbBackupList` still lists
+the retained backups, and restore can use one of those backups. Verify WAL
+cleanup before file removal. New tests must
+exercise the shipped entrypoints; do not mock internal dispatch or clients.
+
+T4 records the exact installation command, environment/source revisions and
+guest identity for each of the six cases. Verify service startup and a real
+appliance configuration write/read across restart. Local rendering, schema
+load and an installer `--plan` run cannot pass this check. PV sample storage
+is not inferred from configuration database persistence.
+
+T5 varies `DB_NAME`, `ARCHAPPL_SQLITE_FILE`, backend, TCP endpoint and socket,
+including command-line changes without a newer configuration-file timestamp.
+Exercise both stale files and missing files. Include the installed
+`context.xml` and `archappl.conf` in identity checks; generating a correct new
+file alone does not prove the running service selected the intended database.
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | Isolated epicsarchiverap-env checkout and disposable databases | Pending | none |
-| T2 | Not run | SQLite and MariaDB over TCP and Unix domain socket | Pending | none |
-| T3 | Not run | Disposable databases under the service account | Pending | none |
-| T4 | Not run | Debian 13 and Rocky Linux 8 disposable VMs | Pending | none |
+| T1 | 2026-10-30 UTC | Local checkout; Debian 13 and Rocky 8.10 systemd guests | Pass | Local suite passed, including 17 configuration tests and 23 settings assertions. The real Bash database suite passed on each OS for SQLite (103 assertions), MariaDB UDS (143) and TCP (143). All 20 Make targets and 26 dispatched actions are covered across valid, invalid and unsupported cases; real connection-log positive controls precede no-connection rejection checks. |
+| T2 | 2026-10-30 UTC | Debian 13 and Rocky 8.10; real SQLite and MariaDB UDS/TCP | Pass | Shipped schemas, four complete first-column queries, both deletion aliases, quoted additional tables, foreign keys, SQLite FTS5 tables, reload and update triggers passed. Same-backend and other-backend database fingerprints remained unchanged. |
+| T3 | 2026-10-30 UTC | Debian 13 and Rocky 8.10 disposable systemd guests | Pass | Real lifecycle, service ownership, WAL retention, live-writer refusal, health timer, unavailable systemd bus, 5-second lock waits, 30-second operation timeout, backup interruption and restore publication collision passed. Existing Python integration tests passed 2/2 on each OS with real clients and privileges. Direct executable invocation, startup-file isolation, quoted paths/table identifiers and backup/restore also passed on Debian. |
+| T4 | 2026-10-30 UTC | Six fresh guests: Debian 13 and Rocky 8.10, each with SQLite, MariaDB UDS and MariaDB TCP | Pass | Each actual local installer built the pinned source, installed Tomcat/appliance/systemd units and started all four components. A real configuration API write survived service restart. Installed JDBC identity, helper output and service dependencies agreed. Fresh SQLite installations had no MariaDB configuration or service. PV acquisition and stored samples were not tested. |
+| T5 | 2026-10-30 UTC | Local settings suite, disposable databases and all six installed guests | Pass | Empty/CLI/environment/local settings, host/port/socket changes, credentials and unchanged timestamps passed 23 local assertions. On each installed guest, stale or missing MariaDB settings rejected before access; SQLite selection of an absent B file did not create it. Explicit preparation and reinstallation selected B in context.xml, archappl.conf, helpers and the running API. B persisted after restart and A remained unchanged. Backend overrides also preserved the unselected database. |
+
+Follow-up verification on 2026-10-30 UTC covers locale-independent MariaDB
+configuration comparison and complete table-name listing. The local settings
+suite passed 31 assertions and the configuration suite passed 17 tests. On a
+retained Debian 13 systemd guest, `tests/database-operations.bash` passed for
+SQLite (109 assertions), MariaDB UDS (157) and MariaDB TCP (157). Both helper
+and Make table listings preserved spaces and backticks; the helper also
+handled empty lists. All four generation/execution combinations of `C` and `C.UTF-8`
+accepted identical non-ASCII settings and rejected changed values. These
+checks extend T1, T2 and T5; the six fresh installations above remain evidence
+for their original snapshots and were not repeated for this correction.
+The locale regression failed on the original product code, and the real
+MariaDB UDS suite rejected an isolated copy with the original table-listing
+implementation. Original outputs and corrected results are retained separately.
+
+The environment basis is `de8b53a27377b4fd097e904dfbbeca981822fe71`
+with the uncommitted M1 changes. Snapshot archives contain the exact file list
+and per-file SHA256 checks used on the guests:
+
+| Input | SHA256 | Verified use |
+| --- | --- | --- |
+| Environment snapshot04 | `3de02a73802d044c805fccc123f16c87110cdb50256bd1233a21e0342da91de5` | Fresh SQLite installations and installed A/B tests on both OSes |
+| Environment snapshot05 | `3d883b49593189696886ce21baea0649da8b5dbb428a6936bfc9535746b4cb8b` | Final Bash database matrix on both OSes and all four fresh MariaDB installations |
+| Final Python integration test | `0fd83d79a85f3d648125a53ce868237aecb46a80555528e379043fe5e932eef4` | Real 2/2 integration cases on Debian Python 3 and Rocky Python 3.9 |
+| Database correction inputs | `94179e7a3fdb4657ae313d2773bd1de5ecfd03291b62c918f36c48601fa33b61` | Three product scripts and two regression scripts applied over snapshot05; all three database modes on retained Debian 13 |
+
+The only product-code difference between snapshot04 and snapshot05 is SQLite
+all-table deletion ordering for virtual tables and their shadow tables. The
+fresh SQLite installation path does not use table deletion; both OSes passed
+the final snapshot05 deletion tests. The current product differs from snapshot05
+in `scripts/database_common.bash`, `scripts/render-db-config.bash` and
+`scripts/mariadb_generic_function.bash`: shell configuration generation and
+comparison use `C` locale, and MariaDB table listing preserves the complete
+first field of each batch-output row. The correction input archive and its
+per-file SHA256 list identify the exact scripts used for follow-up verification.
+
+All six installations use source commit
+`e0a8e66ed09e840ab8ed67dae81b25474605db08` and its original schema files:
+
+| Source schema | SHA256 |
+| --- | --- |
+| `archappl_mysql.sql` | `09672f169e26be29555392211207a085eb36a36f464b962aa6284998df8b9112` |
+| `archappl_sqlite.sql` | `bc0bd2bff0e2ee1d8bc7a53a71aee612032a0d7cf2fe040f2a9abcadcbf6af54` |
+
+For each OS, the exact initial commands were
+`bash scripts/install-local-sqlite.bash --yes --timeout 300`,
+`bash scripts/install-local-mariadb-uds.bash --yes --timeout 300` and
+`bash scripts/install-local-mariadb-tcp.bash --yes --timeout 300`.
+The source pin was set through the parent `RELEASE.local`; database identity
+was set through the parent `CONFIG_SITE.local`. B reinstallation used the same
+entry script with `--yes --skip-packages --tomcat existing --timeout 300`.
+The private `work/m1-database/` evidence retains guest identity, snapshots,
+commands, schema hashes, initial package/unit inventory, API responses,
+installed settings and database fingerprints. Internal guest identifiers and
+credential-bearing logs are not published.
+
+Local verification also passed `bash -n`, the warning/error ShellCheck gate,
+mdBook generated-page checks and `mdbook build`. The full local suite skips
+real EPICS Base binary resolution when `AA_TEST_EPICS_BIN` is unset; no PV
+sample result is inferred from that suite. `configure/CONFIG_SQL` and
+`configure/RULES_PROPERTIES` retain their existing selection behavior.
+`scripts/render-db-config.bash` uses deterministic shell quoting under `C`
+locale; XML rendering is unchanged and covered by the configuration suite.
 
 ##### Closure Evidence
 
-- none
+- Implementation and required verification: finished on 2026-10-30.
+- Repository landing: pending separate commit and push authorization; no landing claim.
+- Linked GitHub issue: none.
 
 #### M2 - The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first
 

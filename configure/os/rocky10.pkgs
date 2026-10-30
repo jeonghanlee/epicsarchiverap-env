@@ -17,3 +17,5 @@ mariadb
 mariadb-server
 sqlite
 chrony
+
+lsof

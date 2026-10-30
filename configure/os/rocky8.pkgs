@@ -18,3 +18,5 @@ java-21-openjdk-devel
 mariadb-server
 sqlite
 chrony
+
+lsof

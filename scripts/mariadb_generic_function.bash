@@ -4,6 +4,11 @@
 #  version : 0.0.6
 
 
+if ! declare -F database_query_arguments >/dev/null; then
+    # shellcheck source=scripts/database_common.bash
+    source "${BASH_SOURCE[0]%/*}/database_common.bash"
+fi
+
 DB_PROTOCOL="tcp";
 
 # Application, administrator and backup clients use DB_SOCKET when set, otherwise
@@ -21,11 +26,11 @@ else
     DB_USER_HOST="${DB_HOST_NAME}"
 fi
 # shellcheck disable=SC2153
-SQL_ADMIN_CMD=(mysql "--user=${DB_ADMIN}" "--password=${DB_ADMIN_PASS}" "${DB_CONNECT_OPTS[@]}")
+SQL_ADMIN_CMD=(mysql --no-defaults "--user=${DB_ADMIN}" "--password=${DB_ADMIN_PASS}" "${DB_CONNECT_OPTS[@]}")
 # shellcheck disable=SC2153
-SQL_DBUSER_CMD=(mysql "--user=${DB_USER}" "--password=${DB_USER_PASS}" "${DB_CONNECT_OPTS[@]}")
+SQL_DBUSER_CMD=(mysql --no-defaults "--user=${DB_USER}" "--password=${DB_USER_PASS}" "${DB_CONNECT_OPTS[@]}")
 # shellcheck disable=SC2034
-SQL_BACKUP_CMD=(mysqldump "--user=${DB_USER}" "--password=${DB_USER_PASS}" "${DB_CONNECT_OPTS[@]}")
+SQL_BACKUP_CMD=(mysqldump --no-defaults "--user=${DB_USER}" "--password=${DB_USER_PASS}" "${DB_CONNECT_OPTS[@]}")
 
 function sql_string
 {
@@ -380,9 +385,8 @@ function show_dbs
 # 2 : verbose
 # 3 : client command array name (default: SQL_ADMIN_CMD); callers that act
 #     as the application account pass SQL_DBUSER_CMD
-# If the database exists,        it returns 1
-# If the database doesn't exist, it returns 0
-# A failed client invocation is reported on stderr and returns 0
+# Exit status: 0 present, 1 absent, 2 inspection failure. Non-verbose
+# stdout retains the internal EXIST/NON_EXIST values for existing callers.
 function isDb
 {
     local db_name="$1"
@@ -391,15 +395,16 @@ function isDb
     local outputs
     if ! outputs=$("${sql_cmd[@]}" -N --execute="SET SESSION sql_mode='NO_BACKSLASH_ESCAPES'; SELECT schema_name FROM information_schema.schemata WHERE schema_name=$(sql_string "$db_name")"); then
         printf ">> Cannot check the database >> %s <<, the database client failed.\n" "$db_name" >&2
-        outputs=
+        return 2
     fi
     if [[ $verbose == YES ]]; then
-        printf "We've found the DB -%s- \n" "$outputs"
+        printf "Database %s: %s\n" "$db_name" "${outputs:-absent}" >&2
     elif [[ -n $outputs ]]; then
         printf '%s\n' "$EXIST"
     else
         printf '%s\n' "$NON_EXIST"
     fi
+    [[ -n $outputs ]]
 }   
 
 function commandPrn
@@ -427,8 +432,9 @@ function query_from_sql_file
     local verbose="${4:-NO}"
     local db_exist
     local -a options=()
-    read -r -a options <<< "${3:-}"
-    db_exist=$(isDb "$db_name" "" SQL_DBUSER_CMD)
+    database_query_arguments queryFile "$sql_file" "${3:-}" "$verbose" || return 2
+    options=("${DATABASE_QUERY_OPTIONS[@]}")
+    db_exist=$(isDb "$db_name" "" SQL_DBUSER_CMD) || return $?
     if [[ $db_exist -ne $EXIST ]]; then
         noDbMessage "$db_name"
         return 1
@@ -436,7 +442,7 @@ function query_from_sql_file
     if [[ $verbose == YES ]]; then
         printf ">> Query database %s from %s\n" "$db_name" "$sql_file"
     fi
-    "${SQL_DBUSER_CMD[@]}" "${options[@]}" "$db_name" < "$sql_file"
+    "${SQL_DBUSER_CMD[@]}" "${options[@]}" "--database=$db_name" < "$sql_file"
 }
 
 
@@ -447,28 +453,30 @@ function show_tables
     local type="$1"; shift;
     local db_exist;
     local tables;
-    local cmd;
+    local table;
+    local -a table_array=();
     local i;
     i=0;
-    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD) || return $?;
     
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        if ! tables=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}'); then
+        if ! tables=$("${SQL_DBUSER_CMD[@]}" "--database=${db_name}" -N --batch --execute="SHOW FULL TABLES WHERE Table_type='${type}'"); then
             clientFailMessage "Listing tables in ${db_name}"
             return 1
         fi
         printf "\n";
-        # shellcheck disable=SC2206
-        declare -a  table_array=( ${tables} )
-   	    for table in $tables
-	    do
+
+        if [[ -n $tables ]]; then mapfile -t table_array <<< "$tables"; fi
+        for table in "${table_array[@]}"
+        do
+            table=${table%%$'\t'*}
             ((++i))
             ((++j))
             printf ">> %4d/%4d/%4d<< %40s\\n" "$j" "$i" "${#table_array[@]}" "${table}"
-	    done
+        done
     fi
     
 }
@@ -484,13 +492,13 @@ function show_procedures
     local i;
     i=0;
 
-    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
+    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD) || return $?;
     
     if [[ $db_exist -ne "$EXIST" ]]; then
 	    noDbMessage "${db_name}";
 	    exit 1;
     else
-        if ! outputs=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}'); then
+        if ! outputs=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "--database=${db_name}" -N --execute="SHOW PROCEDURE STATUS" | awk '{print $2}'); then
             clientFailMessage "Listing procedures in ${db_name}"
             return 1
         fi
@@ -514,42 +522,12 @@ function show_procedures
 # 1 : database name
 function drop_tables
 {
-    local db_name="$1"; shift;
-    local type="$1"; shift;
-    local tables;
-    local db_exist;
-    local cmd;
-    local dropCmd;
-    db_exist=$(isDb "${db_name}" "" SQL_DBUSER_CMD);
-
-    if [[ $db_exist -ne "$EXIST" ]]; then
-	    noDbMessage "${db_name}";
-	    exit 1;
-    else
-        if ! tables=$(set -o pipefail; "${SQL_DBUSER_CMD[@]}" "${db_name}" -N --execute="SHOW FULL TABLES WHERE Table_type='${type}'" | awk '{print $1}'); then
-            clientFailMessage "Listing tables for removal in ${db_name}"
-            return 1
-        fi
-        if [ "$tables" ]; then
-            # shellcheck disable=SC2086
-            tables_cmd=$(echo ${tables} | tr -s ' ' ',')
-            printf "\n";
-            dropCmd="SET foreign_key_checks = 0;"
-            if [ "$type" == "VIEW" ]; then
-                dropCmd+="DROP VIEW IF EXISTS ${tables_cmd};"
-            else
-                dropCmd+="DROP TABLE IF EXISTS ${tables_cmd};"
-            fi
-            dropCmd+="SET foreign_key_checks = 1"
-            dropCmd+=";";
-       
-            "${SQL_DBUSER_CMD[@]}" "${db_name}" --execute="$dropCmd"
-        fi
-
-    fi
-
+    local db_name=$1 type=$2 statements
+    isDb "$db_name" '' SQL_DBUSER_CMD >/dev/null || return $?
+    statements=$("${SQL_DBUSER_CMD[@]}" "--database=$db_name" -N -B -r --execute="SET SESSION sql_mode='NO_BACKSLASH_ESCAPES'; SELECT CONCAT('DROP TABLE ', CHAR(96), REPLACE(TABLE_NAME, CHAR(96), CONCAT(CHAR(96), CHAR(96))), CHAR(96), ';') FROM information_schema.tables WHERE TABLE_SCHEMA=$(sql_string "$db_name") AND TABLE_TYPE=$(sql_string "$type");") || return
+    [[ -n $statements ]] || return 0
+    printf '%s\n' 'SET foreign_key_checks=0;' "$statements" 'SET foreign_key_checks=1;' | "${SQL_DBUSER_CMD[@]}" "--database=$db_name"
 }
-
 
 
 # 1 : database name
@@ -559,10 +537,10 @@ function execute_query
     local db_name="$1"
     local query="$2"
     local db_exist
-    db_exist=$(isDb "$db_name" "" SQL_DBUSER_CMD)
+    db_exist=$(isDb "$db_name" "" SQL_DBUSER_CMD) || return $?
     if [[ $db_exist -ne $EXIST ]]; then
         noDbMessage "$db_name"
         return 1
     fi
-    "${SQL_DBUSER_CMD[@]}" "$db_name" --execute="$query"
+    "${SQL_DBUSER_CMD[@]}" "--database=$db_name" --execute="$query"
 }

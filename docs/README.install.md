@@ -91,7 +91,7 @@ Prerequisites:
    | --- | --- |
    | `--plan` | Prints steps without executing installation |
    | `-y`, `--yes` | Skips the installation confirmation, which for MariaDB also carries the warning about the existing accounts, and the optional PV test; required with non-interactive stdin |
-   | `--skip-packages` | Uses host-provided prerequisites: JDK 21, the commands `curl`, `jq`, `unzip`, `sha512sum`, `systemctl` and `timeout`, and `sqlite3` for SQLite or `mysql` for MariaDB; the script stops when one command is missing |
+   | `--skip-packages` | Uses host-provided prerequisites: JDK 21, the commands `curl`, `jq`, `unzip`, `sha512sum`, `systemctl` and `timeout`, and `sqlite3`, `lsof`, `runuser` for SQLite or `mysql` for MariaDB; the script stops when one command is missing |
    | `--tomcat existing` | Uses existing Tomcat after checking access and version as the service account |
    | `--tomcat replace` | Backs up the default Tomcat directory and installs the configured version; stops an installed appliance before the backup |
    | `--socket <socket_path>` | UDS only: selects an absolute socket path without whitespace |
@@ -207,7 +207,7 @@ reported failure before repeating installation or starting the service.
   Configuration below). With `DB_SOCKET` set, MariaDB is reached over that
   Unix domain socket instead, and the account host-spec is `@'localhost'`.
 - For the SQLite backend (`DB_BACKEND=sqlite`): the `sqlite3` command-line tool
-  (package `sqlite` on Rocky Linux 8 or 10.2, `sqlite3` on Debian 13 or Ubuntu 24.04/26.04) and no MariaDB.
+  and `lsof` for open-file inspection (package `sqlite` on Rocky Linux 8 or 10.2, `sqlite3` on Debian 13 or Ubuntu 24.04/26.04) and no MariaDB.
   A host that also carries `mariadb-server` from the per-OS package list need
   not enable it.
 - Build tools: `git`, `make`, `unzip`, `sed`, `tree`, and `curl` or `wget`.
@@ -307,17 +307,14 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   `$(ARCHAPPL_STORAGE_TOP)/config/archappl.sqlite`
   (`/arch/config/archappl.sqlite`), owned by the service account. It sits under
   the store, so `make conf.storage.rm`, which removes `ARCHAPPL_STORAGE_TOP`,
-  removes the configuration database too. SQLite currently supports
-  `sql.update`, `sql.update.show`, `sql.fill` and `sql.show`, including their
-  `sql.table.fill` and `sql.table.show` targets. `sql.drop` and
-  `sql.table.drop` reject SQLite without changing either database.
-  Every `db.*` target prints `[SKIP]` and succeeds without reading or writing
-  MariaDB configuration or running prerequisites. This keeps the common install
-  sequence usable with SQLite. The four application-table query targets
-  (`PVRequests.show`, `DataServers.show`, `PVAliases.show`, `PVTypeInfo.show`)
-  and direct `scripts/mariadb_setup.bash` operations reject SQLite before any
-  MariaDB access. Every DB/SQL/query target rejects an invalid backend before
-  configuration writes or database contact.
+  removes the configuration database too. SQLite supports schema loading,
+  table queries, all-user-table deletion, database-file lifecycle, backup and
+  restore through the existing Make targets and database helper. Only
+  `db.conf` and `db.conf.show` skip SQLite; account/server actions reject it.
+  Offline operations require the appliance and its health units to be stopped.
+  Read the [database operation reference](technicaldocs/README.mariadb.md#backend-operation-contract)
+  before database maintenance. Invalid backends fail before configuration
+  writes or database contact.
 - MariaDB transport: `DB_SOCKET` is empty by default, which connects over TCP to
   `DB_HOST_NAME:DB_HOST_PORT`. Set it in `../CONFIG_SITE.local` to the server's
   Unix domain socket (`/var/lib/mysql/mysql.sock` on Rocky Linux 8 or 10.2,
@@ -433,7 +430,7 @@ This section reinstalls or upgrades an installation that you built with `make`. 
 
 The installer scripts pass `DB_BACKEND`, `ARCHAPPL_SITEID=als` and the `DB_SOCKET` of a MariaDB transport (empty for TCP) only on their `make` command lines, and they do not remember `--socket`. The manual steps use the `ARCHAPPL_SITEID` of `../CONFIG_SITE.local` (default `als`) and the installer scripts always `als`, so keep `als` when an installer script installed the appliance. Before the manual steps below, write the same values into `../CONFIG_SITE.local` and remove a `DB_SOCKET` that a TCP site no longer uses (the manual flow has no empty `DB_SOCKET=`): `DB_BACKEND=sqlite` for SQLite, and for MariaDB over a socket the `DB_SOCKET` that the installer used (its default is `/var/lib/mysql/mysql.sock` on Rocky Linux 8 and 10 and `/run/mysqld/mysqld.sock` on Debian 13 and Ubuntu 24.04 and 26.04). With the default `mariadb` backend, `make conf.install` renders a unit that requires `mariadb.service`, which a SQLite host does not have, and without `DB_SOCKET` `context.xml` and `mariadb.conf` are rendered for TCP; `make install` installs both without an error.
 
-On a first installation steps 6 (the schema) and 7 (`make conf.storage`) of the ordered sequence are required. On an upgrade they are needed only when the schema or the storage folders change, and then the parts that the table marks U (MariaDB `make sql.fill`, SQLite `make sql.update`) run as the checkout owner, before the window or in it, while SQLite `make sql.table.fill` and `make conf.storage` run as root in the maintenance window after the stop and before `sudo make install`; the schema of the source is the same in the 2.0.0 pin `d8a7813f` and in the tag `2026-10`, and repeating the steps is safe.
+On a first installation steps 6 (the schema) and 7 (`make conf.storage`) of the ordered sequence are required. On an upgrade they are needed only when the schema or the storage folders change, and then the parts that the table marks U (MariaDB `make sql.fill`, SQLite `make sql.update`) run as the checkout owner; schema loading requires the maintenance window, while SQLite `make sql.table.fill` and `make conf.storage` run as root in the maintenance window after the stop and before `sudo make install`; the schema of the source is the same in the 2.0.0 pin `d8a7813f` and in the tag `2026-10`, and repeating the steps is safe.
 
 Before the maintenance window, as the checkout owner (the owner of this repository checkout, not root), build and generate the configuration:
 
@@ -444,11 +441,14 @@ Before the maintenance window, as the checkout owner (the owner of this reposito
 In the maintenance window, stop the appliance, install as root and start the appliance only after the installation succeeds. Tomcat must not load classes while the WAR and logging libraries are replaced. `make sd_stop` ignores errors, so check that the unit is inactive before the installation; `make -s print-SYSTEMD_FILENAME` prints the unit name, `epicsarchiverap-maven.service`, and the first code block takes it from there because `systemctl is-active` also prints `inactive` for a mistyped name. `make sd_stop`, `make sd_start` and `sudo make install` call `sudo`; an unattended run needs `sudo` without a password prompt. The `sudo make install` command runs Make itself as root so its shell can access existing service-owned instance directories. Stop the appliance and read the state of its unit:
 
 ```bash
+make sd_health_stop
 make sd_stop
 systemctl is-active "$(make -s print-SYSTEMD_FILENAME)"
+systemctl is-active "$(make -s print-SYSTEMD_HEALTH_TIMER)"
+systemctl is-active "$(make -s print-SYSTEMD_HEALTH_SERVICE)"
 ```
 
-Install only when the second command prints `inactive` or `failed` (a crashed appliance leaves the unit `failed`, and the installer scripts accept both states). Any other output (`active`, `activating`, `deactivating`) means that the stop did not work: run `make sd_stop` again, read `systemctl status` of the unit and do not install. Install as root:
+Proceed only when all three state checks print `inactive` or `failed` (a crashed appliance leaves the unit `failed`, and the installer scripts accept both states). Any other output or inspection error means that the stop is not established: inspect the unit with `systemctl status` and do not load a schema or install. If schema loading is required, run sequence step 6 now with its documented ownership. Then install as root:
 
 ```bash
 sudo make install
@@ -460,7 +460,7 @@ Start the appliance only after `make install` succeeds:
 make sd_start
 ```
 
-The health timer keeps running after `make sd_stop`: its checks report `SKIP appliance-inactive` for a stopped unit and `FAIL appliance-failed` for a failed unit until `make install` stops the timer. Installation itself does not stop or restart the appliance. Do not run concurrent installations into the same prefix.
+`make sd_stop` alone leaves the health timer running; this procedure stops it first with `make sd_health_stop` so database maintenance is permitted. `make sd_start` starts the appliance and its health timer after installation. Installation itself does not stop or restart the appliance. Do not run concurrent installations into the same prefix.
 
 After the start, check the result in this order; the [Health check](#health-check) and [Functional verification](#functional-verification) sections below give the details.
 
@@ -557,13 +557,12 @@ Notes:
   it as the checkout owner. `sql.table.fill` first creates the service account
   when it does not exist yet, as `make install` does later, then creates the
   directory of `ARCHAPPL_SQLITE_FILE` for that account and loads the schema
-  with `sqlite3` run as the account (`runuser` for a root-run build, `sudo -u`
-  otherwise), so the database and its WAL files stay writable by the
+  with `sqlite3` run as the account (`runuser`, after non-root helper calls obtain root through `sudo -n`), so the database and its WAL files stay writable by the
   appliance. Loading again is harmless and restores a missing table. Check the
   tables with `make sql.show`, which runs `sqlite3` the same way; another user
   cannot read the file once the appliance has opened it. Step 2
   (`make db.conf`) prints `[SKIP]` and succeeds without generating MariaDB
-  client settings. The same behavior applies to every other `db.*` target.
+  client settings. `db.conf.show` also skips; `db.create`, `db.drop` and `db.show` operate on the SQLite file.
 
 ## Ownership boundary
 

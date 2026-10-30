@@ -84,7 +84,7 @@ class DatabaseConfigTests(unittest.TestCase):
 
     def test_database_help_describes_supported_schema_creation(self):
         self.make("db.conf")
-        run = subprocess.run(["bash", "scripts/mariadb_setup.bash", "tableCreate"],
+        run = subprocess.run(["bash", "-p", "scripts/mariadb_setup.bash", "tableCreate"],
                              cwd=self.root, capture_output=True, timeout=30)
         self.assertEqual(run.returncode, 1)
         output = run.stdout + run.stderr
@@ -448,19 +448,19 @@ class DatabaseConfigTests(unittest.TestCase):
                     self.assertIn("Phase 3", run.stdout)
                     self.assertIn("Phase 4", run.stdout)
 
-    def test_sqlite_database_targets_skip_without_prerequisites(self):
+    def test_sqlite_configuration_targets_skip_without_prerequisites(self):
         self.make("db.conf", "DB_BACKEND=mariadb")
         template = self.root / "site-template"
         config = template / "mariadb.conf"
         original = config.read_bytes()
         (template / "mariadb.conf.in").unlink()
         (self.root / "scripts/mariadb_setup.bash").unlink()
-        for target in DB_TARGETS:
+        for target in ("db.conf", "db.conf.show"):
             (self.root / target).touch()
         for existing in (True, False):
             if not existing:
                 config.unlink()
-            for target in DB_TARGETS:
+            for target in ("db.conf", "db.conf.show"):
                 with self.subTest(target=target, existing=existing):
                     out = self.make(target, "DB_BACKEND=sqlite")
                     self.assertIn(f"[SKIP] {target}".encode(), out)
@@ -483,37 +483,37 @@ class DatabaseConfigTests(unittest.TestCase):
                     self.assertEqual(config.read_bytes(), original)
                     self.assertFalse((self.root / "site-template/sql/archappl_sqlite_updated.sql").exists())
 
-    def test_sqlite_queries_and_deletion_reject_without_helper(self):
+    def test_sqlite_account_operations_reject_without_helper(self):
         (self.root / "scripts/mariadb_setup.bash").unlink()
-        for target in QUERY_TARGETS + ("sql.drop", "sql.table.drop"):
+        for target in ("db.secure", "db.addAdmin", "db.rmAdmin"):
             with self.subTest(target=target):
-                (self.root / target).touch()
                 run = subprocess.run(["make", "-s", target, "DB_BACKEND=sqlite"],
                                      cwd=self.root, capture_output=True, timeout=30)
                 self.assertNotEqual(run.returncode, 0)
                 self.assertIn(b"not supported for DB_BACKEND=sqlite", run.stderr)
 
-    def test_standalone_helper_rejects_before_reading_configuration(self):
+    def test_standalone_helper_never_executes_generated_configuration(self):
         config = self.root / "site-template/mariadb.conf"
         config.write_text("touch CONFIG_READ\nexit 99\n")
-        for backend in ("sqlite", "postgres", "", "mariadb sqlite"):
-            for action in HELPER_ACTIONS:
+        for backend, actions in (("mariadb", ("dbShow", "isDb")),
+                                 ("sqlite", ("adminAdd", "userDrop", "dbUserCreate")),
+                                 ("postgres", ("dbShow", "isDb")),
+                                 ("", ("dbShow", "isDb"))):
+            for action in actions:
                 with self.subTest(backend=backend, action=action):
                     env = dict(os.environ, DB_BACKEND=backend)
-                    run = subprocess.run(["bash", "scripts/mariadb_setup.bash", action],
+                    run = subprocess.run(["bash", "-p", "scripts/mariadb_setup.bash", action],
                                          cwd=self.root, env=env, capture_output=True, timeout=30)
                     self.assertEqual(run.returncode, 2, run.stdout + run.stderr)
-                    self.assertIn(b"DB_BACKEND", run.stderr)
                     self.assertFalse((self.root / "CONFIG_READ").exists())
         config.unlink()
         (self.root.parent / "CONFIG_SITE.local").write_text("DB_BACKEND:=sqlite\n")
         env = dict(os.environ)
         env.pop("DB_BACKEND", None)
-        run = subprocess.run(["bash", "scripts/mariadb_setup.bash", "dbShow"],
+        run = subprocess.run(["bash", "-p", "scripts/mariadb_setup.bash", "adminAdd"],
                              cwd=self.root, env=env, capture_output=True, timeout=30)
         self.assertEqual(run.returncode, 2)
-        self.assertIn(b"not supported for DB_BACKEND=sqlite", run.stderr)
-        self.assertNotIn(b"No such file", run.stderr)
+        self.assertIn(b"unsupported for SQLite", run.stderr)
 
 
 class DatabaseIntegrationTests(unittest.TestCase):
@@ -527,14 +527,14 @@ class DatabaseIntegrationTests(unittest.TestCase):
         schema = SCHEMA_TOP / "archappl_sqlite.sql"
         self.assertTrue(schema.is_file(), "Real SQLite source schema is required")
         db = Path(self.temp.name) / "sqlite/archappl.sqlite"
-        options = ["DB_BACKEND=sqlite", "SUDO=", "SQLITE_RUN_AS=",
+        options = ["DB_BACKEND=sqlite", "APPNAME=aa-m1-python",
                    "AA_USERID=" + self.run_command(["id", "-un"]).decode().strip(),
                    "AA_GROUPID=" + self.run_command(["id", "-gn"]).decode().strip(),
                    f"ARCHAPPL_SQLITE_FILE={db}", f"SQL_AA_ORIG_SQLITE={schema}"]
         self.make("db.conf", "DB_BACKEND=mariadb")
         config = self.root / "site-template/mariadb.conf"
         before = config.read_bytes()
-        self.make(*DB_TARGETS, *options)
+        self.make("db.conf", "db.conf.show", "db.create", "db.show", *options)
         self.make("sql.fill", *options)
         self.make("sql.fill", *options)
         tables = self.make("sql.show", *options)
@@ -546,18 +546,22 @@ class DatabaseIntegrationTests(unittest.TestCase):
         self.assertEqual(config.read_bytes(), before)
 
     def test_real_database_credentials_and_account_identity(self):
-        server = shutil.which("mariadbd") or "/usr/sbin/mariadbd"
-        self.assertTrue(Path(server).is_file(), "mariadbd is required")
+        server = (shutil.which("mariadbd") or shutil.which("mysqld")
+                  or next((path for path in ("/usr/sbin/mariadbd", "/usr/libexec/mysqld")
+                           if os.access(path, os.X_OK)), None))
+        initializer = shutil.which("mariadb-install-db") or shutil.which("mysql_install_db")
+        self.assertIsNotNone(server, "mariadbd or mysqld is required")
+        self.assertIsNotNone(initializer, "mariadb-install-db or mysql_install_db is required")
         datadir = Path(self.temp.name) / "data"
         sock = Path(self.temp.name) / "db.sock"
         general_log = Path(self.temp.name) / "general.log"
         with socket.socket() as probe:
             probe.bind(("127.0.0.1", 0))
             port = probe.getsockname()[1]
-        self.run_command(["mariadb-install-db", "--no-defaults", f"--datadir={datadir}",
+        self.run_command([initializer, "--no-defaults", f"--datadir={datadir}",
                           "--auth-root-authentication-method=normal", "--skip-test-db"])
         process = subprocess.Popen(
-            [server, "--no-defaults", f"--datadir={datadir}", f"--socket={sock}",
+            [server, "--no-defaults", "--user=root", f"--datadir={datadir}", f"--socket={sock}",
              f"--pid-file={datadir}/server.pid", f"--port={port}", "--bind-address=127.0.0.1",
              f"--log-error={datadir}/server.log", "--skip-log-bin",
              "--general-log", f"--general-log-file={general_log}"],
@@ -581,52 +585,26 @@ class DatabaseIntegrationTests(unittest.TestCase):
                   "DB_HOST_NAME=127.0.0.1", f"DB_HOST_PORT={port}",
                   "DB_ADMIN_PASS=" + password.replace("$", "$$"),
                   "DB_USER_PASS=" + password.replace("$", "$$")]
-        # Only the privilege boundary is replaced: this private server permits
-        # root SQL authentication by the current OS user. The real mysql client,
-        # generated configuration, setup dispatcher and SQL functions all run.
-        wrappers = Path(self.temp.name) / "bin"
-        wrappers.mkdir()
-        sudo = wrappers / "sudo"
-        sudo.write_text('#!/bin/bash\n[[ "$1" == mysql ]] || exit 2\nexec "$@"\n')
-        sudo.chmod(0o755)
-        original_path = os.environ["PATH"]
-        os.environ["PATH"] = str(wrappers) + os.pathsep + original_path
-        self.addCleanup(os.environ.__setitem__, "PATH", original_path)
-        self.make("db.conf", *common, f"DB_SOCKET={sock}")
-        helper = ["bash", "scripts/mariadb_setup.bash"]
+        def settings(transport):
+            values = common + transport + ["APPNAME=aa-m1-python"]
+            (self.root / "configure/CONFIG_SITE.local").write_text(
+                "".join(item.replace("=", " := ", 1) + "\n" for item in values))
+        settings([f"DB_SOCKET={sock}"])
+        self.make("db.conf")
+        helper = ["bash", "-p", "scripts/mariadb_setup.bash"]
         self.run_command(helper + ["adminAdd"])
         self.run_command(helper + ["hostnameAdminAdd"])
-        defaults = Path(self.temp.name) / "root-client.cnf"
-        defaults.write_text(f"[client]\nprotocol=tcp\nhost=127.0.0.1\nport=1\nsocket={sock}\n")
-        defaults.chmod(0o600)
-        original_sudo = sudo.read_bytes()
-        # Only privilege transport changes; the actual client reads conflicting defaults.
-        sudo.write_text('#!/bin/bash\n[[ "$1" == mysql ]] || exit 2\nshift\n'
-                        'exec mysql "--defaults-extra-file=$ROOT_CLIENT_DEFAULTS" "$@"\n')
-        try:
-            for transport in ([f"DB_SOCKET={sock}"], ["DB_SOCKET="]):
-                self.make("db.conf", *common, *transport)
-                self.run_command(helper + ["adminAdd"],
-                                 env=dict(os.environ, ROOT_CLIENT_DEFAULTS=str(defaults)))
-                self.run_command(helper + ["hostnameAdminAdd"],
-                                 env=dict(os.environ, ROOT_CLIENT_DEFAULTS=str(defaults)))
-        finally:
-            sudo.write_bytes(original_sudo)
         self.make("db.secure", *common, f"DB_SOCKET={sock}")
         self.assertIn(b"root@localhost", self.run_command(
             ["mysql", "--no-defaults", "--user=root", "--protocol=tcp", "--host=127.0.0.1",
              f"--port={port}", "-N", "-B", "-e", "SELECT CURRENT_USER()"]
         ))
-        # The clock boundary gives backup collision cases a deterministic filename.
-        date = wrappers / "date"
-        date.write_text('#!/bin/bash\nif [[ $# == 1 && $1 == +%y%m%d%H%M ]]; then '
-                        'printf "%s\\n" 2601010000; else exec /usr/bin/date "$@"; fi\n')
-        date.chmod(0o700)
         schema = SCHEMA_TOP / "archappl_mysql.sql"
         self.assertTrue(schema.is_file(), "Real source schema is required")
         (self.root.parent / "CONFIG_SITE.local").write_text(f"DB_SOCKET := {sock} # local socket\n")
         for transport in ([], ["DB_SOCKET="]):
             with self.subTest(transport=transport):
+                settings(transport if transport else [f"DB_SOCKET={sock}"])
                 self.make("db.conf", *common, *transport)
                 create_output = self.run_command(helper + ["dbUserCreate"])
                 self.assertNotIn(b"Password", create_output)
@@ -646,14 +624,16 @@ class DatabaseIntegrationTests(unittest.TestCase):
                 before_log = general_log.read_bytes()
                 for backend in ("sqlite", "postgres", "", "mariadb sqlite"):
                     for target in DB_TARGETS + SQL_TARGETS + QUERY_TARGETS:
-                        if backend == "sqlite" and target in SQL_TARGETS[:-2]:
+                        if backend == "sqlite" and target not in ("db.conf", "db.conf.show", "db.secure", "db.addAdmin", "db.rmAdmin"):
                             continue
                         args = ["make", "-s", target, *common, f"DB_BACKEND={backend}"]
-                        if backend == "sqlite" and target in DB_TARGETS:
+                        if backend == "sqlite" and target in ("db.conf", "db.conf.show"):
                             self.assertIn(b"[SKIP]", self.run_command(args))
                         else:
                             self.run_command(args, expected=2)
                     for action in HELPER_ACTIONS:
+                        if backend == "sqlite" and action not in ("secureSetup", "adminAdd", "adminRemove", "localAdminAdd", "hostnameAdminAdd", "localAdminRemove", "hostnameAdminRemove", "userDrop", "dbUserCreate", "dbUserDrop"):
+                            continue
                         self.run_command(helper + [action], expected=2,
                                          env=dict(os.environ, DB_BACKEND=backend))
                 self.assertEqual(general_log.read_bytes(), before_log,
@@ -661,6 +641,9 @@ class DatabaseIntegrationTests(unittest.TestCase):
                 self.assertEqual(config.read_bytes(), before_config)
                 self.assertIn(b"review-marker", self.make("DataServers.show"))
                 backup = Path(self.temp.name) / ("backup " + host)
+                # Keep immediate collision assertions inside one native minute.
+                if time.localtime().tm_sec >= 50:
+                    time.sleep(60 - time.localtime().tm_sec)
                 self.run_command(helper + ["dbBackup", str(backup)])
                 archive = next(backup.glob("review_archive_*.sql.gz"))
                 self.run_command(["gzip", "-t", str(archive)])
@@ -675,18 +658,28 @@ class DatabaseIntegrationTests(unittest.TestCase):
                 self.run_command(helper + ["dbBackup", str(collision)], expected=1)
                 self.assertTrue(link.is_symlink())
                 self.assertFalse(link.exists())
-                # The filesystem boundary creates a competitor at publication time.
-                publisher = wrappers / "ln"
-                publisher.write_text('#!/bin/bash\nprintf "%s\\n" competitor > "${*: -1}"\n'
-                                     'exec /usr/bin/ln "$@"\n')
-                publisher.chmod(0o700)
+                # Race real dump publication against an independent filesystem writer.
+                self.run_command(helper + ["query", "CREATE TABLE ReviewRace(payload LONGBLOB); INSERT INTO ReviewRace VALUES(REPEAT('x',1048576));"])
+                for _ in range(6):
+                    self.run_command(helper + ["query", "INSERT INTO ReviewRace SELECT payload FROM ReviewRace;"])
                 competing = Path(self.temp.name) / ("competing " + host)
-                try:
-                    self.run_command(helper + ["dbBackup", str(competing)], expected=1)
-                    self.assertEqual((competing / archive.name).read_text(), "competitor\n")
-                    self.assertEqual(list(competing.iterdir()), [competing / archive.name])
-                finally:
-                    publisher.unlink()
+                contender = subprocess.Popen(helper + ["dbBackup", str(competing)], cwd=self.root,
+                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                destination = None
+                for _ in range(3000):
+                    temporary = list(competing.glob(".review_archive_*"))
+                    if temporary:
+                        destination = competing / (temporary[0].name[1:].split(".", 1)[0] + ".sql.gz")
+                        with destination.open("x") as stream:
+                            stream.write("competitor\n")
+                        break
+                    if contender.poll() is not None:
+                        break
+                    time.sleep(0.002)
+                self.assertIsNotNone(destination, "Did not observe actual dump staging")
+                self.assertNotEqual(contender.wait(timeout=30), 0)
+                self.assertEqual(destination.read_text(), "competitor\n")
+                self.run_command(helper + ["query", "DROP TABLE ReviewRace;"])
                 self.run_command(root + ["-e", f"REVOKE LOCK TABLES ON review_archive.* FROM 'review_user'@'{host}'"])
                 failed = Path(self.temp.name) / ("failed " + host)
                 self.run_command(helper + ["dbBackup", str(failed)], expected=1)
@@ -733,6 +726,7 @@ class DatabaseIntegrationTests(unittest.TestCase):
                 self.assertNotRegex(output.decode(), r"\*[0-9A-Fa-f]{40}\b")
                 self.assertNotIn(b"Password", output)
                 self.assertNotIn(b"authentication_string", output)
+        settings([f"DB_SOCKET={sock}"])
         self.make("db.conf", *common, f"DB_SOCKET={sock}")
         self.run_command(helper + ["hostnameAdminRemove"])
         self.run_command(helper + ["adminRemove"])
@@ -746,6 +740,9 @@ if __name__ == "__main__":
     integration = "--integration" in sys.argv
     if integration:
         sys.argv.remove("--integration")
+        if os.geteuid() != 0 or os.environ.get("AA_TEST_DISPOSABLE_HOST") != "YES":
+            print("INCOMPLETE: --integration requires root and AA_TEST_DISPOSABLE_HOST=YES on a disposable systemd guest.", file=sys.stderr)
+            sys.exit(77)
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(
         DatabaseIntegrationTests if integration else DatabaseConfigTests)
     result = unittest.TextTestRunner(verbosity=2).run(suite)

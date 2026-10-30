@@ -35,6 +35,7 @@ The installers expect the packages of the host operating system. The script `scr
    sqlite3
    openjdk-21-jdk-headless
    chrony
+   lsof
    ```
 
 2. Optional: compare with the list of another operating system. The option `--os <os_id>` selects the list.
