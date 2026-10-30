@@ -38,8 +38,8 @@ When the check cannot load its configuration, each instance line reads `<compone
 | Reason | Meaning |
 | :--- | :--- |
 | `linux-process-inspection-required` | The host is not Linux |
-| `unreadable-or-invalid-configuration` | `archappl.conf` next to the script is missing, unreadable or has a syntax error |
-| `configuration-load-failed` | Sourcing `archappl.conf` returned a non-zero status, for example because its last command failed |
+| `unreadable-or-invalid-configuration` | The common loader or `archappl.conf` is unavailable, `config.d` is inaccessible, or a selected configuration file is unreadable or has a syntax error; the diagnostic names the path |
+| `configuration-load-failed` | Sourcing `archappl.conf` or a selected `config.d/*.conf` file returned a non-zero status, for example because its last command failed |
 | `invalid-runtime-paths` | `JAVA_HOME` or `CATALINA_HOME` is not an absolute path to an existing runtime |
 | `starting-invalid-bound` | `ARCHAPPL_HEALTH_STARTING_SECONDS` is not a number from 1 to 59 |
 

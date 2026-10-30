@@ -56,6 +56,6 @@ The actions `startup`, `shutdown` and `restart` of `archappl.bash` start and sto
 | An instance script of `startup` fails | non-zero; the other instances run as well | `startup ERROR <component> status=<n>` |
 | An instance script of `shutdown` fails | non-zero; the other instances run as well, and the `temp/<component>.pid` file of the failed one stays | `shutdown ERROR <component> status=<n>` |
 | The shutdown part of `restart` fails | non-zero; no instance is started | `restart ERROR shutdown failed; no instance was started` |
-| `archappl.conf` next to the script is missing or is not valid shell (`startup`, `shutdown`, `restart`, `service`) | non-zero; no instance is touched | `ERROR: <path>/archappl.conf is missing or is not valid shell; no instance was touched` |
+| The common loader or a selected configuration file is unavailable or invalid (`startup`, `shutdown`, `restart`, `service`) | non-zero; no instance is touched | A diagnostic names the path, followed by `ERROR: configuration preflight failed; no instance was touched` |
 
 The orders and the timeout come from `scripts/archappl.bash`, `configure/RULES_SYSTEMD` and `configure/CONFIG_SYSTEMD`. The checks of `tests/phase1-logic.bash` assert the statuses and messages: they run the shipped script from a copy beside instance scripts that record their calls and exit with a chosen status.

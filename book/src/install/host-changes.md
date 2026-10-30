@@ -36,7 +36,7 @@ Paths and names on this page are the defaults. `make -s print-<variable>` prints
 The payload lives in `AA_INSTALL_LOCATION` (`/opt/epicsarchiverap-maven`).
 
 - The installer replaces the payload in the four instance folders.
-- It also replaces `archappl.conf`, `appliances.xml`, `archappl.properties`, `policies.py` and `archappl.bash`, and gives the files to the service account.
+- It also replaces `archappl.conf`, `appliances.xml`, `archappl.properties`, `policies.py`, `archappl.bash`, and `archappl-config.bash`, and gives the files to the service account. It creates `config.d` and preserves existing [local environment files](../configure/runtime-environment.md).
 - In each instance it edits `conf/server.xml` to the ports 17665 to 17668 and keeps the original as `server.xml.bak`.
 - For the MariaDB installers, `conf/context.xml` of each instance holds `DB_USER_PASS` and has the mode 644.
 

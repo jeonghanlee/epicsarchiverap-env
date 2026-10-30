@@ -2,6 +2,8 @@
 
 This page changes a repository setting for one host without editing a tracked file. It uses the heap size of the four Java virtual machines (JVMs), `AA_JAVA_HEAPSIZE`, as the example. The same steps apply to a variable that [Configuration variables and their defaults](variables.md) lists, unless a file that Make reads after `CONFIG_SITE` assigns it with `:=` or `=`. `make -s print-<variable_name>` shows whether the value of the local file is the one in effect. A variable that `CONFIG_SITE` defines from another variable with `:=`, such as `AA_GROUPID:=$(AA_USERID)`, keeps the value computed before the local file is read, so set both variables.
 
+For environment additions or overrides applied at process startup, use the installed [local runtime environment](runtime-environment.md). That directory preserves local files across reinstall; it does not change Make variables or regenerate installation files.
+
 ## Prerequisites
 
 - A checkout of the repository.

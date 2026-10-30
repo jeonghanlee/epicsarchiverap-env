@@ -33,6 +33,11 @@ installation or runtime acceptance.
 
 ## Execution Inputs
 
+The [Debian and Rocky config.d installation scenario](../docs/PLAN.config-d-vm-tests.md)
+defines a separate, planned six-case test of the local installers and actual
+systemd startup. It includes configuration faults, restart, reinstall, and
+reboot. The current VM driver does not automate that scenario.
+
 Copy `tests/vm/config.example.json` into an ignored private working location
 and replace every placeholder. Zero candidate/tool refs, image digests, free-space thresholds and `/replace/` paths are
 examples only. Do not put credentials in clone URLs or commit private input
@@ -415,6 +420,49 @@ helper and the real Make target.
 Denied account metadata queries return nonzero after successful primary account
 changes; the private server's account inventory confirms those changes.
 These checks do not contact the host's database service.
+
+### Local runtime environment overrides
+
+`config-d.py` runs with Phase 1. It exercises the shipped common loader and
+launcher against filesystem inputs: absent and empty directories, ordered
+overrides, quoted and empty values, file selection, unreadability, syntax
+errors, export state, and the health path. The real configuration generation
+and installation targets run twice to check that operator file bytes survive.
+Each case retains commands and output in an `archappl-config-d-*` directory.
+
+`config-d-runtime.py` requires Java, a readable and executable Tomcat 9
+distribution, built appliance WARs with `tomcat-log4j`, and access to journald
+and unused local ports. It installs with the shipped Make rules into a fresh
+temporary directory and uses the installed launcher and generated wrappers.
+It does not install systemd units or change an existing appliance.
+
+Run the installed runtime check with paths to the real prerequisites:
+
+```bash
+python3 tests/config-d-runtime.py --tomcat-home <tomcat_home> --war-dir <war_directory>
+```
+
+The default port base is 29665; `--port-base` selects another base. The test
+uses offsets 0 through 3 for HTTP, 5 for the cluster, and 10 through 13 for
+shutdown. Allow up to 150 seconds for each startup and 90 seconds for service
+shutdown. It waits for all four real applications to report `STARTUP_COMPLETE`.
+
+The acceptance checks compare independently specified settings with the four
+JVM environments and command lines for manual startup, service startup, file
+editing without restart, and service restart. An engine configuration appends
+a test JVM option to verify component precedence. Health must read the changed
+threshold while existing JVMs retain the old environment. Invalid local syntax
+must block the launcher and all generated wrappers. This does not test PV
+acquisition, systemd unit installation, or periodic Java configuration reload.
+
+The printed `archappl-config-runtime-*` directory retains installed files,
+source hashes, commands, application logs, readiness responses, selected JVM
+observations, and the final verdict. A missing prerequisite or incomplete run
+cannot produce `PASS`. The script stops its JVMs and retains evidence on exit.
+The test has no sustained-volume, sampling-rate, or performance claim; its
+time bounds only limit startup and shutdown waits.
+
+### Installer readiness and PV checks
 
 `local-install-readiness.bash` starts four real WARs with Tomcat 9 and runs the
 shipped installer readiness functions and launcher health inspection.

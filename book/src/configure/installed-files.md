@@ -7,6 +7,8 @@ This page lists what `make install` puts on the host, and where each file comes 
 | Path | Content | Source in the repository |
 | :--- | :--- | :--- |
 | `archappl.conf` | Shared environment of the four instances | `site-template/archappl.conf.in` |
+| `config.d/` | [Local runtime environment](runtime-environment.md); existing files survive reinstall | Operator files; installation creates the directory |
+| `archappl-config.bash` | Common configuration loader for the launcher and wrappers | `scripts/archappl-config.bash` |
 | `appliances.xml` | Identity and addresses of the components | `site-template/appliances.xml.in` |
 | `archappl.properties` | Engine and retrieval properties | `site-template/archappl.properties.in` |
 | `policies.py` | Storage policies and store uniform resource locators (URLs) | `site-template/policies.py.in` |

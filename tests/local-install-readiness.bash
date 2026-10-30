@@ -36,6 +36,7 @@ while ! curl -q --noproxy '*' --fail --silent --max-time 2 \
 done
 install="$workspace/appliance/instances"
 cp "$TOP/scripts/archappl.bash" "$install/archappl.bash"
+cp "$TOP/scripts/archappl-config.bash" "$install/"
 chmod +x "$install/archappl.bash"
 java_home=''
 while IFS=$'\t' read -r _boot component pid _start; do

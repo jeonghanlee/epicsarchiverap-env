@@ -22,6 +22,7 @@ services.install: $(SERVICES_INSTALL_RULES) $(conf_install_RULES)
 
 archapplconf.install: $(ARCHAPPL_CONF)
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) install -d $(AA_INSTALL_LOCATION)/config.d
 	$(QUIET)$(SUDO) install $< $(AA_INSTALL_LOCATION)/
 
 archapplconf.show: $(ARCHAPPL_CONF)
@@ -65,9 +66,10 @@ serveroption.install:
 	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $(AA_SITE_TEMPLATE_PATH)/etl.conf $(AA_INSTALL_LOCATION)/etl/conf/
 	$(QUIET)$(SUDO) install -o $(AA_USERID) -g $(AA_GROUPID) $(AA_SITE_TEMPLATE_PATH)/retrieval.conf $(AA_INSTALL_LOCATION)/retrieval/conf/
 
-archapplshell.install: $(ARCHAPPL_MAIN_SCRIPT)
+archapplshell.install: $(ARCHAPPL_MAIN_SCRIPT) $(TOP)/scripts/archappl-config.bash
 	$(QUIET)echo ">>> Install $< into $(AA_INSTALL_LOCATION)/"
 	$(QUIET)$(SUDO) install $< $(AA_INSTALL_LOCATION)/
+	$(QUIET)$(SUDO) install -m 644 $(TOP)/scripts/archappl-config.bash $(AA_INSTALL_LOCATION)/
 
 archapplshell.show: $(ARCHAPPL_MAIN_SCRIPT)
 	$(QUIET)cat -bs $(AA_INSTALL_LOCATION)/$(patsubst $(TOP)/scripts/%,%,$<)

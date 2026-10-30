@@ -583,7 +583,7 @@ done
 # copy's archappl.conf alone decides the port.
 ll_env="${WORKSPACE}/loglevel-env"
 mkdir -p "${ll_env}/nocurl"
-cp "${TOP}/scripts/archappl.bash" "${ll_env}/"
+cp "${TOP}/scripts/archappl.bash" "${TOP}/scripts/archappl-config.bash" "${ll_env}/"
 printf 'ARCHAPPL_MGMT_PORT=1\n' > "${ll_env}/archappl.conf"
 ll_rc=0
 env -u ARCHAPPL_MGMT_PORT bash "${ll_env}/archappl.bash" loglevel nosuch > "${ll_env}/out.txt" 2>&1 || ll_rc=$?
@@ -834,7 +834,7 @@ else
     st_jh=$(dirname "$(dirname "$(readlink -f "${st_java}")")")
     st_hl="${WORKSPACE}/storage-health"
     mkdir -p "${st_hl}/catalina"
-    cp "${TOP}/scripts/archappl.bash" "${st_hl}/"
+    cp "${TOP}/scripts/archappl.bash" "${TOP}/scripts/archappl-config.bash" "${st_hl}/"
     for st_svc in mgmt engine etl retrieval; do mkdir -p "${st_hl}/${st_svc}/temp"; done
     st_use=$(df -P "${TOP}" | sed -n '2p' | awk '{print $5}')
     st_use="${st_use%\%}"
@@ -1023,6 +1023,7 @@ sc_prepare() {
     rm -rf "${dir}"
     mkdir -p "${dir}"
     cp "${launcher}" "${dir}/archappl.bash"
+    cp "${TOP}/scripts/archappl-config.bash" "${dir}/"
     printf 'SC_MARK=configured\n' > "${dir}/archappl.conf"
     : > "${dir}/calls.log"
     for svc in ${sc_instances}; do
@@ -1236,7 +1237,7 @@ else
     _record_fail "Mutant without the configuration check for service" "out=$(cat "${sc_dir}/out.txt")"
 fi
 # shellcheck disable=SC2016
-sed 's/^    \. "${SC_TOP}\/archappl.conf"$/    . "${SC_TOP}\/archappl.conf" || conf_status=$?/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
+sed 's/archappl_load_configuration "${SC_TOP}" preflight ||/archappl_load_configuration "${SC_TOP}" health ||/' "${TOP}/scripts/archappl.bash" > "${sc_mutant}"
 sc_prepare "${sc_dir}" "${sc_mutant}"
 printf 'SC_MARK=configured\n[[ -n "${SC_UNSET_MARK:-}" ]] && SC_MARK=other\n' > "${sc_dir}/archappl.conf"
 sc_run "${sc_dir}" startup
@@ -1293,6 +1294,7 @@ phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.
 python3 "${TOP}/tests/health-local.py"
+python3 "${TOP}/tests/config-d.py"
 
 # Instances that have not executed Java yet, through the real launcher health.
 bash "${TOP}/tests/health-starting.bash"

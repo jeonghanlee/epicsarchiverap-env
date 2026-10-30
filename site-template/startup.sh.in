@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+# shellcheck source=/dev/null
+. "@ARCHAPPL_TOP@/archappl-config.bash" || exit 1
+archappl_load_configuration "@ARCHAPPL_TOP@" || exit 1
 set -a
 # shellcheck source=/dev/null
-. "@ARCHAPPL_TOP@/archappl.conf"
 . "@ARCHAPPL_TOP@/@SERVICE_NAME@/conf/@SERVICE_NAME@.conf"
 set +a
 

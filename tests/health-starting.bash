@@ -113,6 +113,7 @@ assert_last() {
 mkdir -p "${ROOT}/classes" "${ROOT}/bin"
 javac -d "${ROOT}/classes" "${TOP}/tests/fixtures/tomcat/org/apache/catalina/startup/Bootstrap.java"
 cp "${LAUNCHER_SRC}" "${ROOT}/archappl.bash"
+cp "${TOP}/scripts/archappl-config.bash" "${ROOT}/"
 cat > "${ROOT}/archappl.conf" << EOF
 JAVA_HOME="${JAVA_HOME_DIR}"
 CATALINA_HOME="${ROOT}"

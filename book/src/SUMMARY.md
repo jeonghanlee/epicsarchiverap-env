@@ -29,6 +29,7 @@
 
 - [Configuration variables and their defaults](configure/variables.md)
 - [Override a setting for one host](configure/override-setting.md)
+- [Local runtime environment](configure/runtime-environment.md)
 - [Site folder layout](configure/site-folder.md)
 - [Storage policy parameters](configure/policy-parameters.md)
 - [Files of an installation](configure/installed-files.md)

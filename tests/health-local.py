@@ -35,6 +35,7 @@ class HealthTests(WorkspaceTest):
         self.root = self.workspace("archappl-health-")
         self.launcher = self.root / "archappl.bash"
         shutil.copyfile(TOP / "scripts/archappl.bash", self.launcher)
+        shutil.copyfile(TOP / "scripts/archappl-config.bash", self.root / "archappl-config.bash")
         for name in SERVICES:
             (self.root / name / "temp").mkdir(parents=True)
         self.config = self.root / "archappl.conf"

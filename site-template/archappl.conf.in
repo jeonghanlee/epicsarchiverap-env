@@ -1,4 +1,5 @@
-
+# Generated common environment. Put local additions and overrides in the
+# adjacent config.d/*.conf directory; running JVMs require a restart.
 JAVA_HOME="@JAVA_HOME@"
 JAVA_OPTS="@JAVA_OPTS@"
 CATALINA_HOME="@TOMCAT_HOME@"

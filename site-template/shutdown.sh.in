@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-set -a
 # shellcheck source=/dev/null
-. "@ARCHAPPL_TOP@/archappl.conf"
-set +a
+. "@ARCHAPPL_TOP@/archappl-config.bash" || exit 1
+archappl_load_configuration "@ARCHAPPL_TOP@" || exit 1
 
 export CATALINA_BASE="@INSTALL_LOCATION@"
 export CATALINA_PID="@INSTALL_LOCATION@/temp/@SERVICE_NAME@.pid"

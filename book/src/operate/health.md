@@ -50,7 +50,7 @@ The control script verifies that the four Java virtual machine (JVM) processes b
    | `ARCHAPPL_STORAGE_ALARM_PERCENT` | 85 | A store at or above this usage makes the check print `FAIL storage-threshold` |
    | `ARCHAPPL_HEALTH_STARTING_SECONDS` | 10 | An instance that starts within this many seconds prints `STARTING`; the valid range is 1 to 59 |
 
-   A changed `ARCHAPPL_STORAGE_ALARM_PERCENT` or `ARCHAPPL_HEALTH_STARTING_SECONDS` reaches the check only through a reinstall, because the installer writes both into `archappl.conf`. Follow [Reinstall or upgrade an appliance](../install/reinstall.md).
+   Changes in `../CONFIG_SITE.local` require a [reinstall](../install/reinstall.md) to reach the installed `archappl.conf`. Alternatively, set these variables in the installed [local runtime environment](../configure/runtime-environment.md); the next health invocation reads them. This does not show that an existing JVM has received changed environment variables.
 
 ## Verification
 
