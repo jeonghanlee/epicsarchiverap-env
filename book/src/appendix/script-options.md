@@ -120,6 +120,7 @@ bash scripts/archappl.bash help
 The command prints:
 
 ```text
+ERROR: unreadable or invalid shell configuration: scripts/archappl.conf
 
 Usage    : scripts/archappl.bash  args
 

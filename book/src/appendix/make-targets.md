@@ -14,7 +14,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `appliances.install` | `appliances.xml` |  |
 | `archapplconf.install` | `archappl.conf` |  |
 | `archapplconf.show` | `archappl.conf` |  |
-| `archapplshell.install` | `archappl.bash` |  |
+| `archapplshell.install` | `archappl.bash scripts/archappl-config.bash` |  |
 | `archapplshell.show` | `archappl.bash` |  |
 | `build` | `conf build.mvn` | Conf and Build |
 | `build.mvn` | `info.mvn copy.sitespecific` | Build (tests skipped -- CI at https://github.com/jeonghanlee/epicsarchiverap-maven runs the suite) |

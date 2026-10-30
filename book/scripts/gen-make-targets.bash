@@ -48,10 +48,14 @@ This page lists every target that `make` knows in this repository, the prerequis
 | Target | Prerequisites | Description |
 | :--- | :--- | :--- |
 HEADER
-    awk -F'\t' '
+    awk -F'\t' -v prefix="${top}/" '
         NR == FNR { desc[$1] = $2; next }
         {
-            deps = $2; gsub(/\|/, "\\|", deps)
+            deps = $2
+            while ((pos = index(deps, prefix)) != 0) {
+                deps = substr(deps, 1, pos - 1) substr(deps, pos + length(prefix))
+            }
+            gsub(/\|/, "\\|", deps)
             d = ($1 in desc) ? desc[$1] : ""
             gsub(/\|/, "\\|", d)
             printf "| `%s` | %s | %s |\n", $1, (deps == "" ? "" : "`" deps "`"), d

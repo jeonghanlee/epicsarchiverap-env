@@ -11,7 +11,15 @@ section() {
     shift 3
     # shellcheck disable=SC2016
     printf '## %s\n\n%s\n\n```bash\n%s\n```\n\nThe command prints:\n\n```text\n' "${title}" "${intro}" "${command}"
-    (cd "${top}" && "$@" 2>&1 < /dev/null | grep -v 'archappl.conf: No such file' | sed -e 's/[[:space:]]*$//') || true
+    (cd "${top}" && "$@" 2>&1 < /dev/null | grep -v 'archappl.conf: No such file' | awk -v prefix="${top}/" '
+        {
+            while ((pos = index($0, prefix)) != 0) {
+                $0 = substr($0, 1, pos - 1) substr($0, pos + length(prefix))
+            }
+            sub(/[[:space:]]*$/, "")
+            print
+        }
+    ') || true
     printf '```\n\n'
 }
 
