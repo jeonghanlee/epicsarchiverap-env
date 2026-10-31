@@ -1220,7 +1220,7 @@ bash "${TOP}/tests/no-ant.bash"
 # The prepared interface files: markers, content security, inline code, element ids, and rejection of defects.
 bash "${TOP}/tests/ui-static.bash"
 
-python3 "${TOP}/tests/database-config.py"
+perl "${TOP}/tests/database-config.pl"
 if command -v mysql >/dev/null; then
     bash "${TOP}/tests/database-settings.bash"
 else

@@ -9,7 +9,7 @@ Tests execute in strict order, from least to most privilege:
 
 | Phase | Validates | Setup cost |
 | :--- | :--- | :--- |
-| 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; installed Java for PID cases; JDK compiler for unrelated-JVM negative; optional real EPICS Base binaries, see [Real EPICS Base binaries](#real-epics-base-binaries) |
+| 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; Perl 5.26 or newer with `Test::More` and `Time::HiRes` (Rocky Linux: `perl-Test-Simple`, `perl-Time-HiRes`); `xmllint`; installed Java for PID cases; JDK compiler for unrelated-JVM negative; optional real EPICS Base binaries, see [Real EPICS Base binaries](#real-epics-base-binaries) |
 | 2. Build wrapper | Real `make -n build`: configuration, site-overlay copy, Maven package command and ordering | none; no source checkout, JDK or network required |
 | 3. Installation | Handed-off fresh VM, actual Ansible/Make/Maven install and payload checks | Initialized run; cloud-provision guest and handoff; pinned ansible-provision checkout; libvirt, SSH |
 | 4. Runtime acceptance | Same VM: genuine JVMs, scheduled health, HTTP identity, CA acquisition/retrieval and persistence | The same case invocation; real systemd, EPICS IOC and selected database |
@@ -109,8 +109,8 @@ EXPECTED_BRANCH=release-2.0.1 tests/run-all-tests.bash --local
 ```
 
 The local suite reaches no database that it did not start. It runs the
-configuration tests of `database-config.py`; the private MariaDB server of the
-integration tests starts only with `database-config.py --integration` (see
+configuration tests of `database-config.pl`; the private MariaDB server of the
+integration tests starts only with `database-config.pl --integration` (see
 [Native database and PV checks](#native-database-and-pv-checks)).
 A database target run by hand (`sql.*`, `db.*`, `queryFile` of
 `mariadb_setup.bash`) reaches the server that `DB_HOST_NAME`, `DB_HOST_PORT`
@@ -194,6 +194,22 @@ and the Perl module `Test::More`; on Rocky Linux the package `perl-Test-Simple` 
 a real Java executable, the JDK compiler, `systemd-analyze`, `/dev/shm` or a non-root account print a line that starts
 with `SKIP:` when it is missing. The exit status is 0 when every case passed or was skipped, nonzero when an assertion
 failed or the run aborted, and 2 for a usage error.
+
+### Running `database-config.pl` alone
+
+```bash
+perl tests/database-config.pl
+perl tests/database-config.pl --case password_from_local_override_file
+```
+
+The first command runs the 17 configuration cases; each `--case` runs only the named case (`perl tests/database-config.pl
+--help` lists the names of both sets). The checkout must be a Git work tree, and the source checkout is
+`epicsarchiverap-maven-src` unless `AA_TEST_SOURCE_PATH` names another. The test needs `bash`, `make`, `git`, `curl`,
+`xmllint` and the Perl modules `Test::More` and `Time::HiRes`; on Rocky Linux the packages `perl-Test-Simple` and
+`perl-Time-HiRes` provide them. The exit status is 0 when every case passed, nonzero when an assertion failed or the run
+aborted, 2 for a usage error, and 77 when `--integration` is given without root and `AA_TEST_DISPOSABLE_HOST=YES`.
+The integration cases also need `sqlite3`, `gzip`, the MariaDB server and client, and the programs `lsof` and `tree`
+that the shipped database helper requires; on Rocky Linux `lsof` and `tree` are separate packages.
 
 ## VM Evidence
 
@@ -412,7 +428,7 @@ NO_ANT_TREE_UNDER_TEST="${tree}" bash tests/no-ant.bash
 
 ### Native database and PV checks
 
-`database-config.py --integration` uses a private real MariaDB server and the
+`database-config.pl --integration` uses a private real MariaDB server and the
 selected source schema. Socket and TCP cases check account identities, schema
 loading, backup/restore, private backup permissions, rejection of an existing
 backup or symlink, failed dump cleanup, and a file appearing during publication.
@@ -719,7 +735,7 @@ acceptance.
 
 ## Configuration and database regression checks
 
-`--local` also runs `database-config.py`: it renders the real templates,
+`--local` also runs `database-config.pl`: it renders the real templates,
 parses their XML, sources their shell assignments, compares the runtime DB
 name with both backend resources, and checks the system-phase exit contract.
 It verifies SQLite `db.conf`/`db.conf.show` skips without prerequisites or
@@ -755,11 +771,10 @@ archive-tier, or SQLite-file overlap, including symlink aliases, before any
 download, service command, or backup. Separate sibling paths remain eligible.
 It does not verify a host Tomcat reinstall or service-account permissions.
 
-The existing Python integration checks remain available on a disposable
-systemd guest with root, Python 3.7 or newer, and real SQLite/MariaDB tools.
-On Rocky 8, use `python3.9` from the `python39` package instead of the default
-Python 3.6 interpreter. The test accepts either `mariadbd`/`mariadb-install-db`
-or `mysqld`/`mysql_install_db` from the installed MariaDB packages.
+The integration checks remain available on a disposable systemd guest with
+root and real SQLite/MariaDB tools. The test accepts either
+`mariadbd`/`mariadb-install-db` or `mysqld`/`mysql_install_db` from the
+installed MariaDB packages.
 A private MariaDB server
 checks account identities, special-character passwords, schema loading,
 backup/restore, dump failure, publication races and unrelated-account preservation.
@@ -767,7 +782,7 @@ The SQLite case uses the real source schema and service-account path. No sudo,
 client, clock or publication command is substituted.
 
 ```bash
-sudo env AA_TEST_DISPOSABLE_HOST=YES python3 tests/database-config.py --integration
+sudo env AA_TEST_DISPOSABLE_HOST=YES perl tests/database-config.pl --integration
 ```
 
 `AA_TEST_SOURCE_PATH` selects the source checkout; the default is
