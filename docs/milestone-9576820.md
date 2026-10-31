@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Review and accept the M3 draft plan in `docs/milestone-9576820.md`; all its owner decisions are settled (D16 to D21) and the Perl baseline is measured, but no implementation is authorized until the plan is accepted and the implementation is authorized separately. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push and issue creation need their own authority. Then follow M4. M5, M6 and M7 remain Deferred and M8 Open; their later order is not authorization to resume.
+Next session entry point: Continue the accepted M3 plan in `docs/milestone-9576820.md`: two of the nine Python tests are converted (`tests/install-payload.py` and `tests/health-local.py`, see the conversion record); convert the next one, `tests/database-config.py`, and record each result in Verification Results. The plan was accepted and implementation authorized on 2026-10-31. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push, issue creation and guest provisioning need their own authority. Then follow M4. M5, M6 and M7 remain Deferred and M8 Open; their later order is not authorization to resume.
 
 ## Scope
 
@@ -23,10 +23,10 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | DB | M1 | Apply backend selection to all database operations | Carry-forward | Complete | No | D4, D11, D13, D14 | T1-T5 and correction checks passed; landed at c4b27bc; [detail](#m1---apply-backend-selection-to-all-database-operations) |
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
-| Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Not started | Yes | M2, D6, D11, D16, D17, D18, D19, D20, D21 | Shell and Make tests run in Perl with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-perl-tests) |
+| Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | In progress | No | M2, D6, D11, D16, D17, D18, D19, D20, D21 | Shell and Make tests run in Perl with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-perl-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | No | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 2 Complete and 2 Not started. M3 is the nearest Ready item.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 2 Complete, 1 In progress and 1 Not started. No assigned row is Ready until M3 completes; M4 follows M3.
 
 ### Decisions
 
@@ -677,7 +677,7 @@ Last Compared: none
 Origin: 9576820 / M4
 Identity History: M4 -> M3 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -724,6 +724,8 @@ Out of scope: any change to what the tests assert; replacing the VM driver, gues
 | Owner decision resolved | The two announcements lose the skip marker, and the local suite prints no skip when a real Base is supplied. | D21 |
 | Confirmed finding | After that change the suite run with a real Base ends with status 0 and no skip, and `local_suite_complete` is True; without the Base one skip remains, from the unset `AA_TEST_EPICS_BIN`. | suite output with and without `AA_TEST_EPICS_BIN` on 2026-10-30 |
 | Confirmed finding | The completeness check also fails on six other environment skips of the suite (no source clone, no directory creatable under the storage base, a `/dev/shm` on the root filesystem, no real Java, a threshold outside 1 to 100, no `mysql` client), and the driver does not pass `AA_TEST_EPICS_BIN` on: it hands its own environment to the suite. The documents list only the source clone and the Base as optional prerequisites. D21 and step 1 of the plan now name them. | the skip conditions in `tests/phase1-logic.bash`; `tests/vm/driver.py` |
+| Confirmed finding | Found while converting `tests/install-payload.py`: its root-alias case appends `/../..` to the workspace and expects `/`, which holds only when the workspace sits two levels below the filesystem root. With a deeper `TMPDIR` the path named a real directory and the shipped installer acted on it, and the case failed. The Perl test derives the alias from the depth of the workspace and stops before it runs the installer if the alias does not resolve to `/`. | the Python test before its removal; `work/m3-perl/install-payload/` |
+| Confirmed finding | Found while converting `tests/health-local.py`: the driver's `local_suite_complete` recognizes a skip only as `[SKIP]`, a line that starts with `SKIP:`, or `skipped=N` of the Python unittest summary, and `tests/vm/local.py` asserted the unittest form `OK (skipped=1)`. TAP skip text (`# skip`) would pass the completeness check. The Perl test prints a `SKIP:` line before each skip, selects a case with `--case NAME` as the VM test needs, and the assertion in `tests/vm/local.py` now expects that line; the driver stays unchanged (D17). Every later converted test follows this form. | tests/vm/driver.py, tests/vm/local.py, `work/m3-perl/health-local/` |
 | Confirmed finding | As first drafted, no check covered criterion 1, and no check ran the converted guest-side tests: `tests/config-d-runtime.py` needs Java, Tomcat and WAR files, and the `tests/local-install-pv-*.py` checks need real WAR files and a soft IOC on a disposable guest, while T1 named the local host and the VM matrix runs none of them. T3 and T4 now cover both. | tests/README.md, Test Plan |
 | Owner decision resolved | New prerequisites of the replacement tests are allowed and documented. | D19 |
 | Owner decision resolved | `tests/heap/inspect-inputs.py`, a preparation tool that reads the soak inputs and is not a test, stays outside M3 and remains Python. | D20 |
@@ -731,9 +733,9 @@ Out of scope: any change to what the tests assert; replacing the VM driver, gues
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-10-31; owner accepted this plan text, as committed in 78b0d4f683f1b9b5c3c5e8ff142b3e86b1fad7ef.
+Implementation Authorization: 2026-10-31; explicit owner authorization to implement the accepted M3 plan. It does not authorize commit, push, issue creation or provisioning of guests; the owner names each guest for the guest checks.
 Superseded Plan Artifacts: none
 
 1. The Perl baseline is measured (Planning Findings). Fix the prerequisite list from the modules the converted tests use, document it in `tests/README.md` and `book/src/test/run-local.md`, and keep `python3` listed while any Python file remains. Also document the optional prerequisites whose absence prints a skip (the source clone, a real Java, the `mysql` client, a `/dev/shm` on its own filesystem and `AA_TEST_EPICS_BIN`), and that the VM acceptance run needs them and the variable exported before the driver starts, because the driver passes its own environment to the suite.
@@ -759,6 +761,26 @@ Superseded Plan Artifacts: none
 | T2 | Pending | Local host; fresh guests | Pending | none |
 | T3 | Pending | Local host | Pending | none |
 | T4 | Pending | Disposable Debian 13 and Rocky Linux 8.10 guests | Pending | none |
+
+Conversion record, one file at a time; the evidence is under `work/m3-perl/<file>/`, which Git ignores:
+
+| File | Perl file | Same output as the Python run | Mutations killed (Python, Perl) | Oldest-interpreter run |
+| --- | --- | --- | --- | --- |
+| `tests/install-payload.py` | `tests/install-payload.pl` | Identical standard output apart from the workspace path, on a real 2025 and a real 2026-10-26 build output with an older log4j JAR set; also identical with a workspace of another depth | 10 and 10, the same ten; the same four survive (`jars-required`, `webxml-check`, `restore-webapp-on-failure`, `unzip-failure-tolerated`) | Run on Rocky Linux 8.10 (Perl 5.26.3) after its package preparation (perl-Test-Simple, perl-Digest-SHA, perl-IO-Compress, perl-Test-Harness, git, make, unzip, a JDK; `xmllint` present): exit 0, same standard output as the Python baseline apart from the workspace path and one capture line, empty standard error, non-root account, 2026-10-31 |
+| `tests/health-local.py` | `tests/health-local.pl` | All 23 cases pass in both with no skip, on this host (Debian 13, non-root, real Java 21 and JDK compiler); 1253 TAP assertions in Perl | 22 and 22 of 27, the same 22; the same five survive (`pid-regex-unbounded`, `wrong-java-guard`, `bootstrap-position`, `storage-threshold-boundary`, `systemd-argument-form`) | Run on Rocky Linux 8.10 (Perl 5.26.3) on a fresh guest after the same package preparation and `java-17-openjdk-devel`: exit 0, 23 cases, 1253 assertions, no skip, empty standard error, non-root account, 2026-10-31. Root and `/dev/shm` absent were not run; JDK compiler absent was run through `tests/vm/local.py` |
+
+For `tests/install-payload.py` the mutations number 14, for `tests/health-local.py` 27.
+
+The control run, without a mutation, passed for both implementations before their kill tables were accepted. Standard error of the Perl run is empty and `perl -wc` and `podchecker` are clean. T1 to T4 stay Pending until every file is converted. The modules of `tests/install-payload.pl` are `Cwd`, `Digest::SHA`, `File::Basename`, `File::Copy`, `File::Find`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Uncompress::Unzip`, `Pod::Usage` and `POSIX`; on Rocky Linux the packages perl-Digest-SHA and perl-IO-Compress are needed beyond the interpreter. The modules of `tests/health-local.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed, and the test needs the program `xmllint` beside `bash`, `make`, `git`, `df` and `sleep`.
+
+Input identities of the conversion record:
+
+| Input | SHA256 | Use |
+| --- | --- | --- |
+| `tests/install-payload.pl` | `95a0153d476d75913900b024744e40567307777c165e7fb1e19cb75ca814f420` | The converted test |
+| `scripts/install-payload.bash` | `d7eab599ca430f65c9facffcf67346cd848a4a68fc98b72f0e569c2137020578` | The shipped code under test, unmutated |
+| `tests/health-local.pl` | `d5bf115d2be6ec9cb3cfeff99de287326345a82e5f99f65df30ed9b8dc7252c9` | The converted test; the mutation runs and the Rocky Linux run used the file with SHA256 `72816eb747f950683bfb0c8ab9a01261bbc59d494e3de7a28156aa3ef8ef7aeb`, which differs only in the POD text (prerequisite and case names) |
+| `scripts/archappl.bash` | `3a1cb0ea5539cd18538621a79394058b7674df727fef166c35c11c3ab247cc4e` | The shipped code under test, unmutated |
 
 ##### Closure Evidence
 
