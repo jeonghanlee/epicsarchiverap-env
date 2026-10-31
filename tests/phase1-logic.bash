@@ -1209,7 +1209,7 @@ phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.
 perl "${TOP}/tests/health-local.pl"
-python3 "${TOP}/tests/config-d.py"
+perl "${TOP}/tests/config-d.pl"
 
 # Instances that have not executed Java yet, through the real launcher health.
 bash "${TOP}/tests/health-starting.bash"

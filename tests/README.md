@@ -444,12 +444,13 @@ These checks do not contact the host's database service.
 
 ### Local runtime environment overrides
 
-`config-d.py` runs with Phase 1. It exercises the shipped common loader and
+`config-d.pl` runs with Phase 1. It exercises the shipped common loader and
 launcher against filesystem inputs: absent and empty directories, ordered
 overrides, quoted and empty values, file selection, unreadability, syntax
 errors, export state, and the health path. The real configuration generation
 and installation targets run twice to check that operator file bytes survive.
-Each case retains commands and output in an `archappl-config-d-*` directory.
+Each case records commands and output in an `archappl-config-d-*` directory; the directory of a failed case, or of every
+case with `KEEP_WORKSPACE=1`, is kept.
 
 `config-d-runtime.py` requires Java, a readable and executable Tomcat 9
 distribution, built appliance WARs with `tomcat-log4j`, and access to journald
