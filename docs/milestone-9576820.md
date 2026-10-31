@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Open M1 in `docs/milestone-9576820.md`. Review the implemented operation contract and passing T1-T5 evidence, then prepare repository landing under separate commit/push authorization. Acceptance and implementation were authorized on 2026-10-30. D13 and D14 remain the accepted decisions on command reuse and table-deletion scope. Then follow M2, M3 and M4 in that order. M5, M6 and M7 remain Deferred; their later order is not authorization to resume.
+Next session entry point: T1 to T5 are recorded as Pass on Debian 13 and Rocky 8.10, so M2 closes only with its commit, push and landing evidence under separate `git-workflow` authority; the plan was accepted and implementation authorized on 2026-10-30, and the Verification Results record what has run. D15 requires file and line numbers without configuration contents in diagnostics. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995. Commit, push and issue creation need their own authority. Then follow M3 and M4 in that order. M5, M6 and M7 remain Deferred; their later order is not authorization to resume.
 
 ## Scope
 
@@ -21,12 +21,12 @@ Out of scope for this assignment update: product implementation, VM provisioning
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| DB | M1 | Apply backend selection to all database operations | Carry-forward | In progress | No | D4, D11, D13, D14 | Selected-backend queries, deletion, lifecycle, backup and restore pass real database tests; [detail](#m1---apply-backend-selection-to-all-database-operations) |
-| Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Not started | No | M1, D7, D11 | Installers refuse extra assignments before overwriting generated OS configuration; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
+| DB | M1 | Apply backend selection to all database operations | Carry-forward | Complete | No | D4, D11, D13, D14 | T1-T5 and correction checks passed; landed at c4b27bc; [detail](#m1---apply-backend-selection-to-all-database-operations) |
+| Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | In progress | No | M1, D7, D11, D15 | Installers refuse extra assignments before overwriting generated OS configuration; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | Tests | M3 | Replace the Python tests with Bash tests | Carry-forward | Not started | No | M2, D6, D11 | Shell and Make tests run in Bash with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-bash-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | No | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. M1 implementation and required verification are finished; repository landing remains pending.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 1 Complete, 1 In progress and 2 Not started. No assigned row is Ready until M2 completes; M3 follows M2.
 
 ### Decisions
 
@@ -46,6 +46,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D12 | Keep M7 deferred and defer M5 and M6. Their later reconsideration order is M5, M6, M7, after M4. Each requires a new dated resumption decision; the order does not waive measurement, resource or plan-acceptance requirements. | 2026-10-29 |
 | D13 | Extend the existing database commands for M1 instead of adding a parallel common command set. Keep db.create, db.drop and db.show as the public entrypoints and select their behavior through DB_BACKEND. Preserve MariaDB database-and-account creation and deletion; replace SQLite skipping for these entrypoints with file lifecycle and inspection operations. This selects the command interface for the draft plan, not full plan acceptance or implementation authorization. | 2026-10-29 |
 | D14 | Preserve the existing table-deletion scope for M1: sql.drop and sql.table.drop remove every user table in the selected database on both backends, including tables beyond the four shipped appliance tables. Do not target database-engine internal tables. Keep the database or SQLite file itself; db.drop remains the separate database-removal operation. This selects deletion scope for the draft plan, not full plan acceptance or implementation authorization. | 2026-10-30 |
+| D15 | For M2 refusal diagnostics, report the configuration file and offending line numbers without printing line contents or values. Name ../CONFIG_SITE.local as the destination for site settings. This supersedes the raw-line output requirement in D7; refusal before changes remains required. | 2026-10-30 |
 
 ### ID Migration
 
@@ -77,11 +78,11 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 Origin: 9576820 / M2
 Identity History: M2 -> M1 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
-The working tree implements the accepted backend operation contract through the existing Make targets and database dispatcher. SQLite supports file lifecycle, schema loading, queries, all-user-table deletion, backup and restore; only its client-configuration targets skip. Shared settings validation rejects stale MariaDB configuration, and offline operations check the appliance and health units before database access. T1-T5 passed on 2026-10-30, including six fresh installations. Repository landing remains pending; M1 is not Complete.
+Commit c4b27bcc65fa70ee7c80ccee7d40136bab64d995 implements the accepted backend operation contract through the existing Make targets and database dispatcher. SQLite supports file lifecycle, schema loading, queries, all-user-table deletion, backup and restore; only its client-configuration targets skip. Shared settings validation rejects stale MariaDB configuration, and offline operations check the appliance and health units before database access. T1-T5 passed on 2026-10-30, including six fresh installations; the follow-up results below identify the narrower correction verification. Repository landing is verified and M1 is Complete.
 
 ##### Scope
 
@@ -475,8 +476,8 @@ The locale regression failed on the original product code, and the real
 MariaDB UDS suite rejected an isolated copy with the original table-listing
 implementation. Original outputs and corrected results are retained separately.
 
-The environment basis is `de8b53a27377b4fd097e904dfbbeca981822fe71`
-with the uncommitted M1 changes. Snapshot archives contain the exact file list
+The test environment basis was `de8b53a27377b4fd097e904dfbbeca981822fe71`
+with the then-uncommitted M1 changes. Snapshot archives contain the exact file list
 and per-file SHA256 checks used on the guests:
 
 | Input | SHA256 | Verified use |
@@ -527,7 +528,8 @@ locale; XML rendering is unchanged and covered by the configuration suite.
 ##### Closure Evidence
 
 - Implementation and required verification: finished on 2026-10-30.
-- Repository landing: pending separate commit and push authorization; no landing claim.
+- Repository landing: commit c4b27bcc65fa70ee7c80ccee7d40136bab64d995 on origin/maven. Observed at 2026-10-30T16:48:51Z after fetching origin; HEAD and origin/maven both resolved to that commit and the complete tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit.
+- Commit preparation removed one trailing space in tests/database-operations.bash after the retained test runs. Bash syntax and staged whitespace checks passed; the three corrected product scripts were unchanged. Historical input archives remain unchanged.
 - Linked GitHub issue: none.
 
 #### M2 - The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first
@@ -535,58 +537,118 @@ locale; XML rendering is unchanged and covered by the configuration suite.
 Origin: 9576820 / M5
 Identity History: M5 -> M2 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
-The targets `<os>.conf` (`debian13.conf`, `rocky8.conf` and the others in `configure/RULES_TOMCAT`) delete `configure/CONFIG_SITE.local` and write one line into it, the include of `configure/os/<os>.mk`. Every installer runs its operating system target as its first step, so a value that an operator wrote into `configure/CONFIG_SITE.local` is lost when the installer runs. `../CONFIG_SITE.local`, next to the checkout, is not touched and is the place for site values.
+The targets `<os>.conf` (`debian13.conf`, `rocky8.conf` and the others in `configure/RULES_TOMCAT`) delete `configure/CONFIG_SITE.local` and write one line into it, the include of `configure/os/<os>.mk`. Every installer runs its operating system target during prerequisites, after reading Make settings and optionally installing packages, so a value that an operator wrote into `configure/CONFIG_SITE.local` is lost when execution reaches that target. `../CONFIG_SITE.local`, next to the checkout, is not touched and is the place for site values.
 
-Observed 2026-10-11 on the author's host. `make -n debian13.conf` prints `rm -f <checkout>/configure/CONFIG_SITE.local` and `echo "include \$(TOP)/configure/os/debian13.mk" > <checkout>/configure/CONFIG_SITE.local`. The plan of `bash scripts/install-local-sqlite.bash --plan --skip-packages` lists `make ... debian13.conf` as its first make step. Recheck with those two commands.
+Source inspection at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 on 2026-10-30 confirms that configure/RULES_TOMCAT rewrites the file. In scripts/install-local-common.bash, main calls select_backend and read_settings before the preset target; both can invoke make_value. configure/CONFIG_SITE includes the file while Make parses settings. Later, sudo authentication, work-directory/lock creation and optional package installation precede run_make "$os.conf". A check only at that target would therefore occur too late.
 
 D7 (2026-10-11) chose refusal before changes. D11 (2026-10-29) assigns preparation after M1 in the current development cycle without waiting for a numbered release.
 
 ##### Scope
 
-- The installers stop, before they change anything, when `configure/CONFIG_SITE.local` holds a line other than the include of its operating system file, print those lines and name `../CONFIG_SITE.local` (D7). The target keeps writing the one line.
+- The three installers stop before their first Make invocation or installation side effect when `configure/CONFIG_SITE.local` does not match the generated OS-file contract. Report its path and offending line numbers without line contents, and name `../CONFIG_SITE.local` (D7, D15). The target keeps writing the one line.
 - Keep the documented place for site values, `../CONFIG_SITE.local`.
 
-Out of scope: changing the content of the operating system files `configure/os/*.mk`.
+Out of scope: changing configure/os/*.mk, changing the behavior of direct make <os>.conf calls, automatically migrating site settings, rewriting Make configuration precedence, guarding arbitrary Makefiles, changing installed config.d, database behavior, the VM driver, or converting existing Python tests. Concurrent external edits during installation are outside this preflight contract; the check is not a security boundary for untrusted checkouts.
 
 ##### Completion Criteria
 
-- An assignment written into `configure/CONFIG_SITE.local` is either present after `make <os>.conf` or the installer stops before it changes anything and names `../CONFIG_SITE.local`.
-- The check for this behavior runs the real `make <os>.conf` target in an isolated copy of the repository.
+- For SQLite, MariaDB UDS and MariaDB TCP, an extra assignment or unsupported file form causes the real installer to return nonzero before Make, sudo authentication, lock creation, package installation, source operations or service changes. The original configuration and parent site file remain byte-for-byte unchanged.
+- The diagnostic identifies the file and offending line numbers and names ../CONFIG_SITE.local, without printing configuration contents or values. An unreadable file or unsupported file type reports the path and reason when no line can be inspected.
+- Valid generated input and an absent file permit the normal installer plan. --yes and --skip-packages do not bypass protection; --plan applies the same check and --help remains available.
+- Actual OS targets still generate their documented one-line include in isolated copies, and preserve ../CONFIG_SITE.local. Direct-target compatibility is a separate check, not evidence that the installer refused invalid input.
+- New Bash regressions run the complete shipped entry scripts and common driver. The early-refusal regression fails against the original driver or a copy with only the guard call removed. The original driver is scripts/install-local-common.bash as committed at the latest commit before the M2 change, copied with git show; at planning that is c4b27bcc65fa70ee7c80ccee7d40136bab64d995, and the hash actually used is recorded with the results. No internal function, Make, sudo or package-manager substitute establishes acceptance.
 
 ##### Dependencies And Decisions
 
 - D11 assigns this work and changes Deferred to Not started on 2026-10-29. It supersedes the next-numbered-release scheduling condition of D7 and the unassigned condition of D10; D7's refusal behavior and site-settings location remain the accepted direction.
 - M1 is a work-order dependency selected by D11, not a technical prerequisite.
-- Preparation must locate the first side effect in each installer and show how the refusal check precedes it. Review the draft's direct-target test against the installer refusal requirement before plan acceptance.
+- Preparation must locate the first side effect in each installer and show how the refusal check precedes it. The direct-target test was reviewed against the installer refusal requirement before plan acceptance.
 - Installed `config.d` support does not protect the separate checkout file `configure/CONFIG_SITE.local`.
+- M1 implementation, verification and repository landing are complete at c4b27bcc65fa70ee7c80ccee7d40136bab64d995. This satisfies the work-order dependency; no database API is needed by the new guard.
+- D15 selects file/line-only diagnostics on 2026-10-30. It changes diagnostic content, not the refusal policy. The input contract and plan below were accepted on 2026-10-30.
+
+###### Planning Findings
+
+| Class | Finding | Evidence |
+| --- | --- | --- |
+| Confirmed finding | The OS recipe removes and replaces the checkout-local configuration without inspecting extra settings. | configure/RULES_TOMCAT, six preset recipes and the two CentOS aliases |
+| Confirmed finding | Installer Make reads occur before the OS recipe; Make syntax in an extra line can execute during parsing. | scripts/install-local-common.bash: main, select_backend, read_settings, make_value; configure/CONFIG_SITE local includes |
+| Confirmed finding | sudo authentication, work/lock creation and optional packages precede the OS recipe. | scripts/install-local-common.bash: main, install_packages |
+| Confirmed finding | The former T1 ran a direct Make target but allowed an installer refusal as its expected result; that path cannot prove the requirement. | M2's earlier Test Plan at c4b27bc |
+| Owner decision resolved | Suppress configuration contents in diagnostics; retain file and line numbers. | D15 |
+
+These are source-inspection findings. No M2 runtime verification has run.
+
+###### Input And Refusal Contract
+
+Treat configure/CONFIG_SITE.local as generated input. An absent path is allowed for a first installation. An existing path must be a readable regular file, not a symlink, and contain exactly one literal include line naming a shipped preset: debian12, debian13, rocky8, rocky10, ubuntu24 or ubuntu26. The line is `include $(TOP)/configure/os/<preset>.mk`; accept its final newline being present or absent. A valid prior preset may differ from the detected host because the normal OS target replaces it.
+
+Reject empty files, extra blank or comment lines, duplicate includes, assignments, other include paths, Make expressions, altered whitespace and CRLF input. Do not evaluate, source, repair, delete or migrate the file. This deliberately recognizes generated output rather than attempting to interpret general Make syntax. The strict input rule was accepted with the plan on 2026-10-30; D7 and D15 alone did not accept every parser detail.
+
+Use one Bash validation function in scripts/install-local-common.bash, called after argument parsing and the existing non-root check, before detect_os, select_backend, read_settings or any Make call. Keep --help's early exit. Report all offending line numbers for readable text and exit through the existing installer error path with status 1. Under D15, do not echo file contents, assignment names, values, Make diagnostics from the rejected file, or a command that embeds them. Give manual recovery instructions to inspect the named lines, move site settings to ../CONFIG_SITE.local first, then delete configure/CONFIG_SITE.local so that the installer writes the generated include again, and retry. State that running make <os>.conf before the move would overwrite the settings. Missing tools, unreadable input and unsupported file types must not be treated as valid input.
+
+The refusal guarantee covers this installer processing an already-invalid file, including --plan. It does not cover Make expressions in the trusted parent site file or other checkout files, shell startup customization, direct manual OS-target execution, or an external process modifying configuration after validation. No new locking or global Make parser is proposed.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-10-30; owner accepted the input and refusal contract, test coverage and evidence boundaries of this plan text (SHA256 7e37da04d74510e0 before this record).
+Implementation Authorization: 2026-10-30; explicit owner authorization to implement the accepted M2 plan. It does not authorize commit, push, issue creation or provisioning of guests.
 Superseded Plan Artifacts: none
 
-1. After the owner decision, change the `<os>.conf` rules in `configure/RULES_TOMCAT`, or the first step of the installers.
-2. Add the real-target check to `tests/phase1-logic.bash`.
+1. Plan acceptance and implementation authorization were recorded separately on 2026-10-30, as the fields above state, before product code changed.
+2. Add the shared read-only validator and its early call to scripts/install-local-common.bash. Leave the three public wrapper scripts and configure/RULES_TOMCAT behavior intact. T1 and T2 prove refused inputs are preserved and never reach Make or installation effects; T3 proves valid inputs and help still work.
+3. Add tests/local-install-config.bash with separate --local and --disposable-host modes; default to --local. Both use isolated copies of the real Makefiles and installer scripts without extracting functions, fake clients or a mocked common driver. In --local, every installer invocation except --help must carry --plan, including original-code and guard-removal checks. Invoke only --local from tests/phase1-logic.bash; neither the full local runner nor inherited environment flags may select --disposable-host. That explicit mode requires an ordinary user and AA_TEST_DISPOSABLE_HOST=YES on an authorized disposable VM before any test side effect. It alone runs installer --yes cases without --plan. Missing mode prerequisites or tracing capability produce Incomplete rather than silently omitting checks: a missing mode prerequisite or tracing capability ends the test with one INCOMPLETE line and status 77, and phase1 does not catch that status, so the phase fails. T1-T4 cover the input and entrypoint matrix; T5 runs the existing local suite.
+4. Run actual OS targets in separate isolated copies for all six presets and the CentOS aliases. Assert the exact expected include and unchanged parent site configuration. Do not change the targets or claim that their direct execution protects extra assignments. T4 proves compatibility with the accepted generated-output design.
+5. Update installer help, scripts/README.md, docs/README.install.md and the installation prerequisites in book/src/install/{sqlite,mariadb-uds,mariadb-tcp,reinstall}.md. Also update book/src/configure/override-setting.md, book/src/understand/site-changes.md and book/src/install/host-changes.md, which describe the rewrite as the first installer step, so they state the refusal that now precedes it. Explain the two configuration locations, refusal timing, strict generated-file form, manual recovery and unchanged direct-target behavior. Update tests/README.md with the new real-path suite and its prerequisites, stating that its disposable mode runs as an ordinary user with AA_TEST_DISPOSABLE_HOST=YES and --disposable-host, unlike tests/database-operations.bash, which requires root with the same variable, because the installers refuse root. Add the new script to the group table in book/src/test/phases.md and strace to the prerequisites in book/src/test/run-local.md. Regenerate book/src/appendix/script-options.md with book/scripts/gen-script-options.bash rather than editing generated help text. T5 checks syntax, lint, local regressions and generated pages.
+6. Record actual results and input identities for T1-T5, including original-code failures, before closure. Run local --plan cases on Debian 13 and Rocky 8.10 as ordinary users. Run every --yes case without --plan only in separately authorized disposable Debian 13 and Rocky 8.10 guests; a normal Debian development host cannot supply that evidence. The owner supplies each guest when authorizing the run; the VM driver and its handoff files are not used. Before entering --disposable-host mode, confirm on the guest and record in the evidence directory: /etc/os-release names Debian 13 or Rocky 8.10; id -u is not 0; systemd-detect-virt --vm reports a virtual machine, not a container; the owner's authorization names this guest; and the installation path that make print-AA_INSTALL_LOCATION resolves and the appliance service unit do not exist. The environment acknowledgment alone does not prove isolation, and any failed item stops the run as Incomplete before a test side effect. Retain evidence and inspect/stop any surviving installer processes before releasing a guest after a failed test. Do not provision guests during planning. This milestone verifies early refusal and valid preflight, not another complete appliance installation; M1's installation results remain tied to their original snapshots.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Local | In an isolated copy of the repository, write an assignment into `configure/CONFIG_SITE.local`, run the real `make debian13.conf`, and read the file | Local host | The assignment is present, or the installer stops first with a message that names `../CONFIG_SITE.local` |
-| T2 | Local | The full local suite `bash tests/run-all-tests.bash --local` | Local host | Passes with the same groups as before |
+| T1 | Installer refusal | Local mode runs all three entry scripts on invalid fixtures with --plan, with/without --skip-packages. Disposable-host mode additionally runs --yes without --plan, with/without --skip-packages. Capture native status, stdout/stderr, file hashes and exec traces | --plan: isolated copies on supported ordinary-user hosts. --yes without --plan: authorized disposable Debian 13 and Rocky 8.10 VMs only. Real Bash and working strace required | Status 1 with the intended file/line diagnostic; parent and local configuration unchanged; no Make, sudo, package manager or service command starts and no installer work/lock file is created |
+| T2 | Defect sensitivity | Put a harmless Make parse-time file marker inside the rejected configuration, then run the real --plan entrypoints against corrected code and a separate copy of the original driver defined in Completion Criteria | Isolated copies, no host-level mutation; real Make | Corrected code refuses before the marker exists; original code demonstrably parses the fixture and fails the same regression; matching nonzero exit codes alone cannot pass |
+| T3 | Accepted input and CLI | Run all three --plan entrypoints with an absent file and each valid shipped include, with final newline present/absent; test --help against invalid input; capture resolved plan and before/after state | Debian 13 and Rocky 8.10 ordinary users; isolated real Make tree, no source checkout required | Valid plans exit 0, retain configuration bytes and print the host OS target and selected backend; help exits 0 without reading settings; invalid-input refusal cannot be bypassed by normal flags |
+| T4 | Direct-target compatibility | Execute all six actual OS targets and both CentOS aliases in separate copies, including changing an existing generated preset; retain expected and actual file bytes | Local host; real shipped Makefiles and presets | Exact expected one-line include is written; parent CONFIG_SITE.local remains unchanged; no direct-target preservation guarantee is inferred |
+| T5 | Regression and documentation | Verify test-mode selection, then run the new --local suite via phase1, the full local suite, changed-script bash -n and ShellCheck warning/error gate, generated-book comparison and mdbook build | Local host with declared suite prerequisites; non-plan installer cases remain VM-only | Default/--local mode cannot launch an installer without --plan even when AA_TEST_DISPOSABLE_HOST=YES is inherited; incomplete VM opt-in rejects before test side effects; a missing strace ends the --local run with status 77 and fails phase1; existing assertions remain intact and documentation/generated help agree |
+
+T1's invalid-input matrix includes an ordinary assignment after the valid include, a password-like test value, an assignment on the first line, an extra comment or blank line, repeated includes, an unknown include, a line holding a Make expression such as a function call or variable reference, altered whitespace (a leading space, a trailing space, a tab in place of the space, and no space after include), empty/CRLF input, a symlink (including dangling), a directory and an unreadable regular file. For readable inputs compare exact diagnostic line numbers and assert the sentinel value never occurs in stdout or stderr. Preserve path types, symlink targets and parent/local bytes; exclude test-owned evidence files from the installer side-effect comparison. File-access metadata such as atime is not an installation mutation.
+
+The checkout copy confines fixture changes, not system changes: a defective early guard can let a non-plan installer reach real sudo, package managers and installation paths. Keep that failure inside a disposable VM. The local suite must retain --plan when exposing the missing-guard defect; an inherited disposable-host acknowledgment never removes it. Test default and explicit --local dispatch with that acknowledgment both absent and present, and test --disposable-host without it; capture actual installer arguments and native outcomes. Verify the new test driver's routing without replacing the installer. A local pass cannot satisfy the VM-only portion of T1. On any observed forbidden command or state change, record Failed, stop further cases on that guest and preserve evidence for inspection; do not wait for an unintended installation to finish.
+
+T2 uses configuration data that creates a marker only if real Make parses it; it does not replace any product function. Restrict original-code runs to --plan and an isolated checkout, so exposing the defect cannot install packages or change services. Capture the actual marker and original status before judging the regression. For extra confidence that the call location matters, repeat against a separate copy with only the early guard invocation removed, without replacing the validator. Keep original and corrected outputs separate.
+
+T3 uses the real preset files and wrapper scripts. All six preset contents can be checked on each supported test host without changing /etc/os-release; actual host detection remains real. It tests --plan completion, not JVM startup, data persistence or package installation. T4 covers legacy aliases without claiming the installers support CentOS or Debian 12 hosts.
+
+Evidence goes under ignored work/m2-install-config/ with case inputs, source hashes, arguments, host/tool versions, UTC start/end, native statuses, complete stdout/stderr, trace output and before/after hashes. Each short case has a 30-second harness timeout; timeout or missing traces is Incomplete unless an independent violation is already observed. No long-duration, throughput or archive-size claim applies. Test expectations come from the contract above, trace evidence proves actual command exposure, and corrected/original source membership is recorded separately. Preserve failed and interrupted cases without reporting completion; do not normalize diagnostic or file differences away. No installation or VM is started by writing this plan.
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Local host | Pending | none |
-| T2 | Pending | Local host | Pending | none |
+| T1 | 2026-10-30 UTC | Debian 13 development host, and two disposable KVM guests (Debian 13 and Rocky 8.10), ordinary user, isolated copies | Pass | Local `--plan` part: 22 invalid inputs, three installers, with and without `--skip-packages`, 132 runs, all refused. On each guest the same suite ran 264 refusals: 132 with `--plan` and 132 with `--yes` or `--yes --skip-packages` and no `--plan`. Every run ended with status 1, the exact offending line numbers or reason, `../CONFIG_SITE.local` named, no content in the output and an unchanged file, parent file and checkout tree. The traces of all 264 runs on each guest show no `make`, `sudo`, package, `systemctl` or `flock` start, and every non-plan trace carries `--yes` and no `--plan`. Evidence: `work/m2-install-config/20261031T001952Z/`, `work/m2-install-config/guest-<Debian 13 guest>-20261031T003014Z/` and `work/m2-install-config/guest-<Rocky 8.10 guest>-20261031T003018Z/` (`results.tsv`, `cases/t1/`, `environment.txt`, `guest-identity.txt`, `run.log`) |
+| T2 | 2026-10-30 UTC | Isolated corrected, original and guard-removed copies; real Make | Pass | The corrected driver refused and no parse marker existed, for all three installers. The driver of `c4b27bcc65fa70ee7c80ccee7d40136bab64d995` and a copy with only the guard call removed each created the marker (3 of 3). The refusal regression failed on both: 22 of 22 groups, 642 of 1453 assertions, exit 1. Evidence: `work/m2-install-config/20261031T001952Z/drivers/sha256.txt` and `work/m2-install-config/mutants-statefix-20261030/` (earlier runs on previous versions of the test or driver are in `mutants-20261030/`, `mutants-current-test-20261030/` and `mutants-final-driver-20261030/`) Both guests repeated it with the same result (9 of 9 runs). |
+| T3 | 2026-10-30 UTC | Debian 13 development host and both guests | Pass | On each of the three hosts: 39 `--plan` runs (absent file and six generated includes, final newline present and absent, three installers) exited 0 and printed `OS:` of the host and the backend line with unchanged bytes; three `--help` runs on an invalid file exited 0 and parsed nothing. The Rocky 8.10 guest ran the installers with Bash 4.4.20. Evidence: `work/m2-install-config/20261031T001952Z/cases/t3/` and the `cases/t3/` folders of the two guest evidence folders |
+| T4 | 2026-10-30 UTC | Local host; real shipped Makefiles | Pass | The six `<os>.conf` targets and the two legacy aliases replaced an existing different preset with exactly the expected line and left `../CONFIG_SITE.local` unchanged (8 runs). Evidence: `work/m2-install-config/20261031T001952Z/cases/t4/` Both guests repeated it with the same result (8 of 8 runs). |
+| T5 | 2026-10-30 UTC | Local host | Pass | `bash tests/run-all-tests.bash --local` ended with status 0, including the new suite (1886 assertions) through the Phase 1 call. The first run ended with status 1: `tests/database-config.py` test `test_tomcat_choices_and_backup_preserve_existing_files` wrote `TOMCAT_INSTALL_LOCATION:=...` into `configure/CONFIG_SITE.local` and then ran the three entry scripts with `--plan`, which the guard refuses. The owner directed that its setup move the value to the parent site file before the entry-script loop; its assertions are unchanged and all 17 tests of the file pass. Also passed: mode dispatch (default and `--local`, with and without the inherited acknowledgment, launched only installers with `--plan`; `--disposable-host` without the full guest confirmation ended with status 77 and launched none); a denied `ptrace` (a stand-in `strace` that fails like the sandbox) ended the new suite with one `INCOMPLETE:` line, status 77 and no case, and ended Phase 1 with status 77; `bash -n` and `shellcheck -S warning` on the changed scripts; `book/scripts/check-generated.bash`; `mdbook build`. Evidence: `work/m2-install-config/suite-and-denied-tracing-20261030/` (the `statefix` logs belong to the final driver and test file; the other logs belong to earlier versions) |
+
+Guest runs: the owner named a Debian GNU/Linux 13 guest (kernel 6.12.85, Bash 5.2.37, `strace` 6.13) and a Rocky Linux 8.10 guest (kernel 4.18.0-553, Bash 4.4.20, `strace` 5.18) on 2026-10-30; the guest names are kept in the private handoff and evidence only. The provisioner session created them on request. Each is a KVM guest; `guest-identity.txt` records the checks before the run: the operating system, the ordinary user, the virtual machine type, the owner's name for the guest, and no installation path or service unit. Each run used `bash tests/local-install-config.bash --disposable-host` with the same driver and test hashes as the table below and 3049 assertions, all passed. The guests ran the suite twice: the first run, in `guest-*-20261030T230404Z` and `guest-*-20261030T230407Z`, used the test file before the stop-rule change below; the repeat, whose folders the results table cites, used the final file. No forbidden command or state change occurred, so no installer process needed inspection. The requesting session sent a finished notice to the provisioner session after each run, once the evidence was copied, and said that the disks are not needed.
+
+Implementation review on 2026-10-30: a third-person pass found two minor findings. The mode dispatch check lacked the explicit `--local` run without the inherited acknowledgment, and a sentence of `tests/README.md` claimed an input that the suite does not run. A second-person pass, from the seat of an operator who follows the recovery text, found one minor finding: six short sentences said that the installer stops when the file "holds more than" the generated include, although it also refuses an empty file, a symbolic link, a directory, an unreadable file and a file with a NUL byte. A further second-person pass, from the seat of the person who runs the test, found one minor finding: `tests/README.md` gave no command for the guest mode and did not say that the guest name must come from the owner's authorization. A second third-person pass found one minor finding: the stop rule of the guest mode raised its flag only for a forbidden command or a changed checkout tree, not for a changed configuration file or parent file, although the plan stops on any state change. It was applied: any change of the configuration file, the parent file or the tree now stops the guest run, and a driver that changes only the parent file stops the new test after the refusal checks (1453 assertions) while the previous test ran on (1874) (evidence: `work/m2-install-config/statechange-ab-20261030/`). A third second-person pass, from the seat of the person who prepares the commit, found one minor finding: the handoff's list of changed files omitted `tests/database-config.py` and counted six book pages instead of nine. All six were applied. The dispatch, help-text and stop-rule findings changed the test or the installer help, so the code runs above were repeated on the final files, including the two guests; the other three findings changed only `tests/README.md` or the handoff and needed no new run. No further pass has read the corrected text.
+
+Input identities of the runs above:
+
+| Input | SHA256 | Verified use |
+| --- | --- | --- |
+| `scripts/install-local-common.bash` | `40dcb6cc5dce124c69e1cec1444e6b2e7305b6f2b836bfd52dec03797291c9a4` | Corrected driver of T1 to T5 |
+| `tests/local-install-config.bash` | `324cc799fe753a6fa4fbb65afde26122d46f9b943b8b79b686e0e8f78488586b` | New suite |
+| `tests/phase1-logic.bash` | `3e379d5b3cc187a3a902568f176ba7780a2225fb05c02e6027277d864faa2d47` | Phase 1 call of the new suite |
+| `tests/database-config.py` | `26d034cd7f61e753811d43a30aeeb5e024f35c4b0b37337c5eb03cc9c940c936` | Existing suite after the setup change |
 
 ##### Closure Evidence
 

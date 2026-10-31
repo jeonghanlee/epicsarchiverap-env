@@ -9,6 +9,10 @@ SCRIPT_PATH=$(realpath -- "${BASH_SOURCE[0]}")
 readonly SCRIPT_PATH
 readonly REPO="${SCRIPT_PATH%/*/*}"
 readonly OS_RELEASE='/etc/os-release'
+readonly SITE_LOCAL="$REPO/configure/CONFIG_SITE.local"
+readonly SITE_INCLUDE_PREFIX='include $(TOP)/configure/os/'
+readonly SITE_INCLUDE_SUFFIX='.mk'
+readonly -a OS_PRESETS=(debian12 debian13 rocky8 rocky10 ubuntu24 ubuntu26)
 readonly -a COMPONENTS=(mgmt engine etl retrieval)
 declare -a MAKE_OPTIONS=(ARCHAPPL_SITEID=als)
 backend=''
@@ -85,6 +89,7 @@ function usage {
         'UDS uses DB_SOCKET or the OS default; TCP clears DB_SOCKET and requires DB_HOST_NAME=127.0.0.1.' \
         'TCP uses DB_HOST_PORT and prepares the admin account at 127.0.0.1.' \
         'Account preparation needs local root socket authentication; --existing-db skips it.' \
+        'The installer stops before any change unless configure/CONFIG_SITE.local is absent or holds only the generated OS include.' \
         'The OS preset rewrites configure/CONFIG_SITE.local as documented.' \
         'No VM, tag, release or automatic rollback is performed.'
 }
@@ -149,6 +154,66 @@ function detect_os {
         ubuntu:26.04|ubuntu:26.04.*) os=ubuntu26 ;;
         *) die "Unsupported host: $id $version; use Debian 13, Rocky 8, Rocky 10.2 or Ubuntu 24.04/26.04" ;;
     esac
+}
+
+# Accepts exactly the line that an operating system target generates: the include of one shipped preset.
+function is_generated_include {
+    local line="$1" preset known
+    [[ "$line" == "$SITE_INCLUDE_PREFIX"*"$SITE_INCLUDE_SUFFIX" ]] || return 1
+    preset="${line#"$SITE_INCLUDE_PREFIX"}"
+    preset="${preset%"$SITE_INCLUDE_SUFFIX"}"
+    for known in "${OS_PRESETS[@]}"; do
+        if [[ "$preset" == "$known" ]]; then return 0; fi
+    done
+    return 1
+}
+
+# Refuses before any Make call, sudo, lock or package step unless configure/CONFIG_SITE.local is absent or holds
+# only the generated include of one shipped preset. The file is read with Bash builtins and never evaluated.
+# The diagnostic names the path, the reason and the offending line numbers, never the file contents.
+function validate_site_configuration {
+    local content='' body line number joined message inspect reason='' rc=0 include_seen=0
+    local -a lines=() offending=()
+    [[ -e "$SITE_LOCAL" || -L "$SITE_LOCAL" ]] || return 0
+    if [[ -L "$SITE_LOCAL" ]]; then
+        reason='is a symbolic link'
+    elif [[ ! -f "$SITE_LOCAL" ]]; then
+        reason='is not a regular file'
+    elif [[ ! -r "$SITE_LOCAL" ]]; then
+        reason='is not readable'
+    else
+        IFS= read -r -d '' content < "$SITE_LOCAL" || rc=$?
+        if (( rc == 0 )); then
+            reason='contains a NUL byte'
+        elif (( rc > 1 )); then
+            reason='could not be read'
+        elif [[ -z "$content" ]]; then
+            reason='is empty'
+        else
+            body="${content%$'\n'}"
+            mapfile -t lines <<< "$body"
+            for number in "${!lines[@]}"; do
+                line="${lines[number]}"
+                if (( ! include_seen )) && is_generated_include "$line"; then
+                    include_seen=1
+                else
+                    offending+=("$((number + 1))")
+                fi
+            done
+            if (( ${#offending[@]} )); then reason='does not hold only the generated operating system include'; fi
+        fi
+    fi
+    [[ -n "$reason" ]] || return 0
+    inspect='Inspect the file'
+    printf -v message '%s %s.\n' "$SITE_LOCAL" "$reason"
+    if (( ${#offending[@]} )); then
+        printf -v joined '%s, ' "${offending[@]}"
+        printf -v message '%sOffending lines: %s\n' "$message" "${joined%, }"
+        inspect='Inspect the named lines'
+    fi
+    printf -v message '%s%s' "$message" \
+        "The installer neither evaluates, repairs, moves nor deletes this file. $inspect, move site settings to ../CONFIG_SITE.local first, then delete configure/CONFIG_SITE.local so that the installer writes the generated include again, and run the installer again. Running make <os>.conf before the move overwrites the settings."
+    die "$message"
 }
 
 function make_value {
@@ -726,6 +791,7 @@ function main {
     shift
     parse_args "$@"
     (( EUID != 0 )) || die 'Run as the checkout owner, not with sudo bash'
+    validate_site_configuration
     for tool in make git realpath bash; do require_command "$tool"; done
     detect_os
     select_backend

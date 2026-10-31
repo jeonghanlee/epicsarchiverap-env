@@ -42,6 +42,7 @@ Set DB_ADMIN_PASS and DB_USER_PASS in ../CONFIG_SITE.local before preparing acco
 UDS uses DB_SOCKET or the OS default; TCP clears DB_SOCKET and requires DB_HOST_NAME=127.0.0.1.
 TCP uses DB_HOST_PORT and prepares the admin account at 127.0.0.1.
 Account preparation needs local root socket authentication; --existing-db skips it.
+The installer stops before any change unless configure/CONFIG_SITE.local is absent or holds only the generated OS include.
 The OS preset rewrites configure/CONFIG_SITE.local as documented.
 No VM, tag, release or automatic rollback is performed.
 ```

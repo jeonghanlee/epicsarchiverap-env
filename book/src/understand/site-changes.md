@@ -11,7 +11,7 @@ The files `configure/CONFIG_SITE`, `CONFIG_SRC`, `CONFIG_VARS`, `CONFIG_SQL`, `C
 
 `CONFIG_VARS` includes `CONFIG_VARS.local` from the same two places, and `RELEASE` includes `RELEASE.local`. An assignment in a local file wins over the default, as long as the variable is not defined again after the include.
 
-The operating system target `<os>.conf` (for example `debian13.conf`) deletes `configure/CONFIG_SITE.local` and writes one line into it, the include of `configure/os/<os>.mk`. The installers run this target first. A site therefore keeps its own values in `../CONFIG_SITE.local`, next to the checkout, where no target rewrites them.
+The operating system target `<os>.conf` (for example `debian13.conf`) deletes `configure/CONFIG_SITE.local` and writes one line into it, the include of `configure/os/<os>.mk`. The installers run this target after a check of that file: an installer stops before any other step, also with `--plan`, unless `configure/CONFIG_SITE.local` is absent or holds only that one generated line. A site therefore keeps its own values in `../CONFIG_SITE.local`, next to the checkout, where no target rewrites them.
 
 The generated files take their values from these variables when `make conf` runs. A change of a variable therefore needs the stage that uses it to run again, as the page [Build and install stages of the repository](build-and-install.md) shows.
 

@@ -260,6 +260,9 @@ class DatabaseConfigTests(unittest.TestCase):
         self.assertIn(b"Service user review cannot execute", run.stderr)
         self.assertIn(f"-n -u review -- test -x {launcher}", log.read_text())
 
+        # The entry scripts accept only the generated include in the checkout file, so the site value moves to the parent file.
+        (self.root.parent / "CONFIG_SITE.local").write_text(f"TOMCAT_INSTALL_LOCATION:={home}\n")
+        preset.unlink()
         for mode in ("sqlite", "mariadb-uds", "mariadb-tcp"):
             entry = ["bash", f"scripts/install-local-{mode}.bash", "--plan", "--skip-packages"]
             self.run_command(entry + ["--tomcat", "existing"])

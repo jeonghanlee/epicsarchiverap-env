@@ -23,7 +23,7 @@ For environment additions or overrides applied at process startup, use the insta
    256M
    ```
 
-2. Write the value into `../CONFIG_SITE.local`, the file next to the checkout. Do not use `configure/CONFIG_SITE.local` for site values: the target `<os>.conf`, which every installer runs first, deletes that file and writes the include of the operating system file into it.
+2. Write the value into `../CONFIG_SITE.local`, the file next to the checkout. Do not use `configure/CONFIG_SITE.local` for site values: an installer stops before any change unless that file is absent or holds only the generated include of the operating system file, and the target `<os>.conf`, which the installer runs, deletes the file and writes that include into it.
 
    The command appends, so a file that already holds other settings keeps them. Check the file first when it exists.
 

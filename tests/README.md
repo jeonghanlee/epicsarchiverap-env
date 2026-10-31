@@ -484,6 +484,61 @@ IOC database, and CSV client, replacing only HTTP transport.
 menu, and IOC exit during resume. Menu fixtures verify lifecycle handling;
 the real appliance round trip establishes sample storage and retrieval.
 
+### Installer refusal of an invalid `configure/CONFIG_SITE.local`
+
+`local-install-config.bash` runs the three shipped entry scripts, the common
+driver and the real Makefiles in isolated copies of the checkout. Phase 1 runs
+it as `bash tests/local-install-config.bash --local`. It needs `strace` and an
+ordinary user, because the installers refuse root. Each case runs under an
+`strace` that records every command it starts. The evidence stays under
+`work/m2-install-config/<UTC time>/`, which Git ignores: per case the arguments,
+native status, stdout, stderr, trace and the before and after state of
+`configure/CONFIG_SITE.local`, `../CONFIG_SITE.local` and the checkout tree.
+
+| Check | What it establishes |
+| --- | --- |
+| Refusal | Each of 22 invalid inputs ends every installer with status 1, with and without `--skip-packages`: an assignment after or before the include, a password-like value, a comment, a blank line, a repeated or unknown include, another path, a Make expression, four whitespace variants, CRLF with and without a final newline, an empty file, a NUL byte, a symbolic link (also dangling), a directory and an unreadable file. The message names the file, the reason and the exact offending line numbers, names `../CONFIG_SITE.local` and never shows the content. The trace shows no `make`, `sudo`, package manager, `systemctl` or `flock`. The file, the parent file and the checkout tree stay unchanged and no `work` folder appears. |
+| Defect sensitivity | A Make expression in the rejected file writes a marker when Make parses it. The corrected driver refuses and the marker does not exist. The driver of commit `c4b27bcc65fa70ee7c80ccee7d40136bab64d995`, read with `git show`, and a copy of the corrected driver without its early guard call both leave the marker. |
+| Accepted input and help | An absent file and each of the six generated includes, with and without a final newline, give status 0, the host line `OS:` and the backend line `Backend:` in the plan, and no change. `--help` exits 0 for an invalid file and parses nothing. |
+| Direct OS targets | The six `<os>.conf` targets and the two legacy aliases write exactly the one generated line over an existing preset and leave `../CONFIG_SITE.local` unchanged. This compatibility check does not show that a direct target refuses extra assignments. |
+| Mode dispatch | The mode follows the argument only. Children run the default mode and `--local` with and without `AA_TEST_DISPOSABLE_HOST=YES` in the environment; the traces show that every installer call carries `--plan`. `--disposable-host` without the full guest confirmation ends with `INCOMPLETE:` and launches no installer. |
+
+In `--local` mode the test refuses to start any installer call that carries
+neither `--plan` nor `--help`, and it checks the same property again in the traces.
+`--disposable-host` additionally runs `--yes` without `--plan`. It needs an ordinary
+user, `AA_TEST_DISPOSABLE_HOST=YES`, `AA_TEST_AUTHORIZED_GUEST` set to the host name
+of the authorized guest, a Debian 13 or Rocky 8.10 virtual machine according to
+`systemd-detect-virt --vm`, and neither the installation path nor the appliance
+service unit on the host. This differs from `database-operations.bash`, which
+needs root together with the same variable. A missing item ends the run with one
+`INCOMPLETE:` line and status 77 before any case runs. Run this mode only on a
+disposable guest that the owner named; a defective guard would let the installer
+reach `sudo` and the package manager there. After a forbidden command or a changed
+state, the run stops, keeps its evidence, and the surviving installer processes
+need an inspection before the guest is released. The file `guest-identity.txt` in
+the evidence folder records the value that each confirmation item found.
+
+Run it from the root of the checkout on the guest, with the name that the owner gave
+for that guest. Do not take the name from the guest itself: the check protects only when
+the name comes from the owner's authorization.
+
+```bash
+export AA_TEST_AUTHORIZED_GUEST=<name that the owner gave>
+AA_TEST_DISPOSABLE_HOST=YES bash tests/local-install-config.bash --disposable-host
+```
+
+Status 0 means every assertion passed, 1 means an observed violation, and 77 means
+missing evidence such as an unavailable `strace`; Phase 1 does not catch that
+status, so the phase fails. The test reads the driver of the tree it runs from. A
+copy of the repository whose driver is the original one fails it:
+
+```bash
+tree=$(mktemp -d) && cp -a Makefile configure scripts site-template tests "${tree}/"
+sha=c4b27bcc65fa70ee7c80ccee7d40136bab64d995
+git show "${sha}:scripts/install-local-common.bash" > "${tree}/scripts/install-local-common.bash"
+bash "${tree}/tests/local-install-config.bash" --local --evidence "${tree}/evidence"
+```
+
 ### Real EPICS Base binaries
 
 Some local checks need the binaries of a real EPICS Base: `softIoc` and `caget`.

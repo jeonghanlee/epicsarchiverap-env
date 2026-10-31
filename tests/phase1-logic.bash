@@ -1227,6 +1227,8 @@ else
     printf '  [SKIP] database settings identity: real mysql client unavailable\n'
 fi
 bash "${TOP}/tests/local-install-output.bash"
+# The installers refuse an invalid configure/CONFIG_SITE.local before any Make call; this runs every installer call with --plan.
+bash "${TOP}/tests/local-install-config.bash" --local
 python3 "${TOP}/tests/local-install-epics.py"
 
 # VM CLI validation runs without virtualization or network.

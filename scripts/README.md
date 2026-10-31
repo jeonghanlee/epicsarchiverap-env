@@ -19,6 +19,14 @@ Read the [installation procedure](../docs/README.install.md#local-systemd-instal
 for prerequisites, configuration placement, and database preparation before
 confirming installation.
 
+Before any `make` step, `sudo`, lock or package step, and also with `--plan`, an entry
+script checks `configure/CONFIG_SITE.local`. The file must be absent or hold only the
+generated line `include $(TOP)/configure/os/<preset>.mk` of a shipped preset; the script
+stops with status 1 and names the file, the reason and the offending line numbers, never
+the contents. Move site settings to `../CONFIG_SITE.local` first, then delete
+`configure/CONFIG_SITE.local`; the installer writes the generated line again. Running
+`make <os>.conf` before the move overwrites the settings. `--help` does not read the file.
+
 ## Script responsibilities and callers
 
 The three entry scripts above select the

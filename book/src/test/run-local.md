@@ -5,6 +5,7 @@ The local suite checks the Make system, the configuration files, the control scr
 ## Prerequisites
 
 - A checkout of the repository with `make`, `bash` and `python3`.
+- `strace` and an ordinary user: the installer configuration check traces every command that an installer starts. Without a working `strace` it prints `INCOMPLETE:` and ends with status 77, and Phase 1 then fails.
 - Optional: the source clone of the repository (`make init` creates it). The interface files group reads the management interface from it and is skipped with a message when no clone exists.
 - Optional: the `bin/<host_arch>` folder of an Experimental Physics and Industrial Control System (EPICS) Base, for the check that resolves the real `softIoc` and `caget`. Step 2 shows how to find it. Without it the check prints `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.`
 

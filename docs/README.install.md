@@ -27,6 +27,18 @@ Prerequisites:
 - Storage, Tomcat, service-account, and database settings in
   `../CONFIG_SITE.local`, as described in [configuration variable placement](#configuration-variable-placement).
   Select a different source through the supported RELEASE overrides.
+- `configure/CONFIG_SITE.local` either absent or holding only the generated line
+  `include $(TOP)/configure/os/<preset>.mk` for one of the six shipped presets, with or
+  without a final newline. Before any make step, `sudo` or package change, also with
+  `--plan`, an entry script checks the file with Bash builtins and stops with status 1
+  when it is a symbolic link, is not a readable regular file, is empty, contains a NUL
+  byte, or holds anything else: an extra assignment, a comment, a blank line, a second
+  include, a Make expression, altered whitespace or CRLF line ends. The message names
+  the file, the reason and the offending line numbers, never the contents. To recover,
+  inspect the named lines, move the site settings to `../CONFIG_SITE.local` first, then
+  delete `configure/CONFIG_SITE.local`; the installer writes the generated line again.
+  Running `make <os>.conf` before the move overwrites the settings. `--help` does not
+  read the file.
 - A clean source checkout, if one exists. Tracked or staged changes and
   untracked files stop preflight. Generated `src/sitespecific/als` files and
   ignored build outputs are allowed; ignored inputs under `src` or `.mvn` are rejected.
@@ -84,8 +96,9 @@ Prerequisites:
    installed appliance when reusing Tomcat. Tomcat replacement stops the appliance
    earlier, before moving the shared Tomcat directory. The installer requires the appliance to be stopped before database
    preparation and payload replacement, then starts the appliance and health timer.
-   The OS preset rewrites `configure/CONFIG_SITE.local`; keep site overrides in
-   `../CONFIG_SITE.local`.
+   The installer first checks `configure/CONFIG_SITE.local` and stops unless it is absent
+   or holds only the generated include; the OS preset then rewrites that file. Keep site overrides
+   in `../CONFIG_SITE.local`.
 
    | Option | Behavior |
    | --- | --- |
@@ -342,7 +355,8 @@ files, use `$$` for a literal dollar and `\#` for a literal hash.
   `TOMCAT_INSTALL_LOCATION`, which follows `AA_INSTALL_PATH` unless explicitly
   overridden. OS presets preserve both Tomcat path overrides. Do not place
   overrides in `configure/CONFIG_SITE.local` when `make <os>.conf` is used, since
-  that target overwrites the file.
+  that target overwrites the file, and the installers stop before any change unless it
+  is absent or holds only the generated include.
 
 ### Maven flags and proxy settings
 

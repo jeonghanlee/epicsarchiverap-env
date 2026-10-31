@@ -24,7 +24,7 @@ Paths and names on this page are the defaults. `make -s print-<variable>` prints
 
 ## Changes in the checkout
 
-- The first `make` step, `make <os>.conf`, deletes and rewrites `configure/CONFIG_SITE.local`.
+- Before any change, the installer checks `configure/CONFIG_SITE.local` and stops unless it is absent or holds only the generated include. The step `make <os>.conf` then deletes and rewrites that file.
 - The installer renders the generated files and creates the lock file `work/.local-install.lock`.
 - On the first run it clones the source repository `epicsarchiverap-maven-src`. On every run it fetches and builds the source.
 - The build replaces `epicsarchiverap-maven-src/src/sitespecific/<site_id>` with a copy of `site-template/siteid`. The placeholder `<site_id>` is `ARCHAPPL_SITEID`; the installers pass `als` to every make step.
