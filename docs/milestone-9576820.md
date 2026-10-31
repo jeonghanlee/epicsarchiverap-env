@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: T1 to T5 are recorded as Pass on Debian 13 and Rocky 8.10, so M2 closes only with its commit, push and landing evidence under separate `git-workflow` authority; the plan was accepted and implementation authorized on 2026-10-30, and the Verification Results record what has run. D15 requires file and line numbers without configuration contents in diagnostics. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995. Commit, push and issue creation need their own authority. Then follow M3 and M4 in that order. M5, M6 and M7 remain Deferred; their later order is not authorization to resume.
+Next session entry point: Review the M3 draft Implementation Plan in `docs/milestone-9576820.md`; its conversion plan and acceptance are pending, so no implementation is authorized. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push and issue creation need their own authority. Then follow M4. M5, M6 and M7 remain Deferred; their later order is not authorization to resume.
 
 ## Scope
 
@@ -22,11 +22,11 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | DB | M1 | Apply backend selection to all database operations | Carry-forward | Complete | No | D4, D11, D13, D14 | T1-T5 and correction checks passed; landed at c4b27bc; [detail](#m1---apply-backend-selection-to-all-database-operations) |
-| Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | In progress | No | M1, D7, D11, D15 | Installers refuse extra assignments before overwriting generated OS configuration; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
-| Tests | M3 | Replace the Python tests with Bash tests | Carry-forward | Not started | No | M2, D6, D11 | Shell and Make tests run in Bash with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-bash-tests) |
+| Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
+| Tests | M3 | Replace the Python tests with Bash tests | Carry-forward | Not started | Yes | M2, D6, D11 | Shell and Make tests run in Bash with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-bash-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | No | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 1 Complete, 1 In progress and 2 Not started. No assigned row is Ready until M2 completes; M3 follows M2.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 2 Complete and 2 Not started. M3 is the nearest Ready item.
 
 ### Decisions
 
@@ -537,7 +537,7 @@ locale; XML rendering is unchanged and covered by the configuration suite.
 Origin: 9576820 / M5
 Identity History: M5 -> M2 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -652,7 +652,11 @@ Input identities of the runs above:
 
 ##### Closure Evidence
 
-- none
+- Implementation and required verification: finished on 2026-10-31. T1 to T5 are Pass in Verification Results, on the Debian 13 development host and on two disposable guests (Debian 13 and Rocky 8.10).
+- Completion criteria against the evidence: refusal before any `make`, `sudo`, lock, package or service step, with the files unchanged (T1, 264 runs on each guest including 132 without `--plan`); diagnostic with file, line numbers and `../CONFIG_SITE.local`, never contents (T1); valid input, absent file and `--help` still work, and `--yes` and `--skip-packages` do not bypass the check (T1, T3); the actual OS targets still write the generated include (T4); the new regression runs the shipped entry scripts and fails on the original driver and on a copy without the guard call (T2).
+- Repository landing: commit de8301cb05d3d026708a0270878e110bee497ee7 on origin/maven. Observed at 2026-10-31T03:57:40Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit. The committed driver, test, Phase 1 file and `tests/database-config.py` carry the hashes of the table above.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue.
+- Linked GitHub issue: none.
 
 ##### GitHub Projection
 
