@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Review the M3 draft Implementation Plan in `docs/milestone-9576820.md`; its conversion plan and acceptance are pending, so no implementation is authorized. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push and issue creation need their own authority. Then follow M4. M5, M6 and M7 remain Deferred; their later order is not authorization to resume.
+Next session entry point: Review and accept the M3 draft plan in `docs/milestone-9576820.md`; all its owner decisions are settled (D16 to D21) and the Perl baseline is measured, but no implementation is authorized until the plan is accepted and the implementation is authorized separately. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push and issue creation need their own authority. Then follow M4. M5, M6 and M7 remain Deferred and M8 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns the seven unfinished items on the default development branch. The assigned work order is M1, M2, M3 and M4. Deferred work is ordered M5, M6 and M7 for later reconsideration. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns eight work items on the default development branch. The assigned work order is M1, M2, M3 and M4. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8 is unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -23,7 +23,7 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | DB | M1 | Apply backend selection to all database operations | Carry-forward | Complete | No | D4, D11, D13, D14 | T1-T5 and correction checks passed; landed at c4b27bc; [detail](#m1---apply-backend-selection-to-all-database-operations) |
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
-| Tests | M3 | Replace the Python tests with Bash tests | Carry-forward | Not started | Yes | M2, D6, D11 | Shell and Make tests run in Bash with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-bash-tests) |
+| Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Not started | Yes | M2, D6, D11, D16, D17, D18, D19, D20, D21 | Shell and Make tests run in Perl with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-perl-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | No | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 
 Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 2 Complete and 2 Not started. M3 is the nearest Ready item.
@@ -47,6 +47,12 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D13 | Extend the existing database commands for M1 instead of adding a parallel common command set. Keep db.create, db.drop and db.show as the public entrypoints and select their behavior through DB_BACKEND. Preserve MariaDB database-and-account creation and deletion; replace SQLite skipping for these entrypoints with file lifecycle and inspection operations. This selects the command interface for the draft plan, not full plan acceptance or implementation authorization. | 2026-10-29 |
 | D14 | Preserve the existing table-deletion scope for M1: sql.drop and sql.table.drop remove every user table in the selected database on both backends, including tables beyond the four shipped appliance tables. Do not target database-engine internal tables. Keep the database or SQLite file itself; db.drop remains the separate database-removal operation. This selects deletion scope for the draft plan, not full plan acceptance or implementation authorization. | 2026-10-30 |
 | D15 | For M2 refusal diagnostics, report the configuration file and offending line numbers without printing line contents or values. Name ../CONFIG_SITE.local as the destination for site settings. This supersedes the raw-line output requirement in D7; refusal before changes remains required. | 2026-10-30 |
+| D16 | Write the tests that replace the Python tests in Perl, one language for all of them, at the language level of the oldest supported interpreter (Perl 5.26.3 on Rocky Linux 8.10) and with the modules that every supported system has after its package preparation; tests that already run in Bash stay. This amends the language of D6, which named Bash; D6 still keeps Python only where testing Python code requires it. Conversion scope, order and acceptance remain open. | 2026-10-30 |
+| D17 | Leave the VM driver (`tests/vm/driver.py`), the guest verifier (`tests/vm/guest.py`) and the driver test (`tests/vm/local.py`) out of M3. Their replacement, and the language of any replacement, is decided in M8. M3 converts the tests of shell code, Make rules and the installed appliance outside that trio, and updates only the places in the trio that call a converted test. | 2026-10-30 |
+| D18 | Read the completion criterion without skips as no new skip: the skips that the local suite prints today (the SQLite lifecycle check and the database maintenance client check, which need a disposable guest, and the real Base binary resolution, which needs `AA_TEST_EPICS_BIN`) may remain, and no converted test adds one. | 2026-10-30 |
+| D19 | Allow the replacement tests new prerequisites where the Perl core has no equivalent, and document them as prerequisites of the local suite: `xmllint`, `script` and `sqlite3`, and on Rocky Linux the packages that provide the Perl modules missing after its package preparation. The final list follows from the modules the converted tests use. | 2026-10-30 |
+| D20 | Treat `tests/heap/inspect-inputs.py` as a preparation tool, not a test: it reads the preserved soak inputs and emits their hashes and populations. It stays outside M3 and remains Python, the one Python file beside the VM driver trio of M8 that D6 and D16 do not convert. | 2026-10-30 |
+| D21 | Read "without skips" as the rule of the VM driver's completeness check (`local_suite_complete`): the output of the local suite, run with a real EPICS Base supplied through `AA_TEST_EPICS_BIN` on a host that meets its other optional prerequisites (the source clone, a real Java, the `mysql` client and a `/dev/shm` on its own filesystem), has no `[SKIP]` line, no line that starts with `SKIP:` and no unittest skip. The two announcements in `tests/phase1-logic.bash` of checks that run in `tests/database-operations.bash` on a disposable guest stop using the skip marker and read as plain statements; this change was made on 2026-10-30. This supersedes D18. | 2026-10-30 |
 
 ### ID Migration
 
@@ -666,7 +672,7 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
-#### M3 - Replace the Python tests with Bash tests
+#### M3 - Replace the Python tests with Perl tests
 
 Origin: 9576820 / M4
 Identity History: M4 -> M3 on 2026-10-29; renumbered to match the selected work order
@@ -677,27 +683,51 @@ Status: Not started
 
 The shell, Make and installed-appliance tests include Python programs that run across different host and guest Python versions. At 95768200a49e965ef2dd1949919e955af982aff6, `git ls-files tests` lists 13 Python files, including the config.d and local-install checks. This inventory supersedes the earlier seven-file count; it does not change the accepted direction or authorize conversion.
 
-D6 sets Bash as the direction for shell-code tests. D11 assigns the existing scope after M2; the detailed conversion plan and acceptance remain pending.
+D6 sets the direction away from Python for tests of shell code, and D16 names Perl as the language where D6 named Bash. D11 assigns the existing scope after M2; D17 leaves the VM driver, the guest verifier and the driver test to M8. The detailed conversion plan and acceptance remain pending.
 
 ##### Scope
 
 - Inventory every Python file and the consumers that call it, from `tests/phase1-logic.bash` and `tests/run-all-tests.bash`.
-- Convert the tests of shell code first (`tests/health-local.py`, `tests/database-config.py`, `tests/install-payload.py`), keeping each assertion and its real-path method.
-- Decide separately how the VM driver and guest verifier are replaced, since they carry the largest logic and run on guests with different Python versions.
+- Convert the tests of shell code first (`tests/health-local.py`, `tests/database-config.py`, `tests/install-payload.py`) to Perl, keeping each assertion and its real-path method.
+- Leave the VM driver, the guest verifier and the driver test (`tests/vm/driver.py`, `guest.py`, `local.py`) to M8 (D17); update only the places in them that call a converted test.
 
-Out of scope: any change to what the tests assert; replacing Ansible, which the control host still needs.
+Out of scope: any change to what the tests assert; replacing the VM driver, guest verifier and driver test (M8); the preparation tool `tests/heap/inspect-inputs.py`, which is not a test (D20); replacing Ansible, which the control host still needs.
 
 ##### Completion Criteria
 
-- No test of shell code, Make rules or the installed appliance remains Python.
+- No test of shell code, Make rules or the installed appliance remains Python, except the VM driver, the guest verifier and the driver test, which M8 owns (D17), and the preparation tool `tests/heap/inspect-inputs.py`, which D20 keeps in Python.
 - Each converted test fails on the defect it covers, shown by a mutation of the shipped code.
-- The full local suite and the VM matrix keep their current pass conditions without skips.
+- The full local suite, run with a real EPICS Base on a host that meets its other optional prerequisites (D21), prints no skip, so the completeness check of the VM driver accepts its output, and the VM matrix keeps its current pass conditions.
 
 ##### Dependencies And Decisions
 
-- D11 assigns this work and changes Open to Not started on 2026-10-29 under the existing conversion scope. It settles work order and supersedes D10's unassigned condition; D6's Bash direction remains in force.
+- D11 assigns this work and changes Open to Not started on 2026-10-29 under the existing conversion scope. It settles work order and supersedes D10's unassigned condition.
+- D17, D18, D19 and D20 settle on 2026-10-30 the owner decisions recorded below: the VM driver and verifier go to M8, no new skip is allowed, new prerequisites are allowed, and the preparation tool stays Python. D21 supersedes D18 after the review found the completeness check of the VM driver.
+- D16 selects Perl as the replacement language on 2026-10-30. It amends the language of D6 only; the interpreter baseline and the modules that each supported system has after its package preparation were measured on a Debian 13 and a Rocky Linux 8.10 system (Planning Findings).
 - M2 is a work-order dependency selected by D11, not a technical prerequisite.
-- Preparation must refresh the Python-file and caller inventory after M1 and M2, then map every assertion to its proposed real-path Bash check. Driver/verifier replacement details and plan acceptance remain unresolved; the assignment does not accept a replacement design.
+- Preparation refreshed the Python-file and caller inventory after M1 and M2 (Planning Findings). The mapping of every assertion to a real-path Perl check is step 2 of the plan, and plan acceptance remains pending.
+
+
+###### Planning Findings
+
+| Class | Finding | Evidence |
+| --- | --- | --- |
+| Confirmed finding | As first drafted, completion criterion 3 asked for no skips, but the passing local suite prints three: the SQLite lifecycle check and the database maintenance client check need a disposable guest, and the real Base binary resolution needs `AA_TEST_EPICS_BIN`. | `bash tests/run-all-tests.bash --local` on the tree of de8301c |
+| Confirmed finding | As first drafted, scope and criterion 1 disagreed about the VM driver and verifier: criterion 1 forbade a Python test of the installed appliance, while the scope left their replacement to a separate decision. `tests/vm/guest.py` verifies the installed appliance; `tests/vm/local.py` tests Python code (`tests/vm/driver.py`). | tests/vm/guest.py, tests/vm/local.py, Scope |
+| Confirmed finding | The inventory after M1 and M2 is unchanged: 13 Python files under tests (2,357 lines of shell-code and appliance tests, 3,059 lines of VM driver, verifier and driver test, 142 lines of one preparation tool); only `tests/database-config.py` was edited. The first draft lacked the per-assertion mapping that Dependencies requires; step 2 of the plan now owns it. | `git ls-files tests` at de8301c |
+| Confirmed finding | Three files have no caller in the code and run by hand: `tests/install-payload.py` (two real Maven target directories), `tests/config-d-runtime.py` (Java, Tomcat and WAR files) and `tests/heap/inspect-inputs.py` (a preparation tool for the heap soak, not a test). The first draft did not classify them; the plan converts the first two and D20 keeps the third in Python. | tests/README.md, tests/heap/README.md |
+| Confirmed finding | No record shows which defects the Python tests catch, so "the same defect detection" cannot be shown for a converted test; step 2 of the plan records them. | Completion Criteria, Test Plan T1 |
+| Owner decision resolved | Perl as the one replacement language, amending D6. | D16 |
+| Owner decision resolved | The VM driver, guest verifier and driver test go to the separate item M8; M3 converts the other tests. | D17 |
+| Owner decision resolved | Without skips first meant no new skip beyond the three above. | D18, superseded by D21 |
+| Confirmed finding | The VM driver rejects a local suite whose output has a `[SKIP]` line, a line that starts with `SKIP:` or unittest skips. Since the commit that added two unconditional `[SKIP]` announcements to `tests/phase1-logic.bash`, that check returned False for every run of the tree, so the acceptance run of the VM matrix could not pass at its local suite step; D18 and criterion 3 rested on a wrong reading. | `local_suite_complete` applied to the output of the suite at de8301c; the introducing commit c4b27bc |
+| Owner decision resolved | The two announcements lose the skip marker, and the local suite prints no skip when a real Base is supplied. | D21 |
+| Confirmed finding | After that change the suite run with a real Base ends with status 0 and no skip, and `local_suite_complete` is True; without the Base one skip remains, from the unset `AA_TEST_EPICS_BIN`. | suite output with and without `AA_TEST_EPICS_BIN` on 2026-10-30 |
+| Confirmed finding | The completeness check also fails on six other environment skips of the suite (no source clone, no directory creatable under the storage base, a `/dev/shm` on the root filesystem, no real Java, a threshold outside 1 to 100, no `mysql` client), and the driver does not pass `AA_TEST_EPICS_BIN` on: it hands its own environment to the suite. The documents list only the source clone and the Base as optional prerequisites. D21 and step 1 of the plan now name them. | the skip conditions in `tests/phase1-logic.bash`; `tests/vm/driver.py` |
+| Confirmed finding | As first drafted, no check covered criterion 1, and no check ran the converted guest-side tests: `tests/config-d-runtime.py` needs Java, Tomcat and WAR files, and the `tests/local-install-pv-*.py` checks need real WAR files and a soft IOC on a disposable guest, while T1 named the local host and the VM matrix runs none of them. T3 and T4 now cover both. | tests/README.md, Test Plan |
+| Owner decision resolved | New prerequisites of the replacement tests are allowed and documented. | D19 |
+| Owner decision resolved | `tests/heap/inspect-inputs.py`, a preparation tool that reads the soak inputs and is not a test, stays outside M3 and remains Python. | D20 |
+| Confirmed finding | Measured with the probe of the Perl standards on a Debian 13 guest and a Rocky Linux 8.10 guest, each a base image plus `git`, `make` and `strace`. Debian 13 has Perl 5.40.1 with `JSON::PP`, `Digest::SHA`, `Test::More`, `IO::Socket::INET`, `IO::Uncompress::Unzip` and `Time::HiRes`. Rocky Linux 8.10 has only the interpreter 5.26.3, without `JSON::PP`, `Digest::SHA`, `Test::More`, `Time::HiRes`, `IO::Uncompress::Unzip` and `prove`; the packages are perl-JSON-PP, perl-Digest-SHA, perl-Test-Simple, perl-Time-HiRes, perl-IO-Compress and perl-Test-Harness. `xmllint` is present on Rocky Linux and missing on Debian (package libxml2-utils); `script` is present on both; `sqlite3`, `jq` and `unzip` are missing on both. The XML, pseudo-terminal and SQLite modules are absent everywhere, so those checks keep using a command. | probe and package queries on the two guests, 2026-10-31 UTC |
 
 ##### Implementation Plan
 
@@ -706,15 +736,20 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. After the owner decision, inventory each Python file with its callers and the behavior it asserts.
-2. Convert the shell-code tests one file at a time, then plan the driver and verifier.
+1. The Perl baseline is measured (Planning Findings). Fix the prerequisite list from the modules the converted tests use, document it in `tests/README.md` and `book/src/test/run-local.md`, and keep `python3` listed while any Python file remains. Also document the optional prerequisites whose absence prints a skip (the source clone, a real Java, the `mysql` client, a `/dev/shm` on its own filesystem and `AA_TEST_EPICS_BIN`), and that the VM acceptance run needs them and the variable exported before the driver starts, because the driver passes its own environment to the suite.
+2. For each Python file, write its contract (the assertions, the real-path method, the inputs and the consumer that calls it) and record which defects it catches. Run the Python test from a copy of the repository tree that includes the tests, because each test finds the shipped code from its own location; mutate the copy and supply the inputs the test needs. `tests/database-config.py` and `tests/install-payload.py` read the tree with `git ls-files`, so make the copy a Git work tree; `tests/database-config.py` also needs the source clone, and the `tests/local-install-pv-*.py` checks need the EPICS Base path and an evidence folder in their environment.
+3. Convert one file at a time: first the three tests of shell code that the scope names (`tests/health-local.py`, `tests/database-config.py`, `tests/install-payload.py`), then `tests/config-d.py`, `tests/local-install-epics.py`, the three `tests/local-install-pv-*.py` checks and `tests/config-d-runtime.py`. Run the Perl test and the Python test on the same inputs and compare their outcomes, then run the Perl test against each recorded mutation. Remove the Python file only after both hold.
+4. Update the consumers and prerequisites (`tests/phase1-logic.bash`, `tests/run-all-tests.bash`, `tests/README.md`, `book/src/test/`) and run the full local suite.
+5. Update the two calls in `tests/vm/local.py` that start a converted test (`tests/health-local.py` and `tests/local-install-epics.py`); the driver and the verifier call no converted test, and the three files stay otherwise unchanged (D17).
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
 | T1 | Local | Each converted test against the shipped code, then against a scratch mutation that reintroduces the defect it covers | Local host | Passes on the shipped code and fails on its mutation |
-| T2 | System | Full `tests/run-all-tests.bash --local` and the VM matrix | Local host; fresh guests | Same pass conditions as before, no skips |
+| T2 | System | Full `tests/run-all-tests.bash --local` with a real EPICS Base supplied, and the VM matrix | Local host; fresh guests | Same pass conditions as before, no skip, and the output passes `local_suite_complete` |
+| T3 | Inventory | Compare `git ls-files '*.py' '*.py.in'` with the exceptions of criterion 1 | Local host | Only `tests/vm/driver.py`, `tests/vm/guest.py`, `tests/vm/local.py`, `tests/heap/inspect-inputs.py` and the shipped `site-template/policies.py.in` remain |
+| T4 | Guest | The converted `config-d-runtime` and `local-install-pv-*` checks on a Debian 13 and a Rocky Linux 8.10 guest with their prerequisites, against the shipped code and each recorded mutation | Disposable guests with Java, Tomcat 9, built WAR files and EPICS Base | Same pass conditions as their Python versions, with no new skip |
 
 ##### Verification Results
 
@@ -722,6 +757,8 @@ Superseded Plan Artifacts: none
 | --- | --- | --- | --- | --- |
 | T1 | Pending | Local host | Pending | none |
 | T2 | Pending | Local host; fresh guests | Pending | none |
+| T3 | Pending | Local host | Pending | none |
+| T4 | Pending | Disposable Debian 13 and Rocky Linux 8.10 guests | Pending | none |
 
 ##### Closure Evidence
 
@@ -729,7 +766,7 @@ Superseded Plan Artifacts: none
 
 ##### GitHub Projection
 
-Title: Replace the Python tests with Bash tests
+Title: Replace the Python tests with Perl tests
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none; no issue exists yet
@@ -754,7 +791,7 @@ The delegated third-person review of `tests/vm/driver.py`, `guest.py`, `local.py
 - Strengthen the tests: in the mutation sample of the review, 101 of 125 mutations survive; the verdict gates, the cleanup verification, `build_proof`, the adoption path, the species mapping and the guest actions have no test that fails on a mutation.
 - Correct the three places where the documents and the code disagree.
 
-Out of scope: choosing a driver replacement (M3 owns that decision); changing the accepted historical local-installer verification method.
+Out of scope: choosing a driver replacement (M8 owns that decision); changing the accepted historical local-installer verification method.
 
 ##### Completion Criteria
 
@@ -765,7 +802,7 @@ Out of scope: choosing a driver replacement (M3 owns that decision); changing th
 ##### Dependencies And Decisions
 
 - D11 assigns this work and changes Deferred to Not started on 2026-10-29, superseding the scheduling restrictions of D8 and D10. The prohibition on changing driver files during an open run remains in force.
-- M3 is a work-order dependency selected by D11. Because M3 may replace the driver or its tests, recheck each historical finding against the resulting implementation before drafting fixes; do not assume the old Python files or line numbers still apply.
+- M3 is a work-order dependency selected by D11. Because M3 converts the tests that the driver test calls and M8 may replace the driver or its tests, recheck each historical finding against the resulting implementation before drafting fixes; do not assume the old Python files or line numbers still apply.
 - Preparation must account for every finding as still present, already resolved with evidence, or requiring a decision. Preserve the completion criteria and real-guest verification; obtain plan acceptance before implementation.
 - The current record does not identify the three documentation discrepancies or provide a locator for the original review. Before plan acceptance, recover the 2026-10-27 review and record its durable source plus all three document paths, passages and corresponding code behavior in this detail. If that evidence cannot be recovered, obtain a scope decision before accepting the plan; do not infer the missing items or treat them as resolved.
 
@@ -808,7 +845,7 @@ Last Compared: none
 
 ## Backlog
 
-All rows remain unassigned and Deferred. Their reconsideration order is M5, M6 and M7; they are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8 is unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -817,6 +854,7 @@ All rows remain unassigned and Deferred. Their reconsideration order is M5, M6 a
 | Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12 | Measured retrieval benefit and disk cost support a dated decision on LTS pre-processing; [detail](#m5---lts-retrieval-pre-processing-pp) |
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
+| Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Open | No | D6, D16, D17 | The owner decides whether and in which language the driver, verifier and driver test are replaced, and any chosen work passes defect-sensitive tests and a real guest verdict; [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 
 ### Backlog Details
 
@@ -904,7 +942,7 @@ D12 defers this work for reconsideration after M5 and before M7. The direction r
 - Find the checks that prove the same claim from the same inputs, and propose which one stays.
 - State the rule for a re-run: a check runs again only when one of its inputs changed; a change to a file that no test reads does not run the suite.
 
-Out of scope: removing a check that proves a different claim; changing what a test asserts; the VM driver (M4 and M3).
+Out of scope: removing a check that proves a different claim; changing what a test asserts; the VM driver (M4 and M8).
 
 ##### Completion Criteria
 
@@ -1094,6 +1132,69 @@ Observed State: OPEN
 Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-10-29 22:52 PDT via `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-10-05T17:33:17Z. The issue body still gives an illustrative 100/500/1000/2000 PV matrix; the accepted canonical plan uses 100/500/903 PVs. The remote body requires reconciliation before measurement execution.
+
+#### M8 - Decide the replacement of the VM driver and guest verifier
+
+Origin: 9576820 / M8
+Identity History: created as M8 on 2026-10-30 by D17
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+D17 leaves `tests/vm/driver.py` (1,247 lines), `tests/vm/guest.py` (894 lines) and `tests/vm/local.py` (918 lines) out of M3. The driver orchestrates fresh guests, the verifier checks the installed appliance on guests with different Python versions, and the driver test checks the driver and its documents. D6 keeps Python only where testing Python code requires it; D16 names Perl for the replacement tests. Whether and how this trio is replaced is not decided.
+
+##### Scope
+
+- Decide whether the driver, the guest verifier and the driver test are replaced, and in which language, with the consequence for each of them.
+- Carry out the replacement the decision selects, keeping each assertion and its real-path method.
+
+Out of scope: the tests that M3 converts; fixing the review findings of the current driver (M4); replacing Ansible, which the control host still needs.
+
+##### Completion Criteria
+
+- The decision and its date are recorded, naming which of the three files change language and which stay.
+- If a file is replaced, its replacement fails on the defect each assertion covers, shown by a mutation of the shipped code, and a real guest verdict passes under the current conditions.
+
+##### Dependencies And Decisions
+
+- D17 creates this item on 2026-10-30 and leaves it Open until the owner decides priority and scope.
+- D6 and D16 apply to any replacement.
+- The order against M4 is not set. M4 fixes findings in the current Python driver; a replacement could make part of that work unnecessary, so the owner decides the order.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After the owner decision on priority and scope, map each historical finding of M4 to the replacement choice.
+2. Plan the replacement of the chosen files.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Review | Compare the findings of M4 with each replacement choice | The register | The decision names which findings survive each choice |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | The register | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Decide the replacement of the VM driver and guest verifier
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
 
 ## History
 
