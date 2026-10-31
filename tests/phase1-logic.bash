@@ -1208,7 +1208,7 @@ fi
 phase_pass "Phase 1: Logic"
 
 # Real launcher negatives and isolated unit installation; no systemd mutation.
-python3 "${TOP}/tests/health-local.py"
+perl "${TOP}/tests/health-local.pl"
 python3 "${TOP}/tests/config-d.py"
 
 # Instances that have not executed Java yet, through the real launcher health.

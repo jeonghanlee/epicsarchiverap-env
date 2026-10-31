@@ -312,13 +312,13 @@ class EntrypointTests(unittest.TestCase):
             self.assertEqual(version.returncode, 0, version.stderr)
             self.assertFalse((binary / 'javac').exists())
             result = subprocess.run(
-                ['python3', str(TOP / 'tests/health-local.py'),
-                 'HealthTests.test_unrelated_java_with_tomcat_application_arguments'],
+                ['perl', str(TOP / 'tests/health-local.pl'),
+                 '--case', 'unrelated_java_with_tomcat_application_arguments'],
                 env=dict(os.environ, PATH=str(binary) + ':' + os.environ['PATH']),
                 capture_output=True, text=True, timeout=20)
             self.assertEqual(result.returncode, 0, result.stderr)
             output = result.stdout + result.stderr
-            self.assertIn('OK (skipped=1)', output)
+            self.assertIn('SKIP: The installed JDK compiler is required', output)
             self.assertNotIn('[SKIP]', output)
             spec = importlib.util.spec_from_file_location('vm_driver', DRIVER)
             driver = importlib.util.module_from_spec(spec)

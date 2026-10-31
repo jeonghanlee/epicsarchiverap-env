@@ -181,6 +181,20 @@ an incomplete run. A refused handoff leaves the run record unchanged. A recorded
 failure remains a failure after cleanup, and the run then accepts no further
 case. Changed verifier bytes invalidate an existing run.
 
+### Running `health-local.pl` alone
+
+```bash
+perl tests/health-local.pl
+perl tests/health-local.pl --case absent_process --case invalid_cli
+```
+
+The first command runs all 23 cases; each `--case` runs only the named case (`perl tests/health-local.pl --help`
+lists the names). The checkout must be a Git work tree. The test needs `bash`, `make`, `git`, `df`, `sleep`, `xmllint`
+and the Perl module `Test::More`; on Rocky Linux the package `perl-Test-Simple` provides the module. The cases that need
+a real Java executable, the JDK compiler, `systemd-analyze`, `/dev/shm` or a non-root account print a line that starts
+with `SKIP:` when it is missing. The exit status is 0 when every case passed or was skipped, nonzero when an assertion
+failed or the run aborted, and 2 for a usage error.
+
 ## VM Evidence
 
 [Run context and evidence](../docs/README.vmtests.md#run-context-and-evidence)
@@ -194,8 +208,8 @@ Each implemented shell phase creates an `archappl-test.*` workspace under
 `${TMPDIR:-/dev/shm}`. Its `run.log` contains commands captured by that phase;
 it does not contain every test result and may be empty.
 
-`health-local.py` creates separate `archappl-health-*` and `archappl-units-*`
-workspaces in Python's temporary directory (normally `/tmp`, or the configured
+`health-local.pl` creates separate `archappl-health-*` and `archappl-units-*`
+workspaces in the temporary directory (normally `/tmp`, or the configured
 `TMPDIR`). Their `run.log` files contain health diagnostics and Make output,
 respectively. Test verdicts and retained workspace paths are printed to the
 console. Preserve both console streams and all printed workspace paths when
@@ -276,7 +290,7 @@ NO_ANT_TREE_UNDER_TEST="${tree}" bash tests/no-ant.bash
 - No `java-env`, `MAVEN_HOME`, or local-install reference survives in `configure/`, `scripts/`, or `README.md`; `MAVEN_CMD` is the source tree's `mvnw`.
 - `run_logged` preserves both success and a nonzero exit status from real child commands.
 - All six Maven targets parse with `MAVEN_FLAGS` and render those flags immediately after the Maven Wrapper command. The check uses the real Makefile with `make -n`; it does not run Maven, read the example settings file, or verify proxy connectivity.
-- `health-local.py` invokes an unchanged copy of the shipped launcher in a
+- `health-local.pl` invokes an unchanged copy of the shipped launcher in a
   filesystem fixture. It checks absent/invalid/unreadable configuration, absent
   and malformed PID files, a nonexistent PID, a real unrelated process and a
   real zombie, multi-instance output, inspection-error precedence and preserved
@@ -760,7 +774,7 @@ sudo env AA_TEST_DISPOSABLE_HOST=YES python3 tests/database-config.py --integrat
 `epicsarchiverap-maven-src`. Missing disposable-host authorization exits 77.
 These checks do not replace the Bash suite or real appliance installation tests.
 
-`install-payload.py` accepts two real Maven `target` directories and an
+`install-payload.pl` accepts two real Maven `target` directories and an
 `--old-log4j` directory containing real old log4j JARs. It runs the shipped
 `install.mgmt`, `install.engine`, `install.etl` and `install.retrieval` targets
 twice under a temporary prefix and compares every installed payload file with
@@ -771,10 +785,17 @@ changing the installed mgmt payload. It exits nonzero on a mismatch and retains
 its workspace and log. No systemd unit or running appliance is changed. This
 checks installation contents, not runtime upgrade behavior or host privileges.
 
+The exit status is 0 when every check passed, 1 when an assertion failed and 2 for a usage or environment
+error. The test needs `git`, `make`, `unzip` (the shipped `scripts/install-payload.bash` runs it) and the Perl
+modules `Digest::SHA` and `IO::Uncompress::Unzip`; on Rocky Linux the packages `perl-Digest-SHA` and
+`perl-IO-Compress` provide them. The path that the test uses for the root-alias rejection climbs from the
+workspace to the filesystem root by the depth of the workspace, and the test stops before it runs the installer
+if that path does not resolve to `/`, so the workspace may be anywhere (`TMPDIR`).
+
 Run the payload comparison from the epicsarchiverap-env checkout, using actual build paths:
 
 ```bash
-python3 tests/install-payload.py /path/old/target /path/new/target --old-log4j /path/old/log4j
+perl tests/install-payload.pl /path/old/target /path/new/target --old-log4j /path/old/log4j
 ```
 
 Exit 0 means all four payload comparisons, state-preservation checks, invalid
