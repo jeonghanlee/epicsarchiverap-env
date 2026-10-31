@@ -727,7 +727,7 @@ else
     assert_eq "$(grep -c '^CREATE [A-Z]* IF NOT EXISTS ' "${be_copy}")" "$(grep -c '^CREATE ' "${be_copy}")" \
         "Every CREATE in the SQLite copy is guarded by IF NOT EXISTS"
 fi
-printf '  [SKIP] SQLite database lifecycle: run tests/database-operations.bash on a disposable guest\n'
+printf '  Covered elsewhere: the SQLite database lifecycle runs in tests/database-operations.bash on a disposable guest\n'
 
 # P1.25 conf.storage warns when the store shares the root filesystem or lies
 # under a user home and succeeds either way; archappl.conf carries the alarm
@@ -925,7 +925,7 @@ assert_eq "${so_sqlite_socket}" "$(cat "${so_ctx}")" "DB_SOCKET leaves the SQLit
 
 # P1.27 Offline database operations and root account operations require a
 # disposable systemd host. The real-client checks live in database-operations.bash.
-printf '  [SKIP] database maintenance client failures: run tests/database-operations.bash on a disposable guest\n'
+printf '  Covered elsewhere: the database maintenance client failures run in tests/database-operations.bash on a disposable guest\n'
 
 # P1.28 startup, shutdown and restart report a failed instance script in their exit status, and
 # no action runs an instance without archappl.conf. The shipped launcher runs from a copy next to
