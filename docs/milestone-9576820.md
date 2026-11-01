@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Continue the accepted M3 plan in `docs/milestone-9576820.md`: six of the nine Python tests are converted (`tests/install-payload.py`, `tests/health-local.py`, `tests/database-config.py`, `tests/config-d.py`, `tests/local-install-epics.py` and `tests/local-install-pv-menu.py`, see the conversion record); convert the next one, `tests/local-install-pv-range.py`, and point the fixture link of `tests/local-install-pv-menu.pl` to its Perl replacement, and record each result in Verification Results. The plan was accepted and implementation authorized on 2026-10-31. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push, issue creation and guest provisioning need their own authority. Then follow M4. M5, M6 and M7 remain Deferred and M8 Open; their later order is not authorization to resume.
+Next session entry point: Continue the accepted M3 plan in `docs/milestone-9576820.md`: seven of the nine Python tests are converted (`tests/install-payload.py`, `tests/health-local.py`, `tests/database-config.py`, `tests/config-d.py`, `tests/local-install-epics.py`, `tests/local-install-pv-menu.py` and `tests/local-install-pv-range.py`, see the conversion record); convert the next one, `tests/local-install-pv-signals.py`, and record each result in Verification Results. The plan was accepted and implementation authorized on 2026-10-31. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push, issue creation and guest provisioning need their own authority. Then follow M4. M5, M6 and M7 remain Deferred and M8 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns eight work items on the default development branch. The assigned work order is M1, M2, M3 and M4. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8 is unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns nine work items on the default development branch. The assigned work order is M1, M2, M3 and M4. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8 and M9 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -23,7 +23,7 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | DB | M1 | Apply backend selection to all database operations | Carry-forward | Complete | No | D4, D11, D13, D14 | T1-T5 and correction checks passed; landed at c4b27bc; [detail](#m1---apply-backend-selection-to-all-database-operations) |
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
-| Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | In progress | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22 | Shell and Make tests run in Perl with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-perl-tests) |
+| Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | In progress | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23 | Shell and Make tests run in Perl with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-perl-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | No | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 
 Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 2 Complete, 1 In progress and 1 Not started. No assigned row is Ready until M3 completes; M4 follows M3.
@@ -54,6 +54,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D20 | Treat `tests/heap/inspect-inputs.py` as a preparation tool, not a test: it reads the preserved soak inputs and emits their hashes and populations. It stays outside M3 and remains Python, the one Python file beside the VM driver trio of M8 that D6 and D16 do not convert. | 2026-10-30 |
 | D21 | Read "without skips" as the rule of the VM driver's completeness check (`local_suite_complete`): the output of the local suite, run with a real EPICS Base supplied through `AA_TEST_EPICS_BIN` on a host that meets its other optional prerequisites (the source clone, a real Java, the `mysql` client and a `/dev/shm` on its own filesystem), has no `[SKIP]` line, no line that starts with `SKIP:` and no unittest skip. The two announcements in `tests/phase1-logic.bash` of checks that run in `tests/database-operations.bash` on a disposable guest stop using the skip marker and read as plain statements; this change was made on 2026-10-30. This supersedes D18. | 2026-10-30 |
 | D22 | `tests/config-d.pl` removes the workspace of a passing case and keeps the workspace of a failed case, or of every case when `KEEP_WORKSPACE=1`, and prints the kept path, as `tests/health-local.pl` and `tests/database-config.pl` do; the Python `tests/config-d.py` kept every workspace. | 2026-10-31 |
+| D23 | Convert `tests/local-install-pv-range.py` with its behavior, including the way it keeps the query and the response of the replaced HTTP transport in two files that can come from different attempts, and handle that defect afterwards as the separate item M9. | 2026-10-31 |
 
 ### ID Migration
 
@@ -731,6 +732,8 @@ Out of scope: any change to what the tests assert; replacing the VM driver, gues
 | Owner decision resolved | New prerequisites of the replacement tests are allowed and documented. | D19 |
 | Owner decision resolved | `tests/heap/inspect-inputs.py`, a preparation tool that reads the soak inputs and is not a test, stays outside M3 and remains Python. | D20 |
 | Owner decision resolved | The workspace of a passing case is removed and that of a failed case or a case with `KEEP_WORKSPACE=1` is kept, as in `tests/health-local.pl` and `tests/database-config.pl`; the Python `tests/config-d.py` kept every workspace. | D22 |
+| Confirmed finding | Found while converting `tests/local-install-pv-range.py`: the unmutated Python test and the unmutated Perl test, run alternately six times each on this host, both failed in runs 1 and 4 (Python at wrong-pv both times, Perl at time-skew and at boundary); the unmutated Perl test also failed once in a mutation series (at outside, with a `query.json` and a `response.json` from different attempts) and once in a run without a controlling terminal (at inside). The fixture writes `query.json` and then `response.json` for every request, and when the verifier ends an attempt at its deadline, the fixture process of that attempt can finish after the next attempt has written its own files, so the pair does not come from one attempt and the count of valid samples is wrong. The same cause makes single mutation verdicts of time-dependent checks unreliable (`fraction-borrow` was killed once in six runs of each implementation, and the zombie check of the menu test once in seven Python runs). | `work/m3-perl/pv-range/controls/`, `work/m3-perl/pv-range/fraction-*.tsv` |
+| Owner decision resolved | The time-range test is converted with its behavior, and the defect above is handled afterwards as the separate item M9. | D23 |
 | Confirmed finding | Measured with the probe of the Perl standards on a Debian 13 guest and a Rocky Linux 8.10 guest, each a base image plus `git`, `make` and `strace`. Debian 13 has Perl 5.40.1 with `JSON::PP`, `Digest::SHA`, `Test::More`, `IO::Socket::INET`, `IO::Uncompress::Unzip` and `Time::HiRes`. Rocky Linux 8.10 has only the interpreter 5.26.3, without `JSON::PP`, `Digest::SHA`, `Test::More`, `Time::HiRes`, `IO::Uncompress::Unzip` and `prove`; the packages are perl-JSON-PP, perl-Digest-SHA, perl-Test-Simple, perl-Time-HiRes, perl-IO-Compress and perl-Test-Harness. `xmllint` is present on Rocky Linux and missing on Debian (package libxml2-utils); `script` is present on both; `sqlite3`, `jq` and `unzip` are missing on both. The XML, pseudo-terminal and SQLite modules are absent everywhere, so those checks keep using a command. | probe and package queries on the two guests, 2026-10-31 UTC |
 
 ##### Implementation Plan
@@ -774,10 +777,11 @@ Conversion record, one file at a time; the evidence is under `work/m3-perl/<file
 | `tests/config-d.py` | `tests/config-d.pl` | All 11 cases pass in both with no skip, on this host (Debian 13, non-root, real Java 21) | 15 and 15 of 21, the same 15; the same six survive (`nullglob`, `dotglob`, `globignore-reset`, `locale-order`, `file-readable-check`, `health-quiet`) | Run on Rocky Linux 8.10 (Perl 5.26.3) after its package preparation (perl-Test-Simple, make, curl, `java-17-openjdk-devel`): all 11 cases pass as a non-root account, no skip, empty standard error, 2026-10-31; repeated with the final file: no workspace is left after a passing run, one is kept with `KEEP_WORKSPACE=1`, and a failing case keeps its own (a copy of the loader without its `set +f` fails only the noglob case) |
 | `tests/local-install-epics.py` | `tests/local-install-epics.pl` | Identical standard output on this host (Debian 13, non-root) without `AA_TEST_EPICS_BIN` and with the real Debian 13 Base binary folder of the distribution tree | 7 and 7 of 12, the same 7, with the real Base supplied; the same five survive (`base-absolute-check`, `host-arch-validation`, `unique-candidate`, `binaries-executable`, `installer-unattended`) | Run on Rocky Linux 8.10 (Perl 5.26.3, `script` 2.32.1) as a non-root account without the variable and with the real Rocky Linux 8.10 Base binary folder: exit 0 and the same output as on Debian, empty standard error, 2026-10-31; repeated with the final file: the same result, and exit status 2 with a message when `script` is not on the search path |
 | `tests/local-install-pv-menu.py` | `tests/local-install-pv-menu.pl` | Identical standard output apart from the evidence folder path, on this host (Debian 13, non-root) with the real Debian 13 Base binary folder of the distribution tree and a real soft IOC; 28 seconds in both | Clean runs with the leaked IOCs of earlier runs stopped between runs: 8 and 8 of 14 in the stable verdict; the same six survive (`owner-start-time`, `owner-zombie-check`, `resume-status`, `pause-message`, `finish-term`, `evidence-line`). `owner-zombie-check` depends on the moment at which the verifier collects the stopped IOC: Python killed it once in seven runs, and five repeats of each implementation all survived | Run on Rocky Linux 8.10 (Perl 5.26.3, `script` 2.32.1, `jq` 1.6, Python 3.9 for the unconverted fixture) as a non-root account with the real Rocky Linux 8.10 Base and a shallow clone of the pinned source commit: the three cases pass in 29 seconds, empty standard error, no IOC left, 2026-10-31 |
+| `tests/local-install-pv-range.py` | `tests/local-install-pv-range.pl` | Identical standard output apart from the evidence folder path, on this host (Debian 13, non-root) with the real Debian 13 Base and a real soft IOC (five cases, 82 and 85 seconds); the `query.json` and `response.json` of the fixture have the same structure, and only the seconds between two real observations differ | Series of 10 mutations with the leaked IOCs of earlier runs stopped between runs: 6 and 6 of 10 in the stable verdict; the same four survive (`lower-bound`, `severity-filter`, `code-propagation`, `fraction-borrow`). `fraction-borrow` depends on the observed fraction of a second: five repeats of each implementation gave Python 0 and Perl 1 kills, and the earlier clean series gave Python 1 kill. The unmutated test itself failed in 2 of 6 runs of each implementation, in the same runs (see the finding and M9); the test is converted with that behavior (D23) | Run on Rocky Linux 8.10 (Perl 5.26.3, `perl-JSON-PP` 2.97) as a non-root account with the real Rocky Linux 8.10 Base: without `perl-JSON-PP` the test stops with `Can't locate JSON/PP.pm` and status 2; with it the five cases pass on the first run, and the keep-menu test passes its three cases with no python on the search path, 2026-10-31. On this host the whole `tests/local-install-pv.bash` passed with the real Debian 13 Base and a readable Tomcat 9.0.121 (four real WARs, a real soft IOC; the signal check still Python, the time-range and keep-menu checks Perl): exit 0 in 559 seconds, ending with `PASS: real PV round trip, interactive keep/resume and failed-retrieval cleanup`, no test process left |
 
-For `tests/install-payload.py` the mutations number 14, for `tests/health-local.py` 27, for `tests/database-config.py` 29 on the configuration cases and 7 on the integration cases, for `tests/config-d.py` 21, for `tests/local-install-epics.py` 12, for `tests/local-install-pv-menu.py` 14.
+For `tests/install-payload.py` the mutations number 14, for `tests/health-local.py` 27, for `tests/database-config.py` 29 on the configuration cases and 7 on the integration cases, for `tests/config-d.py` 21, for `tests/local-install-epics.py` 12, for `tests/local-install-pv-menu.py` 14, for `tests/local-install-pv-range.py` 10.
 
-The control run, without a mutation, passed for both implementations before their kill tables were accepted. Standard error of the Perl run is empty and `perl -wc` and `podchecker` are clean. T1 to T4 stay Pending until every file is converted. The modules of `tests/install-payload.pl` are `Cwd`, `Digest::SHA`, `File::Basename`, `File::Copy`, `File::Find`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Uncompress::Unzip`, `Pod::Usage` and `POSIX`; on Rocky Linux the packages perl-Digest-SHA and perl-IO-Compress are needed beyond the interpreter. The modules of `tests/health-local.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed, and the test needs the program `xmllint` beside `bash`, `make`, `git`, `df` and `sleep`. The modules of `tests/database-config.pl` are `Cwd`, `Fcntl`, `File::Basename`, `File::Copy`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX`, `Test::More` and `Time::HiRes`; on Rocky Linux the packages perl-Test-Simple and perl-Time-HiRes are needed, and the test needs `xmllint`, `curl` and `git`; the integration cases also need `sqlite3`, `gzip`, `mysql`, the MariaDB server, `lsof` and `tree`. The modules of `tests/config-d.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed beside `bash`, `make` and `curl`. The modules of `tests/local-install-epics.pl` are `Cwd`, `File::Basename`, `File::Temp`, `Getopt::Long`, `Pod::Usage` and `POSIX`, all in the Perl core; the test needs `bash` and `script` of util-linux, which it uses for the pseudo-terminal of the installers and whose absence it reports as an environment error with exit status 2, and no Perl package beyond the interpreter on Rocky Linux. The modules of `tests/local-install-pv-menu.pl` are `Cwd`, `File::Basename`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage` and `POSIX`, all in the Perl core; it needs `bash`, `script` of util-linux, a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`) and, for the verifier, `jq` and `curl`, and while `tests/local-install-pv-range.py` stays Python it needs Python 3.7 or newer as `python3` (on Rocky Linux 8, `python39` selected with `alternatives`). The runs leave the soft IOC of a mutated verifier behind when its clean-up is mutated, and that IOC takes the CA port of the next run, so a mutation run stops the IOCs of its tree before and after each run. The Python test kept every workspace; `tests/config-d.pl` removes the workspace of a passing case and keeps that of a failed case or any case with `KEEP_WORKSPACE=1`, like `tests/health-local.pl` and `tests/database-config.pl` (D22).
+The control run, without a mutation, passed for both implementations before their kill tables were accepted. Standard error of the Perl run is empty and `perl -wc` and `podchecker` are clean. T1 to T4 stay Pending until every file is converted. The modules of `tests/install-payload.pl` are `Cwd`, `Digest::SHA`, `File::Basename`, `File::Copy`, `File::Find`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Uncompress::Unzip`, `Pod::Usage` and `POSIX`; on Rocky Linux the packages perl-Digest-SHA and perl-IO-Compress are needed beyond the interpreter. The modules of `tests/health-local.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed, and the test needs the program `xmllint` beside `bash`, `make`, `git`, `df` and `sleep`. The modules of `tests/database-config.pl` are `Cwd`, `Fcntl`, `File::Basename`, `File::Copy`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX`, `Test::More` and `Time::HiRes`; on Rocky Linux the packages perl-Test-Simple and perl-Time-HiRes are needed, and the test needs `xmllint`, `curl` and `git`; the integration cases also need `sqlite3`, `gzip`, `mysql`, the MariaDB server, `lsof` and `tree`. The modules of `tests/config-d.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed beside `bash`, `make` and `curl`. The modules of `tests/local-install-epics.pl` are `Cwd`, `File::Basename`, `File::Temp`, `Getopt::Long`, `Pod::Usage` and `POSIX`, all in the Perl core; the test needs `bash` and `script` of util-linux, which it uses for the pseudo-terminal of the installers and whose absence it reports as an environment error with exit status 2, and no Perl package beyond the interpreter on Rocky Linux. The modules of `tests/local-install-pv-range.pl` are `Cwd`, `File::Basename`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `JSON::PP`, `Pod::Usage`, `POSIX` and `Time::Local`; on Rocky Linux the package perl-JSON-PP is needed, and the test needs a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`), `bash`, `jq` and `curl`. The modules of `tests/local-install-pv-menu.pl` are `Cwd`, `File::Basename`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage` and `POSIX`, all in the Perl core; it needs `bash`, `script` of util-linux, a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`) and, for the verifier, `jq` and `curl`, and, through `tests/local-install-pv-range.pl`, no Python. The runs leave the soft IOC of a mutated verifier behind when its clean-up is mutated, and that IOC takes the CA port of the next run, so a mutation run stops the IOCs of its tree before and after each run. The Python test kept every workspace; `tests/config-d.pl` removes the workspace of a passing case and keeps that of a failed case or any case with `KEEP_WORKSPACE=1`, like `tests/health-local.pl` and `tests/database-config.pl` (D22).
 
 Input identities of the conversion record:
 
@@ -790,7 +794,8 @@ Input identities of the conversion record:
 | `tests/database-config.pl` | `68378f53f3ca82267dab61a9e00e81dc5b09f194db6731ad9225c5aa684c8feb` | The converted test; the mutation runs and the guest runs used the file with SHA256 `d3ba741c6d518f24a6f1c1a2de16f63bf90df43ca0ce20e62c5671682bfb6f77`, which differs only in the POD text (integration prerequisites) |
 | `tests/config-d.pl` | `911f428c6d13fe7fced182d41bd31b503f6f20feb3902a2fab8f199fb002c5e9` | The converted test; the first mutation runs and the first Rocky Linux run used the file with SHA256 `54a1be7f48c805b1b1d96d20e034f302de2d3792873f0e2d0ffe1875620a19b6`, which differs only in the handling of the workspace after a passing case; the mutation runs and the Rocky Linux run were repeated with this file and gave the same verdicts |
 | `tests/local-install-epics.pl` | `a77cafdeb49a0b0b1221c82a588f1be1643ea240c944626b53182602958b85b7` | The converted test; the first mutation runs and the first Rocky Linux run used the file with SHA256 `c8f7cc62486247520627b4721f74d2ee6f93bc26c2a9101c38decaa6cbe2fdb6`, which differs only in the upfront check for `script`; the mutation runs and the Rocky Linux run were repeated with this file and gave the same verdicts |
-| `tests/local-install-pv-menu.pl` | `a4094789c450f3480f8226c2dad8455a118ef7950e3945f2fcabe7ef7828093f` | The converted test; the clean mutation runs, the full run and the Rocky Linux run used this file |
+| `tests/local-install-pv-menu.pl` | `9a747fc971e54af2b86efd4d6ec3266531a4f609bca66ca3cc3fc8454050f42e` | The converted test; the mutation runs and the first Rocky Linux run used the file with SHA256 `a4094789c450f3480f8226c2dad8455a118ef7950e3945f2fcabe7ef7828093f`, which differs only in the link to the Python time-range fixture and the text that names it; the run on this host and the Rocky Linux run with the Perl fixture used this file |
+| `tests/local-install-pv-range.pl` | `e7757e823adee6742f2b281acae3841e114eb4ff29e288764c2a8a5f31adc8c5` | The converted test; the mutation runs, the controls and the Rocky Linux run used this file |
 
 ##### Closure Evidence
 
@@ -877,7 +882,7 @@ Last Compared: none
 
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8 is unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8 and M9 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -887,6 +892,7 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Open | No | D6, D16, D17 | The owner decides whether and in which language the driver, verifier and driver test are replaced, and any chosen work passes defect-sensitive tests and a real guest verdict; [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
+| Tests | M9 | Keep one consistent exchange in the PV time-range test | Carry-forward | Open | No | M3, D23 | The unmutated time-range test passes in every run of a series whose length the plan fixes, and its mutation verdicts stay as sensitive as before; [detail](#m9---keep-one-consistent-exchange-in-the-pv-time-range-test) |
 
 ### Backlog Details
 
@@ -1224,6 +1230,71 @@ Superseded Plan Artifacts: none
 
 Title: Decide the replacement of the VM driver and guest verifier
 Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M9 - Keep one consistent exchange in the PV time-range test
+
+Origin: 9576820 / M9
+Identity History: created as M9 on 2026-10-31 by D23
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The time-range test (`tests/local-install-pv-range.pl`, converted from `tests/local-install-pv-range.py` by M3) replaces the HTTP transport of the shipped PV verifier with a fixture that answers from the real soft IOC. For every data request the fixture writes `query.json` and then `response.json` in the evidence folder, and the test reads both after the run. The verifier ends an attempt that passes its deadline, but the fixture process of that attempt can finish later and overwrite one of the files after the next attempt has written the other. The pair then does not come from one attempt and the count of valid samples differs. Six consecutive unmutated runs of each implementation failed 2 times each (33 percent); the failing case differed from run to run. The conversion keeps this behavior (D23).
+
+##### Scope
+
+- Make the test read one consistent query and response, for example by recording both in one file that is replaced as a whole, and bind a late fixture process to the attempt that started it.
+- Measure the failure rate of the unmutated test before and after, in a series of the same length, and repeat the mutations whose verdicts depended on timing.
+
+Out of scope: the conversion of the test (M3); changing the shipped verifier; the menu test, which does not read the two files.
+
+##### Completion Criteria
+
+- The unmutated test passes in every run of a series whose length is fixed in the accepted plan, with the series listed.
+- The recorded mutations keep their stable verdicts, and the timing-dependent ones are repeated and recorded with their counts.
+
+##### Dependencies And Decisions
+
+- D23 creates this item on 2026-10-31.
+- M3 converts the test first; M9 changes the converted file.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Reproduce the failure on the converted test with the unmutated series, and record the failing runs.
+2. Change the exchange so that the pair comes from one attempt, then run the series again.
+3. Repeat the recorded mutations, with repeats for the timing-dependent ones.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run the unmutated test in a series and count the failures | A host with a real EPICS Base | No failure in the series |
+| T2 | Local | Run the recorded mutations of the test and compare their verdicts with the recorded ones | The same host | The stable verdicts are unchanged |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | A host with a real EPICS Base | Pending | none |
+| T2 | Pending | The same host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Keep one consistent exchange in the PV time-range test
+Labels: bug
 GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
