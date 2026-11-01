@@ -31,8 +31,8 @@ Base started for the reported test PV, and that the verifier's exit status, mess
 (identified by its start time, not only its PID) agree with the way out.
 
 Only the HTTP transport is replaced: this file runs again as the C<curl> of the verifier's PATH, answers the resume
-request itself and hands every other request to the time-range fixture tests/local-install-pv-range.py (or its Perl
-replacement). The pseudo-terminal comes from script(1) of util-linux. The runs write their evidence under
+request itself and hands every other request to the time-range fixture tests/local-install-pv-range.pl. The
+pseudo-terminal comes from script(1) of util-linux. The runs write their evidence under
 work/local-pv-menu.* of the checkout, which stays after the run; its path is printed.
 
 Environment: AA_TEST_EPICS_BIN is required; AA_TEST_SOURCE_PATH names the source checkout, by default
@@ -301,7 +301,7 @@ sub main {
     symlink(abs_path($0), "$boundary/curl") or die "symlink: $!\n";
     my $fixture = "$workspace/range";
     mkdir($fixture) or die "mkdir $fixture: $!\n";
-    symlink("$TOP/tests/local-install-pv-range.py", "$fixture/curl") or die "symlink: $!\n";
+    symlink("$TOP/tests/local-install-pv-range.pl", "$fixture/curl") or die "symlink: $!\n";
     my %env_base = (%ENV, PATH => "$boundary:$ENV{PATH}", RANGE_EPICS => $epics, MENU_RANGE_CURL => "$fixture/curl");
     my $ok = eval {
         run_mode($_, $workspace, \%env_base, $epics, $source) for qw(keep-live menu-exit resume-exit);
