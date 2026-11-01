@@ -585,7 +585,7 @@ holds the release folders. A Base that was built by hand can be anywhere, for ex
 - `<host_arch>` is the `EPICS_HOST_ARCH` of the build, for example `linux-x86_64`.
 
 The checks that read the variable are `local-install-epics.pl`, which Phase 1 runs, and `local-install-pv.bash`
-with the three checks it runs, `local-install-pv-signals.py`, `local-install-pv-range.pl` and
+with the three checks it runs, `local-install-pv-signals.pl`, `local-install-pv-range.pl` and
 `local-install-pv-menu.pl`.
 
 - `local-install-epics.pl` resolves the real binaries through the installers' EPICS preflight in three ways
@@ -600,9 +600,10 @@ with the three checks it runs, `local-install-pv-signals.py`, `local-install-pv-
   `conf` included; an installation of another account that it cannot read fails with `Explicit Tomcat home is not
   a usable Tomcat 9`. The check stops at once and names the first of the two variables that is unset. A complete
   run starts four JVMs and takes about ten minutes; one run measured 568 seconds. The Perl checks that it starts
-  after that run need `script` of util-linux (`local-install-pv-menu.pl`) and the Perl module `JSON::PP`
-  (`local-install-pv-range.pl`; on Rocky Linux the package `perl-JSON-PP`), besides `jq` and `curl`; prepare them
-  before the run, because a missing module stops the file only at the end.
+  after that run need `script` of util-linux (`local-install-pv-menu.pl` and `local-install-pv-signals.pl`) and
+  the Perl module `JSON::PP` (`local-install-pv-range.pl` and `local-install-pv-signals.pl`; on Rocky Linux the
+  package `perl-JSON-PP`), besides `jq` and `curl`; prepare them before the run, because a missing module stops
+  the file only at the end.
 
 Look for a tree in these places, in this order:
 
