@@ -9,7 +9,7 @@ Tests execute in strict order, from least to most privilege:
 
 | Phase | Validates | Setup cost |
 | :--- | :--- | :--- |
-| 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; Perl 5.26 or newer with `Test::More` and `Time::HiRes` (Rocky Linux: `perl-Test-Simple`, `perl-Time-HiRes`); `xmllint`; installed Java for PID cases; JDK compiler for unrelated-JVM negative; optional real EPICS Base binaries, see [Real EPICS Base binaries](#real-epics-base-binaries) |
+| 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; Perl 5.26 or newer with `Test::More` and `Time::HiRes` (Rocky Linux: `perl-Test-Simple`, `perl-Time-HiRes`); `xmllint`; `script` of util-linux; installed Java for PID cases; JDK compiler for unrelated-JVM negative; optional real EPICS Base binaries, see [Real EPICS Base binaries](#real-epics-base-binaries) |
 | 2. Build wrapper | Real `make -n build`: configuration, site-overlay copy, Maven package command and ordering | none; no source checkout, JDK or network required |
 | 3. Installation | Handed-off fresh VM, actual Ansible/Make/Maven install and payload checks | Initialized run; cloud-provision guest and handoff; pinned ansible-provision checkout; libvirt, SSH |
 | 4. Runtime acceptance | Same VM: genuine JVMs, scheduled health, HTTP identity, CA acquisition/retrieval and persistence | The same case invocation; real systemd, EPICS IOC and selected database |
@@ -584,16 +584,17 @@ holds the release folders. A Base that was built by hand can be anywhere, for ex
   `rocky-8.10`.
 - `<host_arch>` is the `EPICS_HOST_ARCH` of the build, for example `linux-x86_64`.
 
-The checks that read the variable are `local-install-epics.py`, which Phase 1 runs, and `local-install-pv.bash`
+The checks that read the variable are `local-install-epics.pl`, which Phase 1 runs, and `local-install-pv.bash`
 with the three checks it runs, `local-install-pv-signals.py`, `local-install-pv-range.py` and
 `local-install-pv-menu.py`.
 
-- `local-install-epics.py` resolves the real binaries through the installers' EPICS preflight in three ways
+- `local-install-epics.pl` resolves the real binaries through the installers' EPICS preflight in three ways
   (`EPICS_BASE`, `EPICS_BASE` with `EPICS_HOST_ARCH`, and `--epics-bin`) and rejects an unknown architecture.
   Without the variable it prints `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.` and the
   remaining checks of the file run. A relative path, a folder that is not a `bin/<host_arch>` folder, and a folder
-  without an executable `softIoc` or `caget` fail with `EPICS binary directory must contain executable softIoc
-  and caget` inside a Python traceback.
+  without an executable `softIoc` or `caget` make it fail: its `FAIL:` line carries the message of the preflight, for
+  example `EPICS_BASE must name an existing absolute Base directory` or `Cannot select a unique EPICS Base binary
+  directory`.
 - `local-install-pv.bash` needs `AA_TEST_TOMCAT_HOME`, a Tomcat 9 installation as the readiness check above
   describes, and `AA_TEST_EPICS_BIN`. The account that runs the check must be able to read the whole installation,
   `conf` included; an installation of another account that it cannot read fails with `Explicit Tomcat home is not

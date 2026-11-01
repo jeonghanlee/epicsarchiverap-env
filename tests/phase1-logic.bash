@@ -1229,7 +1229,7 @@ fi
 bash "${TOP}/tests/local-install-output.bash"
 # The installers refuse an invalid configure/CONFIG_SITE.local before any Make call; this runs every installer call with --plan.
 bash "${TOP}/tests/local-install-config.bash" --local
-python3 "${TOP}/tests/local-install-epics.py"
+perl "${TOP}/tests/local-install-epics.pl"
 
 # VM CLI validation runs without virtualization or network.
 python3 "${TOP}/tests/vm/local.py"

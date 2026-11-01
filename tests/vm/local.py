@@ -327,7 +327,7 @@ class EntrypointTests(unittest.TestCase):
 
     def test_unbracketed_real_base_skip_cannot_pass_local_suite(self):
         environment = {key: value for key, value in os.environ.items() if key != 'AA_TEST_EPICS_BIN'}
-        result = subprocess.run(['python3', str(TOP / 'tests/local-install-epics.py')],
+        result = subprocess.run(['perl', str(TOP / 'tests/local-install-epics.pl')],
                                 env=environment, capture_output=True, text=True, timeout=300)
         self.assertEqual(result.returncode, 0, result.stderr)
         output = result.stdout + result.stderr
