@@ -511,7 +511,7 @@ bash tests/local-install-readiness.bash
 workspace. It checks acquisition/retrieval, interactive keep/resume, and failed
 retrieval cleanup. Its signal, range, and menu checks use the shipped verifier,
 IOC database, and CSV client, replacing only HTTP transport.
-`local-install-pv-menu.py` checks a live keep result, IOC exit during the cleanup
+`local-install-pv-menu.pl` checks a live keep result, IOC exit during the cleanup
 menu, and IOC exit during resume. Menu fixtures verify lifecycle handling;
 the real appliance round trip establishes sample storage and retrieval.
 
@@ -586,7 +586,7 @@ holds the release folders. A Base that was built by hand can be anywhere, for ex
 
 The checks that read the variable are `local-install-epics.pl`, which Phase 1 runs, and `local-install-pv.bash`
 with the three checks it runs, `local-install-pv-signals.py`, `local-install-pv-range.py` and
-`local-install-pv-menu.py`.
+`local-install-pv-menu.pl`.
 
 - `local-install-epics.pl` resolves the real binaries through the installers' EPICS preflight in three ways
   (`EPICS_BASE`, `EPICS_BASE` with `EPICS_HOST_ARCH`, and `--epics-bin`) and rejects an unknown architecture.

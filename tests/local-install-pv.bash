@@ -117,5 +117,5 @@ pid=$(cat "$evidence/ioc.pid")
 if kill -0 "$pid" 2>/dev/null; then printf '%s\n' 'FAIL: failed test IOC survived cleanup'; exit 1; fi
 AA_TEST_SOURCE_PATH="$SOURCE" AA_TEST_EPICS_BIN="$EPICS_BIN" python3 "$TOP/tests/local-install-pv-signals.py"
 AA_TEST_SOURCE_PATH="$SOURCE" AA_TEST_EPICS_BIN="$EPICS_BIN" python3 "$TOP/tests/local-install-pv-range.py"
-AA_TEST_SOURCE_PATH="$SOURCE" AA_TEST_EPICS_BIN="$EPICS_BIN" python3 "$TOP/tests/local-install-pv-menu.py"
+AA_TEST_SOURCE_PATH="$SOURCE" AA_TEST_EPICS_BIN="$EPICS_BIN" perl "$TOP/tests/local-install-pv-menu.pl"
 printf '%s\n' 'PASS: real PV round trip, interactive keep/resume and failed-retrieval cleanup'
