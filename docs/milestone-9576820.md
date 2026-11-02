@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63 and M11 at 134857b0a4f7e910b707b00993a2f9f027c75823. The Backlog items M9, M10, M12 and M13 hold the remaining defects and improvements that the conversion showed (D24, D26). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12 and M13 Open; their later order is not authorization to resume.
+Next session entry point: Land the change of M14 (the six tests with the prototypes and this record), then write the landing into the Closure Evidence of M14 in `docs/milestone-9576820.md` and mark it Complete; T1 and T2 of M14 are Pass. The plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63 and M11 at 134857b0a4f7e910b707b00993a2f9f027c75823. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12, M13 and M15 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns thirteen work items on the default development branch. The assigned work is M1, M2, M3, M4 and M11; M11 was assigned on 2026-11-02 by D26 and its order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M9, M10, M12 and M13 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns fifteen work items on the default development branch. The assigned work is M1, M2, M3, M4, M11 and M14; M11 and M14 were assigned on 2026-11-02 by D26 and D27, and their order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M9, M10, M12, M13 and M15 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -26,8 +26,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Complete | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25 | T1-T4 passed, T2 and T4 with the waivers of D25; landed at 6efd7db; [detail](#m3---replace-the-python-tests-with-perl-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | Yes | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 | Tests | M11 | Remove the false failures of the converted tests | Carry-forward | Complete | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; T1-T2 passed; landed at 134857b; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
+| Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | In progress | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 4 Complete and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 4 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -59,6 +60,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D24 | Read the first check (T1) of M3 as parity with the Python tests: a mutation that a Python test kills is killed by its Perl test, and the survivors are the same set. The Perl tests keep the defects of the Python tests for now, and every defect or improvement that the conversion shows in the Perl tests becomes a Backlog item instead of a change inside M3: M10 closes the gaps that the mutations left, M11 removes false failures and leftover evidence, M12 shares the helper code, and M9 stays as it is. | 2026-11-02 |
 | D25 | Close the checks T2 and T4 of M3 without the eight-case VM run and without the mutations on the guests. The VM matrix keeps its pass conditions because `tests/vm/driver.py` and `tests/vm/guest.py` are identical to the prior state commit of this generation and call no converted test; the part of T2 that the conversion touches is the local suite, which ran with a real EPICS Base and passed the completeness check of the driver. The mutations were run on the local host for all nine tests, and the guests ran the shipped code of the guest tests on Debian 13 and Rocky Linux 8.10. | 2026-11-02 |
 | D26 | Assign M11 on 2026-11-02 in the reduced form the owner chose: it covers the free-port probe and the pid file of `tests/config-d-runtime.pl` and the SIGINT disposition of the verifier that `tests/local-install-pv-signals.pl` starts, and its status changes from Open to Not started. The rule for the evidence that passing runs keep becomes the separate Backlog item M13, which the owner decides. | 2026-11-02 |
+| D27 | Split M12 in two on 2026-11-02. The scalar prototypes of the helpers `check` and `fail` become M14, which is assigned and In progress; the shared module for the helper code stays M12, Open, and keeps these prototypes. | 2026-11-02 |
 
 ### ID Migration
 
@@ -959,7 +961,7 @@ Superseded Plan Artifacts: none
 - Implementation and required verification: finished on 2026-11-02. T1 and T2 are Pass in Verification Results, on the Debian 13 development host.
 - Completion criteria against the evidence: a run of `tests/config-d-runtime.pl` directly after another run passes the port probe, and a port that a process listens on still fails it with the port named (T1); a pid file with text ends the run with a message that names the file, shown with a mutation of the shipped `site-template/startup.sh.in` (T1); the signal test passes when it is started from a background job that ignores SIGINT, `int-then-int` with status 130 (T2); the recorded mutations of both tests give the recorded verdicts, and `pid-text` is killed (T2).
 - Repository landing: the code is commit 134857b0a4f7e910b707b00993a2f9f027c75823 and the last commit of the work is 497406850249b97d983fe80a1d5319f9b54c0a79 on origin/maven. Observed at 2026-11-02T16:01:54Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that last commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit.
-- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The rule for the evidence of passing runs is M13, and the scalar prototype of `check` is part of M12.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The rule for the evidence of passing runs is M13, and the scalar prototype of `check` is M14 (D27).
 - Linked GitHub issue: none.
 
 ##### GitHub Projection
@@ -970,9 +972,74 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M14 - Declare scalar prototypes on the check helper of the Perl tests
+
+Origin: 9576820 / M14
+Identity History: created as M14 on 2026-11-02 by D27, which split it from M12
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+Six Perl tests define the helpers `check` and `fail` without a prototype: `tests/config-d-runtime.pl`, `tests/install-payload.pl`, `tests/local-install-epics.pl`, `tests/local-install-pv-menu.pl`, `tests/local-install-pv-range.pl` and `tests/local-install-pv-signals.pl`. A pattern match that fails inside the argument list of `check` gives an empty list, so the message takes the place of the condition and the check passes whatever the text is. A line of that form was written on 2026-11-02 while M11 was implemented, and the scratch mutation that writes text into the pid file showed it; a search of every call in the nine tests found no such line left.
+
+##### Scope
+
+- Declare `check` with the prototype `($$)` and `fail` with `($)` in the six tests, so that the arguments are read in scalar context.
+- Show that a list-context pattern match in a call of `check` now fails the check, by running the real runtime test against the mutation that writes text into the pid file.
+
+Out of scope: the shared module for the helpers (M12); changes to what any check tests; the Test::More based tests, whose `ok` already reads its condition in scalar context.
+
+##### Completion Criteria
+
+- The six tests compile with the prototypes and pass unmutated on the local host.
+- The runtime test with the earlier, list-context form of the pid check is killed by the mutation that writes text into the pid file, with the message of the check.
+
+##### Dependencies And Decisions
+
+- D24 sends the improvements found during the conversion to the Backlog; D27 splits this part from M12, assigns it and changes it to In progress on 2026-11-02.
+- M3 converts the tests first; M14 changes the converted files. M12 keeps these prototypes in the shared module.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-02; the owner accepted this plan text.
+Implementation Authorization: 2026-11-02; explicit owner authorization to implement this plan. It does not authorize commit, push, issue creation or provisioning of guests.
+Superseded Plan Artifacts: none
+
+1. Add the prototypes to `check` and `fail` in the six tests.
+2. Run `perl -wc` on each, then each test unmutated on the local host with a real EPICS Base, Java and Tomcat where it needs them.
+3. In a scratch copy of the runtime test, restore the list-context form of the pid check and run it against the mutation that writes text into the pid file.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run each of the six tests unmutated on the shipped code | The Debian 13 development host with a real EPICS Base, Java 21, Tomcat 9 and the built WAR files | Every test passes as before |
+| T2 | Local | Run the scratch copy of the runtime test with the list-context pid check against the mutation `pid-text` | The same host | The run fails with `The pid file of` followed by the instance name and the file |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-02 UTC | The Debian 13 development host with a real EPICS Base, Java 21, Tomcat 9.0.121 and the built WAR files | Pass | The six tests that define `check`, unmutated and with the prototypes, ended with status 0 and empty standard error and printed no `SKIP:` line: `tests/local-install-epics.pl` in 1 second, `tests/install-payload.pl` in 32 seconds on the two Maven target directories and the old log4j folder, `tests/local-install-pv-signals.pl` in 53 seconds, `tests/local-install-pv-range.pl` in 90 seconds at the first attempt, `tests/local-install-pv-menu.pl` in 45 seconds and `tests/config-d-runtime.pl` in 228 seconds; logs under `work/m3-perl/m14/` |
+| T2 | 2026-11-02 UTC | The same host | Pass | A scratch copy of the runtime test with the list-context form of the pid check and the prototype `($$)` passed its control run and was killed by the mutation `pid-text` with status 1 and `The pid file of mgmt does not hold a number` followed by the file name, without a numeric warning; the same form without the prototype passed the check (M11). The four JVMs of the aborted instances stayed running and were stopped by hand, which M15 follows |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Declare scalar prototypes on the check helper of the Perl tests
+Labels: bug
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M9, M10, M12 and M13 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M9, M10, M12, M13 and M15 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -984,8 +1051,9 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Open | No | D6, D16, D17 | The owner decides whether and in which language the driver, verifier and driver test are replaced, and any chosen work passes defect-sensitive tests and a real guest verdict; [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Tests | M9 | Keep one consistent exchange in the PV time-range test | Carry-forward | Open | No | M3, D23 | The unmutated time-range test passes in every run of a series whose length the plan fixes, and its mutation verdicts stay as sensitive as before; [detail](#m9---keep-one-consistent-exchange-in-the-pv-time-range-test) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
-| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
+| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 | Tests | M13 | Decide the evidence that passing runs of the converted tests keep | Carry-forward | Open | No | M3, D26 | The owner decides one rule for the evidence of a passing run of the three evidence-keeping tests, and the tests follow it; [detail](#m13---decide-the-evidence-that-passing-runs-of-the-converted-tests-keep) |
+| Tests | M15 | Stop the instances that an aborted runtime test did not record | Carry-forward | Open | No | M3, D24 | A run of the runtime test that ends early, including the pid file mutation, leaves no JVM of its instances, and the recorded mutations keep their verdicts; [detail](#m15---stop-the-instances-that-an-aborted-runtime-test-did-not-record) |
 
 ### Backlog Details
 
@@ -1466,13 +1534,13 @@ Status: Open
 
 ##### Summary
 
-Each of the nine Perl tests carries its own copy of its helpers: `slurp`, `spew` and `usage_error` in all nine files, `which` in seven, `shell_quote` and the pair `fail` and `check` in six, and `pause_for` in three. A fix in one copy has to be repeated by hand in the others, and the copies already differ in small details. The copies of `check` in five tests have no prototype, so a pattern match that fails inside its argument list gives an empty list, the message moves into the place of the condition, and the check passes whatever the text is; a line of that form was written on 2026-11-02 while M11 was implemented, and the scratch mutation that writes text into the pid file showed it. No such line remains in the tests.
+Each of the nine Perl tests carries its own copy of its helpers: `slurp`, `spew` and `usage_error` in all nine files, `which` in seven, `shell_quote` and the pair `fail` and `check` in six, and `pause_for` in three. A fix in one copy has to be repeated by hand in the others, and the copies already differ in small details. The copies of `check` and `fail` have no prototype in six tests, which M14 repairs by declaring scalar prototypes (D27).
 
 ##### Scope
 
 - Put the common helpers in one module below `tests/` that each test loads from its own location, using only the modules of the Perl core and keeping Perl 5.26 working.
 - Keep every test runnable alone, from a copy of the tree, as the scratch trees of the mutation runs use it.
-- Declare `check` and `fail` with scalar prototypes, so that a failed pattern match cannot shift the arguments of a check.
+- Keep the scalar prototypes of `check` and `fail` that M14 adds, in the shared module.
 
 Out of scope: changing what a test checks (M3, M10, M11); the shell helpers in `tests/lib/`.
 
@@ -1485,6 +1553,7 @@ Out of scope: changing what a test checks (M3, M10, M11); the shell helpers in `
 ##### Dependencies And Decisions
 
 - D24 creates this item on 2026-11-02.
+- D27 moves the scalar prototypes of `check` and `fail` to M14 on 2026-11-02.
 - M3 converts the tests first; M12 changes the converted files.
 
 ##### Implementation Plan
@@ -1582,6 +1651,71 @@ Superseded Plan Artifacts: none
 
 Title: Decide the evidence that passing runs of the converted tests keep
 Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M15 - Stop the instances that an aborted runtime test did not record
+
+Origin: 9576820 / M15
+Identity History: created as M15 on 2026-11-02 by D24
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+When a run of `tests/config-d-runtime.pl` ends early, its stop routine stops only the instances whose pid it has recorded: it walks the list that the readiness wait fills while it reads the pid files. A run that fails before it has read a pid file leaves the instances that the launcher started running. Observed on 2026-11-02 with the scratch mutation that writes text into the pid file: the test failed with its message, and the four JVMs of the instances stayed up until they were stopped by hand; the cleaning script of the earlier mutation series had hidden it. The Python test walks the same kind of list.
+
+##### Scope
+
+- On an abnormal end, stop every instance whose pid file under the installed tree holds a number, as well as the recorded ones, and ignore a pid file that holds text.
+- Show it by running the mutation that writes text into the pid file directly, without a cleaning script, and checking that no JVM of the run remains.
+
+Out of scope: the conversion of the tests (M3); the scalar prototypes (M14); changes to the shipped code.
+
+##### Completion Criteria
+
+- A run that ends early, including the one with the pid file mutation, leaves no JVM of its instances.
+- The recorded mutations of the runtime test keep their verdicts.
+
+##### Dependencies And Decisions
+
+- D24 creates this item on 2026-11-02.
+- M3 converts the tests first; M15 changes the converted file.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Reproduce the leftover JVMs with the pid file mutation and no cleaning script, and record them.
+2. Change the abnormal stop so that it also stops the instances named by numeric pid files, then run the reproduction again.
+3. Run the recorded mutations of the runtime test again and compare their verdicts with the recorded ones.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run the runtime test against the mutation that writes text into the pid file, without a cleaning script, and count the JVMs of the run afterwards | A host with Java, Tomcat 9 and the built WAR files | No JVM of the run remains |
+| T2 | Local | Run the recorded mutations of the runtime test and compare their verdicts with the recorded ones | The same host | The verdicts are unchanged |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | A host with Java, Tomcat 9 and the built WAR files | Pending | none |
+| T2 | Pending | The same host | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Stop the instances that an aborted runtime test did not record
+Labels: bug
 GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
