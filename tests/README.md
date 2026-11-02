@@ -452,18 +452,20 @@ and installation targets run twice to check that operator file bytes survive.
 Each case records commands and output in an `archappl-config-d-*` directory; the directory of a failed case, or of every
 case with `KEEP_WORKSPACE=1`, is kept.
 
-`config-d-runtime.py` requires Java, a readable and executable Tomcat 9
-distribution, built appliance WARs with `tomcat-log4j`, and access to journald
-and unused local ports. It installs with the shipped Make rules into a fresh
-temporary directory and uses the installed launcher and generated wrappers.
-It does not install systemd units or change an existing appliance.
+`config-d-runtime.pl` requires Java, a readable and executable Tomcat 9 distribution, built appliance WARs with the
+folder `tomcat-log4j` beside them, the programs `sqlite3` and `unzip`, and access to journald and unused local ports.
+The first `java` on the `PATH` must be of the version that compiled the WARs (Java 21 for the current source). A port
+that a closed connection still holds fails the free-port check for about a minute, so wait that long between two runs.
+It installs with the shipped Make rules into a fresh temporary directory and uses the installed launcher and generated
+wrappers. It does not install systemd units or change an existing appliance.
 
 Run the installed runtime check with paths to the real prerequisites:
 
 ```bash
-python3 tests/config-d-runtime.py --tomcat-home <tomcat_home> --war-dir <war_directory>
+perl tests/config-d-runtime.pl --tomcat-home <tomcat_home> --war-dir <war_directory>
 ```
 
+On Rocky Linux the test needs the packages `perl-Digest-SHA`, `perl-IO-Compress` and `perl-JSON-PP`.
 The default port base is 29665; `--port-base` selects another base. The test
 uses offsets 0 through 3 for HTTP, 5 for the cluster, and 10 through 13 for
 shutdown. Allow up to 150 seconds for each startup and 90 seconds for service
@@ -480,7 +482,7 @@ acquisition, systemd unit installation, or periodic Java configuration reload.
 The printed `archappl-config-runtime-*` directory retains installed files,
 source hashes, commands, application logs, readiness responses, selected JVM
 observations, and the final verdict. A missing prerequisite or incomplete run
-cannot produce `PASS`. The script stops its JVMs and retains evidence on exit.
+cannot produce `PASS`. The script stops its JVMs and retains evidence on exit, also after SIGINT or SIGTERM.
 The test has no sustained-volume, sampling-rate, or performance claim; its
 time bounds only limit startup and shutdown waits.
 

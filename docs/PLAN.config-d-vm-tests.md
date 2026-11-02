@@ -36,7 +36,7 @@ has its own eight-case acceptance matrix. It does not invoke the local
 installers or perform the config.d checks below. Its `--verdict` cannot certify
 this scenario, and two successful OS cases cannot certify its eight-case matrix.
 
-The existing `tests/config-d-runtime.py` validates a temporary installation's
+The existing `tests/config-d-runtime.pl` validates a temporary installation's
 launcher paths without installing units. It is supporting evidence, not a
 replacement for this systemd installation test.
 
