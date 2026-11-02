@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Land the change of M11 (`tests/config-d-runtime.pl`, `tests/local-install-pv-signals.pl`, `tests/README.md` and this record), then write the landing into the Closure Evidence of M11 in `docs/milestone-9576820.md` and mark it Complete; T1 and T2 of M11 are Pass. The plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7 and M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12 and M13 Open; their later order is not authorization to resume.
+Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63 and M11 at 134857b0a4f7e910b707b00993a2f9f027c75823. The Backlog items M9, M10, M12 and M13 hold the remaining defects and improvements that the conversion showed (D24, D26). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12 and M13 Open; their later order is not authorization to resume.
 
 ## Scope
 
@@ -25,9 +25,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Complete | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25 | T1-T4 passed, T2 and T4 with the waivers of D25; landed at 6efd7db; [detail](#m3---replace-the-python-tests-with-perl-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | Yes | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
-| Tests | M11 | Remove the false failures of the converted tests | Carry-forward | In progress | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
+| Tests | M11 | Remove the false failures of the converted tests | Carry-forward | Complete | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; T1-T2 passed; landed at 134857b; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 3 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 4 Complete and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -901,7 +901,7 @@ Last Compared: none
 Origin: 9576820 / M11
 Identity History: created as M11 on 2026-11-02 by D24; narrowed and assigned on 2026-11-02 by D26, which moved the rule for the evidence of passing runs to M13
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -956,7 +956,11 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation and required verification: finished on 2026-11-02. T1 and T2 are Pass in Verification Results, on the Debian 13 development host.
+- Completion criteria against the evidence: a run of `tests/config-d-runtime.pl` directly after another run passes the port probe, and a port that a process listens on still fails it with the port named (T1); a pid file with text ends the run with a message that names the file, shown with a mutation of the shipped `site-template/startup.sh.in` (T1); the signal test passes when it is started from a background job that ignores SIGINT, `int-then-int` with status 130 (T2); the recorded mutations of both tests give the recorded verdicts, and `pid-text` is killed (T2).
+- Repository landing: the code is commit 134857b0a4f7e910b707b00993a2f9f027c75823 and the last commit of the work is 497406850249b97d983fe80a1d5319f9b54c0a79 on origin/maven. Observed at 2026-11-02T16:01:54Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that last commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The rule for the evidence of passing runs is M13, and the scalar prototype of `check` is part of M12.
+- Linked GitHub issue: none.
 
 ##### GitHub Projection
 
