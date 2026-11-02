@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Continue the accepted M3 plan in `docs/milestone-9576820.md`: all nine Python tests are converted (`tests/install-payload.py`, `tests/health-local.py`, `tests/database-config.py`, `tests/config-d.py`, `tests/local-install-epics.py`, `tests/local-install-pv-menu.py`, `tests/local-install-pv-range.py`, `tests/local-install-pv-signals.py` and `tests/config-d-runtime.py`, see the conversion record), the prerequisite documents are updated, the full local suite has passed (T2, local part), and T1 to T4 have passed (T2 and T4 with the waivers of D25). What remains is to land this record, then write the landing into Closure Evidence and mark the item Complete. The defects that the Perl tests keep from the Python tests, and the improvements found during the conversion, are the items M9 to M12 (D24). The plan was accepted and implementation authorized on 2026-10-31. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995 and M2 at de8301cb05d3d026708a0270878e110bee497ee7. Commit, push, issue creation and guest provisioning need their own authority. Then follow M4. M5, M6 and M7 remain Deferred and M8 to M12 Open; their later order is not authorization to resume.
+Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7 and M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63; the defects and improvements that M3 showed are the Backlog items M9 to M12 (D24). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8 to M12 Open; their later order is not authorization to resume.
 
 ## Scope
 
@@ -23,10 +23,10 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | DB | M1 | Apply backend selection to all database operations | Carry-forward | Complete | No | D4, D11, D13, D14 | T1-T5 and correction checks passed; landed at c4b27bc; [detail](#m1---apply-backend-selection-to-all-database-operations) |
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
-| Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | In progress | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25 | Shell and Make tests run in Perl with the same assertions and defect detection; [detail](#m3---replace-the-python-tests-with-perl-tests) |
-| Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | No | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
+| Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Complete | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25 | T1-T4 passed, T2 and T4 with the waivers of D25; landed at 6efd7db; [detail](#m3---replace-the-python-tests-with-perl-tests) |
+| Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | Yes | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 2 Complete, 1 In progress and 1 Not started. No assigned row is Ready until M3 completes; M4 follows M3.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 3 Complete and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -681,7 +681,7 @@ Last Compared: none
 Origin: 9576820 / M4
 Identity History: M4 -> M3 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -807,7 +807,12 @@ Input identities of the conversion record:
 
 ##### Closure Evidence
 
-- none
+- Implementation and required verification: finished on 2026-11-02. T1 to T4 are Pass in Verification Results: T1 by D24 and T2 and T4 by D25, on the Debian 13 development host and on a Debian 13 and a Rocky Linux 8.10 guest.
+- Completion criteria against the evidence: the `.py` files that remain are exactly `site-template/policies.py.in`, `tests/heap/inspect-inputs.py`, `tests/vm/driver.py`, `tests/vm/guest.py` and `tests/vm/local.py`, which existed at the prior state commit 95768200a49e965ef2dd1949919e955af982aff6 (T3); every mutation that a Python test killed is killed by its Perl test and the survivors are the same set of 48, which M10 follows (T1, D24); the full local suite with a real EPICS Base printed no skip and passed the completeness check of the VM driver, and the VM driver and guest verifier are identical to that prior state commit, so the VM matrix keeps its pass conditions (T2, D25).
+- Repository landing: the last commit of the work is 6efd7db7044b2a77f3a763eb04435aa606836e63 on origin/maven. Observed at 2026-11-02T07:50:12Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit. The commits of the conversions, each followed by its record: ce6142f069251fbd2a032ac739429dfee8b2a572 and 13887af973832a1d954a1343ed49356681109a0d, 84e9b44ee61291898ace5c817c7e1d9086358e71 and aa12b6265623a48d4a2b6bf644a71a5fc00b304c, cb810ca603ddfcfbd35b4d18dd7d44e8b13b8d80 and ff195c1d21ba4b20754d72cf5480f313c0f70376, 588c7d318638364a1ad41e2ee688c479b82e3ee8 and debe17fe9f806706b65f1c1057eba1c6680e6ba5, e592604cf76c9a78dcec7ee512afac504d8a8ee9 and e8cf9c42907e82956db6a8de87897a236a57b24f, 3b68f225e61b186f8883ee41bf575803a6d83789 and 22e7994a97b8ff005cb3f14a1e3f3776ea6e308a, 2164d899ea1e458bae18f917586b6e27f3770e06 and 35e2b198cee0e1b7b5da8a87381875f683b0103a, 7814888872a6f87db65b0f05252ec3c1bfa42033 and ff2fa4fa884337a75b0fdac3f0483b5cc154aec5; the prerequisite documents are 0c9b041282dca53b829b4ef4c033ecbdd60ab22b and f4d5bca4cff0da822aaaad1ccc7e4aa727845fac, and the decisions D24 and D25 are 6efd7db7044b2a77f3a763eb04435aa606836e63.
+- Waived checks: the eight-case VM run of T2 and the mutations on the guests of T4, by D25 on 2026-11-02.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The defects and improvements that the conversion showed are the Backlog items M9 to M12.
+- Linked GitHub issue: none.
 
 ##### GitHub Projection
 
