@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Land the change of M15 (`tests/config-d-runtime.pl` and this record), then write the landing into the Closure Evidence of M15 in `docs/milestone-9576820.md` and mark it Complete; T1 and T2 of M15 are Pass. The plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823 and M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12 and M13 Open; their later order is not authorization to resume.
+Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and M15 at 79f21776b77d622702e7a45292ecf317586c8b69. The Backlog items M9, M10, M12 and M13 hold the remaining defects and improvements that the conversion showed (D24, D26, D27). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12 and M13 Open; their later order is not authorization to resume.
 
 ## Scope
 
@@ -27,9 +27,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | Yes | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 | Tests | M11 | Remove the false failures of the converted tests | Carry-forward | Complete | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; T1-T2 passed; landed at 134857b; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
 | Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | Complete | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; T1-T2 passed; landed at 23e98e8; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
-| Tests | M15 | Stop the instances that an aborted runtime test did not record | Carry-forward | In progress | No | M3, D24, D28 | A run of the runtime test that ends early, including the pid file mutation, leaves no JVM of its instances, and the recorded mutations keep their verdicts; [detail](#m15---stop-the-instances-that-an-aborted-runtime-test-did-not-record) |
+| Tests | M15 | Stop the instances that an aborted runtime test did not record | Carry-forward | Complete | No | M3, D24, D28 | A run of the runtime test that ends early, including the pid file mutation, leaves no JVM of its instances, and the recorded mutations keep their verdicts; T1-T2 passed; landed at 79f2177; [detail](#m15---stop-the-instances-that-an-aborted-runtime-test-did-not-record) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 5 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 6 Complete and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -1049,7 +1049,7 @@ Last Compared: none
 Origin: 9576820 / M15
 Identity History: created as M15 on 2026-11-02 by D24; assigned and changed from Open to In progress on 2026-11-02 by D28
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1100,7 +1100,11 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation and required verification: finished on 2026-11-02. T1 and T2 are Pass in Verification Results, on the Debian 13 development host.
+- Completion criteria against the evidence: a run that ends early, shown with the mutation that writes text into the pid file and no cleaning script, leaves no JVM of its instances after the change, where four stayed up before it (T1); the 15 recorded mutations of the runtime test give the recorded verdicts and `pid-text` is killed with the message of the pid check (T2).
+- Repository landing: the code is commit 79f21776b77d622702e7a45292ecf317586c8b69 and the last commit of the work is bd373daac4564f86e8f164fe1777537c27164196 on origin/maven. Observed at 2026-11-02T22:44:37Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that last commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue.
+- Linked GitHub issue: none.
 
 ##### GitHub Projection
 
