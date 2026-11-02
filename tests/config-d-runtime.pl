@@ -463,6 +463,24 @@ sub observe {
     return;
 }
 
+# The JVMs of this run by their command line: the installed tree is new for every run, so it names them whatever the
+# pid files hold.
+sub find_run_jvms {
+    my ($state) = @_;
+    my $prefix = "-Dcatalina.base=$state->{installed}/";
+    my %found;
+    opendir(my $proc, '/proc') or die "opendir /proc: $!\n";
+    for my $entry (grep { /\A[0-9]+\z/ } readdir($proc)) {
+        my $data = eval { slurp("/proc/$entry/cmdline") };
+        next unless defined $data;
+        for my $argument (split /\0/, $data) {
+            $found{substr($argument, length $prefix)} = $entry + 0 if index($argument, $prefix) == 0;
+        }
+    }
+    closedir($proc);
+    return %found;
+}
+
 sub stop {
     my ($state, $normal) = @_;
     if ($state->{supervisor}) {
@@ -478,6 +496,10 @@ sub stop {
     }
     elsif (%{$state->{pids}} && $normal) {
         command($state, ['bash', $state->{launcher}, 'shutdown'], timeout => 90);
+    }
+    if (!$normal) {
+        my %found = find_run_jvms($state);
+        $state->{pids}{$_} //= $found{$_} for keys %found;
     }
     for my $name (sort keys %{$state->{pids}}) {
         my $pid = $state->{pids}{$name};
