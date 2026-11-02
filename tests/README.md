@@ -22,6 +22,13 @@ exit 77; run local checks with `--local`. The compatibility entry points `phase3
 `phase4-vm.bash` exit 77 without arguments and pass arguments to `--case`;
 Docker is not a prerequisite.
 
+A Phase 1 check whose optional prerequisite is missing prints a skip line: the source clone (the interface files
+group), a real Java executable and the JDK compiler, the `mysql` client, a `/dev/shm` on its own file system, and
+`AA_TEST_EPICS_BIN` (see [Real EPICS Base binaries](#real-epics-base-binaries)). A skip is not verification. The
+driver of the VM acceptance run refuses the output of `--local` that holds any skip line (`local_suite_complete` in
+`tests/vm/driver.py`) and runs the suite in its own environment, so the host that starts the driver needs every item
+above, and `AA_TEST_EPICS_BIN` exported before the driver starts.
+
 ## System Workflow
 
 [VM installation and runtime tests](../docs/README.vmtests.md) describes the
@@ -597,15 +604,18 @@ with the three checks it runs, `local-install-pv-signals.pl`, `local-install-pv-
   without an executable `softIoc` or `caget` make it fail: its `FAIL:` line carries the message of the preflight, for
   example `EPICS_BASE must name an existing absolute Base directory` or `Cannot select a unique EPICS Base binary
   directory`.
-- `local-install-pv.bash` needs `AA_TEST_TOMCAT_HOME`, a Tomcat 9 installation as the readiness check above
-  describes, and `AA_TEST_EPICS_BIN`. The account that runs the check must be able to read the whole installation,
-  `conf` included; an installation of another account that it cannot read fails with `Explicit Tomcat home is not
-  a usable Tomcat 9`. The check stops at once and names the first of the two variables that is unset. A complete
-  run starts four JVMs and takes about ten minutes; one run measured 568 seconds. The Perl checks that it starts
-  after that run need `script` of util-linux (`local-install-pv-menu.pl` and `local-install-pv-signals.pl`) and
-  the Perl module `JSON::PP` (`local-install-pv-range.pl` and `local-install-pv-signals.pl`; on Rocky Linux the
-  package `perl-JSON-PP`), besides `jq` and `curl`; prepare them before the run, because a missing module stops
-  the file only at the end.
+- `local-install-pv.bash` needs `AA_TEST_TOMCAT_HOME`, a Tomcat 9 installation as the readiness check above describes,
+  and `AA_TEST_EPICS_BIN`. The account that runs the check must be able to read the whole installation, `conf`
+  included; an installation of another account that it cannot read fails with `Explicit Tomcat home is not a usable
+  Tomcat 9`. The check stops at once and names the first of the two variables that is unset. A complete run starts
+  four JVMs and takes about ten minutes; one run measured 568 seconds. The source checkout
+  (`epicsarchiverap-maven-src`, or the folder that `AA_TEST_SOURCE_PATH` names) must hold the built WAR files in
+  `target`, `scripts/run-local-appliance.bash` and the CSV client in `docs/book/src/samples`. The runner needs a JDK
+  21 with `javac` as `JAVA_HOME` or first on the `PATH`, and `python3`, `sqlite3`, `unzip`, `tar` and `curl`; the
+  check itself also needs `jq`. The Perl checks that it starts after that run need `script` of util-linux
+  (`local-install-pv-menu.pl` and `local-install-pv-signals.pl`) and the Perl module `JSON::PP`
+  (`local-install-pv-range.pl` and `local-install-pv-signals.pl`; on Rocky Linux the package `perl-JSON-PP`), besides
+  `jq` and `curl`; prepare them before the run, because a missing module stops the file only at the end.
 
 Look for a tree in these places, in this order:
 

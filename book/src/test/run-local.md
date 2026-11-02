@@ -4,10 +4,16 @@ The local suite checks the Make system, the configuration files, the control scr
 
 ## Prerequisites
 
-- A checkout of the repository with `make`, `bash` and `python3`.
+- A checkout of the repository with `make`, `bash`, `git`, `curl`, `xmllint`, `script` of util-linux and `python3`.
+- Perl 5.26 or newer with the modules `Test::More` and `Time::HiRes`. On Rocky Linux the packages `perl-Test-Simple` and `perl-Time-HiRes` provide them.
 - `strace` and an ordinary user: the installer configuration check traces every command that an installer starts. Without a working `strace` it prints `INCOMPLETE:` and ends with status 77, and Phase 1 then fails.
 - Optional: the source clone of the repository (`make init` creates it). The interface files group reads the management interface from it and is skipped with a message when no clone exists.
 - Optional: the `bin/<host_arch>` folder of an Experimental Physics and Industrial Control System (EPICS) Base, for the check that resolves the real `softIoc` and `caget`. Step 2 shows how to find it. Without it the check prints `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.`
+- Optional: a real `java` executable on the `PATH` and the JDK compiler, for the health storage line and the process-ID checks of the launcher. Without them these checks print skip lines, either `[SKIP]` lines or lines that start with `SKIP:`.
+- Optional: the `mysql` client, for the database settings identity check. Without it that check prints `[SKIP] database settings identity: real mysql client unavailable`.
+- Optional: a `/dev/shm` on its own file system, for the storage checks. When `/dev/shm` shares the root file system, the check prints a skip line.
+
+A skip is not verification. The acceptance run of the virtual machine (VM) driver refuses the output of this suite when it holds any skip line. On the host that starts the driver, install every optional item above and export `AA_TEST_EPICS_BIN` before the driver starts, because the driver runs the suite in its own environment.
 
 ## Steps
 
