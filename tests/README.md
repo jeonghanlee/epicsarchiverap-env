@@ -462,7 +462,7 @@ case with `KEEP_WORKSPACE=1`, is kept.
 `config-d-runtime.pl` requires Java, a readable and executable Tomcat 9 distribution, built appliance WARs with the
 folder `tomcat-log4j` beside them, the programs `sqlite3` and `unzip`, and access to journald and unused local ports.
 The first `java` on the `PATH` must be of the version that compiled the WARs (Java 21 for the current source). A port
-that a closed connection still holds fails the free-port check for about a minute, so wait that long between two runs.
+that a process listens on fails the free-port check; closed connections that still hold it do not.
 It installs with the shipped Make rules into a fresh temporary directory and uses the installed launcher and generated
 wrappers. It does not install systemd units or change an existing appliance.
 

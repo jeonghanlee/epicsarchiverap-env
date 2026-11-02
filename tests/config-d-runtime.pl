@@ -16,7 +16,7 @@ use IO::Uncompress::Unzip qw($UnzipError);
 use JSON::PP ();
 use Pod::Usage qw(pod2usage);
 use POSIX ();
-use Socket qw(PF_INET SOCK_STREAM inet_aton sockaddr_in);
+use Socket qw(PF_INET SOCK_STREAM SOL_SOCKET SO_REUSEADDR inet_aton sockaddr_in);
 
 =head1 NAME
 
@@ -43,8 +43,8 @@ SIGINT and SIGTERM stop the JVMs before the test ends with status 130 or 143.
 
 Required: Java of the version the WARs were compiled for (21 for the current source) first on the PATH, a readable and
 executable Tomcat 9 distribution, built appliance WARs with the folder tomcat-log4j beside them, journald, unused
-local ports (offsets 0 to 3 for HTTP, 5 for the cluster, 10 to 13 for shutdown; a port that a closed connection still
-holds fails the check for about a minute), and the programs bash, make, sqlite3 and unzip. Required Perl modules
+local ports (offsets 0 to 3 for HTTP, 5 for the cluster, 10 to 13 for shutdown; a port that a process listens on fails
+the check), and the programs bash, make, sqlite3 and unzip. Required Perl modules
 beyond the core of Perl 5.26: none, but on Rocky Linux Digest::SHA is the separate package perl-Digest-SHA,
 IO::Uncompress::Unzip the package perl-IO-Compress and JSON::PP the package perl-JSON-PP.
 
@@ -284,6 +284,8 @@ sub prepare {
     }
     for my $port ($first .. $first + 3, $first + 10 .. $first + 13, $first + 5) {
         socket(my $probe, PF_INET, SOCK_STREAM, 0) or die "socket: $!\n";
+        # Address reuse lets closed connections that still hold the port pass; a listening socket still fails the bind.
+        setsockopt($probe, SOL_SOCKET, SO_REUSEADDR, pack('l', 1)) or die "setsockopt: $!\n";
         bind($probe, sockaddr_in($port, inet_aton('127.0.0.1'))) or fail("Port $port is not free: $!");
         close($probe);
     }
@@ -387,7 +389,10 @@ sub start {
             if (-e $pidfile) {
                 my $text = slurp($pidfile);
                 $text =~ s/\A\s+|\s+\z//g;
-                $state->{pids}{$name} = $text + 0;
+                # An empty file is the moment between its creation and its content; text is a failure.
+                my $is_number = $text =~ /\A[0-9]+\z/ ? 1 : 0;
+                check($text eq '' || $is_number, "The pid file of $name does not hold a number: $pidfile");
+                $state->{pids}{$name} = $text + 0 if $text ne '';
             }
             my $body = eval { http_get($state->{port_base} + $offset, "/$name/bpl/startupState") };
             if (defined $body) {

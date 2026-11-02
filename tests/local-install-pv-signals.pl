@@ -179,6 +179,8 @@ sub start_child {
     my $pid = fork();
     defined $pid or die "fork: $!\n";
     if (!$pid) {
+        # A parent that ignores SIGINT would pass the ignore on, and the verifier could not trap it.
+        $SIG{INT} = 'DEFAULT';
         %ENV = %{$env};
         if ($terminal) {
             close($in_write);
