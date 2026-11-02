@@ -65,12 +65,12 @@ my @MAKE;
 
 $| = 1;
 
-sub fail {
+sub fail($) {
     my ($message) = @_;
     die "ASSERTION: $message\n";
 }
 
-sub check {
+sub check($$) {
     my ($condition, $message) = @_;
     $condition or fail($message);
     return;
