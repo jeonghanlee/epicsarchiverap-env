@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Land the change of M14 (the six tests with the prototypes and this record), then write the landing into the Closure Evidence of M14 in `docs/milestone-9576820.md` and mark it Complete; T1 and T2 of M14 are Pass. The plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63 and M11 at 134857b0a4f7e910b707b00993a2f9f027c75823. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12, M13 and M15 Open; their later order is not authorization to resume.
+Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823 and M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8. The Backlog items M9, M10, M12, M13 and M15 hold the remaining defects and improvements that the conversion showed (D24, D26, D27). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12, M13 and M15 Open; their later order is not authorization to resume.
 
 ## Scope
 
@@ -26,9 +26,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Complete | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25 | T1-T4 passed, T2 and T4 with the waivers of D25; landed at 6efd7db; [detail](#m3---replace-the-python-tests-with-perl-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | Yes | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 | Tests | M11 | Remove the false failures of the converted tests | Carry-forward | Complete | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; T1-T2 passed; landed at 134857b; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
-| Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | In progress | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
+| Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | Complete | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; T1-T2 passed; landed at 23e98e8; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 4 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 5 Complete and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -977,7 +977,7 @@ Last Compared: none
 Origin: 9576820 / M14
 Identity History: created as M14 on 2026-11-02 by D27, which split it from M12
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1027,7 +1027,11 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation and required verification: finished on 2026-11-02. T1 and T2 are Pass in Verification Results, on the Debian 13 development host.
+- Completion criteria against the evidence: the six tests compile with the prototypes `check($$)` and `fail($)` and pass unmutated, with status 0, empty standard error and no `SKIP:` line (T1); the runtime test with the earlier, list-context form of the pid check is killed by the mutation that writes text into the pid file, with the message of the check (T2).
+- Repository landing: the code is commit 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and the last commit of the work is 515e7c7a6e1b00c18cc5b88cca946d3f8b0da47e on origin/maven. Observed at 2026-11-02T16:50:58Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that last commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The shared module that keeps these prototypes is M12, and the instances that an aborted runtime test leaves running are M15.
+- Linked GitHub issue: none.
 
 ##### GitHub Projection
 
