@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7 and M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63; the defects and improvements that M3 showed are the Backlog items M9 to M12 (D24). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8 to M12 Open; their later order is not authorization to resume.
+Next session entry point: Land the change of M11 (`tests/config-d-runtime.pl`, `tests/local-install-pv-signals.pl`, `tests/README.md` and this record), then write the landing into the Closure Evidence of M11 in `docs/milestone-9576820.md` and mark it Complete; T1 and T2 of M11 are Pass. The plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7 and M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12 and M13 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns twelve work items on the default development branch. The assigned work order is M1, M2, M3 and M4. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M9, M10, M11 and M12 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns thirteen work items on the default development branch. The assigned work is M1, M2, M3, M4 and M11; M11 was assigned on 2026-11-02 by D26 and its order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M9, M10, M12 and M13 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -25,8 +25,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Complete | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25 | T1-T4 passed, T2 and T4 with the waivers of D25; landed at 6efd7db; [detail](#m3---replace-the-python-tests-with-perl-tests) |
 | Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | Yes | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
+| Tests | M11 | Remove the false failures of the converted tests | Carry-forward | In progress | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 3 Complete and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 3 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -57,6 +58,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D23 | Convert `tests/local-install-pv-range.py` with its behavior, including the way it keeps the query and the response of the replaced HTTP transport in two files that can come from different attempts, and handle that defect afterwards as the separate item M9. | 2026-10-31 |
 | D24 | Read the first check (T1) of M3 as parity with the Python tests: a mutation that a Python test kills is killed by its Perl test, and the survivors are the same set. The Perl tests keep the defects of the Python tests for now, and every defect or improvement that the conversion shows in the Perl tests becomes a Backlog item instead of a change inside M3: M10 closes the gaps that the mutations left, M11 removes false failures and leftover evidence, M12 shares the helper code, and M9 stays as it is. | 2026-11-02 |
 | D25 | Close the checks T2 and T4 of M3 without the eight-case VM run and without the mutations on the guests. The VM matrix keeps its pass conditions because `tests/vm/driver.py` and `tests/vm/guest.py` are identical to the prior state commit of this generation and call no converted test; the part of T2 that the conversion touches is the local suite, which ran with a real EPICS Base and passed the completeness check of the driver. The mutations were run on the local host for all nine tests, and the guests ran the shipped code of the guest tests on Debian 13 and Rocky Linux 8.10. | 2026-11-02 |
+| D26 | Assign M11 on 2026-11-02 in the reduced form the owner chose: it covers the free-port probe and the pid file of `tests/config-d-runtime.pl` and the SIGINT disposition of the verifier that `tests/local-install-pv-signals.pl` starts, and its status changes from Open to Not started. The rule for the evidence that passing runs keep becomes the separate Backlog item M13, which the owner decides. | 2026-11-02 |
 
 ### ID Migration
 
@@ -80,6 +82,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M5 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-10-29 by D11 | this synchronization commit | this synchronization commit |
 | 9576820 / M4 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-10-29 by D11 | this synchronization commit | this synchronization commit |
 | 9576820 / M6 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-10-29 by D11 | this synchronization commit | this synchronization commit |
+| 9576820 / M11 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D26 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -787,7 +790,7 @@ Conversion record, one file at a time; the evidence is under `work/m3-perl/<file
 
 For `tests/install-payload.py` the mutations number 14, for `tests/health-local.py` 27, for `tests/database-config.py` 29 on the configuration cases and 7 on the integration cases, for `tests/config-d.py` 21, for `tests/local-install-epics.py` 12, for `tests/local-install-pv-menu.py` 14, for `tests/local-install-pv-range.py` 10, for `tests/local-install-pv-signals.py` 11, for `tests/config-d-runtime.py` 15.
 
-The control run, without a mutation, passed for both implementations before their kill tables were accepted. Standard error of the Perl run is empty and `perl -wc` and `podchecker` are clean. T1 to T4 stay Pending until the prerequisite documents, the consumers and the full local suite of the plan are done. The modules of `tests/install-payload.pl` are `Cwd`, `Digest::SHA`, `File::Basename`, `File::Copy`, `File::Find`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Uncompress::Unzip`, `Pod::Usage` and `POSIX`; on Rocky Linux the packages perl-Digest-SHA and perl-IO-Compress are needed beyond the interpreter. The modules of `tests/health-local.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed, and the test needs the program `xmllint` beside `bash`, `make`, `git`, `df` and `sleep`. The modules of `tests/database-config.pl` are `Cwd`, `Fcntl`, `File::Basename`, `File::Copy`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX`, `Test::More` and `Time::HiRes`; on Rocky Linux the packages perl-Test-Simple and perl-Time-HiRes are needed, and the test needs `xmllint`, `curl` and `git`; the integration cases also need `sqlite3`, `gzip`, `mysql`, the MariaDB server, `lsof` and `tree`. The modules of `tests/config-d.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed beside `bash`, `make` and `curl`. The modules of `tests/local-install-epics.pl` are `Cwd`, `File::Basename`, `File::Temp`, `Getopt::Long`, `Pod::Usage` and `POSIX`, all in the Perl core; the test needs `bash` and `script` of util-linux, which it uses for the pseudo-terminal of the installers and whose absence it reports as an environment error with exit status 2, and no Perl package beyond the interpreter on Rocky Linux. The modules of `tests/local-install-pv-range.pl` are `Cwd`, `File::Basename`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `JSON::PP`, `Pod::Usage`, `POSIX` and `Time::Local`; on Rocky Linux the package perl-JSON-PP is needed, and the test needs a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`), `bash`, `jq` and `curl`. The modules of `tests/local-install-pv-signals.pl` are `Cwd`, `File::Basename`, `File::Path`, `File::Temp`, `Getopt::Long`, `JSON::PP`, `Pod::Usage` and `POSIX`; on Rocky Linux the package perl-JSON-PP is needed, and the test needs `bash`, `script` of util-linux, a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`), `jq` and `curl`. The modules of `tests/local-install-pv-menu.pl` are `Cwd`, `File::Basename`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage` and `POSIX`, all in the Perl core; it needs `bash`, `script` of util-linux, a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`) and, for the verifier, `jq` and `curl`, and, through `tests/local-install-pv-range.pl`, no Python. The modules of `tests/config-d-runtime.pl` are `Cwd`, `Digest::SHA`, `File::Basename`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `IO::Socket::INET`, `IO::Uncompress::Unzip`, `JSON::PP`, `Pod::Usage`, `POSIX` and `Socket`; on Rocky Linux the packages perl-Digest-SHA, perl-IO-Compress and perl-JSON-PP are needed, and the test needs a Java of the version that compiled the WAR files (21), Tomcat 9, the built WAR files with `tomcat-log4j`, `bash`, `make`, `sqlite3` and `unzip`. Its probe of the free ports binds without address reuse, as the Python test does, so a port that a closed connection still holds fails the probe for about a minute after a run; the Perl test keeps that behavior and `tests/README.md` states it. The runs leave the soft IOC of a mutated verifier behind when its clean-up is mutated, and that IOC takes the CA port of the next run, so a mutation run stops the IOCs of its tree before and after each run. The Python test kept every workspace; `tests/config-d.pl` removes the workspace of a passing case and keeps that of a failed case or any case with `KEEP_WORKSPACE=1`, like `tests/health-local.pl` and `tests/database-config.pl` (D22).
+The control run, without a mutation, passed for both implementations before their kill tables were accepted. Standard error of the Perl run is empty and `perl -wc` and `podchecker` are clean. T1 to T4 stay Pending until the prerequisite documents, the consumers and the full local suite of the plan are done. The modules of `tests/install-payload.pl` are `Cwd`, `Digest::SHA`, `File::Basename`, `File::Copy`, `File::Find`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Uncompress::Unzip`, `Pod::Usage` and `POSIX`; on Rocky Linux the packages perl-Digest-SHA and perl-IO-Compress are needed beyond the interpreter. The modules of `tests/health-local.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed, and the test needs the program `xmllint` beside `bash`, `make`, `git`, `df` and `sleep`. The modules of `tests/database-config.pl` are `Cwd`, `Fcntl`, `File::Basename`, `File::Copy`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX`, `Test::More` and `Time::HiRes`; on Rocky Linux the packages perl-Test-Simple and perl-Time-HiRes are needed, and the test needs `xmllint`, `curl` and `git`; the integration cases also need `sqlite3`, `gzip`, `mysql`, the MariaDB server, `lsof` and `tree`. The modules of `tests/config-d.pl` are `Cwd`, `File::Basename`, `File::Copy`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Socket::INET`, `Pod::Usage`, `POSIX` and `Test::More`; on Rocky Linux the package perl-Test-Simple is needed beside `bash`, `make` and `curl`. The modules of `tests/local-install-epics.pl` are `Cwd`, `File::Basename`, `File::Temp`, `Getopt::Long`, `Pod::Usage` and `POSIX`, all in the Perl core; the test needs `bash` and `script` of util-linux, which it uses for the pseudo-terminal of the installers and whose absence it reports as an environment error with exit status 2, and no Perl package beyond the interpreter on Rocky Linux. The modules of `tests/local-install-pv-range.pl` are `Cwd`, `File::Basename`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `JSON::PP`, `Pod::Usage`, `POSIX` and `Time::Local`; on Rocky Linux the package perl-JSON-PP is needed, and the test needs a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`), `bash`, `jq` and `curl`. The modules of `tests/local-install-pv-signals.pl` are `Cwd`, `File::Basename`, `File::Path`, `File::Temp`, `Getopt::Long`, `JSON::PP`, `Pod::Usage` and `POSIX`; on Rocky Linux the package perl-JSON-PP is needed, and the test needs `bash`, `script` of util-linux, a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`), `jq` and `curl`. The modules of `tests/local-install-pv-menu.pl` are `Cwd`, `File::Basename`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `Pod::Usage` and `POSIX`, all in the Perl core; it needs `bash`, `script` of util-linux, a real EPICS Base (`AA_TEST_EPICS_BIN`), the source checkout (`AA_TEST_SOURCE_PATH`) and, for the verifier, `jq` and `curl`, and, through `tests/local-install-pv-range.pl`, no Python. The modules of `tests/config-d-runtime.pl` are `Cwd`, `Digest::SHA`, `File::Basename`, `File::Glob`, `File::Path`, `File::Temp`, `Getopt::Long`, `IO::Select`, `IO::Socket::INET`, `IO::Uncompress::Unzip`, `JSON::PP`, `Pod::Usage`, `POSIX` and `Socket`; on Rocky Linux the packages perl-Digest-SHA, perl-IO-Compress and perl-JSON-PP are needed, and the test needs a Java of the version that compiled the WAR files (21), Tomcat 9, the built WAR files with `tomcat-log4j`, `bash`, `make`, `sqlite3` and `unzip`. Its probe of the free ports binds without address reuse, as the Python test does, so a port that a closed connection still holds fails the probe for about a minute after a run; the Perl test kept that behavior until M11 set address reuse on 2026-11-02. The runs leave the soft IOC of a mutated verifier behind when its clean-up is mutated, and that IOC takes the CA port of the next run, so a mutation run stops the IOCs of its tree before and after each run. The Python test kept every workspace; `tests/config-d.pl` removes the workspace of a passing case and keeps that of a failed case or any case with `KEEP_WORKSPACE=1`, like `tests/health-local.pl` and `tests/database-config.pl` (D22).
 
 Input identities of the conversion record:
 
@@ -811,7 +814,7 @@ Input identities of the conversion record:
 - Completion criteria against the evidence: the `.py` files that remain are exactly `site-template/policies.py.in`, `tests/heap/inspect-inputs.py`, `tests/vm/driver.py`, `tests/vm/guest.py` and `tests/vm/local.py`, which existed at the prior state commit 95768200a49e965ef2dd1949919e955af982aff6 (T3); every mutation that a Python test killed is killed by its Perl test and the survivors are the same set of 48, which M10 follows (T1, D24); the full local suite with a real EPICS Base printed no skip and passed the completeness check of the VM driver, and the VM driver and guest verifier are identical to that prior state commit, so the VM matrix keeps its pass conditions (T2, D25).
 - Repository landing: the last commit of the work is 6efd7db7044b2a77f3a763eb04435aa606836e63 on origin/maven. Observed at 2026-11-02T07:50:12Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit. The commits of the conversions, each followed by its record: ce6142f069251fbd2a032ac739429dfee8b2a572 and 13887af973832a1d954a1343ed49356681109a0d, 84e9b44ee61291898ace5c817c7e1d9086358e71 and aa12b6265623a48d4a2b6bf644a71a5fc00b304c, cb810ca603ddfcfbd35b4d18dd7d44e8b13b8d80 and ff195c1d21ba4b20754d72cf5480f313c0f70376, 588c7d318638364a1ad41e2ee688c479b82e3ee8 and debe17fe9f806706b65f1c1057eba1c6680e6ba5, e592604cf76c9a78dcec7ee512afac504d8a8ee9 and e8cf9c42907e82956db6a8de87897a236a57b24f, 3b68f225e61b186f8883ee41bf575803a6d83789 and 22e7994a97b8ff005cb3f14a1e3f3776ea6e308a, 2164d899ea1e458bae18f917586b6e27f3770e06 and 35e2b198cee0e1b7b5da8a87381875f683b0103a, 7814888872a6f87db65b0f05252ec3c1bfa42033 and ff2fa4fa884337a75b0fdac3f0483b5cc154aec5; the prerequisite documents are 0c9b041282dca53b829b4ef4c033ecbdd60ab22b and f4d5bca4cff0da822aaaad1ccc7e4aa727845fac, and the decisions D24 and D25 are 6efd7db7044b2a77f3a763eb04435aa606836e63.
 - Waived checks: the eight-case VM run of T2 and the mutations on the guests of T4, by D25 on 2026-11-02.
-- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The defects and improvements that the conversion showed are the Backlog items M9 to M12.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The defects and improvements that the conversion showed are the items M9 to M12.
 - Linked GitHub issue: none.
 
 ##### GitHub Projection
@@ -893,9 +896,79 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M11 - Remove the false failures of the converted tests
+
+Origin: 9576820 / M11
+Identity History: created as M11 on 2026-11-02 by D24; narrowed and assigned on 2026-11-02 by D26, which moved the rule for the evidence of passing runs to M13
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+Three behaviors of the converted tests report a failure, or can, although the code under test is fine. First, `tests/config-d-runtime.pl` probes its ports with a bind without address reuse, so for about a minute after a run the closed connections that still hold the ports make the probe fail with `Port N is not free`; the first series of mutations of M3 failed that way in all 15 runs, and the Python test behaves the same. Second, `tests/config-d-runtime.pl` reads the pid file of an instance with a numeric conversion, which gives 0 for text, where the Python test stops with an error. Third, `tests/local-install-pv-signals.pl` starts the verifier as its own child, and a verifier that inherits an ignored SIGINT cannot trap it: started from a background job of a non-interactive shell, `int-then-int` failed with status 1 instead of 130 on a Debian 13 and a Rocky Linux 8.10 guest, and the Python test starts its child the same way.
+
+##### Scope
+
+- Probe the ports of `tests/config-d-runtime.pl` so that only a listening socket counts as busy.
+- Check the pid file of `tests/config-d-runtime.pl` as a number and stop with a clear message otherwise.
+- Start the verifier of `tests/local-install-pv-signals.pl` with SIGINT at its default.
+
+Out of scope: the conversion of the tests (M3); the rule for the evidence of passing runs (M13); the exchange of the time-range test (M9); changes to the shipped code.
+
+##### Completion Criteria
+
+- A run of `tests/config-d-runtime.pl` directly after another run passes the port probe, and a port that a process listens on still fails it with the port named.
+- A pid file with text ends the run with a clear message that names the file.
+- The signal test passes when it is started from a background job that ignores SIGINT.
+- The mutations that the two tests killed before stay killed.
+
+##### Dependencies And Decisions
+
+- D24 creates this item on 2026-11-02.
+- D26 narrows it to the three behaviors, assigns it and changes Open to Not started on 2026-11-02; the evidence rule is M13.
+- M3 converts the tests first; M11 changes the converted files.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-02; the owner accepted this plan text.
+Implementation Authorization: 2026-11-02; explicit owner authorization to implement this plan. It does not authorize commit, push, issue creation or provisioning of guests.
+Superseded Plan Artifacts: none
+
+1. In `tests/config-d-runtime.pl`, set address reuse on the socket of the port probe. Show it with a second run directly after a first run, and with a process that listens on a port of the test.
+2. In the same file, accept only digits in the pid file and fail with a message that names the file otherwise. Show it with a scratch mutation of the shipped `site-template/startup.sh.in` that writes text into the pid file.
+3. In `tests/local-install-pv-signals.pl`, reset SIGINT to its default in the child before it starts the verifier. Show it by starting the test from a background job of a non-interactive shell.
+4. Run the recorded mutations of both files again and compare their verdicts with the recorded ones.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run `tests/config-d-runtime.pl` twice in a row, then with a listening process on a port of the test, then with the scratch mutation that writes text into the pid file | A host with Java, Tomcat 9 and the built WAR files | The second run passes, the busy port fails with the port named, the text fails with a message that names the file |
+| T2 | Local | Start `tests/local-install-pv-signals.pl` from a background job that ignores SIGINT, then run the recorded mutations of both changed tests | A host with a real EPICS Base, Java and Tomcat 9 | The background start passes and the verdicts equal the recorded ones |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-02 UTC | The Debian 13 development host with Java 21, Tomcat 9.0.121 and the four built WAR files | Pass | `tests/config-d-runtime.pl` run twice in a row at port base 30665 ended with status 0 both times, in 208 and 211 seconds, with empty standard error; with a process listening on a port of the test it ended with status 1 and `Port 31902 is not free: Address already in use`; with the scratch mutation `pid-text`, which writes text into the pid file after the start of each instance, it ended with status 1 and `The pid file of mgmt does not hold a number` followed by the file name, without a numeric warning. The test file of these runs has SHA256 `cbe8f6fb1252b63a98ac29fd79f64f754507c211cf5a599488c631005b4df1dc`; logs under `work/m3-perl/config-d-runtime/` |
+| T2 | 2026-11-02 UTC | The Debian 13 development host with a real EPICS Base, Java 21 and Tomcat 9.0.121 | Pass | `tests/local-install-pv-signals.pl` started from a background job with `SigIgn` 7 (HUP, INT and QUIT ignored) passed its seven cases, `int-then-int` with status 130; its file has SHA256 `a7b206839c65b159e28e1fe3f9b1862cd79150981a1bb4d5fad29f4e0414d0eb`. The 15 recorded mutations of `tests/config-d-runtime.pl` gave the recorded verdicts (11 killed, 4 survive: `option-leak`, `require-config`, `pid-kept`, `startup-no-allexport`) and `pid-text` was killed; the 11 recorded mutations of `tests/local-install-pv-signals.pl` gave the recorded verdicts (8 killed, 3 survive). The series ran on the copy of the runtime test with the SHA256 above, which differs from the file now committed (SHA256 `0ebb6b0513fc90d5e0abd57fdb8a6d2ddecd51441be2a2390e300eb21f03bf4b`) in the POD text only; no run had a port probe failure or left a JVM |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Remove the false failures of the converted tests
+Labels: bug
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M9, M10, M11 and M12 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M9, M10, M12 and M13 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -907,8 +980,8 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Open | No | D6, D16, D17 | The owner decides whether and in which language the driver, verifier and driver test are replaced, and any chosen work passes defect-sensitive tests and a real guest verdict; [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Tests | M9 | Keep one consistent exchange in the PV time-range test | Carry-forward | Open | No | M3, D23 | The unmutated time-range test passes in every run of a series whose length the plan fixes, and its mutation verdicts stay as sensitive as before; [detail](#m9---keep-one-consistent-exchange-in-the-pv-time-range-test) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
-| Tests | M11 | Remove the false failures and the leftover evidence of the converted tests | Carry-forward | Open | No | M3, D24 | A run directly after another run passes the port probe, a pid file with text fails clearly, and a passing run of the three evidence-keeping tests leaves no evidence; [detail](#m11---remove-the-false-failures-and-the-leftover-evidence-of-the-converted-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
+| Tests | M13 | Decide the evidence that passing runs of the converted tests keep | Carry-forward | Open | No | M3, D26 | The owner decides one rule for the evidence of a passing run of the three evidence-keeping tests, and the tests follow it; [detail](#m13---decide-the-evidence-that-passing-runs-of-the-converted-tests-keep) |
 
 ### Backlog Details
 
@@ -1380,75 +1453,6 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
-#### M11 - Remove the false failures and the leftover evidence of the converted tests
-
-Origin: 9576820 / M11
-Identity History: created as M11 on 2026-11-02 by D24
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-Four behaviors of the converted tests report a failure or leave data although the code under test is fine. First, `tests/config-d-runtime.pl` probes its ports with a bind without address reuse, so for about a minute after a run the closed connections that still hold the ports make the probe fail with `Port N is not free`; the first series of mutations of M3 failed that way in all 15 runs, and the Python test behaves the same. Second, `tests/config-d-runtime.pl` reads the pid file of an instance as a number: when the file holds other text the Perl test warns and records 0, where the Python test stops with an error. Third, `tests/config-d-runtime.pl`, `tests/local-install-pv-signals.pl` and `tests/local-install-pv-range.pl` keep the evidence of every run, about 476 MB for one run of the first, while `tests/config-d.pl`, `tests/health-local.pl` and `tests/database-config.pl` remove the workspace of a passing case (D22). Fourth, `tests/local-install-pv-signals.pl` starts the verifier as its own child, and a verifier that inherits an ignored SIGINT cannot trap it: started from a background job of a non-interactive shell, `int-then-int` failed with status 1 instead of 130 on a Debian 13 and a Rocky Linux 8.10 guest, and the Python test starts its child the same way.
-
-##### Scope
-
-- Probe the ports so that only a listening socket counts as busy, and check the pid file as a number or stop with a clear message.
-- Decide one rule for the evidence of a passing run and apply it to the three tests, keeping the evidence of a failed run.
-- Start the verifier of the signal test with SIGINT at its default, and show it by starting the test from a background job.
-- Show the change with a second run directly after the first and with a pid file that holds text.
-
-Out of scope: the conversion of the tests (M3); the exchange of the time-range test (M9); changes to the shipped code.
-
-##### Completion Criteria
-
-- A run directly after another run does not fail the port probe, and a port that a process really listens on still does.
-- A pid file with text ends the run with a clear failure.
-- A passing run of the three tests leaves no evidence unless asked, and a failed run keeps it, as D22 states for the other three tests.
-- The signal test passes when it is started from a background job that ignores SIGINT.
-
-##### Dependencies And Decisions
-
-- D24 creates this item on 2026-11-02.
-- M3 converts the tests first; M11 changes the converted files.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Reproduce each behavior on the converted file and record it.
-2. Change the probe, the pid file check and the evidence rule, one test at a time.
-3. Repeat the runs of the reproduction and the recorded mutations of the changed file.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Run `tests/config-d-runtime.pl` twice in a row, then with a busy port, then with a pid file that holds text | A host with Java, Tomcat and the built WAR files | The second run passes, the busy port fails, the text fails with a clear message |
-| T2 | Local | Run each of the three tests once on the shipped code and once failing | The same host | A passing run leaves no evidence and a failed run keeps it |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | A host with a real EPICS Base, Java and Tomcat | Pending | none |
-| T2 | Pending | The same host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Remove the false failures and the leftover evidence of the converted tests
-Labels: bug
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
-
 #### M12 - Share the helper code of the Perl tests
 
 Origin: 9576820 / M12
@@ -1458,12 +1462,13 @@ Status: Open
 
 ##### Summary
 
-Each of the nine Perl tests carries its own copy of its helpers: `slurp`, `spew` and `usage_error` in all nine files, `which` in seven, `shell_quote` and the pair `fail` and `check` in six, and `pause_for` in three. A fix in one copy has to be repeated by hand in the others, and the copies already differ in small details.
+Each of the nine Perl tests carries its own copy of its helpers: `slurp`, `spew` and `usage_error` in all nine files, `which` in seven, `shell_quote` and the pair `fail` and `check` in six, and `pause_for` in three. A fix in one copy has to be repeated by hand in the others, and the copies already differ in small details. The copies of `check` in five tests have no prototype, so a pattern match that fails inside its argument list gives an empty list, the message moves into the place of the condition, and the check passes whatever the text is; a line of that form was written on 2026-11-02 while M11 was implemented, and the scratch mutation that writes text into the pid file showed it. No such line remains in the tests.
 
 ##### Scope
 
 - Put the common helpers in one module below `tests/` that each test loads from its own location, using only the modules of the Perl core and keeping Perl 5.26 working.
 - Keep every test runnable alone, from a copy of the tree, as the scratch trees of the mutation runs use it.
+- Declare `check` and `fail` with scalar prototypes, so that a failed pattern match cannot shift the arguments of a check.
 
 Out of scope: changing what a test checks (M3, M10, M11); the shell helpers in `tests/lib/`.
 
@@ -1471,7 +1476,7 @@ Out of scope: changing what a test checks (M3, M10, M11); the shell helpers in `
 
 - Every Perl test loads the shared module instead of its own copy, and the copies are gone.
 - The output of each test on the shipped code and the verdicts of its recorded mutations are unchanged.
-- The module has a check of its own that runs in the local suite.
+- The module has a check of its own that runs in the local suite, and it shows that a check with a failed pattern match fails.
 
 ##### Dependencies And Decisions
 
@@ -1510,6 +1515,68 @@ Superseded Plan Artifacts: none
 ##### GitHub Projection
 
 Title: Share the helper code of the Perl tests
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M13 - Decide the evidence that passing runs of the converted tests keep
+
+Origin: 9576820 / M13
+Identity History: created as M13 on 2026-11-02 by D26
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+`tests/config-d-runtime.pl`, `tests/local-install-pv-signals.pl` and `tests/local-install-pv-range.pl` keep the evidence of every run, about 476 MB for one run of the first, while `tests/config-d.pl`, `tests/health-local.pl` and `tests/database-config.pl` remove the workspace of a passing case and keep that of a failed case (D22). The Python tests kept every workspace. Which rule the three tests follow is the owner's decision: keep as before, follow D22, or keep only on request.
+
+##### Scope
+
+- The owner decides one rule for the evidence of a passing run of these three tests, keeping the evidence of a failed run and the `KEEP_WORKSPACE` switch of D22 where it applies.
+- Apply the rule to the three tests and to `tests/README.md`.
+
+Out of scope: the conversion of the tests (M3); the false failures of the same tests (M11).
+
+##### Completion Criteria
+
+- The decision is recorded with its date.
+- A passing run of the three tests behaves as the decision says, and a failed run keeps its evidence.
+
+##### Dependencies And Decisions
+
+- D26 creates this item on 2026-11-02.
+- M3 converts the tests first; M13 changes the converted files.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. Record the decision of the owner.
+2. Apply the rule to the three tests, one at a time, and update the guide.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run each of the three tests once on the shipped code and once failing | A host with a real EPICS Base, Java and Tomcat 9 | The evidence of the passing run is kept or removed as decided, and the failed run keeps its evidence |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | A host with a real EPICS Base, Java and Tomcat 9 | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Decide the evidence that passing runs of the converted tests keep
 Labels: none
 GitHub Milestone: none
 Observed State: none; no issue exists yet
