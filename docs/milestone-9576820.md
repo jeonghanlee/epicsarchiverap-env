@@ -70,7 +70,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D30 | Assign M9 on 2026-11-03 after the owner accepted its plan and authorized the implementation: the query and the response of a data request are recorded in one file that is replaced as a whole. Its status changes from Open to In progress. | 2026-11-03 |
 | D31 | Replace the plan of M9 after its measurement rejected the premise: the test with one exchange file failed in 3 of 12 runs and the committed test in 1 of 12, and all four failures show the last sample one second past the upper bound of the query of the same attempt. The fixture holds the time of the last sample at the upper bound, the one-file change is removed uncommitted, and M9 is renamed. | 2026-11-03 |
 | D32 | Rebuild the VM installation test on the existing tools. For each case the test requests a fresh guest from cloud-provision, runs this repository's local installer script on the guest, checks that the installed appliance stores and retrieves PVs, asks cloud-provision to remove the guest and reports; cloud-provision alone answers for the creation, freshness and removal of the guest, the test does not run Ansible, and it is written in Perl (D16), not Python. The current `tests/vm/driver.py`, `guest.py` and `local.py` are not repaired and stay until the new test replaces them: M4 is retired, M8 is closed by this decision, and M16 holds the new test. | 2026-11-03 |
-| D33 | Upgrade an installed appliance through the local installer scripts themselves: they compare the installed state with the state the checkout renders, print a plan per layer with the reason, and run only the layers that differ, with the existing Make rules and a stop of the appliance only when an installed layer changes. `site-template/.versions` is installed with the appliance so the host records what was installed and when. The schema load records the SHA-256 of the source SQL file in one table of this repository, so a changed schema is detected; a change of an existing column stops with a report, because the source carries no migration. Whether a change of the three classpath files needs a rebuild is settled by reading the source before the plan is accepted. The tool stays Bash. The work is M17. | 2026-11-03 |
+| D33 | Upgrade an installed appliance through the local installer scripts themselves: they compare the installed state with the state the checkout renders, print a plan per layer with the reason, and run only the layers that differ, with the existing Make rules and a stop of the appliance only when an installed layer changes. `site-template/.versions` is installed with the appliance so the host records what was installed and when. The schema layer compares the source SQL file at the installed commit with the file at the target commit by `git diff`, because the installed appliance was installed from this checkout and its commit is recorded in the installed `version.txt`: a difference that only adds whole tables runs the schema load, which is safe to repeat, and any other difference stops with the diff, because the source carries no migration. The classpath files are settled by the finding in M17. The tool stays Bash. The work is M17. | 2026-11-03 |
 
 ### ID Migration
 
@@ -1360,7 +1360,7 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 | Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32 | The owner assigns it; then one real case of each OS and backend passes on a fresh guest through the real local installer script, a mutation of the installer fails the test, and the three Python files are removed; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
-| Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Open | No | D33 | The owner assigns it; then the installer scripts report an unchanged installation without a build or a stop, install a changed configuration without a build, build and install a changed source, detect a changed schema by its recorded hash, and the comparison fails on a mutation of each layer; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
+| Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Open | No | D33 | The owner assigns it; then the installer scripts report an unchanged installation without a build or a stop, install a changed configuration without a build, build and install a changed source, detect a changed schema by the diff of the source SQL file between the installed and the target commit, and the comparison fails on a mutation of each layer; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 
 ### Backlog Details
 
@@ -1854,10 +1854,11 @@ The local installer scripts (`scripts/install-local-sqlite.bash`, `scripts/insta
 
 ##### Scope
 
-- An inspection stage in `scripts/install-local-common.bash`, read-only, over six layers: program (the commit in the installed `version.txt` against the commit of `SRC_TAG` after the fetch), configuration (the rendered `site-template` files against the installed copies in `AA_INSTALL_LOCATION` and the `conf/` files of each instance, with the port values of `server.xml`), systemd (the rendered units and `override.conf` against `/etc/systemd/system`), schema (the recorded hash of the source SQL file and the table list against the current file), storage (the tier folders and their owner) and runtime (unit states, `archappl.bash health`, HTTP readiness; observed, never changed).
+- An inspection stage in `scripts/install-local-common.bash` that changes nothing on the system: it only reads the installed state, but it first updates the checkout as the checkout owner (`git fetch`, `make srcupdate`, then `make db.conf`, `make conf.archapplproperties` and `make conf.install`, which write only below the checkout), because the comparison needs the target commit and the rendered files; `--plan` runs this update too. It covers six layers: program (the commit in the installed `version.txt` against the commit of `SRC_TAG` after the fetch), configuration (the rendered `site-template` files against the installed copies in `AA_INSTALL_LOCATION` and the `conf/` files of each instance, with the port values of `server.xml`), systemd (the rendered units and `override.conf` against `/etc/systemd/system`), schema (the source SQL file at the installed commit against the file at the target commit, by `git diff`), storage (the tier folders and their owner) and runtime (unit states, `archappl.bash health`, HTTP readiness; observed, never changed).
 - A plan printed per layer with what differs and why; `--plan` stops there; execution after the confirmation or `-y`; the appliance is stopped only when an installed layer changes and only after the build; after the start the verification: `health`, the version of `getApplianceInfo` equal to the installed commit, HTTP 200.
 - `site-template/.versions` installed into `AA_INSTALL_LOCATION` by `make install`.
-- The schema copies that `sql.update` renders carry one table of this repository (`aa_env_schema`) that `sql.table.fill` fills with the SHA-256 of the source SQL file and the date; the inspection compares it with the current file and stops with a report when the hash differs and the table list is unchanged.
+- Schema rule: no difference runs nothing; a difference that only adds whole `CREATE TABLE` blocks runs `make sql.fill`; any other difference, including a changed or removed column and a changed comment, stops with the diff until the owner has read it and runs the installer again with `--accept-schema`, which loads the schema and goes on. The installed commit is not in the clone: the inspection fetches first and stops when the commit is still absent.
+- Known limits, stated in the plan output and the documents: the schema layer assumes that the installed database was loaded from the schema file of the installed commit, so a table changed by hand or loaded from an older commit is not detected; a column change has no migration in the source, so the owner decides it; a value given only on a `make` command line is not seen by the file comparison; the installed JDK and Tomcat are checked against the configuration and reported, not changed.
 - Refusals, reported and not changed: a retained `.payload.*` folder of a failed install; a JDK or Tomcat that differs from the configuration.
 - The reinstall section of `docs/README.install.md` and the book page describe the inspection and the plan.
 
@@ -1867,13 +1868,14 @@ Out of scope: a migration of a changed column; the host prerequisites (OS packag
 
 - On an installed host with nothing changed, the installer reports the installation as up to date, builds nothing and does not stop the appliance.
 - With only `../CONFIG_SITE.local` changed, it installs without a build; with a changed source commit, it builds and installs; each run ends with the verification passing and the installed `.versions` naming the installed commit.
-- A changed source SQL file is detected by the recorded hash; a change without a new table stops with the report.
+- A source SQL file that differs between the installed and the target commit is detected by the diff: a new table is loaded, any other difference stops with the diff, and `--accept-schema` continues after it.
+- The tests that call the installer scripts still pass: `tests/local-install-epics.pl`, `tests/database-config.pl`, `tests/local-install-output.bash`, `tests/local-install-config.bash` and `tests/local-install-readiness.bash`.
 - A scratch mutation of the comparison of each layer, which makes a changed layer look unchanged, fails the test of the inspection.
 
 ##### Dependencies And Decisions
 
-- D33 creates this item on 2026-11-03 and settles the design: the inspection lives in the installer scripts, `.versions` is installed, the schema hash is recorded in a table of this repository, the tool is Bash.
-- Before plan acceptance: read the source to settle whether a change of `appliances.xml`, `archappl.properties` or `policies.py` alone needs a rebuild (`docs/README.install.md` says the WARs carry them as defaults; `configure/RULES_INSTALL` says the services read the installed copies), and record the finding here.
+- D33 creates this item on 2026-11-03 and settles the design: the inspection lives in the installer scripts, `.versions` is installed, the schema layer compares the source SQL files of the installed and the target commit, the tool is Bash.
+- Finding of 2026-11-03 from the source at commit e0a8e66e: the services read `appliances.xml` (`AppliancesList.determineApplianceXMLFileAndReturnStream`), `archappl.properties` (`DefaultConfigService`, `ARCHAPPL_PROPERTIES_FILENAME`) and `policies.py` (`DefaultConfigService.getPolicyText`) from the path that `ARCHAPPL_APPLIANCES`, `ARCHAPPL_PROPERTIES_FILENAME` and `ARCHAPPL_POLICIES` name, and use the copy inside the WAR only when the variable is not set; a named file that does not exist stops the service. The installed `archappl.conf` of the development host sets all three to the installed copies. Rule of the layer: a change of one of the three files alone is installed and takes effect at the next start, with no rebuild, when the installed `archappl.conf` sets the variable; when it does not set it, the WAR copy is the one in use and the program layer is rebuilt. The rebuild that `docs/README.install.md` asks for in that case is the conservative form of this rule and is corrected by M17.
 
 ##### Implementation Plan
 
@@ -1882,11 +1884,11 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
-1. Settle the classpath-files question from the source and record the rule of that layer in this detail.
-2. Add the `.versions` install to `configure/RULES_INSTALL`, and the `aa_env_schema` table to the schema copies that `sql.update` renders, filled by `sql.table.fill` for MariaDB and SQLite.
+1. The rule for the three classpath files is settled and recorded under Dependencies And Decisions; the inspection checks that the installed `archappl.conf` sets the three variables, and the correction of `docs/README.install.md` is part of step 6.
+2. Add the `.versions` install to `configure/RULES_INSTALL`.
 3. Add the inspection stage and the plan output to `scripts/install-local-common.bash`, under the existing `--plan`.
 4. Make the stop, build, database, storage and install stages run only for the layers the plan names, and add the verification after the start.
-5. Write a Perl test under `tests/` that runs the inspection against a prepared installed tree made of real rendered files and checks the verdict of each layer, with a scratch mutation per layer; run the installer on the installed appliance of the development host for the unchanged and the configuration-only cases.
+5. Write a Perl test under `tests/` that runs the inspection against an installed tree that the real file-writing install rules produced (`make conf.install` runs first, because the install rules stop with status 2 when a rendered file is older than `configure/CONFIG_SITE`; then `services.install`, `serveroption.install` (which installs the `<service>.conf` files that `services.install` does not) and `install.systemd` run with `AA_INSTALL_PATH` and `SYSTEMD_PATH` on the command line pointing to a temporary folder that exists and is writable, and with `AA_USERID` and `AA_GROUPID` set to the account of the test, because the default `tomcat` makes `chown` fail for an ordinary user and a folder that is not writable makes `make` use `sudo`; `systemctl daemon-reload` and `sd_enable` of `install.files` are not run), and checks the verdict of each layer, with a scratch mutation per layer; run the installer on the installed appliance of the development host for the unchanged and the configuration-only cases, with the owner at the terminal for the `sudo` password that the installer asks for.
 6. Update `docs/README.install.md` and the book page.
 
 ##### Test Plan
@@ -1896,7 +1898,8 @@ Superseded Plan Artifacts: none
 | T1 | Local | Run the installer `--plan`, then the installer, on the development host with its running appliance and nothing changed | The development host with the installed appliance | The plan reports every layer unchanged; the run builds nothing and does not stop the appliance |
 | T2 | Local | Change one value of `../CONFIG_SITE.local`, run the installer, then restore the value and run it again; the running appliance of the host is stopped and started by each run | The same host | Each run names the configuration layer and the changed file, installs without a build, and ends with the verification passing |
 | T3 | Local | Run the Perl test of the inspection against the prepared installed tree, then against a scratch mutation of the comparison of each layer | A host with the build tools | The test passes on the shipped code and fails on each mutation |
-| T4 | Local | Change the recorded schema hash in the database, run the installer `--plan` | The same host | The plan stops with the schema report |
+| T4 | Local | In a scratch clone of the source, change the SQL file between two commits once by adding a table and once by changing a column, and run the inspection for the installed commit against each | A host with the build tools | The added table runs `make sql.fill`; the changed column stops with the diff, and `--accept-schema` continues |
+| T5 | Local | Run the tests that call the installer scripts, listed in the completion criteria | A host with a real EPICS Base | Every run passes as before the change |
 
 ##### Verification Results
 
@@ -1905,7 +1908,8 @@ Superseded Plan Artifacts: none
 | T1 | Pending | The development host with the installed appliance | Pending | none |
 | T2 | Pending | The same host | Pending | none |
 | T3 | Pending | A host with the build tools | Pending | none |
-| T4 | Pending | The same host | Pending | none |
+| T4 | Pending | A host with the build tools | Pending | none |
+| T5 | Pending | A host with a real EPICS Base | Pending | none |
 
 ##### Closure Evidence
 
