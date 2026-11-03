@@ -24,6 +24,8 @@ db_port=''
 requested_socket=''
 setup_db=0
 plan=0
+inspect=0
+accept_schema=0
 yes=0
 skip_packages=0
 tomcat_action=''
@@ -70,6 +72,9 @@ function usage {
         'Existing appliance payloads are replaced; database contents and stores remain.' \
         '' \
         '  --plan             Print the steps without installing or starting anything' \
+        '  --inspect          Update the checkout, compare it with the installed appliance, print the result' \
+        '                     per layer and stop; nothing on the system is changed' \
+        '  --accept-schema    Continue after a schema difference that is more than whole new tables' \
         '  -y, --yes          Run without the confirmation and the soft IOC test question' \
         '  --skip-packages    Use the host-provided prerequisites' \
         '  --tomcat ACTION    existing: use as service user; replace: back up and install' \
@@ -98,6 +103,8 @@ function parse_args {
     while (( $# )); do
         case "$1" in
             --plan) plan=1; shift ;;
+            --inspect) inspect=1; shift ;;
+            --accept-schema) accept_schema=1; shift ;;
             -y|--yes) yes=1; shift ;;
             --skip-packages) skip_packages=1; shift ;;
             --tomcat)
@@ -127,6 +134,7 @@ function parse_args {
             *) die "Unknown argument: $1" ;;
         esac
     done
+    (( ! (plan && inspect) )) || die '--plan and --inspect cannot be combined'
 }
 
 function require_command {
@@ -763,9 +771,91 @@ function prepare_database {
     fi
 }
 
+# Takes the installer lock of this checkout, or stops when another installer or inspection holds it.
+function take_lock {
+    mkdir -p -- "$REPO/work"
+    [[ ! -L "$REPO/work/.local-install.lock" ]] || die 'Installer lock must not be a symlink'
+    exec 9>> "$REPO/work/.local-install.lock"
+    flock --exclusive --nonblock 9 || die 'Another appliance installer is running in this checkout'
+}
+
+# Updates the source clone to the configured pin and checks that it is clean; the checkout is the only thing it changes.
+function select_source {
+    local actual expected
+    stage='source selection'
+    if (( ! plan )); then restore_prepared_ui; fi
+    run_make init
+    run git -C "$source_path" fetch origin
+    run_make srcupdate
+    if (( ! plan )); then
+        actual=$(git -C "$source_path" rev-parse HEAD)
+        expected=$(git -C "$source_path" rev-parse "$source_pin^{commit}")
+        [[ "$actual" == "$expected" ]] || die 'Source HEAD does not match the configured pin'
+        require_interface_sources
+        check_source
+    fi
+}
+
+# Compares the installed appliance with the state that the checkout renders, through the inspection helper, and prints
+# one line per layer. The helper changes nothing on the system; it returns 1 when a layer refuses.
+function inspect_installation {
+    local component sql_file status=0 line output
+    local -a arguments=()
+    if [[ "$backend" == sqlite ]]; then sql_file=$(make_value SQL_AA_ORIG_SQLITE); else sql_file=$(make_value SQL_AA_ORIG_SQL); fi
+    [[ "$sql_file" == /* ]] || sql_file="$REPO/$sql_file"
+    sql_file="${sql_file#"$source_path"/}"
+    [[ "$sql_file" != /* ]] || die 'The schema file is not below the source clone'
+    arguments=(--install-dir "$install_path" --systemd-dir "$(make_value SYSTEMD_PATH)"
+        --rendered-dir "$(make_value AA_SITE_TEMPLATE_PATH)" --scripts-dir "$REPO/scripts" --source-dir "$source_path"
+        --war-dir "$(make_value ARCHAPPL_WARS_TARGET_PATH)" --sql-file "$sql_file" --service-user "$service_user"
+        --service-unit "$service_unit" --health-timer "$health_timer" --mgmt-url "$mgmt_url"
+        --storage-dir "$(make_value ARCHAPPL_STORAGE_TOP)" --storage-dir "$(make_value ARCHAPPL_SHORT_TERM_FOLDER)"
+        --storage-dir "$(make_value ARCHAPPL_MEDIUM_TERM_FOLDER)" --storage-dir "$(make_value ARCHAPPL_LONG_TERM_FOLDER)")
+    for component in "${COMPONENTS[@]}"; do
+        arguments+=(--port "$component=$(make_value "ARCHAPPL_${component^^}_PORT")"
+            --shutdown-port "$component=$(make_value "ARCHAPPL_SHUTDOWN_${component^^}_PORT")")
+    done
+    if (( accept_schema )); then arguments+=(--accept-schema); fi
+    output=$(bash "$REPO/scripts/inspect-local-install.bash" "${arguments[@]}") || status=$?
+    (( status <= 1 )) || die "The inspection stopped with status $status"
+    while IFS= read -r line; do
+        if [[ "$line" == '#'* ]]; then
+            printf '%s\n' "$line"
+        else
+            printf '%s\n' "$line" | awk -F'\t' '{ printf "%-14s %-10s %s\n", $1, $2, $3 }'
+        fi
+    done <<< "$output"
+    return "$status"
+}
+
+# Updates the checkout, renders the configuration and prints the comparison; nothing on the system is changed.
+function inspect_checkout {
+    local status=0
+    require_command flock
+    take_lock
+    trap report_exit EXIT
+    stage='prerequisites'
+    run_make "$os.conf"
+    read_settings
+    check_source
+    select_source
+    stage='configuration'
+    run_make db.conf
+    run_make conf.archapplproperties
+    run_make conf.install
+    stage='inspection'
+    inspect_installation || status=$?
+    if (( status )); then printf '%s\n' 'The inspection found a layer that refuses; read its reason above.' >&2; fi
+    return "$status"
+}
+
 function report_exit {
     local status=$?
     if (( status != 0 )); then
+        if (( inspect )); then
+            printf 'Inspection stopped during %s (exit %s). Nothing on the system was changed.\n' "$stage" "$status" >&2
+            return
+        fi
         if (( installation_completed )); then
             printf 'Installation completed. Post-install verification stopped (exit %s); inspect its retained evidence.\n' "$status" >&2
             return
@@ -781,7 +871,7 @@ function report_exit {
 }
 
 function main {
-    local answer tool actual expected java_home java_version
+    local answer tool java_home java_version
     case "${1:-}" in
         sqlite) backend=sqlite; transport=sqlite; entry_script='install-local-sqlite.bash' ;;
         mariadb-uds) backend=mariadb; transport=uds; setup_db=1; entry_script='install-local-mariadb-uds.bash' ;;
@@ -797,7 +887,7 @@ function main {
     select_backend
     read_settings
     check_source
-    prepare_pv_verification
+    if (( ! inspect )); then prepare_pv_verification; fi
     printf 'Repository: %s\nOS: %s\nSource pin: %s\nInstall: %s\nBackend: %s\n' \
         "$REPO" "$os" "$source_pin" "$install_path" "$backend"
     if [[ "$backend" == sqlite ]]; then
@@ -806,6 +896,10 @@ function main {
         printf 'MariaDB socket: %s\nPrepare DB/accounts: %s\n' "$db_socket" "$setup_db"
     else
         printf 'MariaDB TCP: %s:%s\nPrepare DB/accounts: %s\n' "$db_host" "$db_port" "$setup_db"
+    fi
+    if (( inspect )); then
+        inspect_checkout
+        return
     fi
     if (( ! plan )); then
         require_command sudo
@@ -821,10 +915,7 @@ function main {
             [[ "$answer" == y || "$answer" == Y || "$answer" == yes ]] || die 'Installation cancelled'
         fi
         sudo -v
-        mkdir -p -- "$REPO/work"
-        [[ ! -L "$REPO/work/.local-install.lock" ]] || die 'Installer lock must not be a symlink'
-        exec 9>> "$REPO/work/.local-install.lock"
-        flock --exclusive --nonblock 9 || die 'Another appliance installer is running in this checkout'
+        take_lock
     fi
     trap report_exit EXIT
     stage='prerequisites'
@@ -843,18 +934,7 @@ function main {
         [[ "$java_version" == *'version "21.'* || "$java_version" == *'version "21"'* ]] || die 'JDK 21 is required'
         check_source
     fi
-    stage='source selection'
-    if (( ! plan )); then restore_prepared_ui; fi
-    run_make init
-    run git -C "$source_path" fetch origin
-    run_make srcupdate
-    if (( ! plan )); then
-        actual=$(git -C "$source_path" rev-parse HEAD)
-        expected=$(git -C "$source_path" rev-parse "$source_pin^{commit}")
-        [[ "$actual" == "$expected" ]] || die 'Source HEAD does not match the configured pin'
-        require_interface_sources
-        check_source
-    fi
+    select_source
     stage='Tomcat preparation'
     prepare_tomcat
     stage='configuration and build'
