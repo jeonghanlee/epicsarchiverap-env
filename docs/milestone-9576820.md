@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and M15 at 79f21776b77d622702e7a45292ecf317586c8b69. The Backlog items M9, M10, M12 and M13 hold the remaining defects and improvements that the conversion showed (D24, D26, D27). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10, M12 and M13 Open; their later order is not authorization to resume.
+Next session entry point: Run T1 to T3 of M13 in `docs/milestone-9576820.md` (implementation is authorized: the nine Perl tests and `tests/local-install-pv.bash` leave only the pass record and use `TMPDIR` or `work/scratch/tmp`) and record each result; the plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and M15 at 79f21776b77d622702e7a45292ecf317586c8b69. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10 and M12 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns fifteen work items on the default development branch. The assigned work is M1, M2, M3, M4, M11, M14 and M15; M11, M14 and M15 were assigned on 2026-11-02 by D26, D27 and D28, and their order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M9, M10, M12 and M13 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns fifteen work items on the default development branch. The assigned work is M1, M2, M3, M4, M11, M13, M14 and M15; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, and their order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M9, M10 and M12 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -28,8 +28,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M11 | Remove the false failures of the converted tests | Carry-forward | Complete | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; T1-T2 passed; landed at 134857b; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
 | Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | Complete | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; T1-T2 passed; landed at 23e98e8; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
 | Tests | M15 | Stop the instances that an aborted runtime test did not record | Carry-forward | Complete | No | M3, D24, D28 | A run of the runtime test that ends early, including the pid file mutation, leaves no JVM of its instances, and the recorded mutations keep their verdicts; T1-T2 passed; landed at 79f2177; [detail](#m15---stop-the-instances-that-an-aborted-runtime-test-did-not-record) |
+| Tests | M13 | Leave only the pass record of the tests and use a local temporary folder | Carry-forward | In progress | No | M3, D26, D29 | A passing run of the nine Perl tests and of `tests/local-install-pv.bash` leaves no file of the run, a failed run or `KEEP_WORKSPACE=1` keeps them, and the tools use `TMPDIR` or `work/scratch/tmp`; [detail](#m13---leave-only-the-pass-record-of-the-tests-and-use-a-local-temporary-folder) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 6 Complete and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 6 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -63,6 +64,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D26 | Assign M11 on 2026-11-02 in the reduced form the owner chose: it covers the free-port probe and the pid file of `tests/config-d-runtime.pl` and the SIGINT disposition of the verifier that `tests/local-install-pv-signals.pl` starts, and its status changes from Open to Not started. The rule for the evidence that passing runs keep becomes the separate Backlog item M13, which the owner decides. | 2026-11-02 |
 | D27 | Split M12 in two on 2026-11-02. The scalar prototypes of the helpers `check` and `fail` become M14, which is assigned and In progress; the shared module for the helper code stays M12, Open, and keeps these prototypes. | 2026-11-02 |
 | D28 | Assign M15 on 2026-11-02 after the owner accepted its revised plan and authorized the implementation: the abnormal stop of the runtime test finds the JVMs of the run by their command line. Its status changes from Open to In progress. | 2026-11-02 |
+| D29 | Settle one rule on 2026-11-02 for the nine Perl tests and for `tests/local-install-pv.bash`. A passing run leaves only its output and exit status and removes the files it generated, that is its workspace and the evidence folder of the verifier it started, only those of this run. A failed run or `KEEP_WORKSPACE=1` keeps them and prints the path. Temporary files go below the folder that `TMPDIR` names, or else below `work/scratch/tmp` of the checkout, which the tool creates when it is missing; the verifier script follows `TMPDIR` and keeps `/tmp` as its default. This sets M13 and changes it from Open to In progress. | 2026-11-02 |
 
 ### ID Migration
 
@@ -88,6 +90,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M6 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-10-29 by D11 | this synchronization commit | this synchronization commit |
 | 9576820 / M11 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D26 | this synchronization commit | this synchronization commit |
 | 9576820 / M15 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D28 | this synchronization commit | this synchronization commit |
+| 9576820 / M13 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D29 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1114,9 +1117,84 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M13 - Leave only the pass record of the tests and use a local temporary folder
+
+Origin: 9576820 / M13
+Identity History: created as M13 on 2026-11-02 by D26; retitled, assigned and changed from Open to In progress on 2026-11-02 by D29
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+Six Perl tests keep the files of every run: `tests/config-d-runtime.pl` (about 476 MB for one run), `tests/local-install-pv-signals.pl`, `tests/local-install-pv-range.pl`, `tests/local-install-pv-menu.pl`, `tests/install-payload.pl` and `tests/local-install-epics.pl`, while `tests/config-d.pl`, `tests/health-local.pl` and `tests/database-config.pl` remove the workspace of a passing case (D22). The shell test `tests/local-install-pv.bash` keeps its workspace too. The verifier `scripts/verify-local-pv.bash` creates its evidence folder below `/tmp` with a fixed path, and the tests create their folders below `TMPDIR` or `/tmp`; the owner's temporary folder is the local one below the checkout. The Python tests kept everything. D29 settles one rule for all of them.
+
+##### Scope
+
+- A passing run of each Perl test and of `tests/local-install-pv.bash` leaves only its output and exit status. It removes the files it generated: its own workspace and the evidence folder of the verifier it started, and only the ones of this run. A failed run, or a run with `KEEP_WORKSPACE=1`, keeps them and prints their path.
+- The tests create their temporary files below the folder that `TMPDIR` names, or else below `work/scratch/tmp` of the checkout, which they create when it is missing; when it cannot be created they stop with a message.
+- `scripts/verify-local-pv.bash` creates its evidence folder below `TMPDIR` and keeps `/tmp` as the default when `TMPDIR` is unset.
+- `tests/README.md` and the POD texts state the rule.
+
+Out of scope: the conversion of the tests (M3); the Claude Code settings, which the owner keeps; the shell tests other than `tests/local-install-pv.bash`; a shared module for the helpers (M12).
+
+##### Completion Criteria
+
+- After a passing run of each of the nine Perl tests and of `tests/local-install-pv.bash`, no file of the run remains below the temporary folder or `/tmp`.
+- A failed run and a run with `KEEP_WORKSPACE=1` keep their files and print the path.
+- With `TMPDIR` unset, a test creates `work/scratch/tmp` when it is missing and works below it.
+- The full local suite with a real EPICS Base passes without a skip.
+
+##### Dependencies And Decisions
+
+- D26 creates this item on 2026-11-02.
+- D29 sets the rule, retitles the item, assigns it and changes Open to In progress on 2026-11-02, after the owner accepted the plan.
+- M3 converts the tests first; M13 changes the converted files.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-02; the owner accepted this plan text.
+Implementation Authorization: 2026-11-02; explicit owner authorization to implement this plan. It does not authorize commit, push, issue creation or provisioning of guests.
+Superseded Plan Artifacts: none
+
+1. Give each of the nine Perl tests the same two helpers: the temporary folder (`TMPDIR`, else `work/scratch/tmp` of the checkout, created when missing) and the end of a workspace (removed only when the run passed, `KEEP_WORKSPACE` is not 1, and the path is the one this run created, absolute, not a link and equal to its resolved path; otherwise `Workspace retained: <path>`).
+2. Change the six tests that keep their files to create their workspace below the temporary folder and to end it with the helper; change the three tests of D22 to use the temporary folder.
+3. In the tests that start the verifier, pass the temporary folder as `TMPDIR` and, on a pass, remove the evidence folder that the verifier printed when it lies below the temporary folder.
+4. In `scripts/verify-local-pv.bash`, create the evidence folder below `${TMPDIR:-/tmp}`.
+5. In `tests/local-install-pv.bash`, create the workspace below the temporary folder and remove it on success.
+6. Update `tests/README.md` and the POD texts.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run each of the nine Perl tests and `tests/local-install-pv.bash` unmutated, and list the temporary folder and `/tmp` before and after | The Debian 13 development host with a real EPICS Base, Java 21, Tomcat 9 and the built WAR files | Every run passes and no new entry of the run remains |
+| T2 | Local | Run representative failing runs (the recorded mutations) and runs with `KEEP_WORKSPACE=1`, and run a test with `TMPDIR` unset in a copy of the checkout that has no `work/scratch/tmp` | The same host | The files stay and the path is printed; the folder is created and used |
+| T3 | System | Full `tests/run-all-tests.bash --local` with a real EPICS Base | The same host | Passes without a skip and `local_suite_complete` returns True |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-02 UTC | The Debian 13 development host with a real EPICS Base, Java 21, Tomcat 9.0.121 and the built WAR files | Pass | Listing the temporary folder and `/tmp` before and after: `tests/local-install-epics.pl` (1 second), `tests/install-payload.pl` (14), `tests/local-install-pv-signals.pl` (51), `tests/local-install-pv-range.pl` (83), `tests/local-install-pv-menu.pl` (27), `tests/config-d-runtime.pl` (202) and `tests/local-install-pv.bash` (557) ended with status 0 and left no new entry; `tests/config-d.pl`, `tests/health-local.pl` and `tests/database-config.pl` passed inside the full local suite (T3) with no new entry. A first run of the range and menu tests failed in 4 seconds because an edit of the files had removed their executable mode, which the `curl` fixture needs; the mode was restored and both passed. Logs under `work/m3-perl/m13/` |
+| T2 | 2026-11-02 UTC | The same host | Pass | A failing run keeps its files and prints the path: the signal test against a verifier whose pause message is changed (status 1, `Workspace retained: …`) and the runtime test against the mutation that writes text into the pid file (status 1, folder kept, no JVM left). `KEEP_WORKSPACE=1` keeps the files of passing runs of the menu test (the workspace and three evidence folders of the verifier) and of the payload test. In a copy of the checkout without `work/`, the signal test run with `TMPDIR` unset created `work/scratch/tmp` and kept its workspace and the evidence folder of the verifier below it. The runs left folders that were moved to `work/trash/` |
+| T3 | 2026-11-02 UTC | The same host | Pass | `bash tests/run-all-tests.bash --local` with a real Debian 13 EPICS Base ended with status 0 in 163 seconds: the five groups passed (279, 40, 22, 401 and 14 checks), no `[SKIP]` line, no line that starts with `SKIP:`, no unittest skip, `local_suite_complete` returned True, and no new entry appeared in the temporary folder |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Leave only the pass record of the tests and use a local temporary folder
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M9, M10, M12 and M13 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M9, M10 and M12 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -1129,7 +1207,6 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Tests | M9 | Keep one consistent exchange in the PV time-range test | Carry-forward | Open | No | M3, D23 | The unmutated time-range test passes in every run of a series whose length the plan fixes, and its mutation verdicts stay as sensitive as before; [detail](#m9---keep-one-consistent-exchange-in-the-pv-time-range-test) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
-| Tests | M13 | Decide the evidence that passing runs of the converted tests keep | Carry-forward | Open | No | M3, D26 | The owner decides one rule for the evidence of a passing run of the three evidence-keeping tests, and the tests follow it; [detail](#m13---decide-the-evidence-that-passing-runs-of-the-converted-tests-keep) |
 
 ### Backlog Details
 
@@ -1664,68 +1741,6 @@ Superseded Plan Artifacts: none
 ##### GitHub Projection
 
 Title: Share the helper code of the Perl tests
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
-
-#### M13 - Decide the evidence that passing runs of the converted tests keep
-
-Origin: 9576820 / M13
-Identity History: created as M13 on 2026-11-02 by D26
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-`tests/config-d-runtime.pl`, `tests/local-install-pv-signals.pl` and `tests/local-install-pv-range.pl` keep the evidence of every run, about 476 MB for one run of the first, while `tests/config-d.pl`, `tests/health-local.pl` and `tests/database-config.pl` remove the workspace of a passing case and keep that of a failed case (D22). The Python tests kept every workspace. Which rule the three tests follow is the owner's decision: keep as before, follow D22, or keep only on request.
-
-##### Scope
-
-- The owner decides one rule for the evidence of a passing run of these three tests, keeping the evidence of a failed run and the `KEEP_WORKSPACE` switch of D22 where it applies.
-- Apply the rule to the three tests and to `tests/README.md`.
-
-Out of scope: the conversion of the tests (M3); the false failures of the same tests (M11).
-
-##### Completion Criteria
-
-- The decision is recorded with its date.
-- A passing run of the three tests behaves as the decision says, and a failed run keeps its evidence.
-
-##### Dependencies And Decisions
-
-- D26 creates this item on 2026-11-02.
-- M3 converts the tests first; M13 changes the converted files.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Record the decision of the owner.
-2. Apply the rule to the three tests, one at a time, and update the guide.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Run each of the three tests once on the shipped code and once failing | A host with a real EPICS Base, Java and Tomcat 9 | The evidence of the passing run is kept or removed as decided, and the failed run keeps its evidence |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | A host with a real EPICS Base, Java and Tomcat 9 | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Decide the evidence that passing runs of the converted tests keep
 Labels: none
 GitHub Milestone: none
 Observed State: none; no issue exists yet
