@@ -214,9 +214,11 @@ sub curl_fixture {
         my $last = read_ca($query{pv});
         my $end = epoch($query{to});
         my $bad = $mode eq 'outside';
+        # The last sample carries the live value of the IOC, read after the verifier fixed the query range: its time is
+        # never later than the upper bound, and only the outside mode places it past that bound by its fraction.
         my @data = (
             { %{$first}, nanos => 0, severity => 0, status => 0 },
-            { %{$last}, secs => ($mode eq 'boundary' || $mode eq 'outside' ? $end : $last->{secs}),
+            { %{$last}, secs => ($mode eq 'boundary' || $mode eq 'outside' || $last->{secs} > $end ? $end : $last->{secs}),
                 nanos => ($bad ? 999999999 : 0), severity => 0, status => 0 },
         );
         if ($mode eq 'time-skew') {
