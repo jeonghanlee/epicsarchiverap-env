@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Decide with the owner the assignment and order of M16 (Build the VM installation test on the local installer scripts) and M17 (Upgrade an installed appliance by comparing its state with the checkout) in `docs/milestone-9576820.md`; every Milestone row is Complete, M4 and M8 closed by D32 on 2026-11-03 without a code change. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8, M15 at 79f21776b77d622702e7a45292ecf317586c8b69 and M9 at e39252eeda4cff81f7c60654087d03f156426d75. The Backlog items M10, M12, M16 and M17 hold the remaining work (D24, D27, D32, D33). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M10, M12, M16 and M17 Open; their later order is not authorization to resume.
+Next session entry point: Implement M17 (Upgrade an installed appliance by comparing its state with the checkout) in `docs/milestone-9576820.md` from step 2 of its accepted plan and record T1 to T5, with the owner at the terminal for the `sudo` password of T1 and T2; the assignment of M16 (Build the VM installation test on the local installer scripts) is still undecided, and M4 and M8 closed by D32 on 2026-11-03 without a code change. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8, M15 at 79f21776b77d622702e7a45292ecf317586c8b69 and M9 at e39252eeda4cff81f7c60654087d03f156426d75. The Backlog items M10, M12 and M16 hold the remaining work (D24, D27, D32). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M10, M12 and M16 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M11, M13, M14 and M15; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, and M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4. Deferred work is ordered M5, M6 and M7 for later reconsideration; M10, M12, M16 and M17 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M11, M13, M14, M15 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, and M17 on 2026-11-03 by D34. Deferred work is ordered M5, M6 and M7 for later reconsideration; M10, M12 and M16 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -31,8 +31,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M13 | Leave only the pass record of the tests and use a local temporary folder | Carry-forward | Complete | No | M3, D26, D29 | A passing run of the nine Perl tests and of `tests/local-install-pv.bash` leaves no file of the run, a failed run or `KEEP_WORKSPACE=1` keeps them, and the tools use `TMPDIR` or `work/scratch/tmp`; T1-T3 passed; landed at 6049646; [detail](#m13---leave-only-the-pass-record-of-the-tests-and-use-a-local-temporary-folder) |
 | Tests | M9 | Keep the last sample of the PV time-range test inside the query range | Carry-forward | Complete | No | M3, D23, D30, D31 | The unmutated time-range test passes in all 30 runs of a series, and its stable mutation verdicts stay as before; T1-T2 passed; landed at e39252e; [detail](#m9---keep-the-last-sample-of-the-pv-time-range-test-inside-the-query-range) |
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
+| Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | In progress | No | D33, D34 | The installer scripts report an unchanged installation without a build or a stop, install a changed configuration without a build, build and install a changed source, detect a changed schema by the diff of the source SQL file between the installed and the target commit, and the comparison fails on a mutation of each layer; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 10 Complete. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 10 Complete and 1 In progress. No row is Ready.
 
 ### Decisions
 
@@ -71,6 +72,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D31 | Replace the plan of M9 after its measurement rejected the premise: the test with one exchange file failed in 3 of 12 runs and the committed test in 1 of 12, and all four failures show the last sample one second past the upper bound of the query of the same attempt. The fixture holds the time of the last sample at the upper bound, the one-file change is removed uncommitted, and M9 is renamed. | 2026-11-03 |
 | D32 | Rebuild the VM installation test on the existing tools. For each case the test requests a fresh guest from cloud-provision, runs this repository's local installer script on the guest, checks that the installed appliance stores and retrieves PVs, asks cloud-provision to remove the guest and reports; cloud-provision alone answers for the creation, freshness and removal of the guest, the test does not run Ansible, and it is written in Perl (D16), not Python. The current `tests/vm/driver.py`, `guest.py` and `local.py` are not repaired and stay until the new test replaces them: M4 is retired, M8 is closed by this decision, and M16 holds the new test. | 2026-11-03 |
 | D33 | Upgrade an installed appliance through the local installer scripts themselves: they compare the installed state with the state the checkout renders, print a plan per layer with the reason, and run only the layers that differ, with the existing Make rules and a stop of the appliance only when an installed layer changes. `site-template/.versions` is installed with the appliance so the host records what was installed and when. The schema layer compares the source SQL file at the installed commit with the file at the target commit by `git diff`, because the installed appliance was installed from this checkout and its commit is recorded in the installed `version.txt`: a difference that only adds whole tables runs the schema load, which is safe to repeat, and any other difference stops with the diff, because the source carries no migration. The classpath files are settled by the finding in M17. The tool stays Bash. The work is M17. | 2026-11-03 |
+| D34 | Assign M17 on 2026-11-03 after the owner accepted its plan and authorized the implementation: the installer scripts inspect the installed appliance and run only the layers that differ. Its status changes from Open to In progress. | 2026-11-03 |
 
 ### ID Migration
 
@@ -99,6 +101,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M13 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D29 | this synchronization commit | this synchronization commit |
 | 9576820 / M9 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D30 | this synchronization commit | this synchronization commit |
 | 9576820 / M8 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned and closed 2026-11-03 by D32 | this synchronization commit | this synchronization commit |
+| 9576820 / M17 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D34 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1346,9 +1349,92 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M17 - Upgrade an installed appliance by comparing its state with the checkout
+
+Origin: 9576820 / M17
+Identity History: created as M17 on 2026-11-03 by D33; assigned and changed from Open to In progress on 2026-11-03 by D34
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+The local installer scripts (`scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash`, `scripts/install-local-mariadb-tcp.bash` over `scripts/install-local-common.bash`) run every step on every run and stop the appliance even when nothing changed, and the manual reinstall procedure of `docs/README.install.md` leaves to the operator the judgment which steps a change needs. The installed state and the state the checkout renders can be compared file by file: on the development host on 2026-11-03 the installed `mgmt/webapps/mgmt/ui/comm/version.txt` named the commit of the source HEAD, and the nine files that `db.conf`, `conf.archapplproperties` and `conf.install` render equaled their installed copies. D33 puts that comparison into the installer scripts: an inspection stage reads both sides, prints a plan per layer with the reason, and the later stages run only the layers that differ, with the existing Make rules.
+
+##### Scope
+
+- An inspection stage in `scripts/install-local-common.bash` that changes nothing on the system: it only reads the installed state, but it first updates the checkout as the checkout owner (`git fetch`, `make srcupdate`, then `make db.conf`, `make conf.archapplproperties` and `make conf.install`, which write only below the checkout), because the comparison needs the target commit and the rendered files; `--plan` runs this update too. It covers six layers: program (the commit in the installed `version.txt` against the commit of `SRC_TAG` after the fetch), configuration (the rendered `site-template` files against the installed copies in `AA_INSTALL_LOCATION` and the `conf/` files of each instance, with the port values of `server.xml`), systemd (the rendered units and `override.conf` against `/etc/systemd/system`), schema (the source SQL file at the installed commit against the file at the target commit, by `git diff`), storage (the tier folders and their owner) and runtime (unit states, `archappl.bash health`, HTTP readiness; observed, never changed).
+- A plan printed per layer with what differs and why; `--plan` stops there; execution after the confirmation or `-y`; the appliance is stopped only when an installed layer changes and only after the build; after the start the verification: `health`, the version of `getApplianceInfo` equal to the installed commit, HTTP 200.
+- `site-template/.versions` installed into `AA_INSTALL_LOCATION` by `make install`.
+- Schema rule: no difference runs nothing; a difference that only adds whole `CREATE TABLE` blocks runs `make sql.fill`; any other difference, including a changed or removed column and a changed comment, stops with the diff until the owner has read it and runs the installer again with `--accept-schema`, which loads the schema and goes on. The installed commit is not in the clone: the inspection fetches first and stops when the commit is still absent.
+- Known limits, stated in the plan output and the documents: the schema layer assumes that the installed database was loaded from the schema file of the installed commit, so a table changed by hand or loaded from an older commit is not detected; a column change has no migration in the source, so the owner decides it; a value given only on a `make` command line is not seen by the file comparison; the installed JDK and Tomcat are checked against the configuration and reported, not changed.
+- Refusals, reported and not changed: a retained `.payload.*` folder of a failed install; a JDK or Tomcat that differs from the configuration.
+- The reinstall section of `docs/README.install.md` and the book page describe the inspection and the plan.
+
+Out of scope: a migration of a changed column; the host prerequisites (OS packages, JDK, Tomcat); the VM test (M16); Python.
+
+##### Completion Criteria
+
+- On an installed host with nothing changed, the installer reports the installation as up to date, builds nothing and does not stop the appliance.
+- With only `../CONFIG_SITE.local` changed, it installs without a build; with a changed source commit, it builds and installs; each run ends with the verification passing and the installed `.versions` naming the installed commit.
+- A source SQL file that differs between the installed and the target commit is detected by the diff: a new table is loaded, any other difference stops with the diff, and `--accept-schema` continues after it.
+- The tests that call the installer scripts still pass: `tests/local-install-epics.pl`, `tests/database-config.pl`, `tests/local-install-output.bash`, `tests/local-install-config.bash` and `tests/local-install-readiness.bash`.
+- A scratch mutation of the comparison of each layer, which makes a changed layer look unchanged, fails the test of the inspection.
+
+##### Dependencies And Decisions
+
+- D33 creates this item on 2026-11-03 and settles the design: the inspection lives in the installer scripts, `.versions` is installed, the schema layer compares the source SQL files of the installed and the target commit, the tool is Bash.
+- D34 assigns it on 2026-11-03 after the owner accepted the plan and authorized the implementation; its order against M16 is not set.
+- Finding of 2026-11-03 from the source at commit e0a8e66e: the services read `appliances.xml` (`AppliancesList.determineApplianceXMLFileAndReturnStream`), `archappl.properties` (`DefaultConfigService`, `ARCHAPPL_PROPERTIES_FILENAME`) and `policies.py` (`DefaultConfigService.getPolicyText`) from the path that `ARCHAPPL_APPLIANCES`, `ARCHAPPL_PROPERTIES_FILENAME` and `ARCHAPPL_POLICIES` name, and use the copy inside the WAR only when the variable is not set; a named file that does not exist stops the service. The installed `archappl.conf` of the development host sets all three to the installed copies. Rule of the layer: a change of one of the three files alone is installed and takes effect at the next start, with no rebuild, when the installed `archappl.conf` sets the variable; when it does not set it, the WAR copy is the one in use and the program layer is rebuilt. The rebuild that `docs/README.install.md` asks for in that case is the conservative form of this rule and is corrected by M17.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-03; the owner accepted this plan text.
+Implementation Authorization: 2026-11-03; explicit owner authorization to implement this plan. It does not authorize commit, push, issue creation or provisioning of guests; the runs of T1 and T2 need the owner at the terminal for the `sudo` password.
+Superseded Plan Artifacts: none
+
+1. The rule for the three classpath files is settled and recorded under Dependencies And Decisions; the inspection checks that the installed `archappl.conf` sets the three variables, and the correction of `docs/README.install.md` is part of step 6.
+2. Add the `.versions` install to `configure/RULES_INSTALL`.
+3. Add the inspection stage and the plan output to `scripts/install-local-common.bash`, under the existing `--plan`.
+4. Make the stop, build, database, storage and install stages run only for the layers the plan names, and add the verification after the start.
+5. Write a Perl test under `tests/` that runs the inspection against an installed tree that the real file-writing install rules produced (`make conf.install` runs first, because the install rules stop with status 2 when a rendered file is older than `configure/CONFIG_SITE`; then `services.install`, `serveroption.install` (which installs the `<service>.conf` files that `services.install` does not) and `install.systemd` run with `AA_INSTALL_PATH` and `SYSTEMD_PATH` on the command line pointing to a temporary folder that exists and is writable, and with `AA_USERID` and `AA_GROUPID` set to the account of the test, because the default `tomcat` makes `chown` fail for an ordinary user and a folder that is not writable makes `make` use `sudo`; `systemctl daemon-reload` and `sd_enable` of `install.files` are not run), and checks the verdict of each layer, with a scratch mutation per layer; run the installer on the installed appliance of the development host for the unchanged and the configuration-only cases, with the owner at the terminal for the `sudo` password that the installer asks for.
+6. Update `docs/README.install.md` and the book page.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run the installer `--plan`, then the installer, on the development host with its running appliance and nothing changed | The development host with the installed appliance | The plan reports every layer unchanged; the run builds nothing and does not stop the appliance |
+| T2 | Local | Change one value of `../CONFIG_SITE.local`, run the installer, then restore the value and run it again; the running appliance of the host is stopped and started by each run | The same host | Each run names the configuration layer and the changed file, installs without a build, and ends with the verification passing |
+| T3 | Local | Run the Perl test of the inspection against the prepared installed tree, then against a scratch mutation of the comparison of each layer | A host with the build tools | The test passes on the shipped code and fails on each mutation |
+| T4 | Local | In a scratch clone of the source, change the SQL file between two commits once by adding a table and once by changing a column, and run the inspection for the installed commit against each | A host with the build tools | The added table runs `make sql.fill`; the changed column stops with the diff, and `--accept-schema` continues |
+| T5 | Local | Run the tests that call the installer scripts, listed in the completion criteria | A host with a real EPICS Base | Every run passes as before the change |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | The development host with the installed appliance | Pending | none |
+| T2 | Pending | The same host | Pending | none |
+| T3 | Pending | A host with the build tools | Pending | none |
+| T4 | Pending | A host with the build tools | Pending | none |
+| T5 | Pending | A host with a real EPICS Base | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Upgrade an installed appliance by comparing its state with the checkout
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M10, M12, M16 and M17 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M10, M12 and M16 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -1360,7 +1446,6 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 | Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32 | The owner assigns it; then one real case of each OS and backend passes on a fresh guest through the real local installer script, a mutation of the installer fails the test, and the three Python files are removed; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
-| Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Open | No | D33 | The owner assigns it; then the installer scripts report an unchanged installation without a build or a stop, install a changed configuration without a build, build and install a changed source, detect a changed schema by the diff of the source SQL file between the installed and the target commit, and the comparison fails on a mutation of each layer; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 
 ### Backlog Details
 
@@ -1836,88 +1921,6 @@ Superseded Plan Artifacts: none
 ##### GitHub Projection
 
 Title: Build the VM installation test on the local installer scripts
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
-
-#### M17 - Upgrade an installed appliance by comparing its state with the checkout
-
-Origin: 9576820 / M17
-Identity History: created as M17 on 2026-11-03 by D33
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The local installer scripts (`scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash`, `scripts/install-local-mariadb-tcp.bash` over `scripts/install-local-common.bash`) run every step on every run and stop the appliance even when nothing changed, and the manual reinstall procedure of `docs/README.install.md` leaves to the operator the judgment which steps a change needs. The installed state and the state the checkout renders can be compared file by file: on the development host on 2026-11-03 the installed `mgmt/webapps/mgmt/ui/comm/version.txt` named the commit of the source HEAD, and the nine files that `db.conf`, `conf.archapplproperties` and `conf.install` render equaled their installed copies. D33 puts that comparison into the installer scripts: an inspection stage reads both sides, prints a plan per layer with the reason, and the later stages run only the layers that differ, with the existing Make rules.
-
-##### Scope
-
-- An inspection stage in `scripts/install-local-common.bash` that changes nothing on the system: it only reads the installed state, but it first updates the checkout as the checkout owner (`git fetch`, `make srcupdate`, then `make db.conf`, `make conf.archapplproperties` and `make conf.install`, which write only below the checkout), because the comparison needs the target commit and the rendered files; `--plan` runs this update too. It covers six layers: program (the commit in the installed `version.txt` against the commit of `SRC_TAG` after the fetch), configuration (the rendered `site-template` files against the installed copies in `AA_INSTALL_LOCATION` and the `conf/` files of each instance, with the port values of `server.xml`), systemd (the rendered units and `override.conf` against `/etc/systemd/system`), schema (the source SQL file at the installed commit against the file at the target commit, by `git diff`), storage (the tier folders and their owner) and runtime (unit states, `archappl.bash health`, HTTP readiness; observed, never changed).
-- A plan printed per layer with what differs and why; `--plan` stops there; execution after the confirmation or `-y`; the appliance is stopped only when an installed layer changes and only after the build; after the start the verification: `health`, the version of `getApplianceInfo` equal to the installed commit, HTTP 200.
-- `site-template/.versions` installed into `AA_INSTALL_LOCATION` by `make install`.
-- Schema rule: no difference runs nothing; a difference that only adds whole `CREATE TABLE` blocks runs `make sql.fill`; any other difference, including a changed or removed column and a changed comment, stops with the diff until the owner has read it and runs the installer again with `--accept-schema`, which loads the schema and goes on. The installed commit is not in the clone: the inspection fetches first and stops when the commit is still absent.
-- Known limits, stated in the plan output and the documents: the schema layer assumes that the installed database was loaded from the schema file of the installed commit, so a table changed by hand or loaded from an older commit is not detected; a column change has no migration in the source, so the owner decides it; a value given only on a `make` command line is not seen by the file comparison; the installed JDK and Tomcat are checked against the configuration and reported, not changed.
-- Refusals, reported and not changed: a retained `.payload.*` folder of a failed install; a JDK or Tomcat that differs from the configuration.
-- The reinstall section of `docs/README.install.md` and the book page describe the inspection and the plan.
-
-Out of scope: a migration of a changed column; the host prerequisites (OS packages, JDK, Tomcat); the VM test (M16); Python.
-
-##### Completion Criteria
-
-- On an installed host with nothing changed, the installer reports the installation as up to date, builds nothing and does not stop the appliance.
-- With only `../CONFIG_SITE.local` changed, it installs without a build; with a changed source commit, it builds and installs; each run ends with the verification passing and the installed `.versions` naming the installed commit.
-- A source SQL file that differs between the installed and the target commit is detected by the diff: a new table is loaded, any other difference stops with the diff, and `--accept-schema` continues after it.
-- The tests that call the installer scripts still pass: `tests/local-install-epics.pl`, `tests/database-config.pl`, `tests/local-install-output.bash`, `tests/local-install-config.bash` and `tests/local-install-readiness.bash`.
-- A scratch mutation of the comparison of each layer, which makes a changed layer look unchanged, fails the test of the inspection.
-
-##### Dependencies And Decisions
-
-- D33 creates this item on 2026-11-03 and settles the design: the inspection lives in the installer scripts, `.versions` is installed, the schema layer compares the source SQL files of the installed and the target commit, the tool is Bash.
-- Finding of 2026-11-03 from the source at commit e0a8e66e: the services read `appliances.xml` (`AppliancesList.determineApplianceXMLFileAndReturnStream`), `archappl.properties` (`DefaultConfigService`, `ARCHAPPL_PROPERTIES_FILENAME`) and `policies.py` (`DefaultConfigService.getPolicyText`) from the path that `ARCHAPPL_APPLIANCES`, `ARCHAPPL_PROPERTIES_FILENAME` and `ARCHAPPL_POLICIES` name, and use the copy inside the WAR only when the variable is not set; a named file that does not exist stops the service. The installed `archappl.conf` of the development host sets all three to the installed copies. Rule of the layer: a change of one of the three files alone is installed and takes effect at the next start, with no rebuild, when the installed `archappl.conf` sets the variable; when it does not set it, the WAR copy is the one in use and the program layer is rebuilt. The rebuild that `docs/README.install.md` asks for in that case is the conservative form of this rule and is corrected by M17.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. The rule for the three classpath files is settled and recorded under Dependencies And Decisions; the inspection checks that the installed `archappl.conf` sets the three variables, and the correction of `docs/README.install.md` is part of step 6.
-2. Add the `.versions` install to `configure/RULES_INSTALL`.
-3. Add the inspection stage and the plan output to `scripts/install-local-common.bash`, under the existing `--plan`.
-4. Make the stop, build, database, storage and install stages run only for the layers the plan names, and add the verification after the start.
-5. Write a Perl test under `tests/` that runs the inspection against an installed tree that the real file-writing install rules produced (`make conf.install` runs first, because the install rules stop with status 2 when a rendered file is older than `configure/CONFIG_SITE`; then `services.install`, `serveroption.install` (which installs the `<service>.conf` files that `services.install` does not) and `install.systemd` run with `AA_INSTALL_PATH` and `SYSTEMD_PATH` on the command line pointing to a temporary folder that exists and is writable, and with `AA_USERID` and `AA_GROUPID` set to the account of the test, because the default `tomcat` makes `chown` fail for an ordinary user and a folder that is not writable makes `make` use `sudo`; `systemctl daemon-reload` and `sd_enable` of `install.files` are not run), and checks the verdict of each layer, with a scratch mutation per layer; run the installer on the installed appliance of the development host for the unchanged and the configuration-only cases, with the owner at the terminal for the `sudo` password that the installer asks for.
-6. Update `docs/README.install.md` and the book page.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Run the installer `--plan`, then the installer, on the development host with its running appliance and nothing changed | The development host with the installed appliance | The plan reports every layer unchanged; the run builds nothing and does not stop the appliance |
-| T2 | Local | Change one value of `../CONFIG_SITE.local`, run the installer, then restore the value and run it again; the running appliance of the host is stopped and started by each run | The same host | Each run names the configuration layer and the changed file, installs without a build, and ends with the verification passing |
-| T3 | Local | Run the Perl test of the inspection against the prepared installed tree, then against a scratch mutation of the comparison of each layer | A host with the build tools | The test passes on the shipped code and fails on each mutation |
-| T4 | Local | In a scratch clone of the source, change the SQL file between two commits once by adding a table and once by changing a column, and run the inspection for the installed commit against each | A host with the build tools | The added table runs `make sql.fill`; the changed column stops with the diff, and `--accept-schema` continues |
-| T5 | Local | Run the tests that call the installer scripts, listed in the completion criteria | A host with a real EPICS Base | Every run passes as before the change |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | The development host with the installed appliance | Pending | none |
-| T2 | Pending | The same host | Pending | none |
-| T3 | Pending | A host with the build tools | Pending | none |
-| T4 | Pending | A host with the build tools | Pending | none |
-| T5 | Pending | A host with a real EPICS Base | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Upgrade an installed appliance by comparing its state with the checkout
 Labels: enhancement
 GitHub Milestone: none
 Observed State: none; no issue exists yet
