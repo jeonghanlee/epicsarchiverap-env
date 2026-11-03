@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Run T1 to T3 of M13 in `docs/milestone-9576820.md` (implementation is authorized: the nine Perl tests and `tests/local-install-pv.bash` leave only the pass record and use `TMPDIR` or `work/scratch/tmp`) and record each result; the plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and M15 at 79f21776b77d622702e7a45292ecf317586c8b69. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10 and M12 Open; their later order is not authorization to resume.
+Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and M15 at 79f21776b77d622702e7a45292ecf317586c8b69. The Backlog items M9, M10 and M12 hold the remaining defects and improvements that the conversion showed (D24, D27). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10 and M12 Open; their later order is not authorization to resume.
 
 ## Scope
 
@@ -28,9 +28,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M11 | Remove the false failures of the converted tests | Carry-forward | Complete | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; T1-T2 passed; landed at 134857b; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
 | Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | Complete | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; T1-T2 passed; landed at 23e98e8; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
 | Tests | M15 | Stop the instances that an aborted runtime test did not record | Carry-forward | Complete | No | M3, D24, D28 | A run of the runtime test that ends early, including the pid file mutation, leaves no JVM of its instances, and the recorded mutations keep their verdicts; T1-T2 passed; landed at 79f2177; [detail](#m15---stop-the-instances-that-an-aborted-runtime-test-did-not-record) |
-| Tests | M13 | Leave only the pass record of the tests and use a local temporary folder | Carry-forward | In progress | No | M3, D26, D29 | A passing run of the nine Perl tests and of `tests/local-install-pv.bash` leaves no file of the run, a failed run or `KEEP_WORKSPACE=1` keeps them, and the tools use `TMPDIR` or `work/scratch/tmp`; [detail](#m13---leave-only-the-pass-record-of-the-tests-and-use-a-local-temporary-folder) |
+| Tests | M13 | Leave only the pass record of the tests and use a local temporary folder | Carry-forward | Complete | No | M3, D26, D29 | A passing run of the nine Perl tests and of `tests/local-install-pv.bash` leaves no file of the run, a failed run or `KEEP_WORKSPACE=1` keeps them, and the tools use `TMPDIR` or `work/scratch/tmp`; T1-T3 passed; landed at 6049646; [detail](#m13---leave-only-the-pass-record-of-the-tests-and-use-a-local-temporary-folder) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 6 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 7 Complete and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -1122,7 +1122,7 @@ Last Compared: none
 Origin: 9576820 / M13
 Identity History: created as M13 on 2026-11-02 by D26; retitled, assigned and changed from Open to In progress on 2026-11-02 by D29
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1182,7 +1182,11 @@ Superseded Plan Artifacts: none
 
 ##### Closure Evidence
 
-- none
+- Implementation and required verification: finished on 2026-11-02. T1 to T3 are Pass in Verification Results, on the Debian 13 development host.
+- Completion criteria against the evidence: after a passing run of `tests/local-install-epics.pl`, `tests/install-payload.pl`, `tests/local-install-pv-signals.pl`, `tests/local-install-pv-range.pl`, `tests/local-install-pv-menu.pl`, `tests/config-d-runtime.pl` and `tests/local-install-pv.bash` no entry of the run remained in the temporary folder, and the three tests of D22 passed in the full local suite with no new entry (T1, T3); a failed run and a run with `KEEP_WORKSPACE=1` kept their files and printed the path (T2); with `TMPDIR` unset a test created `work/scratch/tmp` in a copy of the checkout and worked below it (T2); the full local suite passed without a skip and `local_suite_complete` returned True (T3).
+- Repository landing: the code is commit 6049646ca574234e4afe005db64fa368f26dcacb and the last commit of the work is 3de0e558e4c26f4dea444f79861159a3a06a561f on origin/maven. Observed at 2026-11-03T00:19:31Z after fetching origin; HEAD, origin/maven and the remote branch tip all resolved to that last commit and the tree comparison had no differences. Recheck with fetch, rev-parse and diff against this commit.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue. The Claude Code settings stay with the owner (D29).
+- Linked GitHub issue: none.
 
 ##### GitHub Projection
 
