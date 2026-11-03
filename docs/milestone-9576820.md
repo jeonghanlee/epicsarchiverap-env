@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8, M15 at 79f21776b77d622702e7a45292ecf317586c8b69 and M9 at e39252eeda4cff81f7c60654087d03f156426d75. The Backlog items M10 and M12 hold the remaining defects and improvements that the conversion showed (D24, D27). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M10 and M12 Open; their later order is not authorization to resume.
+Next session entry point: Decide with the owner the assignment of M16 (Build the VM installation test on the local installer scripts) in `docs/milestone-9576820.md`; every Milestone row is Complete, M4 and M8 closed by D32 on 2026-11-03 without a code change. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8, M15 at 79f21776b77d622702e7a45292ecf317586c8b69 and M9 at e39252eeda4cff81f7c60654087d03f156426d75. The Backlog items M10, M12 and M16 hold the remaining work (D24, D27, D32). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M10, M12 and M16 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns fifteen work items on the default development branch. The assigned work is M1, M2, M3, M4, M9, M11, M13, M14 and M15; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28 and M9 on 2026-11-03 by D30, and their order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M10 and M12 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns sixteen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M11, M13, M14 and M15; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, and M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4. Deferred work is ordered M5, M6 and M7 for later reconsideration; M10, M12 and M16 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -24,14 +24,15 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | DB | M1 | Apply backend selection to all database operations | Carry-forward | Complete | No | D4, D11, D13, D14 | T1-T5 and correction checks passed; landed at c4b27bc; [detail](#m1---apply-backend-selection-to-all-database-operations) |
 | Install | M2 | The operating system target rewrites `configure/CONFIG_SITE.local` and the installers run it first | Milestone | Complete | No | M1, D7, D11, D15 | T1-T5 passed on Debian 13 and Rocky 8.10; landed at de8301c; [detail](#m2---the-operating-system-target-rewrites-configureconfig_sitelocal-and-the-installers-run-it-first) |
 | Tests | M3 | Replace the Python tests with Perl tests | Carry-forward | Complete | No | M2, D6, D11, D16, D17, D18, D19, D20, D21, D22, D23, D24, D25 | T1-T4 passed, T2 and T4 with the waivers of D25; landed at 6efd7db; [detail](#m3---replace-the-python-tests-with-perl-tests) |
-| Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Not started | Yes | M3, D8, D11 | Driver findings are fixed or decided, with defect-sensitive tests and a real guest verdict; [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
+| Tests | M4 | Fix the findings of the review of the VM driver | Carry-forward | Complete | No | M3, D8, D11, D32 | Retired by D32 on 2026-11-03: the driver is not repaired, because the VM test is rebuilt on the local installer scripts (M16); [detail](#m4---fix-the-findings-of-the-review-of-the-vm-driver) |
 | Tests | M11 | Remove the false failures of the converted tests | Carry-forward | Complete | No | M3, D24, D26 | A run directly after another run passes the port probe of the runtime test, a pid file with text fails clearly, and the signal test passes from a background job; T1-T2 passed; landed at 134857b; [detail](#m11---remove-the-false-failures-of-the-converted-tests) |
 | Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | Complete | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; T1-T2 passed; landed at 23e98e8; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
 | Tests | M15 | Stop the instances that an aborted runtime test did not record | Carry-forward | Complete | No | M3, D24, D28 | A run of the runtime test that ends early, including the pid file mutation, leaves no JVM of its instances, and the recorded mutations keep their verdicts; T1-T2 passed; landed at 79f2177; [detail](#m15---stop-the-instances-that-an-aborted-runtime-test-did-not-record) |
 | Tests | M13 | Leave only the pass record of the tests and use a local temporary folder | Carry-forward | Complete | No | M3, D26, D29 | A passing run of the nine Perl tests and of `tests/local-install-pv.bash` leaves no file of the run, a failed run or `KEEP_WORKSPACE=1` keeps them, and the tools use `TMPDIR` or `work/scratch/tmp`; T1-T3 passed; landed at 6049646; [detail](#m13---leave-only-the-pass-record-of-the-tests-and-use-a-local-temporary-folder) |
 | Tests | M9 | Keep the last sample of the PV time-range test inside the query range | Carry-forward | Complete | No | M3, D23, D30, D31 | The unmutated time-range test passes in all 30 runs of a series, and its stable mutation verdicts stay as before; T1-T2 passed; landed at e39252e; [detail](#m9---keep-the-last-sample-of-the-pv-time-range-test-inside-the-query-range) |
+| Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 8 Complete and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 10 Complete. No row is Ready.
 
 ### Decisions
 
@@ -68,6 +69,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D29 | Settle one rule on 2026-11-02 for the nine Perl tests and for `tests/local-install-pv.bash`. A passing run leaves only its output and exit status and removes the files it generated, that is its workspace and the evidence folder of the verifier it started, only those of this run. A failed run or `KEEP_WORKSPACE=1` keeps them and prints the path. Temporary files go below the folder that `TMPDIR` names, or else below `work/scratch/tmp` of the checkout, which the tool creates when it is missing; the verifier script follows `TMPDIR` and keeps `/tmp` as its default. This sets M13 and changes it from Open to In progress. | 2026-11-02 |
 | D30 | Assign M9 on 2026-11-03 after the owner accepted its plan and authorized the implementation: the query and the response of a data request are recorded in one file that is replaced as a whole. Its status changes from Open to In progress. | 2026-11-03 |
 | D31 | Replace the plan of M9 after its measurement rejected the premise: the test with one exchange file failed in 3 of 12 runs and the committed test in 1 of 12, and all four failures show the last sample one second past the upper bound of the query of the same attempt. The fixture holds the time of the last sample at the upper bound, the one-file change is removed uncommitted, and M9 is renamed. | 2026-11-03 |
+| D32 | Rebuild the VM installation test on the existing tools. For each case the test requests a fresh guest from cloud-provision, runs this repository's local installer script on the guest, checks that the installed appliance stores and retrieves PVs, asks cloud-provision to remove the guest and reports; cloud-provision alone answers for the creation, freshness and removal of the guest, the test does not run Ansible, and it is written in Perl (D16), not Python. The current `tests/vm/driver.py`, `guest.py` and `local.py` are not repaired and stay until the new test replaces them: M4 is retired, M8 is closed by this decision, and M16 holds the new test. | 2026-11-03 |
 
 ### ID Migration
 
@@ -95,6 +97,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M15 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D28 | this synchronization commit | this synchronization commit |
 | 9576820 / M13 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D29 | this synchronization commit | this synchronization commit |
 | 9576820 / M9 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D30 | this synchronization commit | this synchronization commit |
+| 9576820 / M8 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned and closed 2026-11-03 by D32 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -842,7 +845,7 @@ Last Compared: none
 Origin: 9576820 / M6
 Identity History: M6 -> M4 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: Not started
+Status: Complete
 
 ##### Summary
 
@@ -870,6 +873,7 @@ Out of scope: choosing a driver replacement (M8 owns that decision); changing th
 - M3 is a work-order dependency selected by D11. Because M3 converts the tests that the driver test calls and M8 may replace the driver or its tests, recheck each historical finding against the resulting implementation before drafting fixes; do not assume the old Python files or line numbers still apply.
 - Preparation must account for every finding as still present, already resolved with evidence, or requiring a decision. Preserve the completion criteria and real-guest verification; obtain plan acceptance before implementation.
 - The current record does not identify the three documentation discrepancies or provide a locator for the original review. Before plan acceptance, recover the 2026-10-27 review and record its durable source plus all three document paths, passages and corresponding code behavior in this detail. If that evidence cannot be recovered, obtain a scope decision before accepting the plan; do not infer the missing items or treat them as resolved.
+- D32 retires this item on 2026-11-03: the driver is not repaired, because the VM test is rebuilt on the local installer scripts (M16) and the findings concern code that the rebuilt test does not keep.
 
 ##### Implementation Plan
 
@@ -893,12 +897,16 @@ Superseded Plan Artifacts: none
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Local host | Pending | none |
-| T2 | Pending | Local libvirt host; fresh guest | Pending | none |
+| T1 | 2026-11-03 | Local host | Waived | D32; no fix was made |
+| T2 | 2026-11-03 | Local libvirt host; fresh guest | Waived | D32; no fix was made |
 
 ##### Closure Evidence
 
-- none
+- Retirement: D32 on 2026-11-03. The driver is not repaired, because the VM test is rebuilt on the local installer scripts (M16) and the findings of this item concern code that the rebuilt test does not keep. No plan was accepted and no file changed.
+- Waived checks: T1 and T2.
+- The review of 2026-10-27 that this item cites was not found in the repository or in the work folder, so its three findings on the documents were never recovered; D32 makes their recovery unnecessary.
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue.
+- Linked GitHub issue: none.
 
 ##### GitHub Projection
 
@@ -1271,9 +1279,75 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M8 - Decide the replacement of the VM driver and guest verifier
+
+Origin: 9576820 / M8
+Identity History: created as M8 on 2026-10-30 by D17; assigned and changed from Open to Complete on 2026-11-03 by D32
+GitHub Issue: none
+Status: Complete
+
+##### Summary
+
+D17 leaves `tests/vm/driver.py` (1,247 lines), `tests/vm/guest.py` (894 lines) and `tests/vm/local.py` (918 lines) out of M3. The driver orchestrates fresh guests, the verifier checks the installed appliance on guests with different Python versions, and the driver test checks the driver and its documents. D6 keeps Python only where testing Python code requires it; D16 names Perl for the replacement tests. D32 decides on 2026-11-03 that none of the three files is kept or ported: the VM installation test is rebuilt in Perl on the local installer scripts, with cloud-provision alone answering for the guests, and that work is M16.
+
+##### Scope
+
+- Decide whether the driver, the guest verifier and the driver test are replaced, and in which language, with the consequence for each of them.
+- The replacement that the decision selects is carried out by M16.
+
+Out of scope: the tests that M3 converts; fixing the review findings of the current driver (M4); Ansible, which the rebuilt test does not run (D32).
+
+##### Completion Criteria
+
+- The decision and its date are recorded, naming which of the three files change language and which stay.
+- If a file is replaced, its replacement fails on the defect each assertion covers, shown by a mutation of the shipped code, and a real guest verdict passes under the current conditions.
+
+##### Dependencies And Decisions
+
+- D17 creates this item on 2026-10-30 and leaves it Open until the owner decides priority and scope.
+- D6 and D16 apply to any replacement.
+- D32 decides it on 2026-11-03 and closes it: none of the three files is kept, M16 builds the replacement, and M4 is retired by the same decision.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After the owner decision on priority and scope, map each historical finding of M4 to the replacement choice.
+2. Plan the replacement of the chosen files.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Review | Compare the findings of M4 with each replacement choice | The register | The decision names which findings survive each choice |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-03 | The register | Pass | D32 against the findings of M4: none survives, because the current driver is not kept; the lock order, the required Make list of `build_proof`, the Minor findings and the surviving mutations of the driver leave with it, and the rebuilt test runs the local installer script instead of checking a Make list |
+
+##### Closure Evidence
+
+- Decision: D32 on 2026-11-03 records that none of `tests/vm/driver.py`, `guest.py` and `local.py` is kept or ported and that a new test in Perl on the local installer scripts replaces them (M16); the first completion criterion is met by that record.
+- The second completion criterion, the defect sensitivity and the real guest verdict of the replacement, belongs to M16, since this item replaces no file itself; the three files stay in the repository until M16 replaces them (D32).
+- Remaining external conditions: none. No G gate applies and the item has no linked GitHub issue.
+- Linked GitHub issue: none.
+
+##### GitHub Projection
+
+Title: Decide the replacement of the VM driver and guest verifier
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M10 and M12 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M10, M12 and M16 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -1282,9 +1356,9 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12 | Measured retrieval benefit and disk cost support a dated decision on LTS pre-processing; [detail](#m5---lts-retrieval-pre-processing-pp) |
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
-| Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Open | No | D6, D16, D17 | The owner decides whether and in which language the driver, verifier and driver test are replaced, and any chosen work passes defect-sensitive tests and a real guest verdict; [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
+| Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32 | The owner assigns it; then one real case of each OS and backend passes on a fresh guest through the real local installer script, a mutation of the installer fails the test, and the three Python files are removed; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
 
 ### Backlog Details
 
@@ -1563,69 +1637,6 @@ Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-10-29 22:52 PDT via `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-10-05T17:33:17Z. The issue body still gives an illustrative 100/500/1000/2000 PV matrix; the accepted canonical plan uses 100/500/903 PVs. The remote body requires reconciliation before measurement execution.
 
-#### M8 - Decide the replacement of the VM driver and guest verifier
-
-Origin: 9576820 / M8
-Identity History: created as M8 on 2026-10-30 by D17
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-D17 leaves `tests/vm/driver.py` (1,247 lines), `tests/vm/guest.py` (894 lines) and `tests/vm/local.py` (918 lines) out of M3. The driver orchestrates fresh guests, the verifier checks the installed appliance on guests with different Python versions, and the driver test checks the driver and its documents. D6 keeps Python only where testing Python code requires it; D16 names Perl for the replacement tests. Whether and how this trio is replaced is not decided.
-
-##### Scope
-
-- Decide whether the driver, the guest verifier and the driver test are replaced, and in which language, with the consequence for each of them.
-- Carry out the replacement the decision selects, keeping each assertion and its real-path method.
-
-Out of scope: the tests that M3 converts; fixing the review findings of the current driver (M4); replacing Ansible, which the control host still needs.
-
-##### Completion Criteria
-
-- The decision and its date are recorded, naming which of the three files change language and which stay.
-- If a file is replaced, its replacement fails on the defect each assertion covers, shown by a mutation of the shipped code, and a real guest verdict passes under the current conditions.
-
-##### Dependencies And Decisions
-
-- D17 creates this item on 2026-10-30 and leaves it Open until the owner decides priority and scope.
-- D6 and D16 apply to any replacement.
-- The order against M4 is not set. M4 fixes findings in the current Python driver; a replacement could make part of that work unnecessary, so the owner decides the order.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. After the owner decision on priority and scope, map each historical finding of M4 to the replacement choice.
-2. Plan the replacement of the chosen files.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Review | Compare the findings of M4 with each replacement choice | The register | The decision names which findings survive each choice |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | The register | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Decide the replacement of the VM driver and guest verifier
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
-
 #### M10 - Close the gaps that the Python tests left in the Perl tests
 
 Origin: 9576820 / M10
@@ -1755,6 +1766,75 @@ Superseded Plan Artifacts: none
 
 Title: Share the helper code of the Perl tests
 Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
+#### M16 - Build the VM installation test on the local installer scripts
+
+Origin: 9576820 / M16
+Identity History: created as M16 on 2026-11-03 by D32
+GitHub Issue: none
+Status: Open
+
+##### Summary
+
+The VM installation test has one purpose: on a fresh guest of each supported OS, this repository's local installer script installs the Archiver Appliance from the beginning to the end, and the installed appliance stores and retrieves PVs. The current `tests/vm/driver.py` carries that installation through Ansible and verifies again what cloud-provision answers for (the creation, freshness and removal of the guest), and `tests/vm/local.py` tests that driver. D32 rebuilds the test on the existing tools: cloud-provision supplies and removes the guest, `scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash` and `scripts/install-local-mariadb-tcp.bash` install, and the test only runs them and checks the result. The checks that `tests/vm/guest.py` makes on the installed appliance are the candidate list for the checks of the new test.
+
+##### Scope
+
+- A test in Perl (D16) under `tests/vm/` that, for one case (an OS and a backend), requests a fresh guest through the request procedure of cloud-provision, runs the matching local installer script on the guest from a copy of this checkout, keeps the output and the exit status of the installer, checks the installed appliance (units, HTTP answers, a test IOC whose PV is archived and retrieved), sends the finished notice to cloud-provision and reports pass or fail.
+- The cases: Debian 13 and Rocky Linux 8.10, each with SQLite, MariaDB over a socket and MariaDB over TCP.
+- Removal of `tests/vm/driver.py`, `tests/vm/guest.py` and `tests/vm/local.py`, and the update of `docs/README.vmtests.md` and `tests/README.md`, when the new test replaces them.
+
+Out of scope: verifying the creation, freshness, ownership or removal of the guest, which cloud-provision answers for (D32); running Ansible; a run record with lock, baseline and digest proofs; Python.
+
+##### Completion Criteria
+
+- One real case of each OS and backend passes on a fresh guest through the real local installer script, with the installer output kept.
+- A scratch mutation of the installer script that skips one Make step fails the test with the step named.
+- The three Python files are removed and the two documents describe the new test.
+
+##### Dependencies And Decisions
+
+- D32 creates this item on 2026-11-03 and leaves it Open until the owner assigns it.
+- D16 names Perl for replacement tests.
+- cloud-provision supplies the guests; each case needs a guest request under the procedure of that session, which this register does not authorize.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: none
+
+1. After assignment, list the checks of `tests/vm/guest.py` and select with the owner which of them the new test keeps.
+2. Write the test for one case and run it on one fresh Debian 13 guest with SQLite.
+3. Extend it to the six cases and run each once.
+4. Remove the three Python files and update the two documents.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | System | Run the test for each OS and backend on a fresh guest through the real local installer script | Fresh guests of cloud-provision | Each case passes and keeps the installer output |
+| T2 | System | Run the test against a scratch mutation of the installer script that skips one Make step | One fresh guest | The test fails and names the skipped step |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Fresh guests of cloud-provision | Pending | none |
+| T2 | Pending | One fresh guest | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Build the VM installation test on the local installer scripts
+Labels: enhancement
 GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
