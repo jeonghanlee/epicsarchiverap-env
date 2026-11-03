@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Review the draft plan of M4 (Fix the findings of the review of the VM driver) in `docs/milestone-9576820.md` with the owner and record its acceptance before any implementation; M4 is Ready because M3 is Complete, but a Ready row does not accept a draft plan or authorize implementation. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and M15 at 79f21776b77d622702e7a45292ecf317586c8b69. The Backlog items M9, M10 and M12 hold the remaining defects and improvements that the conversion showed (D24, D27). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M9, M10 and M12 Open; their later order is not authorization to resume.
+Next session entry point: Commit and push the change of M9 in `docs/milestone-9576820.md` (T1 and T2 passed and are recorded), each under its own authority, then observe the landing, record it in the Closure Evidence of M9 and mark M9 Complete; the plan of M4 stays a draft that the owner reviews. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8 and M15 at 79f21776b77d622702e7a45292ecf317586c8b69. Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M8, M10 and M12 Open; their later order is not authorization to resume.
 
 ## Scope
 
-This generation owns fifteen work items on the default development branch. The assigned work is M1, M2, M3, M4, M11, M13, M14 and M15; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, and their order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M9, M10 and M12 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns fifteen work items on the default development branch. The assigned work is M1, M2, M3, M4, M9, M11, M13, M14 and M15; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28 and M9 on 2026-11-03 by D30, and their order against M4 is not set. Deferred work is ordered M5, M6 and M7 for later reconsideration; M8, M10 and M12 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -29,8 +29,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M14 | Declare scalar prototypes on the check helper of the Perl tests | Carry-forward | Complete | No | M3, D24, D27 | The six tests that define `check` declare scalar prototypes and pass unchanged, and a list-context match in a call of `check` fails the check; T1-T2 passed; landed at 23e98e8; [detail](#m14---declare-scalar-prototypes-on-the-check-helper-of-the-perl-tests) |
 | Tests | M15 | Stop the instances that an aborted runtime test did not record | Carry-forward | Complete | No | M3, D24, D28 | A run of the runtime test that ends early, including the pid file mutation, leaves no JVM of its instances, and the recorded mutations keep their verdicts; T1-T2 passed; landed at 79f2177; [detail](#m15---stop-the-instances-that-an-aborted-runtime-test-did-not-record) |
 | Tests | M13 | Leave only the pass record of the tests and use a local temporary folder | Carry-forward | Complete | No | M3, D26, D29 | A passing run of the nine Perl tests and of `tests/local-install-pv.bash` leaves no file of the run, a failed run or `KEEP_WORKSPACE=1` keeps them, and the tools use `TMPDIR` or `work/scratch/tmp`; T1-T3 passed; landed at 6049646; [detail](#m13---leave-only-the-pass-record-of-the-tests-and-use-a-local-temporary-folder) |
+| Tests | M9 | Keep the last sample of the PV time-range test inside the query range | Carry-forward | In progress | No | M3, D23, D30, D31 | The unmutated time-range test passes in all 30 runs of a series, and its stable mutation verdicts stay as before; [detail](#m9---keep-the-last-sample-of-the-pv-time-range-test-inside-the-query-range) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 7 Complete and 1 Not started. M4 is Ready; its plan is a draft.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 7 Complete, 1 In progress and 1 Not started. M4 is Ready; its plan is a draft.
 
 ### Decisions
 
@@ -65,6 +66,8 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D27 | Split M12 in two on 2026-11-02. The scalar prototypes of the helpers `check` and `fail` become M14, which is assigned and In progress; the shared module for the helper code stays M12, Open, and keeps these prototypes. | 2026-11-02 |
 | D28 | Assign M15 on 2026-11-02 after the owner accepted its revised plan and authorized the implementation: the abnormal stop of the runtime test finds the JVMs of the run by their command line. Its status changes from Open to In progress. | 2026-11-02 |
 | D29 | Settle one rule on 2026-11-02 for the nine Perl tests and for `tests/local-install-pv.bash`. A passing run leaves only its output and exit status and removes the files it generated, that is its workspace and the evidence folder of the verifier it started, only those of this run. A failed run or `KEEP_WORKSPACE=1` keeps them and prints the path. Temporary files go below the folder that `TMPDIR` names, or else below `work/scratch/tmp` of the checkout, which the tool creates when it is missing; the verifier script follows `TMPDIR` and keeps `/tmp` as its default. This sets M13 and changes it from Open to In progress. | 2026-11-02 |
+| D30 | Assign M9 on 2026-11-03 after the owner accepted its plan and authorized the implementation: the query and the response of a data request are recorded in one file that is replaced as a whole. Its status changes from Open to In progress. | 2026-11-03 |
+| D31 | Replace the plan of M9 after its measurement rejected the premise: the test with one exchange file failed in 3 of 12 runs and the committed test in 1 of 12, and all four failures show the last sample one second past the upper bound of the query of the same attempt. The fixture holds the time of the last sample at the upper bound, the one-file change is removed uncommitted, and M9 is renamed. | 2026-11-03 |
 
 ### ID Migration
 
@@ -91,6 +94,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M11 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D26 | this synchronization commit | this synchronization commit |
 | 9576820 / M15 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D28 | this synchronization commit | this synchronization commit |
 | 9576820 / M13 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-02 by D29 | this synchronization commit | this synchronization commit |
+| 9576820 / M9 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D30 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -921,7 +925,7 @@ Three behaviors of the converted tests report a failure, or can, although the co
 - Check the pid file of `tests/config-d-runtime.pl` as a number and stop with a clear message otherwise.
 - Start the verifier of `tests/local-install-pv-signals.pl` with SIGINT at its default.
 
-Out of scope: the conversion of the tests (M3); the rule for the evidence of passing runs (M13); the exchange of the time-range test (M9); changes to the shipped code.
+Out of scope: the conversion of the tests (M3); the rule for the evidence of passing runs (M13); the last sample of the time-range test (M9); changes to the shipped code.
 
 ##### Completion Criteria
 
@@ -1196,9 +1200,76 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M9 - Keep the last sample of the PV time-range test inside the query range
+
+Origin: 9576820 / M9
+Identity History: created as M9 on 2026-10-31 by D23; assigned and changed from Open to In progress on 2026-11-03 by D30; renamed from "Keep one consistent exchange in the PV time-range test" on 2026-11-03 by D31
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+The time-range test (`tests/local-install-pv-range.pl`, converted from `tests/local-install-pv-range.py` by M3) replaces the HTTP transport of the shipped PV verifier with a fixture that answers from the real soft IOC. For every data request the fixture reads the current value and time of the IOC with `caget` as the last sample of its answer. The verifier fixes the upper bound of the query before that read, so a read that sees a later time gives a sample past the bound, and the test, which counts the samples inside the bound, finds one valid sample instead of two. Earlier series showed the failure in 2 of 6 runs of each implementation; on 2026-11-03 the unmutated test failed in 1 of 12 runs, and in 3 of 12 with the query and the response kept in one file. In all four failures the last sample is one second past the bound of the query of the same attempt. The conversion keeps this behavior (D23).
+
+##### Scope
+
+- Hold the time of the last sample of a data answer at the upper bound of the query when the read of the IOC gives a later time; the value stays the one read from the IOC.
+- Measure the unmutated test in a series of 30 runs and run the recorded mutations again.
+
+Out of scope: the conversion of the test (M3); changing the shipped verifier; the menu test; the timing dependence of the `fraction-borrow` mutation.
+
+##### Completion Criteria
+
+- The unmutated test passes in all 30 runs of the series after the change.
+- The recorded mutations keep their stable verdicts: the killed ones stay killed and the survivors `lower-bound`, `severity-filter` and `code-propagation` survive; `fraction-borrow` is outside this criterion.
+
+##### Dependencies And Decisions
+
+- D23 creates this item on 2026-10-31.
+- D30 assigns it and changes Open to In progress on 2026-11-03, after the owner accepted the plan.
+- D31 replaces the plan on 2026-11-03, after the owner accepted the revised plan.
+- M3 converts the test first; M9 changes the converted file.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-03; the owner accepted this plan text.
+Implementation Authorization: 2026-11-03; explicit owner authorization to implement this plan. It does not authorize commit, push, issue creation or provisioning of guests.
+Superseded Plan Artifacts: the plan accepted on 2026-11-03 under D30, which recorded the query and the response in one file; its change was removed before any commit (D31).
+
+1. In `tests/local-install-pv-range.pl`, restore the committed text and make `curl_fixture` use the upper bound of the query as the time of the last sample when the time read from the IOC is later.
+2. Run the unmutated test 30 times with the changed file.
+3. Run the recorded mutations of the test and compare their verdicts with the recorded ones.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run the unmutated test 30 times with the changed file and count the failures | A host with a real EPICS Base | No failure in the 30 runs |
+| T2 | Local | Run the recorded mutations of the test and compare their verdicts with the recorded ones | The same host | The stable verdicts are unchanged |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-03T02:22Z | Local host, Debian 13, non-root, the real Debian 13 Base 7.0.10 and a real soft IOC | Pass | 30 of 30 runs pass (79 to 84 seconds each) with `tests/local-install-pv-range.pl` SHA-256 `4e025026037d97f02858a572f7c4d55836c3855c04e884de656df091da0ce04c`; the committed file, SHA-256 `de977c0948185cf759398b1f26c1818b9d5269be90989013699294167fd0ebf4`, differs from it in one comment line only |
+| T2 | 2026-11-03T02:33Z | The same host | Pass | The same file: `upper-bound-nanos`, `two-distinct-values`, `time-window`, `wrong-pv-name`, `status-200-branch` and `response-copy` are killed; `lower-bound`, `severity-filter` and `code-propagation` survive; `fraction-borrow` survived in this run |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Keep the last sample of the PV time-range test inside the query range
+Labels: bug
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M9, M10 and M12 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M8, M10 and M12 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -1208,7 +1279,6 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Open | No | D6, D16, D17 | The owner decides whether and in which language the driver, verifier and driver test are replaced, and any chosen work passes defect-sensitive tests and a real guest verdict; [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
-| Tests | M9 | Keep one consistent exchange in the PV time-range test | Carry-forward | Open | No | M3, D23 | The unmutated time-range test passes in every run of a series whose length the plan fixes, and its mutation verdicts stay as sensitive as before; [detail](#m9---keep-one-consistent-exchange-in-the-pv-time-range-test) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 
@@ -1552,71 +1622,6 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
-#### M9 - Keep one consistent exchange in the PV time-range test
-
-Origin: 9576820 / M9
-Identity History: created as M9 on 2026-10-31 by D23
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The time-range test (`tests/local-install-pv-range.pl`, converted from `tests/local-install-pv-range.py` by M3) replaces the HTTP transport of the shipped PV verifier with a fixture that answers from the real soft IOC. For every data request the fixture writes `query.json` and then `response.json` in the evidence folder, and the test reads both after the run. The verifier ends an attempt that passes its deadline, but the fixture process of that attempt can finish later and overwrite one of the files after the next attempt has written the other. The pair then does not come from one attempt and the count of valid samples differs. Six consecutive unmutated runs of each implementation failed 2 times each (33 percent); the failing case differed from run to run. The conversion keeps this behavior (D23).
-
-##### Scope
-
-- Make the test read one consistent query and response, for example by recording both in one file that is replaced as a whole, and bind a late fixture process to the attempt that started it.
-- Measure the failure rate of the unmutated test before and after, in a series of the same length, and repeat the mutations whose verdicts depended on timing.
-
-Out of scope: the conversion of the test (M3); changing the shipped verifier; the menu test, which does not read the two files.
-
-##### Completion Criteria
-
-- The unmutated test passes in every run of a series whose length is fixed in the accepted plan, with the series listed.
-- The recorded mutations keep their stable verdicts, and the timing-dependent ones are repeated and recorded with their counts.
-
-##### Dependencies And Decisions
-
-- D23 creates this item on 2026-10-31.
-- M3 converts the test first; M9 changes the converted file.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Reproduce the failure on the converted test with the unmutated series, and record the failing runs.
-2. Change the exchange so that the pair comes from one attempt, then run the series again.
-3. Repeat the recorded mutations, with repeats for the timing-dependent ones.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Run the unmutated test in a series and count the failures | A host with a real EPICS Base | No failure in the series |
-| T2 | Local | Run the recorded mutations of the test and compare their verdicts with the recorded ones | The same host | The stable verdicts are unchanged |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | A host with a real EPICS Base | Pending | none |
-| T2 | Pending | The same host | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Keep one consistent exchange in the PV time-range test
-Labels: bug
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
-
 #### M10 - Close the gaps that the Python tests left in the Perl tests
 
 Origin: 9576820 / M10
@@ -1633,7 +1638,7 @@ The Perl tests that M3 converted leave 48 of their scratch mutations alive, and 
 - For each survivor, add an observation to the Perl test that fails on the mutation, or record with its reason that the line has no observable effect and keep the mutation as known to be equivalent.
 - Run every mutation of the changed file again, with repeats for the timing-dependent ones of `tests/local-install-pv-menu.pl` and `tests/local-install-pv-range.pl`.
 
-Out of scope: the conversion of the tests (M3); the exchange of the time-range test (M9); changes to the shipped code.
+Out of scope: the conversion of the tests (M3); the last sample of the time-range test (M9); changes to the shipped code.
 
 ##### Completion Criteria
 
