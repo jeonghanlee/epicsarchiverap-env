@@ -2,7 +2,7 @@
 SERVICES_INSTALL_RULES:=
 $(call buildrules_BUILDER,$(AA_USERID),$(AA_GROUPID),$(AA_INSTALL_LOCATION),$(INSTALL_LOCATION_SERVICES),SERVICES_INSTALL_RULES)
 #conf_RULES_NAMES:=log4j appliances properties policies serverxml
-conf_RULES_NAMES:=archapplconf appliances properties policies serverxml archapplshell
+conf_RULES_NAMES:=archapplconf appliances properties policies serverxml archapplshell versions
 conf_install_RULES:=$(addsuffix .install, $(conf_RULES_NAMES))
 show_conf_RULES:=$(addsuffix .show, serverxml archapplshell)
 
@@ -73,6 +73,14 @@ archapplshell.install: $(ARCHAPPL_MAIN_SCRIPT) $(TOP)/scripts/archappl-config.ba
 
 archapplshell.show: $(ARCHAPPL_MAIN_SCRIPT)
 	$(QUIET)cat -bs $(AA_INSTALL_LOCATION)/$(patsubst $(TOP)/scripts/%,%,$<)
+
+# The source commit that conf.install recorded is installed with the appliance, so the
+# installed host states what it was built from. This rule renders nothing: it stops with
+# status 2 and names conf.install when the record is missing or older than the configuration.
+versions.install:
+	$(call require_rendered,$(AA_SITE_TEMPLATE_PATH)/.versions,,conf.install)
+	$(QUIET)echo ">>> Install $(AA_SITE_TEMPLATE_PATH)/.versions into $(AA_INSTALL_LOCATION)/"
+	$(QUIET)$(SUDO) $(INSTALL_DATA) $(AA_SITE_TEMPLATE_PATH)/.versions $(AA_INSTALL_LOCATION)/
 
 src_install: src_preinst
 #	$(if $(wildcard $(AA_INSTALL_LOCATION)), $(QUIET)$(SUDO) mv $(AA_INSTALL_LOCATION) $(AA_INSTALL_LOCATION)_backup_$$(date +%Y%m%d-%H%M%S))
