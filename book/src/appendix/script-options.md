@@ -23,6 +23,9 @@ The selected source and site configuration come from Make settings.
 Existing appliance payloads are replaced; database contents and stores remain.
 
   --plan             Print the steps without installing or starting anything
+  --inspect          Update the checkout, compare it with the installed appliance, print the result
+                     per layer and stop; nothing on the system is changed
+  --accept-schema    Continue after a schema difference that is more than whole new tables
   -y, --yes          Run without the confirmation and the soft IOC test question
   --skip-packages    Use the host-provided prerequisites
   --tomcat ACTION    existing: use as service user; replace: back up and install

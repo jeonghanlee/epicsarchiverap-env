@@ -77,6 +77,7 @@ archapplshell.show: $(ARCHAPPL_MAIN_SCRIPT)
 # The source commit that conf.install recorded is installed with the appliance, so the
 # installed host states what it was built from. This rule renders nothing: it stops with
 # status 2 and names conf.install when the record is missing or older than the configuration.
+## Install the source commit record that conf.install wrote into the installation
 versions.install:
 	$(call require_rendered,$(AA_SITE_TEMPLATE_PATH)/.versions,,conf.install)
 	$(QUIET)echo ">>> Install $(AA_SITE_TEMPLATE_PATH)/.versions into $(AA_INSTALL_LOCATION)/"

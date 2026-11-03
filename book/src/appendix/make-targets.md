@@ -117,7 +117,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `serveroption.install` |  |  |
 | `serverxml.install` |  |  |
 | `serverxml.show` |  |  |
-| `services.install` | `install.mgmt install.engine install.etl install.retrieval archapplconf.install appliances.install properties.install policies.install serverxml.install archapplshell.install` |  |
+| `services.install` | `install.mgmt install.engine install.etl install.retrieval archapplconf.install appliances.install properties.install policies.install serverxml.install archapplshell.install versions.install` |  |
 | `sql.drop` | `sql.table.drop` |  |
 | `sql.fill` | `sql.update sql.table.fill` |  |
 | `sql.show` | `sql.table.show` |  |
@@ -165,3 +165,4 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `uninstall` | `sd_stop sd_disable sd_clean` |  |
 | `update` |  |  |
 | `vars` | `_header` |  |
+| `versions.install` |  | Install the source commit record that conf.install wrote into the installation |
