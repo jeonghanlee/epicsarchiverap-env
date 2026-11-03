@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Cwd qw(abs_path);
 use File::Basename qw(basename dirname);
-use File::Path qw(make_path);
+use File::Path qw(make_path remove_tree);
 use File::Temp qw(tempdir);
 use Getopt::Long qw(GetOptionsFromArray);
 use IO::Select;
@@ -32,8 +32,9 @@ Base started for the reported test PV, and that the verifier's exit status, mess
 
 Only the HTTP transport is replaced: this file runs again as the C<curl> of the verifier's PATH, answers the resume
 request itself and hands every other request to the time-range fixture tests/local-install-pv-range.pl. The
-pseudo-terminal comes from script(1) of util-linux. The runs write their evidence under
-work/local-pv-menu.* of the checkout, which stays after the run; its path is printed.
+pseudo-terminal comes from script(1) of util-linux. The runs work in a folder local-pv-menu.*
+below TMPDIR, else below work/scratch/tmp of the checkout, which the test creates when it is missing. A passing run
+removes it and the evidence folders of the verifier; a failed run, or KEEP_WORKSPACE=1, keeps them and prints their path.
 
 Environment: AA_TEST_EPICS_BIN is required; AA_TEST_SOURCE_PATH names the source checkout, by default
 epicsarchiverap-maven-src beside the repository. Required programs: bash and script.
@@ -55,6 +56,38 @@ Print this text and exit 0.
 =cut
 
 my $TOP = abs_path(dirname(abs_path($0)) . '/..');
+
+# The temporary folder: TMPDIR when it names a writable folder, else work/scratch/tmp of the checkout, created when missing.
+sub temp_root {
+    my $dir = $ENV{TMPDIR};
+    return abs_path($dir) if defined $dir && $dir ne '' && -d $dir && -w _;
+    my $local = "$TOP/work/scratch/tmp";
+    make_path($local);
+    -d $local && -w _ or die "cannot create the temporary folder $local\n";
+    return abs_path($local);
+}
+
+# A folder that this run created below the temporary folder: absolute, not a link, equal to its resolved path.
+sub run_folder_is_safe {
+    my ($path) = @_;
+    return 0 unless defined $path && $path =~ m{\A/} && -d $path && !-l $path;
+    my $resolved = abs_path($path);
+    my $root = temp_root();
+    return defined $resolved && $resolved eq $path && index($path, "$root/") == 0;
+}
+
+# Ends a folder of this run: removed after a pass, kept and named after a failure or with KEEP_WORKSPACE=1.
+sub finish_workspace {
+    my ($path, $passed) = @_;
+    return unless defined $path && -e $path;
+    if ($passed && ($ENV{KEEP_WORKSPACE} // '') ne '1' && run_folder_is_safe($path)) {
+        remove_tree($path);
+        return;
+    }
+    print "Workspace retained: $path\n";
+    return;
+}
+
 
 $| = 1;
 
@@ -206,12 +239,13 @@ sub run_mode {
     my $command = join ' ', map { shell_quote($_) } 'bash', "$TOP/scripts/verify-local-pv.bash", '--epics-bin', $epics,
         '--timeout', '40', 'http://127.0.0.1:33665/mgmt/bpl', 'http://127.0.0.1:33668/retrieval', $source;
     my ($pid, $writer, $reader) = start_on_terminal(\%env, $command);
-    my ($owned, $status);
+    my ($owned, $status, $verifier_evidence);
     my $ok = eval {
         my $output = read_until($reader, $pid, qr/Select \[1\/2\]:/, 60, '');
         (my $plain = $output) =~ s/\r//g;
         my ($retained) = $plain =~ /^Evidence: (.*)$/m;
         check(defined $retained, "The verifier printed no evidence folder: $plain");
+        $verifier_evidence = $retained;
         my $ioc_pid = slurp("$retained/ioc.pid") + 0;
         my ($state, $start) = identity($ioc_pid);
         check(defined $state && $state !~ /\A[ZXx]\z/, 'The reported IOC is not running');
@@ -277,6 +311,7 @@ sub run_mode {
     close($writer);
     close($reader);
     stop_owned($owned) if $owned;
+    finish_workspace($verifier_evidence, 1) if $ok;
     die $error unless $ok;
     return;
 }
@@ -295,20 +330,20 @@ sub main {
     defined which('script') or die "the program script of util-linux is required for the pseudo-terminal of the verifier\n";
     my $source = $ENV{AA_TEST_SOURCE_PATH} || "$TOP/epicsarchiverap-maven-src";
     make_path("$TOP/work");
-    my $workspace = tempdir('local-pv-menu.XXXXXXXX', DIR => "$TOP/work");
+    my $workspace = tempdir('local-pv-menu.XXXXXXXX', DIR => temp_root());
     my $boundary = "$workspace/boundary";
     mkdir($boundary) or die "mkdir $boundary: $!\n";
     symlink(abs_path($0), "$boundary/curl") or die "symlink: $!\n";
     my $fixture = "$workspace/range";
     mkdir($fixture) or die "mkdir $fixture: $!\n";
     symlink("$TOP/tests/local-install-pv-range.pl", "$fixture/curl") or die "symlink: $!\n";
-    my %env_base = (%ENV, PATH => "$boundary:$ENV{PATH}", RANGE_EPICS => $epics, MENU_RANGE_CURL => "$fixture/curl");
+    my %env_base = (%ENV, PATH => "$boundary:$ENV{PATH}", TMPDIR => temp_root(), RANGE_EPICS => $epics, MENU_RANGE_CURL => "$fixture/curl");
     my $ok = eval {
         run_mode($_, $workspace, \%env_base, $epics, $source) for qw(keep-live menu-exit resume-exit);
         1;
     };
     my $error = $@;
-    print "Menu test evidence: $workspace\n";
+    finish_workspace($workspace, $ok);
     die $error unless $ok;
     return 0;
 }

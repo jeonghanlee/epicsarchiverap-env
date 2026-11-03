@@ -231,19 +231,26 @@ Each implemented shell phase creates an `archappl-test.*` workspace under
 `${TMPDIR:-/dev/shm}`. Its `run.log` contains commands captured by that phase;
 it does not contain every test result and may be empty.
 
-`health-local.pl` creates separate `archappl-health-*` and `archappl-units-*`
-workspaces in the temporary directory (normally `/tmp`, or the configured
-`TMPDIR`). Their `run.log` files contain health diagnostics and Make output,
-respectively. Test verdicts and retained workspace paths are printed to the
-console. Preserve both console streams and all printed workspace paths when
+`health-local.pl` creates separate `archappl-health-*` and `archappl-units-*` workspaces in the temporary directory
+(the folder that `TMPDIR` names, or else `work/scratch/tmp` of the checkout, which the test creates when it is
+missing). Their `run.log` files contain health diagnostics and Make output, respectively. Test verdicts and retained
+workspace paths are printed to the console. Preserve both console streams and all printed workspace paths when
 collecting evidence; the shell phase log alone is insufficient.
+
+Every Perl test and `local-install-pv.bash` follow one rule. A passing run leaves only its output and exit status: it
+removes its workspace and the evidence folder of the verifier it started, only the ones of this run. A failed run, or
+a run with `KEEP_WORKSPACE=1`, keeps them and prints `Workspace retained: <path>` (the shell test prints `Integration
+evidence: <path>`). `scripts/verify-local-pv.bash` creates its evidence folder below `TMPDIR`, and below `/tmp` when
+`TMPDIR` is unset.
 
 Workspaces are normally removed after successful tests and retained on failure.
 Set `KEEP_WORKSPACE=1` to retain successful cases too. From the repository root,
 the following keeps console output and all local-test workspaces together:
 
 ```bash
-logdir=$(mktemp -d /tmp/archappl-evidence.XXXXXX)
+temp=${TMPDIR:-$PWD/work/scratch/tmp}
+mkdir -p "$temp"
+logdir=$(mktemp -d "$temp/archappl-evidence.XXXXXX")
 test_rc=0
 KEEP_WORKSPACE=1 TMPDIR="$logdir" tests/run-all-tests.bash --local > "$logdir/console.log" 2>&1 || test_rc=$?
 printf 'Exit: %s\nEvidence: %s\n' "$test_rc" "$logdir"
@@ -486,10 +493,10 @@ threshold while existing JVMs retain the old environment. Invalid local syntax
 must block the launcher and all generated wrappers. This does not test PV
 acquisition, systemd unit installation, or periodic Java configuration reload.
 
-The printed `archappl-config-runtime-*` directory retains installed files,
+A failed run keeps the `archappl-config-runtime-*` directory with installed files,
 source hashes, commands, application logs, readiness responses, selected JVM
-observations, and the final verdict. A missing prerequisite or incomplete run
-cannot produce `PASS`. The script stops its JVMs and retains evidence on exit, also after SIGINT or SIGTERM.
+observations, and the verdict, and prints its path; a passing run removes it. A missing prerequisite or incomplete run
+cannot produce `PASS`. The script stops its JVMs on exit, also after SIGINT or SIGTERM.
 The test has no sustained-volume, sampling-rate, or performance claim; its
 time bounds only limit startup and shutdown waits.
 
@@ -814,9 +821,9 @@ twice under a temporary prefix and compares every installed payload file with
 the second WAR and JAR set. It checks preservation of logs, external config,
 work/temp files, other webapps and a storage-file marker. It then verifies
 that missing, ambiguous and truncated WAR inputs and missing JARs fail without
-changing the installed mgmt payload. It exits nonzero on a mismatch and retains
-its workspace and log. No systemd unit or running appliance is changed. This
-checks installation contents, not runtime upgrade behavior or host privileges.
+changing the installed mgmt payload. It exits nonzero on a mismatch and then keeps its workspace and log and prints
+their path; a passing run removes them. No systemd unit or running appliance is changed. This checks installation
+contents, not runtime upgrade behavior or host privileges.
 
 The exit status is 0 when every check passed, 1 when an assertion failed and 2 for a usage or environment
 error. The test needs `git`, `make`, `unzip` (the shipped `scripts/install-payload.bash` runs it) and the Perl

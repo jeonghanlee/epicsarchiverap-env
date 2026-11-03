@@ -6,7 +6,7 @@ use warnings;
 use Cwd qw(abs_path);
 use File::Basename qw(basename dirname);
 use File::Glob qw(bsd_glob);
-use File::Path qw(make_path);
+use File::Path qw(make_path remove_tree);
 use File::Temp qw(tempdir);
 use Getopt::Long qw(GetOptionsFromArray);
 use JSON::PP ();
@@ -35,8 +35,9 @@ requests must carry the expected samples and PV name.
 Only the HTTP transport is replaced: this file runs again as the C<curl> of the verifier's PATH. As that C<curl> it
 answers archive, status, pause and data requests from the real IOC (it reads the process variable with the caget of the
 supplied Base) and records its observations under the evidence folder of the run. The same file is the time-range
-fixture of tests/local-install-pv-menu.pl. The runs write their evidence under work/local-pv-range.* of the checkout,
-which stays after the run; its path is printed.
+fixture of tests/local-install-pv-menu.pl. The runs work in a folder local-pv-range.* below TMPDIR,
+else below work/scratch/tmp of the checkout, which the test creates when it is missing. A passing run removes it and the
+evidence folders of the verifier; a failed run, or KEEP_WORKSPACE=1, keeps them and prints their path.
 
 Environment: AA_TEST_EPICS_BIN is required; AA_TEST_SOURCE_PATH names the source checkout, by default
 epicsarchiverap-maven-src beside the repository. Required programs: bash. Required Perl module beyond the core of Perl
@@ -60,6 +61,38 @@ Print this text and exit 0.
 =cut
 
 my $TOP = abs_path(dirname(abs_path($0)) . '/..');
+
+# The temporary folder: TMPDIR when it names a writable folder, else work/scratch/tmp of the checkout, created when missing.
+sub temp_root {
+    my $dir = $ENV{TMPDIR};
+    return abs_path($dir) if defined $dir && $dir ne '' && -d $dir && -w _;
+    my $local = "$TOP/work/scratch/tmp";
+    make_path($local);
+    -d $local && -w _ or die "cannot create the temporary folder $local\n";
+    return abs_path($local);
+}
+
+# A folder that this run created below the temporary folder: absolute, not a link, equal to its resolved path.
+sub run_folder_is_safe {
+    my ($path) = @_;
+    return 0 unless defined $path && $path =~ m{\A/} && -d $path && !-l $path;
+    my $resolved = abs_path($path);
+    my $root = temp_root();
+    return defined $resolved && $resolved eq $path && index($path, "$root/") == 0;
+}
+
+# Ends a folder of this run: removed after a pass, kept and named after a failure or with KEEP_WORKSPACE=1.
+sub finish_workspace {
+    my ($path, $passed) = @_;
+    return unless defined $path && -e $path;
+    if ($passed && ($ENV{KEEP_WORKSPACE} // '') ne '1' && run_folder_is_safe($path)) {
+        remove_tree($path);
+        return;
+    }
+    print "Workspace retained: $path\n";
+    return;
+}
+
 my $JSON = JSON::PP->new->canonical;
 
 $| = 1;
@@ -240,7 +273,7 @@ sub run_mode {
     my ($mode, $workspace, $epics, $source) = @_;
     my $evidence = "$workspace/$mode";
     mkdir($evidence) or die "mkdir $evidence: $!\n";
-    my %env = (%ENV, PATH => "$workspace:$ENV{PATH}", RANGE_EVIDENCE => $evidence, RANGE_EPICS => $epics,
+    my %env = (%ENV, PATH => "$workspace:$ENV{PATH}", TMPDIR => temp_root(), RANGE_EVIDENCE => $evidence, RANGE_EPICS => $epics,
         RANGE_MODE => $mode);
     my @command = ('bash', "$TOP/scripts/verify-local-pv.bash", '--epics-bin', $epics, '--cleanup', 'stop', '--timeout', '20',
         'http://127.0.0.1:33665/mgmt/bpl', 'http://127.0.0.1:33668/retrieval', $source);
@@ -266,6 +299,7 @@ sub run_mode {
         check(index($logs, 'does not identify the requested test PV') >= 0, "$mode: the wrong PV was not reported");
     }
     check(scalar(my @retrieved = bsd_glob("$retained/retrieval-*.json")) > 0, "$mode: no retrieval answer was kept");
+    finish_workspace($retained, 1);
     print "PASS: $mode; exit=$status; PV and time checks; IOC stopped\n";
     return;
 }
@@ -283,14 +317,14 @@ sub main {
     die "AA_TEST_EPICS_BIN is required\n" unless defined $epics && $epics ne '';
     my $source = $ENV{AA_TEST_SOURCE_PATH} || "$TOP/epicsarchiverap-maven-src";
     make_path("$TOP/work");
-    my $workspace = tempdir('local-pv-range.XXXXXXXX', DIR => "$TOP/work");
+    my $workspace = tempdir('local-pv-range.XXXXXXXX', DIR => temp_root());
     symlink(abs_path($0), "$workspace/curl") or die "symlink: $!\n";
     my $ok = eval {
         run_mode($_, $workspace, $epics, $source) for qw(inside boundary outside time-skew wrong-pv);
         1;
     };
     my $error = $@;
-    print "Time range test evidence: $workspace\n";
+    finish_workspace($workspace, $ok);
     die $error unless $ok;
     return 0;
 }

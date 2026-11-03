@@ -60,6 +60,17 @@ Print this text and the case names and exit 0.
 =cut
 
 my $TOP = abs_path(dirname(abs_path($0)) . '/..');
+
+# The temporary folder: TMPDIR when it names a writable folder, else work/scratch/tmp of the checkout, created when missing.
+sub temp_root {
+    my $dir = $ENV{TMPDIR};
+    return abs_path($dir) if defined $dir && $dir ne '' && -d $dir && -w _;
+    my $local = "$TOP/work/scratch/tmp";
+    make_path($local);
+    -d $local && -w _ or die "cannot create the temporary folder $local\n";
+    return abs_path($local);
+}
+
 my @SERVICES = qw(mgmt engine etl retrieval);
 my $capture_dir;
 my $capture_count = 0;
@@ -206,7 +217,7 @@ sub run_case {
 my ($ROOT, $CONFIG);
 
 sub setup {
-    $ROOT = tempdir('archappl-config-d-XXXXXX', TMPDIR => 1);
+    $ROOT = tempdir('archappl-config-d-XXXXXX', DIR => temp_root());
     push @workspaces, $ROOT;
     $CONFIG = "$ROOT/archappl.conf";
     spew($CONFIG, "CONFIG_TEST_VALUE=base\nCONFIG_TEST_EMPTY=base\n");
@@ -541,7 +552,7 @@ sub main {
     }
     my %chosen = map { $_ => 1 } @wanted;
     my @selected = grep { !@wanted || $chosen{ $_->[0] } } @CASES;
-    $capture_dir = tempdir('archappl-config-d-capture-XXXXXX', TMPDIR => 1, CLEANUP => 1);
+    $capture_dir = tempdir('archappl-config-d-capture-XXXXXX', DIR => temp_root(), CLEANUP => 1);
     for my $case (@selected) {
         run_case($case->[1], $case->[2]);
     }

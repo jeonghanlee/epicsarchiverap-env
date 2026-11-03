@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Cwd qw(abs_path);
 use File::Basename qw(dirname);
-use File::Path qw(make_path);
+use File::Path qw(make_path remove_tree);
 use File::Temp qw(tempdir);
 use Getopt::Long qw(GetOptionsFromArray);
 use JSON::PP ();
@@ -32,8 +32,10 @@ terminal-ctrlc-then-ctrlc). Each run must end with the status of the way out (1,
 test IOC (identified by PID and start time) stopped, the pause request answered, and the messages about the stopped IOC
 and the paused PV visible.
 
-Only the HTTP transport is replaced. The pseudo-terminal comes from script(1) of util-linux. The runs write their
-evidence under work/local-pv-signals.* of the checkout, which stays after the run; its path is printed.
+Only the HTTP transport is replaced. The pseudo-terminal comes from script(1) of util-linux. The runs work in a folder
+local-pv-signals.* below TMPDIR, else below work/scratch/tmp of the checkout, which the test creates when it is missing. A
+passing run removes it and the evidence folders of the verifier; a failed run, or KEEP_WORKSPACE=1, keeps them and prints
+their path.
 
 Environment: AA_TEST_EPICS_BIN is required; AA_TEST_SOURCE_PATH names the source checkout, by default
 epicsarchiverap-maven-src beside the repository. Required programs: bash and script. Required Perl module beyond the
@@ -56,6 +58,38 @@ Print this text and exit 0.
 =cut
 
 my $TOP = abs_path(dirname(abs_path($0)) . '/..');
+
+# The temporary folder: TMPDIR when it names a writable folder, else work/scratch/tmp of the checkout, created when missing.
+sub temp_root {
+    my $dir = $ENV{TMPDIR};
+    return abs_path($dir) if defined $dir && $dir ne '' && -d $dir && -w _;
+    my $local = "$TOP/work/scratch/tmp";
+    make_path($local);
+    -d $local && -w _ or die "cannot create the temporary folder $local\n";
+    return abs_path($local);
+}
+
+# A folder that this run created below the temporary folder: absolute, not a link, equal to its resolved path.
+sub run_folder_is_safe {
+    my ($path) = @_;
+    return 0 unless defined $path && $path =~ m{\A/} && -d $path && !-l $path;
+    my $resolved = abs_path($path);
+    my $root = temp_root();
+    return defined $resolved && $resolved eq $path && index($path, "$root/") == 0;
+}
+
+# Ends a folder of this run: removed after a pass, kept and named after a failure or with KEEP_WORKSPACE=1.
+sub finish_workspace {
+    my ($path, $passed) = @_;
+    return unless defined $path && -e $path;
+    if ($passed && ($ENV{KEEP_WORKSPACE} // '') ne '1' && run_folder_is_safe($path)) {
+        remove_tree($path);
+        return;
+    }
+    print "Workspace retained: $path\n";
+    return;
+}
+
 
 $| = 1;
 
@@ -252,6 +286,7 @@ sub run_case {
         check(index($text, 'Test IOC stopped.') >= 0, "$name: no stop message");
         check(index($text, 'Test PV paused:') >= 0, "$name: no pause message");
         check(slurp("$evidence/register.json") eq '', "$name: the refused archive request left a response");
+        finish_workspace($evidence, 1);
         print "PASS: $name; exit=$code; owned IOC stopped; cleanup messages visible\n";
         1;
     };
@@ -283,7 +318,7 @@ sub main {
     defined which('script') or die "the program script of util-linux is required for the terminal cases\n";
     my $source = $ENV{AA_TEST_SOURCE_PATH} || "$TOP/epicsarchiverap-maven-src";
     make_path("$TOP/work");
-    my $workspace = tempdir('local-pv-signals.XXXXXXXX', DIR => "$TOP/work");
+    my $workspace = tempdir('local-pv-signals.XXXXXXXX', DIR => temp_root());
     my $boundary = "$workspace/boundary";
     mkdir($boundary) or die "mkdir $boundary: $!\n";
     spew("$boundary/curl", <<'STUB');
@@ -301,7 +336,7 @@ case "${*: -1}" in
 esac
 STUB
     chmod(0700, "$boundary/curl") or die "chmod: $!\n";
-    my %env_base = (%ENV, PATH => "$boundary:$ENV{PATH}");
+    my %env_base = (%ENV, PATH => "$boundary:$ENV{PATH}", TMPDIR => temp_root());
     my $term = POSIX::SIGTERM();
     my $int = POSIX::SIGINT();
     my @cases = (
@@ -321,7 +356,7 @@ STUB
         1;
     };
     my $error = $@;
-    print "Signal test evidence: $workspace\n";
+    finish_workspace($workspace, $ok);
     die $error unless $ok;
     return 0;
 }

@@ -4,6 +4,7 @@ use 5.010;    # defined-or operator
 use strict;
 use warnings;
 use Cwd qw(abs_path);
+use File::Path qw(make_path);
 use File::Basename qw(basename dirname);
 use File::Temp qw(tempdir);
 use Getopt::Long qw(GetOptionsFromArray);
@@ -50,6 +51,17 @@ Print this text and exit 0.
 =cut
 
 my $TOP = abs_path(dirname(abs_path($0)) . '/..');
+
+# The temporary folder: TMPDIR when it names a writable folder, else work/scratch/tmp of the checkout, created when missing.
+sub temp_root {
+    my $dir = $ENV{TMPDIR};
+    return abs_path($dir) if defined $dir && $dir ne '' && -d $dir && -w _;
+    my $local = "$TOP/work/scratch/tmp";
+    make_path($local);
+    -d $local && -w _ or die "cannot create the temporary folder $local\n";
+    return abs_path($local);
+}
+
 my $capture_dir;
 my $capture_count = 0;
 
@@ -170,7 +182,7 @@ sub main {
     }
     return usage_error('unexpected argument: ' . $arguments[0]) if @arguments;
     defined which('script') or die "the program script of util-linux is required for the pseudo-terminal of the installers\n";
-    $capture_dir = tempdir('aa-local-install-epics-XXXXXX', TMPDIR => 1, CLEANUP => 1);
+    $capture_dir = tempdir('aa-local-install-epics-XXXXXX', DIR => temp_root(), CLEANUP => 1);
     my %env = %ENV;
     delete @env{qw(EPICS_BASE EPICS_HOST_ARCH)};
 

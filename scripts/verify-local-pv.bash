@@ -177,7 +177,7 @@ function main {
     client="$source_path/docs/book/src/samples/getDataToCsv.bash"
     [[ -r "$client" && -r "${client%/*}/archiverClient.bash" ]] || die 'The selected source does not provide the CSV client'
     resolve_epics_bin
-    workspace=$(mktemp -d /tmp/archiver-local-pv.XXXXXXXX)
+    workspace=$(mktemp -d "${TMPDIR:-/tmp}/archiver-local-pv.XXXXXXXX")
     mkdir -- "$workspace/client-bin"
     ln -s -- "$SCRIPT_DIR/verify-local-pv-curl.bash" "$workspace/client-bin/curl"
     prefix="LocalInstall:${workspace##*.}:"

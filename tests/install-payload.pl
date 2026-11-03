@@ -9,7 +9,7 @@ use File::Basename qw(dirname basename);
 use File::Copy qw(copy);
 use File::Find ();
 use File::Glob qw(bsd_glob);
-use File::Path qw(make_path);
+use File::Path qw(make_path remove_tree);
 use File::Temp qw(tempdir);
 use Getopt::Long qw(GetOptionsFromArray);
 use IO::Uncompress::Unzip qw($UnzipError);
@@ -31,8 +31,9 @@ Runs the shipped install.mgmt, install.engine, install.etl and install.retrieval
 prefix, once with the old and once with the new WAR and logging JAR set, and compares every installed payload file with
 the new set. It checks that logs, external configuration, work and temp files, other webapps and a storage marker
 survive, and that missing, ambiguous and truncated WAR inputs, missing JARs and unsafe destinations are rejected without
-changing the installed mgmt payload. No systemd unit or running appliance is changed. The workspace and its log stay
-after the run.
+changing the installed mgmt payload. No systemd unit or running appliance is changed. A passing run removes its workspace
+below TMPDIR, else below work/scratch/tmp of the checkout; a failed run, or KEEP_WORKSPACE=1, keeps the workspace and its
+log and prints the path.
 
 =head1 OPTIONS
 
@@ -59,6 +60,38 @@ Print this text and exit 0.
 =cut
 
 my $TOP = abs_path(dirname(abs_path($0)) . '/..');
+
+# The temporary folder: TMPDIR when it names a writable folder, else work/scratch/tmp of the checkout, created when missing.
+sub temp_root {
+    my $dir = $ENV{TMPDIR};
+    return abs_path($dir) if defined $dir && $dir ne '' && -d $dir && -w _;
+    my $local = "$TOP/work/scratch/tmp";
+    make_path($local);
+    -d $local && -w _ or die "cannot create the temporary folder $local\n";
+    return abs_path($local);
+}
+
+# A folder that this run created below the temporary folder: absolute, not a link, equal to its resolved path.
+sub run_folder_is_safe {
+    my ($path) = @_;
+    return 0 unless defined $path && $path =~ m{\A/} && -d $path && !-l $path;
+    my $resolved = abs_path($path);
+    my $root = temp_root();
+    return defined $resolved && $resolved eq $path && index($path, "$root/") == 0;
+}
+
+# Ends a folder of this run: removed after a pass, kept and named after a failure or with KEEP_WORKSPACE=1.
+sub finish_workspace {
+    my ($path, $passed) = @_;
+    return unless defined $path && -e $path;
+    if ($passed && ($ENV{KEEP_WORKSPACE} // '') ne '1' && run_folder_is_safe($path)) {
+        remove_tree($path);
+        return;
+    }
+    print "Workspace retained: $path\n";
+    return;
+}
+
 my @SERVICES = qw(mgmt engine etl retrieval);
 my $WORKSPACE;
 my @MAKE;
@@ -233,10 +266,9 @@ sub main {
         -d $directory or die "Not a directory: $directory\n";
     }
 
-    $WORKSPACE = tempdir('aa-reinstall-XXXXXXXX', TMPDIR => 1, CLEANUP => 0);
+    $WORKSPACE = tempdir('aa-reinstall-XXXXXXXX', DIR => temp_root(), CLEANUP => 0);
     my $root = "$WORKSPACE/checkout";
     make_path($root);
-    print "Workspace: $WORKSPACE\n";
     copy_checkout($root);
     my $install = "$WORKSPACE/installed";
     my ($gid) = split ' ', $(;
@@ -350,6 +382,7 @@ sub main {
         check(slurp($path) eq $protected{$path}, "Operator state changed: $path");
     }
     print "PASS: all four installed WARs and JAR sets match; operator state survived; invalid input preserved the payload.\n";
+    finish_workspace($WORKSPACE, 1);
     return 0;
 }
 
@@ -367,6 +400,7 @@ eval {
     1;
 } or do {
     my $error = $@;
+    finish_workspace($WORKSPACE, 0) if defined $WORKSPACE;
     if ($error =~ s/\AASSERTION: //) {
         print STDERR "FAIL: $error";
         $status = 1;

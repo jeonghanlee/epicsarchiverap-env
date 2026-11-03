@@ -9,8 +9,12 @@ readonly EPICS_BIN="${AA_TEST_EPICS_BIN:?Set AA_TEST_EPICS_BIN to EPICS Base bin
 readonly PORT="${AA_TEST_PORT_BASE:-28665}"
 [[ "$PORT" =~ ^[0-9]{1,5}$ ]] || exit 1
 (( PORT >= 1024 && PORT <= 65530 )) || exit 1
-mkdir -p "$TOP/work"
-workspace=$(mktemp -d "$TOP/work/local-pv-integration.XXXXXXXX")
+temp_root="${TMPDIR:-$TOP/work/scratch/tmp}"
+mkdir -p -- "$temp_root"
+temp_root=$(readlink -f -- "$temp_root")
+export TMPDIR="$temp_root"
+workspace=$(mktemp -d "$temp_root/local-pv-integration.XXXXXXXX")
+verifier_evidence=()
 mkdir -p "$workspace/scripts/fixtures"
 cp "$TOP/scripts/verify-local-pv.bash" "$workspace/scripts/verify-local-pv.bash"
 cp "$TOP/scripts/verify-local-pv-curl.bash" "$workspace/scripts/verify-local-pv-curl.bash"
@@ -31,6 +35,16 @@ function kept_alive {
     [[ "${fields[19]:-}" == "$kept_start" && "${fields[0]:-}" != Z ]]
 }
 
+# Removes a folder of this run: below the temporary folder, absolute, not a link and equal to its resolved path.
+function remove_run_folder {
+    local path="$1"
+    if [[ -n "$path" && "$path" == "$temp_root"/* && -d "$path" && ! -L "$path" && "$(readlink -f -- "$path")" == "$path" ]]; then
+        rm -rf -- "${path:?}"
+    else
+        printf 'Workspace retained: %s\n' "$path"
+    fi
+}
+
 function finish {
     local status=$?
     trap - EXIT
@@ -43,7 +57,12 @@ function finish {
         kill -TERM "$launcher" 2>/dev/null || true
         wait "$launcher" 2>/dev/null || true
     fi
-    printf 'Integration evidence: %s\n' "$workspace"
+    if (( status == 0 )) && [[ "${KEEP_WORKSPACE:-0}" != 1 ]]; then
+        remove_run_folder "$workspace"
+        for folder in "${verifier_evidence[@]}"; do remove_run_folder "$folder"; done
+    else
+        printf 'Integration evidence: %s\n' "$workspace"
+    fi
     exit "$status"
 }
 trap finish EXIT
@@ -70,6 +89,7 @@ cat "$workspace/pass.log"
 grep -q 'PV acquisition, storage and retrieval: PASS' "$workspace/pass.log"
 grep -q 'Test PV paused:' "$workspace/pass.log"
 evidence=$(sed -n 's/^Evidence: //p' "$workspace/pass.log" | tail -n 1)
+verifier_evidence+=("$evidence")
 [[ -s "$evidence/ca.tsv" && -s "$evidence/result.txt" && -s "$evidence/pause.json" ]]
 pid=$(cat "$evidence/ioc.pid")
 if kill -0 "$pid" 2>/dev/null; then printf '%s\n' 'FAIL: test IOC survived stop'; exit 1; fi
@@ -85,6 +105,7 @@ grep -q 'IOC retained: PID' "$workspace/keep.log"
 grep -q 'Current state: test PV is Paused; IOC is running.' "$workspace/keep.log"
 grep -q '2. Resume test PV archiving; keep IOC running' "$workspace/keep.log"
 evidence=$(sed -n 's/^Evidence: //p' "$workspace/keep.log" | tail -n 1)
+verifier_evidence+=("$evidence")
 jq -e '.status == "ok"' "$evidence/resume.json" >/dev/null
 kept_pid=$(cat "$evidence/ioc.pid")
 kept_pv=$(cat "$evidence/pvs.txt")
@@ -110,6 +131,7 @@ bash "$workspace/scripts/verify-local-pv.bash" --epics-bin "$EPICS_BIN" --cleanu
 grep -q 'Archive request accepted:' "$workspace/failure.log"
 if grep -q 'PV acquisition, storage and retrieval: PASS' "$workspace/failure.log"; then exit 1; fi
 evidence=$(sed -n 's/^Evidence: //p' "$workspace/failure.log" | tail -n 1)
+verifier_evidence+=("$evidence")
 [[ -s "$evidence/ioc.log" && -s "$evidence/ca.tsv" && -s "$evidence/register.json" ]]
 jq -e '.status == "ok"' "$evidence/pause.json" >/dev/null
 grep -q 'request failed:' "$evidence"/extract-*.log

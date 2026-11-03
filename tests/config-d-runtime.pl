@@ -7,7 +7,7 @@ use Cwd qw(abs_path);
 use Digest::SHA ();
 use File::Basename qw(basename dirname);
 use File::Glob qw(bsd_glob);
-use File::Path qw(make_path);
+use File::Path qw(make_path remove_tree);
 use File::Temp qw(tempdir);
 use Getopt::Long qw(GetOptionsFromArray);
 use IO::Select ();
@@ -37,8 +37,9 @@ health and status actions read the threshold, edits a config.d file while the se
 old environment, health reads the new threshold) and restarts the service. Last, a config.d file with a syntax error
 must make the launcher and every generated wrapper fail and name the file, with and without bash -f.
 
-The evidence directory archappl-config-runtime-* in the temporary directory is printed first and stays after the run:
-installed files, source hashes, commands, application logs, readiness responses, JVM observations and the verdict.
+A failed run, or a run with KEEP_WORKSPACE=1, keeps the directory archappl-config-runtime-* below TMPDIR, else below
+work/scratch/tmp of the checkout, which the test creates when it is missing, and prints its path: installed files, source
+hashes, commands, application logs, readiness responses, JVM observations and the verdict. A passing run removes it.
 SIGINT and SIGTERM stop the JVMs before the test ends with status 130 or 143.
 
 Required: Java of the version the WARs were compiled for (21 for the current source) first on the PATH, a readable and
@@ -79,6 +80,38 @@ or SIGTERM.
 
 my @SERVICES = qw(mgmt engine etl retrieval);
 my $TOP = abs_path(dirname(abs_path($0)) . '/..');
+
+# The temporary folder: TMPDIR when it names a writable folder, else work/scratch/tmp of the checkout, created when missing.
+sub temp_root {
+    my $dir = $ENV{TMPDIR};
+    return abs_path($dir) if defined $dir && $dir ne '' && -d $dir && -w _;
+    my $local = "$TOP/work/scratch/tmp";
+    make_path($local);
+    -d $local && -w _ or die "cannot create the temporary folder $local\n";
+    return abs_path($local);
+}
+
+# A folder that this run created below the temporary folder: absolute, not a link, equal to its resolved path.
+sub run_folder_is_safe {
+    my ($path) = @_;
+    return 0 unless defined $path && $path =~ m{\A/} && -d $path && !-l $path;
+    my $resolved = abs_path($path);
+    my $root = temp_root();
+    return defined $resolved && $resolved eq $path && index($path, "$root/") == 0;
+}
+
+# Ends a folder of this run: removed after a pass, kept and named after a failure or with KEEP_WORKSPACE=1.
+sub finish_workspace {
+    my ($path, $passed) = @_;
+    return unless defined $path && -e $path;
+    if ($passed && ($ENV{KEEP_WORKSPACE} // '') ne '1' && run_folder_is_safe($path)) {
+        remove_tree($path);
+        return;
+    }
+    print "Workspace retained: $path\n";
+    return;
+}
+
 my $INTERRUPT;
 
 $| = 1;
@@ -570,9 +603,10 @@ sub run_checks {
     if ($stopped) {
         spew("$state->{root}/verdict.txt", "$verdict\n");
     }
+    finish_workspace($state->{root}, $ok && $stopped && $verdict eq 'PASS');
     die $error unless $ok;
     die $stop_error unless $stopped;
-    print "$verdict: installed runtime configuration; evidence retained at $state->{root}\n";
+    print "$verdict: installed runtime configuration\n";
     return;
 }
 
@@ -605,11 +639,10 @@ sub main {
     return usage_error('--war-dir is required') if !defined $war_dir;
     $tomcat_home = resolve_directory($tomcat_home, '--tomcat-home');
     $war_dir = resolve_directory($war_dir, '--war-dir');
-    my $root = tempdir('archappl-config-runtime-XXXXXXXX', TMPDIR => 1);
+    my $root = tempdir('archappl-config-runtime-XXXXXXXX', DIR => temp_root());
     my $state = { root => $root, checkout => "$root/checkout", installed => "$root/installed",
         launcher => "$root/installed/archappl.bash", tomcat_home => $tomcat_home, war_dir => $war_dir,
         port_base => $port_base, supervisor => undef, pids => {}, round => 'setup' };
-    print "Evidence: $root\n";
     local $SIG{INT} = sub { $INTERRUPT = POSIX::SIGINT(); die "interrupted by SIGINT\n" };
     local $SIG{TERM} = sub { $INTERRUPT = POSIX::SIGTERM(); die "interrupted by SIGTERM\n" };
     run_checks($state);
