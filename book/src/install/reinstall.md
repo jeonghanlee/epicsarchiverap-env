@@ -90,9 +90,9 @@ The installer compares an installed appliance with the selected source and rende
 
    The optional soft IOC question comes first, before the lock and checkout update. It defaults to `N`; `-y` and non-interactive input skip it. After inspection, the confirmation names the changed layers and adds `build first` when needed. Answer `y` to apply them, or use `-y` to skip confirmation.
 
-   A changed run without a terminal or `-y` stops in `confirmation`, after updating the checkout. A run with no changes returns after inspection, without confirmation, password authentication, a service stop, or post-install PV testing.
+   A changed run without a terminal or `-y` stops in `confirmation`, after updating the checkout. A run with no changes skips confirmation, password authentication and the service stop, then runs the soft IOC test if you selected it.
 
-   When you answer `y` to the first question and installation changes run, the installer runs the soft IOC test after startup and asks one more question when the test passes: `Select [1/2]:`. The answer `1`, an empty answer or the end of the input stops the soft IOC and leaves the test PV paused. The answer `2` resumes the test PV and keeps the soft IOC running. The installer waits for this answer.
+   When you answer `y` to the first question, the installer runs the soft IOC test after any selected installation changes and startup checks succeed, or directly after inspection when the installation is unchanged. When the test passes, it asks `Select [1/2]:`. The answer `1`, an empty answer or the end of the input stops the soft IOC and leaves the test PV paused. The answer `2` resumes the test PV and keeps the soft IOC running. The installer waits for this answer.
 
    If file installation is selected, and the checkout owner cannot execute the existing Tomcat and you gave no `--tomcat`, the installer asks `Tomcat choice [1/2; anything else cancels]:`. Answer `1` to use the existing Tomcat, or `2` to back it up and install the configured version, which stops the appliance.
 
@@ -105,7 +105,7 @@ The installer compares an installed appliance with the selected source and rende
    | `prerequisites` | Select the OS preset under the checkout lock |
    | `source selection` | Fetch and select `SRC_TAG` |
    | `configuration` | Render database, application, and installation inputs |
-   | `inspection` | Compare layers and stop on refusal or an unchanged installation |
+   | `inspection` | Compare layers; stop on refusal, or run only the selected PV test when unchanged |
    | `confirmation` | Confirm the selected changes, then authenticate `sudo` |
    | `prerequisites` | Install packages unless skipped, read settings, and check the host |
    | `Tomcat preparation` | Prepare Tomcat when appliance files will be installed |
@@ -132,4 +132,4 @@ The installer compares an installed appliance with the selected source and rende
 
 After a run applies changes and passes startup verification, it prints `Installation completed. All required installation checks passed.` before the health result and the appliance information. The line `PV acquisition, storage and retrieval: NOT CHECKED` is expected; the test of [Archive a test PV and check the stored samples](verify-pv.md) checks the data path. The check in [Check the health of the appliance](../operate/health.md) repeats the health result later.
 
-An unchanged run ends with `The installation is up to date: no layer differs from the checkout.` It reports runtime observations during inspection and returns without running startup verification or the selected soft IOC test. Use the linked health and PV procedures when those checks are required.
+An unchanged run prints `The installation is up to date: no layer differs from the checkout.` It reports runtime observations during inspection and skips the build, installation, service restart and startup verification. If you selected the soft IOC test at the initial question, it runs that test against the running appliance. Otherwise, PV acquisition, storage and retrieval remain `NOT CHECKED`. Use the linked health procedure when a full readiness check is required.

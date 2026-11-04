@@ -159,6 +159,8 @@ checks the exported `EPICS_BASE` and executable `softIoc` and `caget` before
 installing packages or changing the appliance. If the environment is unavailable,
 source your EPICS environment setup file in the same terminal and rerun the
 installer. The installer does not source a setup file automatically.
+When the installation is already up to date, the selected PV test still runs
+without a build, reinstallation or service restart.
 The test requires
 EPICS Base `softIoc` and `caget`, plus `curl`, `jq`, and the selected source
 checkout's `getDataToCsv.bash` and `archiverClient.bash`. EPICS Base is not

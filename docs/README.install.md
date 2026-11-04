@@ -181,8 +181,10 @@ Waiting messages report outstanding checks when they change, without repeating
 the full health output or raw information JSON.
 
 An unchanged run prints `The installation is up to date: no layer differs from the checkout.`
-It returns after the inspection without running startup verification or the
-optional PV test. Runtime observations do not establish full readiness; health
+It skips the build, installation, service restart and startup verification, then
+runs the optional PV test if selected at the initial question. Without that
+selection, PV acquisition, storage and retrieval remain `NOT CHECKED`.
+Runtime observations do not establish full readiness; health
 can be reported as `health not observed: needs sudo`.
 
 If verification fails after applying changes, the installer displays the last observed results for
@@ -207,14 +209,17 @@ The choice is made before installation. Selecting the test requires an exported
 `EPICS_BASE` with executable `softIoc` and `caget`; otherwise the installer stops
 before installing packages and asks the user to source their EPICS environment
 setup file in the same terminal, then rerun. The installer never sources that
-file itself. The selected test runs after an installation applies changes and appliance startup succeeds.
+file itself. The selected test runs after any installation changes and appliance
+startup checks succeed, or directly after inspection when no installation changes
+are needed.
 The test registers the PV using Bash and `curl`, then uses the selected source's
 `getDataToCsv.bash` to check stored samples against actual CA observations.
 See [soft IOC verification](../scripts/README.md#verify-one-changing-pv) for
 EPICS prerequisites, retained evidence, the keep/stop choice, and unattended use.
 Skipping the test leaves acquisition, storage, and retrieval marked `NOT CHECKED`.
-Its failure is separate from installation completion. The installer exits 0 after
-successful installation even when the optional test fails.
+Its failure is reported separately from the installation result. The installer
+exits 0 after a successful or unchanged installation even when the optional test fails;
+require the PV test's own `PASS` result to establish acquisition, storage and retrieval.
 Interrupting post-install verification reports the interruption separately and
 preserves the installation completion message.
 Perform the separate [functional verification](#functional-verification) for

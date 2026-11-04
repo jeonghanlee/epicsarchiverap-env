@@ -719,7 +719,7 @@ function prepare_pv_verification {
         return
     fi
     printf '\n%s\n' 'Optional test: start one changing soft IOC PV, register it, and extract real stored samples to CSV.'
-    printf '%s' 'Run the PV acquisition/storage/retrieval test after installation? [y/N] '
+    printf '%s' 'Run the PV acquisition/storage/retrieval test? [y/N] '
     read -r answer || answer=''
     case "$answer" in
         y|Y|yes)
@@ -739,7 +739,7 @@ function offer_pv_verification {
     local_mgmt="http://localhost:$(make_value ARCHAPPL_MGMT_PORT)/mgmt/bpl"
     retrieval_url="http://localhost:$(make_value ARCHAPPL_RETRIEVAL_PORT)/retrieval"
     if ! bash "$REPO/scripts/verify-local-pv.bash" --epics-bin "$pv_epics_bin" "$local_mgmt" "$retrieval_url" "$source_path" 9>&-; then
-        printf '%s\n' 'Installation remains completed. Optional PV verification FAILED; inspect its retained evidence.' >&2
+        printf '%s\n' 'Optional PV verification FAILED; inspect its retained evidence.' >&2
     fi
 }
 
@@ -1009,6 +1009,7 @@ function run_installation {
     decide_layers
     if (( ! do_install && ! do_schema && ! do_storage )); then
         printf '%s\n' 'The installation is up to date: no layer differs from the checkout.'
+        offer_pv_verification
         return 0
     fi
     printf 'Changes to apply: %s\n' "$changed_layers"

@@ -73,13 +73,13 @@ This page installs a systemd-managed appliance whose configuration database is a
 
 4. Install the appliance. Run the command of step 1 without `--plan`, with the options that you chose in step 3.
 
-   The optional soft IOC question comes before the lock or any checkout update: `Run the PV acquisition/storage/retrieval test after installation? [y/N]`. The default is `N`; `-y` and non-interactive input skip this question.
+   The optional soft IOC question comes before the lock or any checkout update: `Run the PV acquisition/storage/retrieval test? [y/N]`. The default is `N`; `-y` and non-interactive input skip this question.
 
    The installer then locks the checkout, selects the source, renders configuration, and prints the inspection. For a first installation, it asks `Install packages, build, prepare the database, replace the appliance and start it? [y/N]`. For an existing installation, the confirmation names the changed layers and whether a build is needed.
 
    The option `-y` skips the confirmation. When changes need confirmation, non-interactive input without `-y` stops with `Non-interactive stdin; use --yes` after the checkout update. A run with no changes asks no confirmation and leaves the appliance running. See [Reinstall or upgrade an appliance](reinstall.md) for the comparison, `--inspect`, and `--accept-schema`.
 
-   When you answer `y` to the first question and installation changes run, the installer runs the soft IOC test after startup and asks one more question when the test passes: `Select [1/2]:`. The answer `1`, an empty answer or the end of the input stops the soft IOC and leaves the test PV paused. The answer `2` resumes the test PV and keeps the soft IOC running. The installer waits for this answer.
+   When you answer `y` to the first question, the installer runs the soft IOC test after any selected installation changes and startup checks succeed, or directly after inspection when the installation is unchanged. When the test passes, it asks `Select [1/2]:`. The answer `1`, an empty answer or the end of the input stops the soft IOC and leaves the test PV paused. The answer `2` resumes the test PV and keeps the soft IOC running. The installer waits for this answer.
 
 5. Wait for the installer to finish. It waits up to 180 seconds for the process health, the four startup states and the `getApplianceInfo` call of `mgmt`, and then shows the management page address, the four component addresses, the health result and the appliance information.
 
@@ -87,6 +87,6 @@ This page installs a systemd-managed appliance whose configuration database is a
 
 ## Verification
 
-A run with no selected changes ends with `The installation is up to date: no layer differs from the checkout.` It performs no build, service stop, installation, or startup verification. Runtime observations appear in the inspection; they do not make a layer changed or establish full readiness.
+A run with no selected changes prints `The installation is up to date: no layer differs from the checkout.` It performs no build, service stop, installation, or startup verification. If you selected the soft IOC test at the initial question, it runs that test against the running appliance. Otherwise, PV acquisition, storage and retrieval remain `NOT CHECKED`. Runtime observations appear in the inspection; they do not make a layer changed or establish full readiness.
 
 A run that applies changes ends with the health result and the appliance information, as [Check the health of the appliance](../operate/health.md) describes. Before the health result it prints `Installation completed. All required installation checks passed.` The readiness block ends with `PV acquisition, storage and retrieval: NOT CHECKED`, which is expected until you run the test of [Archive a test PV and check the stored samples](verify-pv.md). When you did not choose the soft IOC test, one more line says so: `Optional PV verification was not selected before installation; PV acquisition, storage and retrieval remain NOT CHECKED.` A successful installation leaves the appliance running under systemd as `epicsarchiverap-maven.service`.
