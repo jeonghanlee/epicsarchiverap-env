@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Implement step 3 of the revised plan of M17 (Upgrade an installed appliance by comparing its state with the checkout, D35) in `docs/milestone-9576820.md` (the helper `scripts/inspect-local-install.bash` and the option `--inspect`; steps 1 and 2 are done and step 2 landed at c902c0198aecb49995bb3fe854932aef3410e415), then steps 4 to 6, and record T1 to T6, with the owner at the terminal for the `sudo` password of T1 and T2; the assignment of M16 (Build the VM installation test on the local installer scripts) is still undecided, and M4 and M8 closed by D32 on 2026-11-03 without a code change. M1 landed at c4b27bcc65fa70ee7c80ccee7d40136bab64d995, M2 at de8301cb05d3d026708a0270878e110bee497ee7, M3 at 6efd7db7044b2a77f3a763eb04435aa606836e63, M11 at 134857b0a4f7e910b707b00993a2f9f027c75823, M13 at 6049646ca574234e4afe005db64fa368f26dcacb, M14 at 23e98e8980a6a73742b99f8d4985fa1d646ecab8, M15 at 79f21776b77d622702e7a45292ecf317586c8b69 and M9 at e39252eeda4cff81f7c60654087d03f156426d75. The Backlog items M10, M12 and M16 hold the remaining work (D24, D27, D32). Commit, push, issue creation and guest provisioning need their own authority. M5, M6 and M7 remain Deferred and M10, M12 and M16 Open; their later order is not authorization to resume.
+Next session entry point: Finish the closure check of M17 in `docs/milestone-9576820.md`. Implementation steps 1 to 6 have landed; the recorded T1 to T6 results distinguish live configuration upgrades from helper, schema-stage, and readiness tests. The remaining completion-criterion evidence is a changed-source or missing-WAR upgrade that reaches real startup readiness. Commit and push the verification record under separate authority, then update closure status. Backlog items M5, M6 and M7 remain Deferred, and M10, M12 and M16 remain Open and unassigned.
 
 ## Scope
 
@@ -1360,7 +1360,9 @@ Status: In progress
 
 ##### Summary
 
-The local installer scripts (`scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash`, `scripts/install-local-mariadb-tcp.bash` over `scripts/install-local-common.bash`) run every step on every run and stop the appliance even when nothing changed, and the manual reinstall procedure of `docs/README.install.md` leaves to the operator the judgment which steps a change needs. The installed state and the state the checkout renders can be compared file by file: on the development host on 2026-11-03 the installed `mgmt/webapps/mgmt/ui/comm/version.txt` named the commit of the source HEAD, and the nine files that `db.conf`, `conf.archapplproperties` and `conf.install` render equaled their installed copies. D33 puts that comparison into the installer scripts: an inspection stage reads both sides, prints a plan per layer with the reason, and the later stages run only the layers that differ, with the existing Make rules.
+The local installer scripts compare the installed appliance with the selected source and rendered configuration. They apply only changed layers. An unchanged installation requires no build or restart, and a selected soft IOC test runs against the running appliance. Configuration changes reuse the target WARs when the program layer is unchanged and all four WARs exist.
+
+Implementation and installation documentation landed through `2baf640`; `d1ca12a` carries the selected-PV correction. T1 and T2 passed on the installed SQLite appliance on 2026-11-04. T3 to T6 have the bounded results below. A live changed-source or missing-WAR upgrade ending in startup readiness remains unverified; the schema-stage test deliberately stops at an external startup fault.
 
 ##### Scope
 
@@ -1423,16 +1425,25 @@ Superseded Plan Artifacts: the text of steps 3 to 6 and T1 that the plan had on 
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | The development host with the installed appliance | Pending | none |
-| T2 | Pending | The same host | Pending | none |
-| T3 | Pending | A host with the build tools | Pending | none |
-| T4 | Pending | A host with the build tools | Pending | none |
-| T5 | Pending | A host with a real EPICS Base | Pending | none |
-| T6 | Pending | The checkout of the development host | Pending | none |
+| T1 | 2026-11-04; plan comparison finished 21:58:48 UTC | Debian 13, running SQLite appliance at source `e0a8e66e` | Pass | `work/unchanged-pv-20261104/` records real unchanged runs, inspection, and identical service PID/start-time observations. The owner ran `work/check-plan-mtimes.bash`; `/tmp/archiver-plan.4zy4X93W/result.txt` records installer exit 0 and full-checkout path/type/mtime comparison exit 0, including privileged test directories. |
+| T2 | 2026-11-04 22:08:07 UTC | The same installed appliance, environment commit `d1ca12a` | Pass | `work/config-upgrade.LF3TT6ai/`: `ARCHAPPL_HEALTH_STARTING_SECONDS` changed from 10 to 11 and back through the real installer. Both runs selected only `configuration`, reused WARs, and passed startup in 37 seconds. Three distinct service start timestamps establish both restarts. The installed configuration equals its baseline byte for byte; the temporary site override is absent and the source remains `e0a8e66e`. |
+| T3 | 2026-11-04 17:12:44 and 17:14:02 UTC | Debian 13 / Perl 5.40.1 and Rocky 8.10 container / Perl 5.26.3, real installation outputs and WARs | Pass | `work/m17-inspection/fix-results.md`, `inspect-EBwxLXpk/result.json`, and `inspect-zNEuvOCS/result.json`: 649/649 assertions in each environment. Seven scratch mutations failed their designated assertions in `mutations-20261104T171300Z/results.json`. Runtime mutation coverage is the explicit skipped-observation contract, not live HTTP. |
+| T4 | 2026-11-04 | Debian 13, MariaDB 11.8.6, JDK 21, real Maven builds and the complete MariaDB UDS installer | Pass for schema application | `work/m17-schema-20261104/results.md`: added table loaded, changed column refused, and explicit acceptance continued through real build, schema load, and four-WAR installation. Native installer exit 2 at the declared external startup fault is not installation success. `work/m17-t4-checker-20261104/results.md` records the corrected checker and 12 matching native outcomes. Acceptance does not migrate an existing column. |
+| T5 | 2026-11-04 | Debian 13, real EPICS Base 7.0.10, real WARs and Tomcat 9.0.121 where required | Pass within each test's declared boundary | `work/m17-inspection/fix-results.md` records all five required regressions. The schema correction repeated configuration/output/generated checks; `work/unchanged-pv-20261104/` records EPICS/output checks, actual selected/declined/noninteractive/inspect runs, and the final book build/generated-page checks for the PV correction. All five generated pages were current. These results do not add a live changed-source upgrade. |
+| T6 | 2026-11-04 17:48:24 UTC | Development checkout with an independently held installer lock | Pass | `work/m17-lock-20261104T174524Z/results.md` and `repeat.*`: actual `--inspect` exited 1 with the lock refusal; 11,219 content records and 12,584 metadata records matched. The capture includes the lock separately and excludes other `work/` artifacts. The holder remained locked during capture and released normally. |
+
+The exact helper and test SHA-256 values were rechecked against the retained T3 inputs: `2370baac588b2e9ce255aa37aac55014c6f106909d4d547f25db8d12fcd5f9ea` for `scripts/inspect-local-install.bash` and `6e840118e607133fea692847ae3abdb2e72a28a4cd701cea45c5d9abf03d02f4` for `tests/local-install-inspect.pl`. Earlier failing runs remain diagnostic evidence and are superseded by the correction results named above.
+
+The current driver at `d1ca12a` has SHA-256 `58397fde0d925706f0770ca489b4d549eb0c56b4c98db2e54661da3edd4e49a4`. Its selected-PV run matched five persisted samples to real changing CA observations, retained CSV evidence, stopped the test IOC, and left the test PV paused. The unchanged run preserved the appliance start timestamp. These checks establish short-term acquisition and retrieval, not storage-tier migration.
+
+Evidence under `work/` and `/tmp/` is retained locally and is not distributed with the repository. The observations above record the inputs, results, and limits; they do not assert that another host has been upgraded.
 
 ##### Closure Evidence
 
-- none
+- Product code, inspection tests, and installation documentation are committed through `2baf6407250f093f8a3c821aa5c634ccc40122ab`. The selected-PV correction is `d1ca12a8bd422dcc1dbb7a8d09240895ad743809`.
+- On 2026-11-04, the post-push remote lookup of `refs/heads/maven` returned `d1ca12a8bd422dcc1dbb7a8d09240895ad743809`, matching local HEAD and `origin/maven`. Recheck with `git -C "<absolute_checkout_path>" ls-remote --heads origin refs/heads/maven` before using this as the target of a later deployment.
+- Live configuration-only upgrades and restoration passed T2. T3 proves build selection for changed-source and missing-WAR inputs; T4 proves real changed-source build and file installation up to its declared startup boundary. Neither establishes a live changed-source or missing-WAR upgrade ending in startup readiness.
+- M17 remains In progress. Complete the remaining live-upgrade completion criterion and record landing of this verification update before closing it.
 
 ##### GitHub Projection
 

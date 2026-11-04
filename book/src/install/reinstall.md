@@ -2,6 +2,8 @@
 
 The installer compares an installed appliance with the selected source and rendered configuration, then applies the changes. It fetches the source repository and selects the commit that `SRC_TAG` names; the default is the tag `2026-10`. An unchanged installation needs no build, confirmation, or restart. A checkout that follows a branch such as `origin/master` selects its fetched tip; to install the same source again, set `SRC_TAG` to a commit hash or tag first, as in [Select the source commit to build](../build/select-commit.md). The [glossary](../appendix/glossary.md) explains the terms of this page.
 
+For an upgrade with an offline recovery backup, follow [Upgrade an appliance during a maintenance window](upgrade-maintenance.md). It covers the site inventory, backup, recovery, and checks of existing PV data.
+
 ## Prerequisites
 
 - An installed appliance managed by `epicsarchiverap-maven.service`.
