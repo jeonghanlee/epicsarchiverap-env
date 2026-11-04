@@ -56,6 +56,15 @@ verify_pv=0
 pv_epics_bin=''
 declare -a component_urls=()
 declare -a ready_components=('NOT CHECKED' 'NOT CHECKED' 'NOT CHECKED' 'NOT CHECKED')
+declare -A layer_state=()
+declare -A layer_reason=()
+installation_state='present'
+build_state='not-needed'
+changed_layers=''
+do_install=0
+do_build=0
+do_schema=0
+do_storage=0
 
 function die {
     printf 'ERROR: %s\n' "$*" >&2
@@ -825,7 +834,41 @@ function inspect_installation {
             printf '%s\n' "$line" | awk -F'\t' '{ printf "%-14s %-10s %s\n", $1, $2, $3 }'
         fi
     done <<< "$output"
+    parse_inspection "$output"
     return "$status"
+}
+
+# Reads the lines of the inspection helper into the state of each layer, the installation and the build.
+function parse_inspection {
+    local name state reason
+    while IFS=$'\t' read -r name state reason; do
+        case "$name" in
+            installation) installation_state="$state" ;;
+            build) build_state="$state" ;;
+            program|configuration|systemd|schema|storage|runtime)
+                layer_state["$name"]="$state"
+                layer_reason["$name"]="$reason" ;;
+        esac
+    done <<< "$1"
+}
+
+# Prints the reason of every layer that the inspection refused.
+function report_refusals {
+    local layer
+    for layer in program configuration systemd schema storage; do
+        if [[ "${layer_state[$layer]:-}" == refuse ]]; then
+            printf 'REFUSED %s: %s\n' "$layer" "${layer_reason[$layer]:-}" >&2
+        fi
+    done
+}
+
+# Renders the files that the installation reads from the checkout, as the checkout owner; the root install writes
+# nothing into the checkout.
+function render_configuration {
+    stage='configuration'
+    run_make db.conf
+    run_make conf.archapplproperties
+    run_make conf.install
 }
 
 # Updates the checkout, renders the configuration and prints the comparison; nothing on the system is changed.
@@ -839,14 +882,167 @@ function inspect_checkout {
     read_settings
     check_source
     select_source
-    stage='configuration'
-    run_make db.conf
-    run_make conf.archapplproperties
-    run_make conf.install
+    render_configuration
     stage='inspection'
     inspect_installation || status=$?
-    if (( status )); then printf '%s\n' 'The inspection found a layer that refuses; read its reason above.' >&2; fi
+    if (( status )); then report_refusals; fi
     return "$status"
+}
+
+# Decides from the inspection which steps run: the installation of the appliance files for a changed program,
+# configuration or systemd layer (or a replaced Tomcat), the schema load, the storage folders, and the build when the
+# installation needs WARs that are missing. A first installation runs every step.
+function decide_layers {
+    local layer
+    local -a names=()
+    do_install=0
+    do_build=0
+    do_schema=0
+    do_storage=0
+    for layer in program configuration systemd schema storage; do
+        if [[ "${layer_state[$layer]:-}" == changed ]]; then names+=("$layer"); fi
+    done
+    if [[ "$installation_state" == first ]]; then
+        do_install=1
+        do_schema=1
+        do_storage=1
+        names=('first installation')
+    else
+        for layer in program configuration systemd; do
+            if [[ "${layer_state[$layer]:-}" == changed ]]; then do_install=1; fi
+        done
+        if [[ "${layer_state[schema]:-}" == changed ]]; then do_schema=1; fi
+        if [[ "${layer_state[storage]:-}" == changed ]]; then do_storage=1; fi
+        if [[ "$tomcat_action" == replace ]]; then
+            do_install=1
+            names+=('Tomcat replacement')
+        fi
+    fi
+    if (( do_install )) && [[ "$build_state" == needed ]]; then do_build=1; fi
+    changed_layers=''
+    for layer in "${names[@]}"; do changed_layers+="${changed_layers:+, }$layer"; done
+}
+
+# Asks the confirmation of the changes, naming the layers.
+function confirm_changes {
+    local answer note=''
+    [[ -t 0 || "$yes" == 1 ]] || die 'Non-interactive stdin; use --yes'
+    if (( do_build )); then note=', build first'; fi
+    if (( yes )); then return 0; fi
+    if [[ "$backend" == mariadb ]] && (( setup_db && do_schema )); then
+        printf '%s\n' 'Existing MariaDB admin and application accounts receive configured passwords and grants.'
+        printf '%s\n' 'Use --existing-db to skip database/account provisioning and keep those accounts.'
+    fi
+    if [[ "$installation_state" == first ]]; then
+        printf '%s' 'Install packages, build, prepare the database, replace the appliance and start it? [y/N] '
+    else
+        printf 'Apply the changes (%s)%s and start the appliance? [y/N] ' "$changed_layers" "$note"
+    fi
+    read -r answer || die 'No answer; installation cancelled'
+    [[ "$answer" == y || "$answer" == Y || "$answer" == yes ]] || die 'Installation cancelled'
+}
+
+# Checks the host tools, the systemd host and the JDK that the changes need.
+function check_host {
+    local tool java_home java_version
+    for tool in curl jq unzip sha512sum systemctl timeout; do require_command "$tool"; done
+    if [[ "$backend" == sqlite ]]; then
+        for tool in sqlite3 lsof runuser; do require_command "$tool"; done
+    else require_command mysql; fi
+    [[ -d /run/systemd/system ]] || die 'A running systemd host is required'
+    java_home=$(make_value JAVA_HOME)
+    [[ -x "$java_home/bin/javac" ]] || die 'Configured JAVA_HOME does not contain a JDK'
+    java_version=$("$java_home/bin/java" -version 2>&1)
+    [[ "$java_version" == *'version "21.'* || "$java_version" == *'version "21"'* ]] || die 'JDK 21 is required'
+    check_source
+}
+
+# Runs the steps that the inspection selected, then starts the appliance and waits for its readiness.
+function apply_changes {
+    require_command sudo
+    sudo -v
+    stage='prerequisites'
+    if (( ! skip_packages )); then install_packages; fi
+    run_make "$os.conf"
+    read_settings
+    check_host
+    if (( do_install )); then
+        stage='Tomcat preparation'
+        prepare_tomcat
+    fi
+    if (( do_build )); then
+        stage='build'
+        run_make build.mvn
+    fi
+    stage='appliance stop'
+    stop_appliance
+    stage='database and installation'
+    root_make sd_health_stop
+    if (( do_schema )); then prepare_database; fi
+    if (( do_storage )); then root_make conf.storage; fi
+    if (( do_install )); then root_make install; fi
+    stage='startup verification'
+    run_make sd_start
+    wait_ready
+    installation_completed=1
+    show_ready
+    offer_pv_verification
+}
+
+# A normal run: lock the checkout, update and render it, inspect the installed appliance, and run only what differs.
+function run_installation {
+    local status=0
+    require_command flock
+    take_lock
+    trap report_exit EXIT
+    stage='prerequisites'
+    run_make "$os.conf"
+    read_settings
+    check_source
+    select_source
+    render_configuration
+    stage='inspection'
+    inspect_installation || status=$?
+    if (( status )); then
+        report_refusals
+        die 'The inspection found a layer that refuses; nothing was changed on the system'
+    fi
+    decide_layers
+    if (( ! do_install && ! do_schema && ! do_storage )); then
+        printf '%s\n' 'The installation is up to date: no layer differs from the checkout.'
+        return 0
+    fi
+    printf 'Changes to apply: %s\n' "$changed_layers"
+    stage='confirmation'
+    confirm_changes
+    apply_changes
+}
+
+# The straight-line sequence that --plan prints: every command in order, nothing executed.
+function plan_sequence {
+    trap report_exit EXIT
+    stage='prerequisites'
+    if (( ! skip_packages )); then install_packages; fi
+    run_make "$os.conf"
+    read_settings
+    select_source
+    stage='Tomcat preparation'
+    prepare_tomcat
+    stage='configuration and build'
+    run_make db.conf
+    run_make conf.archapplproperties
+    run_make build.mvn
+    run_make conf.install
+    stage='appliance stop'
+    stop_appliance
+    stage='database and installation'
+    root_make sd_health_stop
+    prepare_database
+    root_make conf.storage
+    root_make install
+    stage='startup verification'
+    run_make sd_start
+    wait_ready
 }
 
 function report_exit {
@@ -871,7 +1067,7 @@ function report_exit {
 }
 
 function main {
-    local answer tool java_home java_version
+    local tool
     case "${1:-}" in
         sqlite) backend=sqlite; transport=sqlite; entry_script='install-local-sqlite.bash' ;;
         mariadb-uds) backend=mariadb; transport=uds; setup_db=1; entry_script='install-local-mariadb-uds.bash' ;;
@@ -901,64 +1097,11 @@ function main {
         inspect_checkout
         return
     fi
-    if (( ! plan )); then
-        require_command sudo
-        require_command flock
-        [[ -t 0 || "$yes" == 1 ]] || die 'Non-interactive stdin; use --yes'
-        if (( ! yes )); then
-            if [[ "$backend" == mariadb ]] && (( setup_db )); then
-                printf '%s\n' 'Existing MariaDB admin and application accounts receive configured passwords and grants.'
-                printf '%s\n' 'Use --existing-db to skip database/account provisioning and keep those accounts.'
-            fi
-            printf '%s' 'Install packages, build, prepare the database, replace the appliance and start it? [y/N] '
-            read -r answer || die 'No answer; installation cancelled'
-            [[ "$answer" == y || "$answer" == Y || "$answer" == yes ]] || die 'Installation cancelled'
-        fi
-        sudo -v
-        take_lock
+    if (( plan )); then
+        plan_sequence
+        return
     fi
-    trap report_exit EXIT
-    stage='prerequisites'
-    if (( ! skip_packages )); then install_packages; fi
-    run_make "$os.conf"
-    read_settings
-    if (( ! plan )); then
-        for tool in curl jq unzip sha512sum systemctl timeout; do require_command "$tool"; done
-        if [[ "$backend" == sqlite ]]; then
-            for tool in sqlite3 lsof runuser; do require_command "$tool"; done
-        else require_command mysql; fi
-        [[ -d /run/systemd/system ]] || die 'A running systemd host is required'
-        java_home=$(make_value JAVA_HOME)
-        [[ -x "$java_home/bin/javac" ]] || die 'Configured JAVA_HOME does not contain a JDK'
-        java_version=$("$java_home/bin/java" -version 2>&1)
-        [[ "$java_version" == *'version "21.'* || "$java_version" == *'version "21"'* ]] || die 'JDK 21 is required'
-        check_source
-    fi
-    select_source
-    stage='Tomcat preparation'
-    prepare_tomcat
-    stage='configuration and build'
-    run_make db.conf
-    run_make conf.archapplproperties
-    run_make build.mvn
-    # Render the files that install reads from the checkout as the checkout
-    # owner; the root install writes nothing into the checkout.
-    run_make conf.install
-    stage='appliance stop'
-    stop_appliance
-    stage='database and installation'
-    root_make sd_health_stop
-    prepare_database
-    root_make conf.storage
-    root_make install
-    stage='startup verification'
-    run_make sd_start
-    wait_ready
-    if (( ! plan )); then
-        installation_completed=1
-        show_ready
-        offer_pv_verification
-    fi
+    run_installation
 }
 
 # Parse the entry call and exit together before a long-running operation can change this file.
