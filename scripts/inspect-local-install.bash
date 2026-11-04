@@ -197,9 +197,9 @@ function inspect_build {
     elif (( ${#missing[@]} )); then
         build_state='needed'
         build_reason="no WAR of commit $abbreviation in $war_dir for: ${missing[*]}"
-    elif [[ "$installation" == present && "$target_commit" != "$installed_commit"* ]]; then
+    elif [[ "$layer_state" == changed ]]; then
         build_state='needed'
-        build_reason="the program changed from $installed_commit to $abbreviation"
+        build_reason="the program changed: $layer_reason"
     else
         build_state='not-needed'
         build_reason="the four WARs of commit $abbreviation are in $war_dir"
@@ -356,6 +356,11 @@ function inspect_storage {
     local dir owner
     local -a differences=()
     layer_state='unchanged'
+    if [[ "$installation" == first ]]; then
+        layer_state='changed'
+        layer_reason='first installation'
+        return 0
+    fi
     if (( ! ${#storage_dirs[@]} )); then
         layer_reason='no storage folder was given'
         return 0

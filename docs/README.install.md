@@ -13,15 +13,35 @@ prerequisites and accounts.
 ## Local systemd installation
 
 The three entry scripts share `scripts/install-local-common.bash` and install
-a systemd-managed appliance with the `als` site configuration. They use the
-source that `SRC_TAG` selects and the installation paths resolved from Make settings. A plain run of a script installs the OS packages and selects the OS preset, fetches the source, prepares Tomcat, builds the source, renders the units, stops an installed appliance and its health monitor, prepares the database (for MariaDB it starts `mariadb.service` and, unless `--existing-db` is given, creates the database if it is absent and prepares the accounts), loads the schema, prepares the storage folders (`make conf.storage`), installs the appliance and starts it; `--skip-packages` omits only the installation of the OS packages, not the selection of the OS preset, and `--plan` runs none of them. With `--tomcat replace` the appliance and its health monitor are stopped before the build. A failure between the stop and the start leaves the appliance stopped, and a failure of the startup verification, which includes the start, leaves the installed files and the service as they are; the script neither rolls back nor stops nor restarts it.
+a systemd-managed appliance with the `als` site configuration. They select the
+source named by `SRC_TAG` and resolve installation paths from Make settings.
+
+A normal run offers the optional soft IOC test, takes the checkout lock, selects
+the OS preset, fetches and selects the source, and renders configuration. It
+then compares the installed appliance with these inputs and reports each layer.
+A run with no changes returns without confirmation, password authentication,
+a build, or a service stop. A changed run asks for confirmation naming the work,
+then authenticates `sudo` and applies the selected changes.
+
+Packages are installed unless `--skip-packages` is set. Tomcat preparation and
+file installation run when the program, configuration, or systemd layer differs,
+or when `--tomcat replace` selects replacement. The build runs when that
+installation needs web application archive (WAR) files. Schema and storage work
+run only for their changed layers; a first installation selects all five installable layers.
+
+Every run that applies changes stops the appliance and its health monitor,
+applies the selected work, and starts the appliance with readiness checks.
+Tomcat replacement stops the appliance before the build; otherwise the build
+precedes the stop. Failure after stopping can leave the appliance stopped.
+The installer retains data and build files and performs no automatic rollback
+or restart after failure.
 
 Prerequisites:
 
 - Debian 13, Rocky Linux 8, Rocky Linux 10.2, Ubuntu 24.04 LTS or Ubuntu 26.04 LTS with systemd running.
   See the [OS defaults](../scripts/README.md#supported-os-defaults) for exact
   detected versions, package managers, JDK paths, and socket paths.
-- An ordinary checkout owner with `sudo` access; do not run an entry script as root. The script authenticates `sudo` once at the start (`sudo -v`) and does not refresh the timestamp, but uses `sudo` throughout, also after a build that can take several minutes. Once the timestamp has expired, a later `sudo` asks for the password again, as the first `sudo` after a long build does, and the Tomcat access checks, which run `sudo -n` before the build, stop with an error instead of asking, for example after a slow download. For an unattended run (`--yes`, no terminal) configure `sudo` without a password prompt for the checkout owner; without it `sudo -v` fails at the start, before any change.
+- An ordinary checkout owner with `sudo` access; do not run an entry script as root. A changed run authenticates `sudo` after confirmation (`sudo -v`), then uses it throughout the installation without refreshing the timestamp. Later privileged steps can ask for the password again. The Tomcat checks use `sudo -n` and fail if authentication has expired. An unattended run that applies changes needs `sudo` without a password prompt. A failed authentication leaves the installation unchanged, but the source and rendered files in the checkout have already been updated.
 - `bash`, `make`, `git`, and `realpath` for preflight; `sudo` and `flock` for installation.
 - Network access for OS packages, source Git fetches, Tomcat downloads, and Maven dependencies.
 - Storage, Tomcat, service-account, and database settings in
@@ -55,7 +75,8 @@ Prerequisites:
    `/var/lib/mysql/mysql.sock` on Rocky Linux 8 or 10.2. The service account must be able
    to reach and write the socket. The script does not configure MariaDB's listener.
 
-   MariaDB starts `mariadb.service` and, unless `--existing-db` is given, creates
+   When the schema layer needs work, MariaDB starts `mariadb.service` and,
+   unless `--existing-db` is given, creates
    `DB_NAME` if it is absent and prepares `DB_ADMIN` and `DB_USER` with
    `GRANT ... IDENTIFIED BY` and the configured passwords. An account that does not
    exist is created (`DB_ADMIN` receives `GRANT ALL ON *.* ... WITH GRANT OPTION`,
@@ -79,8 +100,10 @@ Prerequisites:
    ```
 
    `--plan` reads configuration and checks an existing source checkout. It prints
-   the steps without installing packages, changing files, building, or starting
-   services. It does not establish that the host is ready for installation.
+   the full installation sequence without installing packages, changing files,
+   building, or starting services. This static plan does not compare installed
+   files or establish host readiness. Use `--inspect` for the comparison; it
+   updates the checkout but changes nothing in the installed appliance.
 
 3. In the same checkout, start the selected installer and review its confirmation
    before answering `y`. Run only one of these alternatives:
@@ -91,24 +114,25 @@ Prerequisites:
    bash scripts/install-local-mariadb-tcp.bash
    ```
 
-   Packages and the OS preset are prepared first. The script selects the source
-   that `SRC_TAG` names, prepares Tomcat 9, generates configuration, and builds before stopping an
-   installed appliance when reusing Tomcat. Tomcat replacement stops the appliance
-   earlier, before moving the shared Tomcat directory. The installer requires the appliance to be stopped before database
-   preparation and payload replacement, then starts the appliance and health timer.
-   The installer first checks `configure/CONFIG_SITE.local` and stops unless it is absent
-   or holds only the generated include; the OS preset then rewrites that file. Keep site overrides
-   in `../CONFIG_SITE.local`.
+   The optional soft IOC question comes first. The installer then locks the
+   checkout, selects the OS preset and source, renders configuration, and inspects
+   the installation before asking for confirmation. Confirmation names the changed
+   layers and says whether a build is needed. Only after confirmation does it
+   authenticate `sudo`, install packages, prepare Tomcat, and apply changes.
+   A cancelled confirmation leaves the installation unchanged; checkout updates
+   and rendered files remain. Keep site settings in `../CONFIG_SITE.local`.
 
    | Option | Behavior |
    | --- | --- |
-   | `--plan` | Prints steps without executing installation |
-   | `-y`, `--yes` | Skips the installation confirmation, which for MariaDB also carries the warning about the existing accounts, and the optional PV test; required with non-interactive stdin |
+   | `--plan` | Prints the full static sequence without changing files or running installation |
+   | `--inspect` | Locks, updates, and renders the checkout; reports each layer and stops without changing the installation |
+   | `--accept-schema` | Accepts schema differences beyond new tables after operator review; does not migrate existing columns |
+   | `-y`, `--yes` | Skips confirmation and the optional PV question; required to apply changes with non-interactive input |
    | `--skip-packages` | Uses host-provided prerequisites: JDK 21, the commands `curl`, `jq`, `unzip`, `sha512sum`, `systemctl` and `timeout`, and `sqlite3`, `lsof`, `runuser` for SQLite or `mysql` for MariaDB; the script stops when one command is missing |
    | `--tomcat existing` | Uses existing Tomcat after checking access and version as the service account |
    | `--tomcat replace` | Backs up the default Tomcat directory and installs the configured version; stops an installed appliance before the backup |
    | `--socket <socket_path>` | UDS only: selects an absolute socket path without whitespace |
-   | `--existing-db` | MariaDB only: skips account/database provisioning; still starts `mariadb.service` and loads the schema |
+   | `--existing-db` | MariaDB only: preserves accounts when the schema step runs; that step starts MariaDB and loads the schema |
    | `--timeout <seconds>` | Sets the startup verification deadline from 1 to 86400 seconds; default 180 |
    | `-h`, `--help` | Prints usage and option descriptions |
 
@@ -117,7 +141,8 @@ Prerequisites:
    at `localhost` for UDS and at `DB_HOST_NAME` for TCP); if the connection fails, the
    schema step fails after the appliance has been stopped. The unit must be called
    `mariadb.service`. The flag preserves account
-   configuration, not database contents: schema loading runs in both modes.
+   configuration; it does not skip a schema load selected by the inspection.
+   An unchanged schema skips this database step in both modes.
    Existing archive stores and database files remain during payload replacement.
    An unavailable default Tomcat installation is downloaded and checked against
    Apache's SHA-512 before extraction; a custom `TOMCAT_HOME` must already contain Tomcat 9.
@@ -142,7 +167,8 @@ Prerequisites:
    monitor before moving Tomcat, so a later build failure can leave the appliance
    stopped. Backup restoration is manual.
 
-Verification: a successful run prints `Installation completed.` and displays the
+Verification: a run that applies changes and passes startup verification prints
+`Installation completed.` and displays the
 management UI, four component startup API URLs, process/storage health, the
 repeat health command, and the information API URL, appliance identity, and version.
 The default UI URL is `http://localhost:17665/mgmt/ui/index.html`; `/mgmt/ui`
@@ -154,7 +180,12 @@ appliance and health timer units within the startup deadline.
 Waiting messages report outstanding checks when they change, without repeating
 the full health output or raw information JSON.
 
-If verification fails, the installer displays the last observed results for
+An unchanged run prints `The installation is up to date: no layer differs from the checkout.`
+It returns after the inspection without running startup verification or the
+optional PV test. Runtime observations do not establish full readiness; health
+can be reported as `health not observed: needs sudo`.
+
+If verification fails after applying changes, the installer displays the last observed results for
 each component, process identities, storage, service, timer, and information API.
 It also displays the management UI and a journal command with `sudo`.
 Service and timer checks distinguish observed inactivity (`NOT ACTIVE`),
@@ -176,7 +207,7 @@ The choice is made before installation. Selecting the test requires an exported
 `EPICS_BASE` with executable `softIoc` and `caget`; otherwise the installer stops
 before installing packages and asks the user to source their EPICS environment
 setup file in the same terminal, then rerun. The installer never sources that
-file itself. The selected test runs after appliance startup succeeds.
+file itself. The selected test runs after an installation applies changes and appliance startup succeeds.
 The test registers the PV using Bash and `curl`, then uses the selected source's
 `getDataToCsv.bash` to check stored samples against actual CA observations.
 See [soft IOC verification](../scripts/README.md#verify-one-changing-pv) for
@@ -293,7 +324,7 @@ the intended database. Database passwords are rendered as XML attribute data
 and quoted shell values; shell metacharacters remain literal. In Make override
 files, use `$$` for a literal dollar and `\#` for a literal hash.
 
-- `configure/RELEASE.local`: `SRC_TAG` — the source reference for
+- `configure/RELEASE.local`: `SRC_TAG`, the source reference for
   https://github.com/jeonghanlee/epicsarchiverap-maven (a commit, tag, or branch). The default is
   the tag `2026-10`: the installer fetches origin and checks out that tag. A site that
   follows the branch tip sets `origin/master`, and a build of one fixed commit sets its hash. `SRC_URL` has a default (`https://github.com/jeonghanlee`) and
@@ -440,16 +471,79 @@ pages, their judgements and their limits are described in [the interface guide](
 
 ## Reinstall and upgrade
 
-This section reinstalls or upgrades an installation that you built with `make`. The scripts `scripts/install-local-*.bash` of [Local systemd installation](#local-systemd-installation), called the installer scripts here, do most of this work in one command; they also prepare the packages and Tomcat, and the options of that section decide what they change on the host.
+The local installer scripts compare the installed appliance with the selected
+source and rendered files. Use the script for the installed backend and transport,
+as described in [Local systemd installation](#local-systemd-installation).
+Its `--inspect` option takes the same checkout lock as installation, updates the
+source, renders configuration, prints the comparison, and stops. It does not
+install packages or change installed files, databases, storage, or services.
+`--plan` instead prints the full static sequence and changes no files; the two
+options cannot be combined.
+
+| Layer | Difference checked | Selected work |
+| --- | --- | --- |
+| `program` | Installed `version.txt` commit or missing classpath bindings | Build and install |
+| `configuration` | Rendered files, launch scripts, and component ports | Install, reusing target WARs when present |
+| `systemd` | Rendered units and Tomcat override | Install files and units |
+| `schema` | SQL at the installed and target commits | Load added tables; require acceptance for other differences |
+| `storage` | Configured folders missing or owned by another account | Create folders and set ownership |
+| `runtime` | Service, timer, HTTP, and available health observations | Observation only |
+
+The inspection reports `changed`, `unchanged`, or `refuse` for each installable
+layer, and `observed` for runtime. It also reports whether a build is needed.
+A missing installed `version.txt` selects a first installation. Missing WARs
+select a build only when file installation will run. An unchanged installation
+returns without confirmation, a build, or a restart. Runtime observations do
+not determine this result and are not a substitute for full readiness checks.
+
+When the installed `archappl.conf` sets `ARCHAPPL_APPLIANCES`,
+`ARCHAPPL_PROPERTIES_FILENAME`, and `ARCHAPPL_POLICIES`, the appliance reads
+`appliances.xml`, `archappl.properties`, and `policies.py` from those named paths.
+Changes only to these files need installation and restart, with no rebuild
+when all four target WARs exist. A missing binding selects a rebuild because
+the corresponding copy inside the WAR is used. A configuration-only install
+replaces the payload with the same WARs as well as refreshing configuration.
+
+The schema comparison assumes the database was loaded from the installed
+commit. It cannot detect manual database edits or a schema from another commit.
+Whole new tables select schema loading: MariaDB uses `make sql.fill`; SQLite
+renders with `make sql.update` and loads with root `make sql.table.fill`.
+Other differences print a diff and refuse to continue. Review the diff and
+arrange any required migration before accepting it with `--accept-schema`.
+Acceptance permits schema loading; `CREATE TABLE IF NOT EXISTS` does not
+alter existing columns. `--inspect --accept-schema` only reports the accepted
+comparison and loads nothing.
+
+Inspection refuses retained `.payload.*` folders and an installed commit that
+is unavailable after source fetching. For an existing installation, it also
+refuses a missing configured Java executable or Tomcat folder. Inspection
+neither upgrades the JDK or Tomcat nor observes a value supplied only to a
+separate Make command. Resolve a refusal before applying changes.
+
+The normal sequence is checkout lock, OS preset, source selection,
+configuration, inspection, and confirmation. After confirmation it authenticates
+`sudo`, prepares prerequisites, and runs the selected Tomcat and build work.
+It then stops the appliance, applies selected schema, storage, and file work,
+and starts it with readiness checks. A first installation runs all layers.
+`make install` also copies `site-template/.versions` into `AA_INSTALL_LOCATION`.
+See [Reinstall or upgrade an appliance](../book/src/install/reinstall.md)
+for stage names and the state left by a failure.
+
+The manual procedure below applies the Make targets directly. It requires the
+operator to select the necessary work and coordinate the maintenance window.
 
 The installer scripts pass `DB_BACKEND`, `ARCHAPPL_SITEID=als` and the `DB_SOCKET` of a MariaDB transport (empty for TCP) only on their `make` command lines, and they do not remember `--socket`. The manual steps use the `ARCHAPPL_SITEID` of `../CONFIG_SITE.local` (default `als`) and the installer scripts always `als`, so keep `als` when an installer script installed the appliance. Before the manual steps below, write the same values into `../CONFIG_SITE.local` and remove a `DB_SOCKET` that a TCP site no longer uses (the manual flow has no empty `DB_SOCKET=`): `DB_BACKEND=sqlite` for SQLite, and for MariaDB over a socket the `DB_SOCKET` that the installer used (its default is `/var/lib/mysql/mysql.sock` on Rocky Linux 8 and 10 and `/run/mysqld/mysqld.sock` on Debian 13 and Ubuntu 24.04 and 26.04). With the default `mariadb` backend, `make conf.install` renders a unit that requires `mariadb.service`, which a SQLite host does not have, and without `DB_SOCKET` `context.xml` and `mariadb.conf` are rendered for TCP; `make install` installs both without an error.
 
-On a first installation steps 6 (the schema) and 7 (`make conf.storage`) of the ordered sequence are required. On an upgrade they are needed only when the schema or the storage folders change, and then the parts that the table marks U (MariaDB `make sql.fill`, SQLite `make sql.update`) run as the checkout owner; schema loading requires the maintenance window, while SQLite `make sql.table.fill` and `make conf.storage` run as root in the maintenance window after the stop and before `sudo make install`; the schema of the source is the same in the 2.0.0 pin `d8a7813f` and in the tag `2026-10`, and repeating the steps is safe.
+On a first installation, steps 6 (schema) and 7 (storage) of the ordered
+sequence are required. On an upgrade, run them only when those layers need work.
+Load the schema after stopping the appliance. MariaDB `make sql.fill` runs as
+the checkout owner; SQLite renders with owner `make sql.update` and loads with
+root `make sql.table.fill`. Storage work also runs as root during downtime.
 
 Before the maintenance window, as the checkout owner (the owner of this repository checkout, not root), build and generate the configuration:
 
 1. Move the source clone when `SRC_TAG` changed or the source repository has new commits: run `git -C epicsarchiverap-maven-src fetch origin` and `make srcupdate` in place of step 1 of the [ordered sequence](#ordered-sequence), because in an existing clone `make init` does not move the source. Then confirm the source: compare `git -C epicsarchiverap-maven-src rev-parse HEAD` with `git -C epicsarchiverap-maven-src rev-parse "$(make -s print-SRC_TAG)^{commit}"`; the two commits must be equal.
-2. Run steps 2 to 4 of the sequence: `make db.conf`, `make conf.archapplproperties` and `make build.mvn`. Without sequence step 4, `make install` replaces the payload with the WARs that already sit in `target`, and without the move of item 1 the build uses the old checkout.
+2. Run steps 2 and 3 of the sequence to render configuration. Run step 4, `make build.mvn`, when the source or packaged site content changed, a classpath binding is missing, or a target WAR is unavailable. For configuration-only changes with all bindings and target WARs present, reuse those WARs. `make install` consumes the WARs in `target`; it does not select or build a source commit.
 3. Run step 5 of the sequence, `make conf.install`, after the last edit of the configuration. `make <os>.conf` rewrites `configure/CONFIG_SITE.local`, which is such an edit: run it before item 2, so that the build and the rendered files use the same configuration as the units, and in any case before `make conf.install`, never after. `make install` installs the units that step 5 rendered and renders nothing into the checkout itself; when a unit is missing or older than its template or the configuration, it stops before it stops the health monitor or changes the payload and names `make conf.install`.
 
 In the maintenance window, stop the appliance, install as root and start the appliance only after the installation succeeds. Tomcat must not load classes while the WAR and logging libraries are replaced. `make sd_stop` ignores errors, so check that the unit is inactive before the installation; `make -s print-SYSTEMD_FILENAME` prints the unit name, `epicsarchiverap-maven.service`, and the first code block takes it from there because `systemctl is-active` also prints `inactive` for a mistyped name. `make sd_stop`, `make sd_start` and `sudo make install` call `sudo`; an unattended run needs `sudo` without a password prompt. The `sudo make install` command runs Make itself as root so its shell can access existing service-owned instance directories. Stop the appliance and read the state of its unit:
@@ -510,10 +604,12 @@ This procedure does not promise rollback after power loss or a forced kill.
 
 ## Ordered sequence
 
-The sequence starts after the host preparation: the OS packages and `make <os>.conf`, and Tomcat (`make tomcat.get`, `make tomcat.install`, `make tomcat.exist`; see [Make targets of the repository](../book/src/appendix/make-targets.md)). An upgrade of a running host needs none of them when Tomcat is already installed; do not run `make tomcat.install` over a live Tomcat.
+This table is the full manual installation sequence. On an upgrade, select work using the comparison and rebuild rules above. The installer renders `conf.install` before inspection and any selected build, so its conditional sequence differs from this table.
+
+The manual sequence starts after the host preparation: the OS packages and `make <os>.conf`, and Tomcat (`make tomcat.get`, `make tomcat.install`, `make tomcat.exist`; see [Make targets of the repository](../book/src/appendix/make-targets.md)). An upgrade of a running host needs none of them when Tomcat is already installed; do not run `make tomcat.install` over a live Tomcat.
 
 `U` runs as an ordinary build user; `R` requires root (an automation role that
-runs every step as root is also valid — the internal `sudo` is a no-op when
+runs every step as root is also valid; the internal `sudo` is a no-op when
 already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 
 | # | Target | Priv | Inputs | Writes | Check |
@@ -525,7 +621,7 @@ already root). Do not run `make build` wholesale; it bundles `conf.storage`.
 | 5 | `make conf.install` | U | `AA_*`, `DB_BACKEND`, `SYSTEMD_*`, source clone | `site-template/systemd/` units and `site-template/.versions` | files exist |
 | 6 | MariaDB: `make sql.fill`; SQLite: `make sql.update`, then `make sql.table.fill` | MariaDB: U; SQLite: U, then R | `DB_BACKEND`; `DB_USER`/`DB_USER_PASS` or `ARCHAPPL_SQLITE_FILE`; source SQL | `site-template/sql/` schema copy; schema loaded over TCP or `DB_SOCKET`, or into the SQLite file | `make sql.show` lists the tables |
 | 7 | `make conf.storage` | R | `ARCHAPPL_STORAGE_TOP` | `$(ARCHAPPL_STORAGE_TOP)/{sts,mts,lts}/ArchiverStore`, with the default `/arch/{sts,mts,lts}/ArchiverStore` | directories exist, owned by the service user |
-| 8 | `make install` | R | WARs, the files of step 5, `AA_USERID`/`AA_GROUPID` | four instances, appliance service, health service and timer | units installed; appliance and timer enabled, not started |
+| 8 | `make install` | R | WARs, the files of step 5, `AA_USERID`/`AA_GROUPID` | four instances, installed `.versions`, appliance and health units | units and `.versions` installed; appliance and timer enabled, not started |
 | 9 | `make sd_start` | R | installed units and complete instance configuration | appliance and health timer started | timer active; process checks after startup allowance; separate mgmt probe returns HTTP 200 |
 
 Notes:
@@ -541,9 +637,10 @@ Notes:
   modification times of these files, so a value given on the `make` command
   line or a change of `configure/os/*.mk` needs step 5 again by hand. The files that step 3 renders
   (`archappl.conf`, `appliances.xml`, `archappl.properties`, `policies.py` and
-  `context.xml`) are installed without that check, and the WARs of step 4 carry
-  `appliances.xml`, `archappl.properties` and `policies.py`, so run steps 2 to 4
-  again as well, before step 8.
+  `context.xml`) are installed without that check. Rerun steps 2 and 3 after
+  configuration changes. The WARs also carry `appliances.xml`,
+  `archappl.properties`, and `policies.py`; step 4 is required only under the
+  rebuild conditions in [Reinstall and upgrade](#reinstall-and-upgrade).
 - `make install` creates the service account (idempotent), stops any existing
   health timer/check before changing files, then installs the appliance and
   health pair. It reloads systemd before enabling the appliance and timer, with

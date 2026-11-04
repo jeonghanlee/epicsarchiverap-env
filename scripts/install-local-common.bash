@@ -963,7 +963,6 @@ function apply_changes {
     sudo -v
     stage='prerequisites'
     if (( ! skip_packages )); then install_packages; fi
-    run_make "$os.conf"
     read_settings
     check_host
     if (( do_install )); then
