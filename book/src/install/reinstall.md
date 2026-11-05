@@ -76,6 +76,8 @@ For an upgrade with an offline recovery backup, follow [Upgrade an appliance dur
 
    Resolve retained `.payload.*` folders before proceeding. An installed commit that remains unavailable after the fetch also causes refusal. Inspection also refuses an existing installation whose configured Java executable or Tomcat folder is missing. It does not upgrade the JDK or Tomcat. A value supplied only to a separate Make command is not part of this comparison.
 
+   An unreadable installed version, configuration file, or unit causes refusal before any build, installation, or service stop. The report names the input or inaccessible parent directory; restore file read access and parent-directory search access for the checkout owner before retrying. Listing the rendered systemd units also requires directory read access. A read error is not a configuration change, and an unreadable version is not a first installation. Without the installed commit, schema equality cannot be established.
+
    Runtime observations do not determine whether the installation is up to date. Without password-free `sudo`, health is reported as `health not observed: needs sudo`. An up-to-date result does not establish full runtime readiness.
 
 3. Optional: decide how the installer handles Tomcat and its questions.

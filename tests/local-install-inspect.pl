@@ -314,6 +314,18 @@ sub with_absent {
     return;
 }
 
+sub with_mode {
+    my ($path, $mode, $callback) = @_;
+    my @st = stat($path);
+    @st or die "stat $path: $!\n";
+    chmod($mode, $path) or die "chmod $path: $!\n";
+    my $ok = eval { $callback->(); 1 };
+    my $error = $@;
+    chmod($st[2] & 07777, $path) or die "restore mode $path: $!\n";
+    die $error unless $ok;
+    return;
+}
+
 # Commits a controlled source input only inside this run's independent clone.
 sub source_change {
     my ($path, $bytes, $callback) = @_;
@@ -385,6 +397,67 @@ my @CASES = (
         state_is($rows, 'configuration', 'changed', 'connector port');
         ($rows) = inspect('shutdown port', 0, '--shutdown-port' => 'mgmt=27666');
         state_is($rows, 'configuration', 'changed', 'shutdown port');
+        with_absent("$INSTALL/mgmt/conf/server.xml", sub {
+            my ($result) = inspect('missing server.xml', 0);
+            state_is($result, 'configuration', 'changed', 'missing server.xml');
+        });
+    }],
+    ['unreadable', sub {
+        my @files = (
+            (map { ["$INSTALL/$_/conf/server.xml", 'configuration'] } @SERVICES),
+            ["$INSTALL/archappl.properties", 'configuration'],
+            ["$RENDERED/archappl.properties", 'configuration'],
+            ["$INSTALL/archappl.conf", 'configuration'],
+            ["$SYSTEMD/$APP.service", 'systemd'],
+            ["$RENDERED/systemd/$APP.service", 'systemd'],
+            ["$INSTALL/mgmt/webapps/mgmt/ui/comm/version.txt", 'program'],
+        );
+        my $before = snapshot();
+        for my $entry (@files) {
+            my ($path, $layer) = @{$entry};
+            with_mode($path, 0000, sub {
+                ok(-f $path && !-r $path, "unreadable $path: real permission failure");
+                my ($rows) = inspect("unreadable $path", 1);
+                state_is($rows, $layer, 'refuse', "unreadable $path");
+                state_is($rows, 'installation', 'present', "unreadable $path");
+                like($rows->{$layer}{reason}, qr/cannot read.*\Q$path\E/, "unreadable $path: diagnostic names input");
+                state_is($rows, 'schema', 'refuse', 'unknown installed version') if $layer eq 'program';
+            });
+        }
+        is_deeply(snapshot(), $before, 'permission faults restore input bytes, membership and metadata');
+    }],
+    ['inaccessible_directories', sub {
+        my @directories = (
+            ["$INSTALL/mgmt/webapps/mgmt/ui/comm", 'program', 0400],
+            ["$INSTALL/mgmt/webapps", 'program', 0400],
+            (map { ["$INSTALL/$_/conf", 'configuration', 0400] } @SERVICES),
+            [$RENDERED, 'configuration', 0400],
+            ["$RENDERED/systemd", 'systemd', 0111],
+            [$SYSTEMD, 'systemd', 0400],
+            ["$SYSTEMD/tomcat9.service.d", 'systemd', 0400],
+        );
+        my $before = snapshot();
+        for my $entry (@directories) {
+            my ($path, $layer, $mode) = @{$entry};
+            with_mode($path, $mode, sub {
+                ok(-d $path && (!-r $path || !-x $path), "inaccessible $path: real permission failure");
+                my ($rows) = inspect("inaccessible $path", 1);
+                state_is($rows, $layer, 'refuse', "inaccessible $path");
+                state_is($rows, 'installation', 'present', "inaccessible $path");
+                like($rows->{$layer}{reason}, qr/cannot .*\Q$path\E/, "inaccessible $path: diagnostic names directory");
+                state_is($rows, 'schema', 'refuse', 'unknown installed version') if $layer eq 'program';
+            });
+        }
+        with_mode("$INSTALL/engine/conf", 0111, sub {
+            ok(!-r "$INSTALL/engine/conf" && -x _, 'known filenames need search access, not directory listing');
+            my ($rows) = inspect('searchable configuration directory', 0);
+            state_is($rows, 'configuration', 'unchanged', 'searchable configuration directory');
+        });
+        is_deeply(snapshot(), $before, 'directory faults restore input bytes, membership and metadata');
+        with_absent("$INSTALL/mgmt/webapps", sub {
+            my ($rows) = inspect('missing version parent', 0);
+            state_is($rows, 'installation', 'first', 'missing version parent');
+        });
     }],
     ['classpath', sub {
         for my $variable (@CLASSPATH) {

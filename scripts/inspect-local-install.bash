@@ -45,6 +45,7 @@ layer_state='unchanged'
 layer_reason=''
 build_state='not-needed'
 build_reason=''
+path_error=''
 
 function usage {
     printf '%s\n' \
@@ -133,15 +134,71 @@ function conf_value {
     awk -v name="$2" 'index($0, name "=") == 1 { value = substr($0, length(name) + 2); gsub(/^"|"$/, "", value); print value; exit }' "$1"
 }
 
-# Appends a difference to the global list when the installed file is missing or differs from the rendered one.
+# Distinguishes an absent path from an ancestor that prevents looking it up.
+function check_parent_access {
+    local path="$1" parent
+    path_error=''
+    [[ "$path" == /* ]] || path="$PWD/$path"
+    parent="${path%/*}"
+    while [[ -n "$parent" ]]; do
+        if [[ -d "$parent" ]]; then
+            if [[ -x "$parent" ]]; then return 0; fi
+            path_error="cannot search directory $parent"
+            return 1
+        elif [[ -e "$parent" || -L "$parent" ]]; then
+            path_error="cannot resolve directory $parent"
+            return 1
+        fi
+        [[ "$parent" != / ]] || break
+        parent="${parent%/*}"
+        [[ -n "$parent" ]] || parent='/'
+    done
+    return 0
+}
+
+# Separates missing or different files from unreadable comparison inputs.
 function compare_file {
-    local rendered="$1" installed="$2" label="$3"
+    local rendered="$1" installed="$2" label="$3" input status=0
+    for input in "$rendered" "$installed"; do
+        if ! check_parent_access "$input"; then
+            refusals+=("$path_error")
+            return 0
+        fi
+        if [[ ( -e "$input" || -L "$input" ) && ( ! -f "$input" || ! -r "$input" ) ]]; then
+            refusals+=("cannot read regular file $input")
+            return 0
+        fi
+    done
     if [[ ! -f "$rendered" ]]; then
         differences+=("not rendered: $label")
     elif [[ ! -f "$installed" ]]; then
         differences+=("not installed: $label")
-    elif ! cmp -s -- "$rendered" "$installed"; then
-        differences+=("differs: $label")
+    else
+        cmp -s -- "$rendered" "$installed" || status=$?
+        if (( status == 1 )); then
+            differences+=("differs: $label")
+        elif (( status != 0 )); then
+            refusals+=("cannot compare $rendered and $installed (cmp exit $status)")
+        fi
+    fi
+}
+
+# Reads the whole file so a match cannot hide a later read error.
+function compare_pattern {
+    local file="$1" pattern="$2" mismatch="$3" status=0
+    if ! check_parent_access "$file"; then
+        refusals+=("$path_error")
+        return 0
+    fi
+    if [[ ! -e "$file" && ! -L "$file" ]]; then
+        differences+=("not installed: $file")
+        return 0
+    fi
+    grep -F -- "$pattern" "$file" > /dev/null 2>&1 || status=$?
+    if (( status == 1 )); then
+        differences+=("$mismatch")
+    elif (( status != 0 )); then
+        refusals+=("cannot read $file (grep exit $status)")
     fi
 }
 
@@ -150,10 +207,20 @@ function inspect_program {
     local -a reasons=()
     layer_state='unchanged'
     target_commit=$(git -C "$source_dir" rev-parse HEAD) || fail "Cannot read the commit of $source_dir"
-    if [[ ! -r "$version_file" ]]; then
+    if ! check_parent_access "$version_file"; then
+        layer_state='refuse'
+        layer_reason="$path_error"
+        return 0
+    fi
+    if [[ ! -e "$version_file" && ! -L "$version_file" ]]; then
         installation='first'
         layer_state='changed'
         layer_reason='no installed version.txt: first installation'
+        return 0
+    fi
+    if [[ ! -r "$version_file" ]]; then
+        layer_state='refuse'
+        layer_reason="cannot read $version_file"
         return 0
     fi
     IFS= read -r line < "$version_file" || [[ -n "$line" ]] || fail "Cannot read $version_file"
@@ -223,11 +290,11 @@ function inspect_configuration {
         server_xml="$install_dir/$service/conf/server.xml"
         port="${ports[$service]:-}"
         shutdown="${shutdown_ports[$service]:-}"
-        if [[ -n "$port" ]] && ! grep -qF "Connector port=\"$port\"" "$server_xml" 2> /dev/null; then
-            differences+=("$service/conf/server.xml does not name the port $port")
+        if [[ -n "$port" ]]; then
+            compare_pattern "$server_xml" "Connector port=\"$port\"" "$service/conf/server.xml does not name the port $port"
         fi
-        if [[ -n "$shutdown" ]] && ! grep -qF "Server port=\"$shutdown\" shutdown=\"SHUTDOWN\"" "$server_xml" 2> /dev/null; then
-            differences+=("$service/conf/server.xml does not name the shutdown port $shutdown")
+        if [[ -n "$shutdown" ]]; then
+            compare_pattern "$server_xml" "Server port=\"$shutdown\" shutdown=\"SHUTDOWN\"" "$service/conf/server.xml does not name the shutdown port $shutdown"
         fi
     done
     conf="$rendered_dir/archappl.conf"
@@ -250,7 +317,7 @@ function inspect_configuration {
 
 function inspect_systemd {
     local file name target
-    local -a differences=()
+    local -a differences=() refusals=()
     layer_state='unchanged'
     if [[ "$installation" == first ]]; then
         layer_state='changed'
@@ -262,13 +329,21 @@ function inspect_systemd {
         layer_reason="no rendered units in $rendered_dir/systemd: run make conf.install"
         return 0
     fi
+    if [[ ! -r "$rendered_dir/systemd" || ! -x "$rendered_dir/systemd" ]]; then
+        layer_state='refuse'
+        layer_reason="cannot read directory $rendered_dir/systemd"
+        return 0
+    fi
     for file in "$rendered_dir"/systemd/*; do
         name="${file##*/}"
         [[ "$name" == *.in || ! -f "$file" ]] && continue
         if [[ "$name" == override.conf ]]; then target="$systemd_dir/$OVERRIDE_FOLDER/$name"; else target="$systemd_dir/$name"; fi
         compare_file "$file" "$target" "$name"
     done
-    if (( ${#differences[@]} )); then
+    if (( ${#refusals[@]} )); then
+        layer_state='refuse'
+        layer_reason=$(join_reasons "${refusals[@]}")
+    elif (( ${#differences[@]} )); then
         layer_state='changed'
         layer_reason=$(join_reasons "${differences[@]}")
     else
@@ -297,6 +372,11 @@ function inspect_schema {
     if [[ "$installation" == first ]]; then
         layer_state='changed'
         layer_reason='first installation'
+        return 0
+    fi
+    if [[ -z "$installed_commit" ]]; then
+        layer_state='refuse'
+        layer_reason='the installed commit is unknown: cannot compare the schema'
         return 0
     fi
     if [[ "$target_commit" == "$installed_commit"* ]]; then

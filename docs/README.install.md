@@ -525,6 +525,15 @@ refuses a missing configured Java executable or Tomcat folder. Inspection
 neither upgrades the JDK or Tomcat nor observes a value supplied only to a
 separate Make command. Resolve a refusal before applying changes.
 
+An unreadable installed version, configuration file, or unit also causes
+refusal. A file-comparison or port-reading error is not a configuration change.
+The report names the input or inaccessible parent directory; restore file read
+access and parent-directory search access for the checkout owner before retrying.
+The rendered systemd directory also requires read access to list its units.
+The installer stops before building, installing,
+or stopping the appliance. An unreadable version does not select a first
+installation, and an unknown installed commit cannot establish schema equality.
+
 The normal sequence is checkout lock, OS preset, source selection,
 configuration, inspection, and confirmation. After confirmation it authenticates
 `sudo`, prepares prerequisites, and runs the selected Tomcat and build work.
