@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Land the M17 read-failure correction and verification record under separate commit/push authority, then update closure status. T7 and T8 establish live changed-source and missing-WAR upgrades through startup readiness; T9 records the live read-failure check and the final file/directory-access regression results separately by code identity. Backlog items M5, M6 and M7 remain Deferred, and M10, M12 and M16 remain Open and unassigned.
+Next session entry point: Select and assign the next item from `## Backlog` before further implementation. All eleven assigned items are Complete, with M17 closed against the correction and verification record at `5da67a8`; no row is Ready. Backlog items M5, M6 and M7 remain Deferred, and M10, M12 and M16 remain Open and unassigned. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md), including backup and recovery, and are not part of this closure.
 
 ## Scope
 
@@ -31,9 +31,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M13 | Leave only the pass record of the tests and use a local temporary folder | Carry-forward | Complete | No | M3, D26, D29 | A passing run of the nine Perl tests and of `tests/local-install-pv.bash` leaves no file of the run, a failed run or `KEEP_WORKSPACE=1` keeps them, and the tools use `TMPDIR` or `work/scratch/tmp`; T1-T3 passed; landed at 6049646; [detail](#m13---leave-only-the-pass-record-of-the-tests-and-use-a-local-temporary-folder) |
 | Tests | M9 | Keep the last sample of the PV time-range test inside the query range | Carry-forward | Complete | No | M3, D23, D30, D31 | The unmutated time-range test passes in all 30 runs of a series, and its stable mutation verdicts stay as before; T1-T2 passed; landed at e39252e; [detail](#m9---keep-the-last-sample-of-the-pv-time-range-test-inside-the-query-range) |
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
-| Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | In progress | No | D33, D34 | The installer scripts report an unchanged installation without a build or a stop, install a changed configuration without a build, build and install a changed source, detect a changed schema by the diff of the source SQL file between the installed and the target commit, and the comparison fails on a mutation of each layer; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
+| Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Complete | No | D33, D34 | T1-T9 satisfy the completion criteria within their recorded input and environment limits; read-failure correction and verification record landed at 5da67a8; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 10 Complete and 1 In progress. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 11 Complete. No row is Ready.
 
 ### Decisions
 
@@ -1354,15 +1354,15 @@ Last Compared: none
 #### M17 - Upgrade an installed appliance by comparing its state with the checkout
 
 Origin: 9576820 / M17
-Identity History: created as M17 on 2026-11-03 by D33; assigned and changed from Open to In progress on 2026-11-03 by D34
+Identity History: created as M17 on 2026-11-03 by D33; assigned and changed from Open to In progress on 2026-11-03 by D34; completed on 2026-11-05 against the landed implementation and verification record at 5da67a8
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
 The local installer scripts compare the installed appliance with the selected source and rendered configuration. They apply only changed layers. An unchanged installation requires no build or restart, and a selected soft IOC test runs against the running appliance. Configuration changes reuse the target WARs when the program layer is unchanged and all four WARs exist.
 
-Implementation and installation documentation landed through `2baf640`; `d1ca12a` carries the selected-PV correction and `54ee5ab` carries maintenance documentation. T1 to T6 have the bounded results below. T7 and T8 passed real changed-source and missing-WAR upgrades, startup readiness, and historical-sample preservation on an isolated SQLite appliance. T9 verifies the approved correction for unreadable inspection inputs. The correction and this evidence update await landing.
+Implementation and installation documentation landed through `2baf640`; `d1ca12a` carries the selected-PV correction and `54ee5ab` carries maintenance documentation. T1 to T6 have the bounded results below. T7 and T8 passed real changed-source and missing-WAR upgrades, startup readiness, and historical-sample preservation on an isolated SQLite appliance. T9 verifies the approved correction for unreadable inspection inputs. The read-failure correction and verification record landed at `5da67a8`; M17 completed on 2026-11-05 within the recorded verification limits.
 
 ##### Scope
 
@@ -1454,10 +1454,11 @@ Evidence under `work/` and `/tmp/` is retained locally and is not distributed wi
 
 ##### Closure Evidence
 
-- Product code, inspection tests, and installation documentation are committed through `2baf6407250f093f8a3c821aa5c634ccc40122ab`. The selected-PV correction is `d1ca12a8bd422dcc1dbb7a8d09240895ad743809`.
-- On 2026-11-04, the post-push remote lookup of `refs/heads/maven` returned `d1ca12a8bd422dcc1dbb7a8d09240895ad743809`, matching local HEAD and `origin/maven`. Recheck with `git -C "<absolute_checkout_path>" ls-remote --heads origin refs/heads/maven` before using this as the target of a later deployment.
+- Product code, inspection tests, and installation documentation are committed through `2baf6407250f093f8a3c821aa5c634ccc40122ab`. The selected-PV correction is `d1ca12a8bd422dcc1dbb7a8d09240895ad743809`; the final read-failure correction, its tests, documentation and verification record are `5da67a8af7e48dfc0413ba5344a680c238849463`.
+- On 2026-11-05 at 18:16:58 UTC, after a successful `git fetch origin`, `git rev-parse HEAD origin/maven` returned `5da67a8af7e48dfc0413ba5344a680c238849463` for both refs. Comparing the five paths in that commit against the fetched upstream returned no differences (native exit 0); a subsequent whole-tree comparison also returned 0. Recheck from the checkout with `git fetch origin` and `git diff --exit-code origin/maven 5da67a8` before relying on this observation for a later deployment.
+- Completion criteria map to the recorded results: T1 covers unchanged execution, inspection and `--plan`; T2, T7 and T8 cover configuration-only, changed-source and missing-WAR upgrades; T3 covers first installations, build selection and layer mutations; T4 covers schema application and refusal; T5 covers the dependent tests and generated pages; T6 covers locking; T9 covers read-error refusal. The version, environment and native-exit limits in Verification Results remain part of these conclusions.
 - T7 and T8 establish live changed-source and missing-WAR upgrades ending in startup readiness for the recorded input versions, with historical samples preserved. T9 separately establishes refusal of unreadable inputs through the corrected helper and real installer. These checks do not verify a production upgrade, arbitrary Java/schema compatibility, or storage-tier migration.
-- M17 remains In progress pending review and landing of the read-failure correction and this verification update under separate commit/push authority.
+- Complete on 2026-11-05: the accepted deliverable, all ten completion criteria and implementation landing are established by the evidence above. The correction and installation documentation completed review with no open findings before `5da67a8`. There is no linked issue or open external gate for M17. This closure does not assign Backlog work or authorize production deployment.
 
 ##### GitHub Projection
 
