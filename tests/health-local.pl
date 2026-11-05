@@ -34,6 +34,9 @@ every case when KEEP_WORKSPACE=1, is kept and its path printed.
 The cases that need a real Java executable, the JDK compiler, systemd-analyze or /dev/shm report a skip when it is
 absent; the cases that need a non-root account report a skip for root. Every skip prints a line that starts with
 C<SKIP:>. The checkout must be a Git work tree.
+The bootstrap argument case requires AA_TEST_TOMCAT_HOME with a real Tomcat bootstrap.jar and uses a JVM suspended
+before main; it checks process identity, not application readiness. The executable-race case replaces only readlink
+at the /proc filesystem boundary and requires an unstable-identity diagnostic. The storage threshold case uses real df.
 Required programs: bash, make, git, df, sleep, xmllint and the Perl module Test::More (on Rocky Linux the package
 perl-Test-Simple).
 
@@ -55,6 +58,9 @@ Run only the named case; repeat the option for more. Without the option every ca
   absent_process
   real_unrelated_process_is_not_signalled
   unrelated_java_with_tomcat_application_arguments
+  bootstrap_with_trailing_arguments
+  changing_executable_observation
+  storage_threshold_equality
   pid_symlink_target_ancestor_permission_error
   inspection_error_takes_precedence
   nonregular_pid_file_does_not_block
@@ -430,7 +436,7 @@ sub case_storage_preserves_literal_paths_and_failure_status {
 sub case_invalid_pid_files_are_preserved {
     health_setup();
     require_java();
-    for my $value ('', "0\n", "-1\n", "1 2\n", "1\n2\n", "1\0", '9' x 64, "text\n") {
+    for my $value ('', "0\n", "-1\n", "1 2\n", "1\n2\n", "1\0", '9' x 11, '9' x 64, "text\n") {
         my $label = 'PID value ' . join('', map { sprintf('%s', ord($_) < 32 || ord($_) > 126 ? sprintf('\\x%02x', ord $_) : $_) } split //, $value);
         my @paths = map { pid_file($_, $value) } @SERVICES;
         my $output = health(1);
@@ -516,6 +522,85 @@ sub case_unrelated_java_with_tomcat_application_arguments {
     return;
 }
 
+sub case_bootstrap_with_trailing_arguments {
+    health_setup();
+    require_java();
+    my $tomcat = $ENV{AA_TEST_TOMCAT_HOME} // '';
+    skip_case('AA_TEST_TOMCAT_HOME must name a real Tomcat installation')
+        unless -f "$tomcat/bin/bootstrap.jar";
+    my $java = abs_path(which('java'));
+    # JDWP holds the real JVM before main; only process identity, not readiness, is under test.
+    my ($pid, $reader) = start_jvm($java,
+        '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:0',
+        '-cp', "$tomcat/bin/bootstrap.jar", "-Dcatalina.base=$ROOT/mgmt", "-Dcatalina.home=$ROOT",
+        'org.apache.catalina.startup.Bootstrap', 'start', 'unexpected');
+    on_cleanup(sub { kill('TERM', $pid); waitpid($pid, 0); close($reader) });
+    my $ready = IO::Select->new($reader)->can_read(5);
+    ok($ready, 'the JVM produced debugger readiness output');
+    my $line = $ready ? <$reader> : '';
+    like($line // '', qr/Listening for transport dt_socket at address:/, 'the JVM is suspended before main');
+    pid_file('mgmt', "$pid\n");
+    my $output = health(1);
+    like($output, qr/mgmt pid=$pid FAIL wrong-tomcat-identity/, 'trailing Bootstrap arguments are rejected');
+    ok(is_running($pid), 'the suspended JVM remains alive');
+    return;
+}
+
+sub case_changing_executable_observation {
+    health_setup();
+    require_java();
+    my $pid = start_sleeper();
+    pid_file('mgmt', "$pid\n");
+    my $boundary = "$ROOT/boundary";
+    make_path($boundary);
+    my $readlink = abs_path(which('readlink'));
+    symlink(abs_path(which('sleep')), "$boundary/first") or die "symlink: $!\n";
+    symlink(abs_path(which('bash')), "$boundary/second") or die "symlink: $!\n";
+    spew("$boundary/count", "0\n");
+    # Alternate two real symlink targets at the filesystem boundary. Process state and arguments remain real.
+    spew("$boundary/readlink", "#!/bin/bash\nset -eu\n" .
+        'if [[ $# == 2 && $1 == -e && $2 == ' . shell_quote("/proc/$pid/exe") . " ]]; then\n" .
+        '    read -r count < ' . shell_quote("$boundary/count") . "\n" .
+        "    count=\$((count + 1))\n" .
+        '    printf \'%s\n\' "$count" > ' . shell_quote("$boundary/count") . "\n" .
+        '    if (( count % 2 )); then target=' . shell_quote("$boundary/first") .
+        '; else target=' . shell_quote("$boundary/second") . "; fi\n" .
+        '    exec ' . shell_quote($readlink) . " -e \"\$target\"\nfi\n" .
+        'exec ' . shell_quote($readlink) . " \"\$@\"\n");
+    chmod(0700, "$boundary/readlink") or die "chmod readlink: $!\n";
+    my %env = (%ENV, PATH => "$boundary:$ENV{PATH}");
+    my $run = run_command(['bash', $LAUNCHER, 'health'], env => \%env);
+    append_log("$ROOT/run.log", "exit=$run->{status}\n" . combined($run));
+    is(slurp("$boundary/count"), "6\n", 'all three changing-executable retries reached the filesystem boundary');
+    is($run->{status}, 2, 'an unstable executable observation is an inspection error');
+    like($run->{stdout}, qr/mgmt pid=$pid ERROR process-changed-during-inspection/, 'unstable identity is not classified as a stable mismatch');
+    ok(is_running($pid), 'inspection did not signal the real process');
+    return;
+}
+
+sub case_storage_threshold_equality {
+    health_setup();
+    require_java();
+    my $exposed = 0;
+    for (1 .. 3) {
+        my $df = run_command(['df', '-P', '--', $ROOT]);
+        die "df failed: $df->{stderr}\n" if $df->{status};
+        my @fields = split ' ', (split /\n/, $df->{stdout})[1];
+        my ($percent) = $fields[4] =~ /\A([0-9]+)%\z/;
+        die "df did not report a usable percentage\n" unless defined $percent && $percent >= 1;
+        configure();
+        append_log($CONFIG, "ARCHAPPL_STORAGE_ALARM_PERCENT=$percent\n");
+        my $output = health(1);
+        next unless $output =~ /storage path=\Q$ROOT\E mount=\S+ use=$percent% threshold=$percent%/;
+        $exposed = 1;
+        like($output, qr/storage path=\Q$ROOT\E .* use=$percent% threshold=$percent% FAIL storage-threshold/,
+            'storage usage equal to the configured threshold raises the alarm');
+        last;
+    }
+    ok($exposed, 'real df usage equalled the configured threshold during inspection');
+    return;
+}
+
 sub case_pid_symlink_target_ancestor_permission_error {
     skip_case('Permission denial requires a non-root test account') if $> == 0;
     health_setup();
@@ -586,6 +671,8 @@ sub case_invalid_cli {
     like(health(2, 'unexpected'), qr/invalid-arguments/, 'an unexpected argument is rejected');
     like(health(2, '--systemd', 'bad/name', 'health.service', '60'), qr/invalid-arguments/,
         'an invalid systemd instance name is rejected');
+    like(health(2, '--unexpected', 'valid.service', 'health.service', '60'), qr/invalid-arguments/,
+        'the systemd argument count does not excuse an unknown option');
     return;
 }
 
@@ -938,6 +1025,9 @@ my @CASES = (
     ['absent_process', 'absent process', \&case_absent_process],
     ['real_unrelated_process_is_not_signalled', 'real unrelated process is not signalled', \&case_real_unrelated_process_is_not_signalled],
     ['unrelated_java_with_tomcat_application_arguments', 'unrelated Java with Tomcat application arguments', \&case_unrelated_java_with_tomcat_application_arguments],
+    ['bootstrap_with_trailing_arguments', 'Bootstrap with trailing arguments', \&case_bootstrap_with_trailing_arguments],
+    ['changing_executable_observation', 'changing executable observation', \&case_changing_executable_observation],
+    ['storage_threshold_equality', 'storage threshold equality', \&case_storage_threshold_equality],
     ['pid_symlink_target_ancestor_permission_error', 'PID symlink target ancestor permission error', \&case_pid_symlink_target_ancestor_permission_error],
     ['inspection_error_takes_precedence', 'inspection error takes precedence', \&case_inspection_error_takes_precedence],
     ['nonregular_pid_file_does_not_block', 'nonregular PID file does not block', \&case_nonregular_pid_file_does_not_block],

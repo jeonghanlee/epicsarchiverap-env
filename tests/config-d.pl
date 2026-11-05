@@ -292,16 +292,21 @@ sub case_order_quotes_empty_and_file_selection {
     spew("$ROOT/linked.conf", "CONFIG_TEST_LINK=yes\n");
     symlink("$ROOT/linked.conf", "$drops/16-link.conf") or die "symlink: $!\n";
     for my $name ('.hidden.conf', '20-last.conf~', 'disabled.conf.bak') {
-        spew("$drops/$name", "CONFIG_TEST_VALUE=wrong\n");
+        spew("$drops/$name", "CONFIG_TEST_VALUE=wrong\nCONFIG_TEST_IGNORED=loaded\n");
     }
     mkdir("$drops/30-directory.conf") or die "mkdir: $!\n";
     spew("$drops/30-directory.conf/child.conf", "CONFIG_TEST_VALUE=wrong\n");
-    my ($values) = load(prefix => 'shopt -s dotglob; export GLOBIGNORE=unused');
+    spew("$drops/A-order.conf", "CONFIG_TEST_ORDER=upper\n");
+    spew("$drops/a-order.conf", "CONFIG_TEST_ORDER=lower\n");
+    my ($values, $run) = load(prefix => q{shopt -s dotglob; export GLOBIGNORE="$1/config.d/20-last.conf"});
     is($values->{CONFIG_TEST_VALUE}, 'last value', 'the last file in bytewise order wins');
     is($values->{CONFIG_TEST_EMPTY}, '', 'an empty value is kept');
     is($values->{CONFIG_TEST_NEW}, 'one two * $three', 'a quoted value is kept literally');
     is($values->{CONFIG_TEST_SPACE}, 'yes', 'a file name with spaces is loaded');
     is($values->{CONFIG_TEST_LINK}, 'yes', 'a symlink to a file is loaded');
+    ok(!exists $values->{CONFIG_TEST_IGNORED}, 'hidden and disabled files are never evaluated');
+    is($values->{CONFIG_TEST_ORDER}, 'lower', 'uppercase filenames precede lowercase filenames in bytewise order');
+    is($run->{stderr}, '', 'selection produces no locale or shell diagnostics');
     return;
 }
 
@@ -439,6 +444,10 @@ sub case_last_command_status_compatibility {
     is($values->{CONFIG_TEST_VALUE}, 'base', 'startup ignores the status of the last command');
     my (undef, $run) = load(expected => 2, mode => 'health');
     ok(index($run->{stderr}, 'configuration evaluation failed') >= 0, 'health reports the evaluation failure');
+    spew($CONFIG, "CONFIG_TEST_VALUE=base\nprintf 'configuration stdout\\n'\nprintf 'configuration stderr\\n' >&2\n");
+    (undef, $run) = load(mode => 'health');
+    ok(index($run->{stdout}, 'configuration stdout') < 0, 'health suppresses configuration stdout');
+    is($run->{stderr}, '', 'health suppresses configuration stderr');
     return;
 }
 
@@ -502,13 +511,14 @@ sub case_install_and_regeneration_preserve_local_bytes {
     }
     copy_file("$TOP/Makefile", "$checkout/Makefile");
     my $installed = "$ROOT/installed";
-    my @command = ('make', '--no-print-directory', '-C', $checkout, 'SUDO=', "AA_INSTALL_LOCATION=$installed",
-        'conf.archappl', 'archapplconf.install', 'archapplshell.install');
-    run_logged(\@command);
+    my @command = ('make', '--no-print-directory', '-C', $checkout, 'SUDO=', "AA_INSTALL_LOCATION=$installed");
+    run_logged([@command, 'conf.archappl']);
+    run_logged([@command, 'archapplconf.install', 'archapplshell.install']);
     my $local_file = "$installed/config.d/90-site.conf";
     my $content = "CONFIG_TEST_VALUE='kept exactly'\n# Operator-owned settings.\n";
     spew($local_file, $content);
-    run_logged(\@command);
+    run_logged([@command, 'conf.archappl']);
+    run_logged([@command, 'archapplconf.install', 'archapplshell.install']);
     is(slurp($local_file), $content, 'the operator file is unchanged');
     is(slurp("$installed/archappl-config.bash"), slurp("$TOP/scripts/archappl-config.bash"),
         'the installed loader equals the shipped loader');

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# Checks the ownership of the test IOC at the keep menu of the shipped PV verifier, with only the HTTP transport replaced.
+# Checks the shipped PV verifier menu with a real IOC and explicit HTTP and process-file boundaries.
 use 5.010;    # defined-or operator
 use strict;
 use warnings;
@@ -30,14 +30,23 @@ request itself (resume-exit). Each run checks that the process the verifier repo
 Base started for the reported test PV, and that the verifier's exit status, messages and the state of that exact process
 (identified by its start time, not only its PID) agree with the way out.
 
-Only the HTTP transport is replaced: this file runs again as the C<curl> of the verifier's PATH, answers the resume
+Four additional cases check normal stop, rejected resume, a changed process start time and a reported Z state.
+Every case requires the final evidence path. Resume failures require the cleanup pause message after the menu,
+and normal stop requires a successful native SIGTERM to the owned IOC.
+
+A compiled libc boundary records real kill calls. For the two process identity faults it redirects only the owned
+IOC's /proc/PID/stat read to a retained copy with a changed start time or Z state, and records actual fault exposure.
+The actual IOC remains live; these cases do not claim actual PID reuse or a real zombie. The verifier must refuse
+resume, and the test then stops its own IOC so the verifier can finish waiting.
+
+The HTTP transport is replaced: this file runs again as the C<curl> of the verifier's PATH, answers the resume
 request itself and hands every other request to the time-range fixture tests/local-install-pv-range.pl. The
 pseudo-terminal comes from script(1) of util-linux. The runs work in a folder local-pv-menu.*
 below TMPDIR, else below work/scratch/tmp of the checkout, which the test creates when it is missing. A passing run
 removes it and the evidence folders of the verifier; a failed run, or KEEP_WORKSPACE=1, keeps them and prints their path.
 
 Environment: AA_TEST_EPICS_BIN is required; AA_TEST_SOURCE_PATH names the source checkout, by default
-epicsarchiverap-maven-src beside the repository. Required programs: bash and script.
+epicsarchiverap-maven-src beside the repository. Required programs: bash, script and cc with Linux libc headers and libdl.
 
 =head1 OPTIONS
 
@@ -176,6 +185,82 @@ sub read_owned {
     return { pid => $pid, start => $start };
 }
 
+# Interposes only libc file opens and kill; all normal operations still use libc and the real kernel process.
+sub build_process_boundary {
+    my ($workspace) = @_;
+    spew("$workspace/process-boundary.c", <<'C_SOURCE');
+#define _GNU_SOURCE
+#include <dlfcn.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+static int owned_pid(void) {
+    const char *root = getenv("RANGE_EVIDENCE");
+    char path[4096];
+    int pid = 0;
+    if (!root) return 0;
+    snprintf(path, sizeof(path), "%s/ioc.txt", root);
+    FILE *stream = fopen(path, "r");
+    if (stream) { if (fscanf(stream, "%d", &pid) != 1) pid = 0; fclose(stream); }
+    return pid;
+}
+
+static int boundary_open(const char *path, int flags, mode_t mode, const char *symbol) {
+    int (*native)(const char *, int, ...) = dlsym(RTLD_NEXT, symbol);
+    const char *root = getenv("RANGE_EVIDENCE");
+    char target[80], replacement[4096], marker[4096];
+    if (root && strncmp(path, "/proc/", 6) == 0) {
+        snprintf(target, sizeof(target), "/proc/%d/stat", owned_pid());
+        snprintf(replacement, sizeof(replacement), "%s/proc-stat", root);
+        if (strcmp(path, target) == 0 && access(replacement, R_OK) == 0) {
+            snprintf(marker, sizeof(marker), "%s/fault-read", root);
+            FILE *stream = fopen(marker, "a");
+            if (stream) { fprintf(stream, "%s\n", path); fclose(stream); }
+            return native(replacement, flags, mode);
+        }
+    }
+    return native(path, flags, mode);
+}
+
+int open(const char *path, int flags, ...) {
+    mode_t mode = 0;
+    if (flags & O_CREAT) { va_list ap; va_start(ap, flags); mode = va_arg(ap, int); va_end(ap); }
+    return boundary_open(path, flags, mode, "open");
+}
+
+int open64(const char *path, int flags, ...) {
+    mode_t mode = 0;
+    if (flags & O_CREAT) { va_list ap; va_start(ap, flags); mode = va_arg(ap, int); va_end(ap); }
+    return boundary_open(path, flags, mode, "open64");
+}
+
+int kill(pid_t pid, int signal) {
+    int (*native)(pid_t, int) = dlsym(RTLD_NEXT, "kill");
+    int result = native(pid, signal), saved = errno;
+    const char *root = getenv("RANGE_EVIDENCE");
+    if (root && pid == owned_pid()) {
+        char path[4096];
+        snprintf(path, sizeof(path), "%s/signals", root);
+        FILE *stream = fopen(path, "a");
+        if (stream) { fprintf(stream, "%d %d %d\n", pid, signal, result); fclose(stream); }
+    }
+    errno = saved;
+    return result;
+}
+C_SOURCE
+    my @command = ('cc', '-shared', '-fPIC', '-Wall', '-Wextra', '-Werror', '-o',
+        "$workspace/process-boundary.so", "$workspace/process-boundary.c", '-ldl');
+    system { $command[0] } @command;
+    die "cannot compile the process boundary (status $?)\n" if $?;
+    return "$workspace/process-boundary.so";
+}
+
 # The curl of the verifier's PATH: answers the resume request, hands everything else to the time-range fixture.
 sub curl_boundary {
     my (@arguments) = @_;
@@ -183,7 +268,7 @@ sub curl_boundary {
         my $root = $ENV{RANGE_EVIDENCE};
         spew("$root/resume-called", "resume\n");
         stop_owned(read_owned("$root/ioc.txt")) if $ENV{MENU_MODE} eq 'resume-exit';
-        print qq({"status":"ok"}\n);
+        print $ENV{MENU_MODE} eq 'resume-rejected' ? qq({"status":"error"}\n) : qq({"status":"ok"}\n);
         return 0;
     }
     my $fixture = $ENV{MENU_RANGE_CURL};
@@ -256,13 +341,22 @@ sub run_mode {
         (my $prefix = $pv) =~ s/Value\z//;
         check(scalar(grep { $_ eq "P=$prefix" } @args), "The IOC was not started for the test PV $pv");
         spew("$evidence/ioc.txt", "$ioc_pid $start\n");
+        if ($mode =~ /^owner-/) {
+            my $stat = slurp("/proc/$ioc_pid/stat");
+            my $at = rindex($stat, ') ') + 2;
+            my @fields = split ' ', substr($stat, $at);
+            if ($mode eq 'owner-start') { $fields[19]++ }
+            else { $fields[0] = 'Z' }
+            spew("$evidence/proc-stat", substr($stat, 0, $at) . join(' ', @fields) . "\n");
+            check(alive($owned), "$mode: the actual IOC stopped before the file fault");
+        }
         stop_owned($owned) if $mode eq 'menu-exit';
         # Only this write ignores SIGPIPE, so that a verifier that has already ended is reported; the children started
         # earlier keep the default disposition.
         my ($written, $write_error);
         {
             local $SIG{PIPE} = 'IGNORE';
-            $written = syswrite($writer, "2\n");
+            $written = syswrite($writer, $mode eq 'menu-stop' ? "1\n" : "2\n");
             $write_error = "$!";
         }
         check(defined $written, "The verifier ended before its menu was answered: $write_error");
@@ -277,6 +371,8 @@ sub run_mode {
                     last;
                 }
                 $output .= $chunk;
+                # A rejected process identity intentionally prevents the verifier from signalling that PID.
+                stop_owned($owned) if $mode =~ /^owner-/ && $output =~ /ERROR: Test IOC stopped while waiting/;
             }
         }
         check($ended, "The verifier did not end within 25 seconds: $output");
@@ -286,6 +382,9 @@ sub run_mode {
         $pid = undef;
         (my $text = $output) =~ s/\r//g;
         spew("$evidence/log", $text);
+        check(-s "$evidence/fault-read", "$mode: the verifier did not read the altered process file")
+            if $mode =~ /^owner-/;
+        check($text =~ /Evidence: \Q$retained\E\n\z/, "$mode: no final evidence path: $text");
         check(index($text, 'PV acquisition, storage and retrieval: PASS') >= 0, "The PV round trip did not pass: $text");
         if ($mode eq 'keep-live') {
             check($status == 0 && index($text, 'IOC retained: PID') >= 0, "keep-live: status $status: $text");
@@ -293,12 +392,19 @@ sub run_mode {
             check(-f "$evidence/resume-called", 'The resume request was not made');
         }
         else {
-            check($status == 1 && index($text, 'IOC retained: PID') < 0, "$mode: status $status: $text");
+            my $expected = $mode eq 'menu-stop' ? 0 : 1;
+            check($status == $expected && index($text, 'IOC retained: PID') < 0, "$mode: status $status: $text");
             check(!alive($owned), "$mode: the IOC is still running");
             check(index($text, 'Test IOC stopped.') >= 0, "$mode: no stop message: $text");
-            check((-e "$evidence/resume-called" ? 1 : 0) == ($mode eq 'resume-exit' ? 1 : 0),
+            check((-e "$evidence/resume-called" ? 1 : 0) == ($mode =~ /^resume-/ ? 1 : 0),
                 "$mode: unexpected resume request state");
-            check(index($text, 'Test PV paused:') >= 0, "$mode: no pause message: $text") if $mode eq 'resume-exit';
+            my $after_menu = substr($text, index($text, 'Select [1/2]:'));
+            check(index($after_menu, 'Test PV paused:') >= 0, "$mode: no cleanup pause message: $text")
+                if $mode =~ /^resume-/;
+            if ($mode eq 'menu-stop') {
+                my $signals = -f "$evidence/signals" ? slurp("$evidence/signals") : '';
+                check($signals =~ /^\Q$ioc_pid\E 15 0$/m, 'menu-stop: no successful native SIGTERM to the owned IOC');
+            }
         }
         print "PASS: $mode; exit=$status; owned IOC state checked\n";
         1;
@@ -337,9 +443,12 @@ sub main {
     my $fixture = "$workspace/range";
     mkdir($fixture) or die "mkdir $fixture: $!\n";
     symlink("$TOP/tests/local-install-pv-range.pl", "$fixture/curl") or die "symlink: $!\n";
-    my %env_base = (%ENV, PATH => "$boundary:$ENV{PATH}", TMPDIR => temp_root(), RANGE_EPICS => $epics, MENU_RANGE_CURL => "$fixture/curl");
+    my $process_boundary = build_process_boundary($workspace);
+    my %env_base = (%ENV, PATH => "$boundary:$ENV{PATH}", TMPDIR => temp_root(), RANGE_EPICS => $epics,
+        MENU_RANGE_CURL => "$fixture/curl", LD_PRELOAD => $process_boundary);
     my $ok = eval {
-        run_mode($_, $workspace, \%env_base, $epics, $source) for qw(keep-live menu-exit resume-exit);
+        run_mode($_, $workspace, \%env_base, $epics, $source)
+            for qw(keep-live menu-stop menu-exit resume-exit resume-rejected owner-start owner-zombie);
         1;
     };
     my $error = $@;

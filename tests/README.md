@@ -195,12 +195,16 @@ perl tests/health-local.pl
 perl tests/health-local.pl --case absent_process --case invalid_cli
 ```
 
-The first command runs all 23 cases; each `--case` runs only the named case (`perl tests/health-local.pl --help`
+The first command runs all 26 cases; each `--case` runs only the named case (`perl tests/health-local.pl --help`
 lists the names). The checkout must be a Git work tree. The test needs `bash`, `make`, `git`, `df`, `sleep`, `xmllint`
 and the Perl module `Test::More`; on Rocky Linux the package `perl-Test-Simple` provides the module. The cases that need
 a real Java executable, the JDK compiler, `systemd-analyze`, `/dev/shm` or a non-root account print a line that starts
 with `SKIP:` when it is missing. The exit status is 0 when every case passed or was skipped, nonzero when an assertion
 failed or the run aborted, and 2 for a usage error.
+
+The bootstrap argument case also needs `AA_TEST_TOMCAT_HOME` with a real `bin/bootstrap.jar`. It checks JVM identity
+while suspended before main, not readiness. The executable-change case faults only the `readlink` boundary;
+the threshold equality case uses real `df` output.
 
 ### Running `database-config.pl` alone
 
@@ -472,6 +476,7 @@ The first `java` on the `PATH` must be of the version that compiled the WARs (Ja
 that a process listens on fails the free-port check; closed connections that still hold it do not.
 It installs with the shipped Make rules into a fresh temporary directory and uses the installed launcher and generated
 wrappers. It does not install systemd units or change an existing appliance.
+`AA_TEST_SOURCE_PATH` must name the real Git source checkout; its default is the parent of the WAR directory.
 
 Run the installed runtime check with paths to the real prerequisites:
 
@@ -526,9 +531,20 @@ bash tests/local-install-readiness.bash
 `local-install-pv.bash` starts four real WARs and a real soft IOC in an isolated
 workspace. It checks acquisition/retrieval, interactive keep/resume, and failed
 retrieval cleanup. Its signal, range, and menu checks use the shipped verifier,
-IOC database, and CSV client, replacing only HTTP transport.
-`local-install-pv-menu.pl` checks a live keep result, IOC exit during the cleanup
-menu, and IOC exit during resume. Menu fixtures verify lifecycle handling;
+IOC database, and CSV client. Their boundary fixtures and prerequisites are explicit:
+
+- `local-install-pv-menu.pl` checks keep, stop, IOC exit during the menu or resume, rejected resume and process identity
+  rejection. A compiled libc boundary records actual signals and redirects the owned IOC's `/proc/PID/stat` read for
+  the two identity faults. It requires `cc`, Linux libc headers and `libdl`; the faults do not claim actual PID reuse.
+- `local-install-pv-range.pl` checks both query edges, nanosecond timestamp differences, alarm severity, PV identity
+  and transport failure. HTTP samples use the real CA records persisted by the verifier. The upper-edge response is
+  exactly on the requested boundary or one nanosecond beyond it, within one second of its actual CA observation.
+  The lower-bound case advances only the initial clock read and retains actual CA timestamps.
+- `local-install-pv-signals.pl` checks interruption, confirmed and missing pause evidence, actual TERM delivery,
+  KILL escalation for a stopped IOC, and waiting for the real child's exit notification. It requires Linux `ptrace` access to its own
+  descendant IOC and Perl's `syscall.ph`; a denied trace is an environment error, not verification.
+
+Menu and HTTP fixtures verify lifecycle handling;
 the real appliance round trip establishes sample storage and retrieval.
 
 ### Installer refusal of an invalid `configure/CONFIG_SITE.local`
@@ -820,13 +836,18 @@ These checks do not replace the Bash suite or real appliance installation tests.
 twice under a temporary prefix and compares every installed payload file with
 the second WAR and JAR set. It checks preservation of logs, external config,
 work/temp files, other webapps and a storage-file marker. It then verifies
-that missing, ambiguous and truncated WAR inputs and missing JARs fail without
-changing the installed mgmt payload. It exits nonzero on a mismatch and then keeps its workspace and log and prints
+that missing, ambiguous and truncated WAR inputs, a WAR without `WEB-INF/web.xml`, and missing JARs fail without
+changing the installed mgmt payload; missing JARs must produce the specific installer diagnostic. A prefixed copy of a
+real WAR must be rejected even when `unzip` extracts `web.xml` before reporting a warning. The shipped Make target also
+runs with only the payload installer's stdout redirected to `/dev/full`: its final write must fail after replacement,
+and the previous WAR and JAR contents must be restored with no staging directory left behind.
+It exits nonzero on a mismatch and then keeps its workspace and log and prints
 their path; a passing run removes them. No systemd unit or running appliance is changed. This checks installation
 contents, not runtime upgrade behavior or host privileges.
 
 The exit status is 0 when every check passed, 1 when an assertion failed and 2 for a usage or environment
-error. The test needs `git`, `make`, `unzip` (the shipped `scripts/install-payload.bash` runs it) and the Perl
+error. The test needs `git`, `make`, `zip` (to remove `web.xml` from a real WAR), `unzip`
+(the shipped `scripts/install-payload.bash` runs it), a writable `/dev/full`, and the Perl
 modules `Digest::SHA` and `IO::Uncompress::Unzip`; on Rocky Linux the packages `perl-Digest-SHA` and
 `perl-IO-Compress` provide them. The path that the test uses for the root-alias rejection climbs from the
 workspace to the filesystem root by the depth of the workspace, and the test stops before it runs the installer

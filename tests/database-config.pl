@@ -538,7 +538,7 @@ sub case_tomcat_choices_and_backup_preserve_existing_files {
     @args = ('bash', '-c', $command, 'review', $harness, $home, $boundary);
     my $run = run_command(\@args, cwd => $ROOT, env => \%env);
     is($run->{status}, 1, 'an unreadable launcher is rejected') or diag(combined($run));
-    ok(index($run->{stderr}, 'Service user review cannot read') >= 0, 'the read refusal is named');
+    ok(index($run->{stderr}, "Service user review cannot read $launcher\n") >= 0, 'the exact unreadable launcher is named');
     ok(index(slurp($log), "-n -u review -- test -r $launcher") >= 0, 'sudo tested readability');
     chmod(0755, $launcher) or die "chmod: $!\n";
     spew($sudo, qq{#!/bin/bash\nprintf "%s\\n" "\$*" >> "\$BOUNDARY_LOG"\nexit 1\n});
@@ -581,7 +581,11 @@ sub case_tomcat_replacement_rejects_protected_paths_before_side_effects {
     my $setup = 'source "$1"; PATH="$2:$PATH"; read_settings; ';
     my @keys = qw(SRC_PATH AA_INSTALL_LOCATION ARCHAPPL_STORAGE_TOP ARCHAPPL_SHORT_TERM_FOLDER
         ARCHAPPL_MEDIUM_TERM_FOLDER ARCHAPPL_LONG_TERM_FOLDER ARCHAPPL_SQLITE_FILE);
-    my @cases = (['checkout', $ROOT, []]);
+    my @cases = (['checkout', $ROOT, []],
+        ['checkout-with-external-data', $ROOT, [map { [$_, "$TEMP/external-$_"] } @keys]]);
+    my $self_link = "$TEMP/self-tomcat";
+    symlink('self-tomcat', $self_link) or die "symlink $self_link: $!\n";
+    push @cases, ['self-referencing-symlink', $self_link, [map { [$_, "$TEMP/external-$_"] } @keys]];
     for my $key (@keys) {
         # Both containment directions and equality must fail.
         for my $relation (['equal', $home], ['child', "$home/protected"], ['parent', dirname($home)]) {
@@ -680,6 +684,22 @@ sub case_installer_readiness_obeys_deadline {
     }
     $command = 'source "$1"; run_before_deadline "$((SECONDS + 5))" true; run_before_deadline "$SECONDS" true';
     run_in_root(['bash', '-c', $command, 'review', $harness], expected => 124);
+    my $marker = "$ROOT/expired-command";
+    $command = 'source "$1"; run_before_deadline "$SECONDS" touch "$2"';
+    run_in_root(['bash', '-c', $command, 'review', $harness, $marker], expected => 124);
+    ok(!-e $marker, 'a command is never started after its deadline');
+
+    # Delay return from the real timeout utility to expose an elapsed deadline after a successful child.
+    my $native_timeout = abs_path(which('timeout'));
+    write_executable("$boundary/timeout", "#!/bin/bash\n" .
+        '"$NATIVE_TIMEOUT" "$@"' . "\nstatus=\$?\nprintf '%s\\n' \"\$status\" > \"\$TIMEOUT_STATUS\"\n" .
+        "sleep 2\nexit \"\$status\"\n");
+    $command = 'source "$1"; PATH="$2:$PATH"; run_before_deadline "$((SECONDS + 1))" true';
+    my %env = (%ENV, NATIVE_TIMEOUT => $native_timeout, TIMEOUT_STATUS => "$boundary/status");
+    my $started = Time::HiRes::time();
+    run_in_root(['bash', '-c', $command, 'review', $harness, $boundary], env => \%env, expected => 124);
+    is(slurp("$boundary/status"), "0\n", 'the real timeout command completed its child successfully');
+    cmp_ok(Time::HiRes::time() - $started, '>=', 2, 'the delayed return crossed the actual deadline');
     return;
 }
 
@@ -775,6 +795,13 @@ sub case_sqlite_configuration_targets_skip_without_prerequisites {
 
 sub case_invalid_backends_fail_before_database_prerequisites {
     setup();
+    for my $target (qw(conf.context conf.systemd0)) {
+        for my $backend ('postgres', '', 'mariadb sqlite') {
+            my $run = run_command(['make', '-s', $target, "DB_BACKEND=$backend"], cwd => $ROOT);
+            is($run->{status}, 2, "$target rejects backend '$backend'") or diag(combined($run));
+            like($run->{stderr}, qr/DB_BACKEND must be one of/, "$target reports the backend error on stderr");
+        }
+    }
     make('db.conf', 'DB_BACKEND=mariadb');
     my $config = "$ROOT/site-template/mariadb.conf";
     my $original = slurp($config);
@@ -825,6 +852,13 @@ sub case_standalone_helper_never_executes_generated_configuration {
     my $run = run_command(['bash', '-p', 'scripts/mariadb_setup.bash', 'adminAdd'], cwd => $ROOT, env => \%env);
     is($run->{status}, 2, 'adminAdd with a SQLite site file exits 2');
     ok(index($run->{stderr}, 'unsupported for SQLite') >= 0, 'the SQLite refusal is named');
+    my %incomplete = (%ENV, DB_BACKEND => 'sqlite', AA_DATABASE_SETTINGS_READY => 1, ARCHAPPL_SQLITE_FILE => '');
+    delete $incomplete{DB_ADMIN_HOST};
+    $run = run_command(['bash', '-p', 'scripts/mariadb_setup.bash', 'dbShow'], cwd => $ROOT, env => \%incomplete);
+    is($run->{status}, 2, 'incomplete Make settings are refused');
+    like($run->{stderr}, qr/Incomplete Make settings/, 'the missing Make setting is diagnosed');
+    is(count_substring($run->{stderr}, 'Database operation refused:'), 1,
+        'settings failure stops before downstream database validation');
     return;
 }
 
@@ -978,7 +1012,10 @@ sub case_real_database_credentials_and_account_identity {
         run_in_root(['gzip', '-t', $archive]);
         is((stat $archive)[2] & 0777, 0600, "$kind: archive mode 0600");
         my $original = slurp($archive);
-        run_in_root([@helper, 'dbBackup', $backup], expected => 1);
+        my $collision_run = run_command([@helper, 'dbBackup', $backup], cwd => $ROOT);
+        is($collision_run->{status}, 1, "$kind: an existing backup is refused");
+        like($collision_run->{stderr}, qr/Backup already exists; refusing to overwrite:/,
+            "$kind: the existing backup is refused before starting another dump");
         is(slurp($archive), $original, "$kind: a second backup in the same minute leaves the archive");
         my $collision = "$TEMP/symlink $host";
         mkdir($collision) or die "mkdir $collision: $!\n";

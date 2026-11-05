@@ -30,8 +30,10 @@ install-payload.pl - compare the real install target against two supplied build 
 Runs the shipped install.mgmt, install.engine, install.etl and install.retrieval targets twice under a temporary
 prefix, once with the old and once with the new WAR and logging JAR set, and compares every installed payload file with
 the new set. It checks that logs, external configuration, work and temp files, other webapps and a storage marker
-survive, and that missing, ambiguous and truncated WAR inputs, missing JARs and unsafe destinations are rejected without
-changing the installed mgmt payload. No systemd unit or running appliance is changed. A passing run removes its workspace
+survive, and that missing, ambiguous and damaged WAR inputs, a WAR without WEB-INF/web.xml, missing JARs and unsafe
+destinations are rejected without changing the installed mgmt payload. A failed final write to /dev/full must restore
+the previous WAR and JAR contents through the shipped Make target. The test requires zip, unzip and /dev/full.
+No systemd unit or running appliance is changed. A passing run removes its workspace
 below TMPDIR, else below work/scratch/tmp of the checkout; a failed run, or KEEP_WORKSPACE=1, keeps the workspace and its
 log and prints the path.
 
@@ -203,7 +205,7 @@ sub make_run {
     print {$log} "exit=$status\n$stdout$stderr";
     close($log) or die "close run.log: $!\n";
     check($status == $expected, "make exit $status, expected $expected: $stderr");
-    return;
+    return ($stdout, $stderr);
 }
 
 # Digest of every non-directory entry of a ZIP archive, keyed by entry name.
@@ -252,6 +254,7 @@ sub copy_checkout {
 
 sub main {
     my @arguments = @_;
+    local $ENV{LC_ALL} = 'C';
     my ($old_log4j_option, $help);
     GetOptionsFromArray(\@arguments, 'old-log4j=s' => \$old_log4j_option, 'help|h' => \$help) or return usage_error();
     if ($help) {
@@ -265,6 +268,9 @@ sub main {
     for my $directory ($old_target, $new_target, $old_log4j_source) {
         -d $directory or die "Not a directory: $directory\n";
     }
+    -c '/dev/full' && -w _ or die "A writable /dev/full is required for the rollback check\n";
+    my ($zip_status, undef, $zip_error) = run_command(10, 'zip', '-v');
+    $zip_status == 0 or die "zip is required to prepare a real WAR without WEB-INF/web.xml: $zip_error\n";
 
     $WORKSPACE = tempdir('aa-reinstall-XXXXXXXX', DIR => temp_root(), CLEANUP => 0);
     my $root = "$WORKSPACE/checkout";
@@ -352,15 +358,73 @@ sub main {
     read($original, my $head, 100) // die "read $mgmt_war: $!\n";
     close($original) or die "close $mgmt_war: $!\n";
     spew("$corrupt/broken-mgmt.war", $head);
-    for my $case (['missing WAR', $empty, $new_log4j], ['ambiguous WARs', $ambiguous, $new_log4j],
-                  ['truncated WAR', $corrupt, $new_log4j], ['missing JARs', $new_target, $empty]) {
-        my ($label, $target, $jars) = @{$case};
-        make_run(2, 'install.mgmt', 'ARCHAPPL_WARS_TARGET_PATH=' . abs_path($target), 'ARCHAPPL_TOMCAT_LOG4J_PATH=' . abs_path($jars));
+
+    my $missing_webxml = "$WORKSPACE/missing-webxml";
+    make_path($missing_webxml);
+    my $missing_webxml_war = "$missing_webxml/missing-mgmt.war";
+    copy($mgmt_war, $missing_webxml_war) or die "copy $mgmt_war: $!\n";
+    my ($delete_status, $delete_stdout, $delete_stderr) = run_command(120, 'zip', '-q', '-d', $missing_webxml_war, 'WEB-INF/web.xml');
+    check($delete_status == 0, "Cannot remove WEB-INF/web.xml from the real WAR: $delete_stdout$delete_stderr");
+    my $missing_entries = zip_entries($missing_webxml_war);
+    check(!exists $missing_entries->{'WEB-INF/web.xml'}, 'The missing-web.xml fixture still contains WEB-INF/web.xml');
+
+    # A prefixed copy still extracts real application bytes, but unzip reports a nonzero warning.
+    my $prefixed = "$WORKSPACE/prefixed";
+    make_path($prefixed);
+    my $prefixed_war = "$prefixed/prefixed-mgmt.war";
+    open(my $source, '<:raw', $mgmt_war) or die "open $mgmt_war: $!\n";
+    open(my $destination, '>:raw', $prefixed_war) or die "open $prefixed_war: $!\n";
+    print {$destination} "Invalid ZIP prefix\n" or die "write $prefixed_war: $!\n";
+    my ($buffer, $count);
+    while (($count = read($source, $buffer, 65536))) {
+        print {$destination} $buffer or die "write $prefixed_war: $!\n";
+    }
+    defined $count or die "read $mgmt_war: $!\n";
+    close($source) or die "close $mgmt_war: $!\n";
+    close($destination) or die "close $prefixed_war: $!\n";
+    my $probe = "$WORKSPACE/prefixed-extraction";
+    my ($extract_status, $extract_stdout, $extract_stderr) = run_command(120, 'unzip', '-q', $prefixed_war, '-d', $probe);
+    print "Prefixed WAR extraction: exit=$extract_status\n$extract_stdout$extract_stderr";
+    check($extract_status == 1 && index($extract_stdout . $extract_stderr, 'extra bytes') >= 0,
+          'The prefixed WAR must produce the real unzip warning');
+    check(-s "$probe/WEB-INF/web.xml", 'The prefixed WAR must extract WEB-INF/web.xml before reporting failure');
+    check(digest_file("$probe/WEB-INF/web.xml") eq digest_file("$install/mgmt/webapps/mgmt/WEB-INF/web.xml"),
+          'The prefixed WAR changed the real WEB-INF/web.xml');
+
+    for my $case (['missing WAR', $empty, $new_log4j, ''], ['ambiguous WARs', $ambiguous, $new_log4j, ''],
+                  ['truncated WAR', $corrupt, $new_log4j, ''],
+                  ['missing JARs', $new_target, $empty, 'Missing Tomcat log4j JARs; build the source first.'],
+                  ['missing WEB-INF/web.xml', $missing_webxml, $new_log4j, 'WAR has no WEB-INF/web.xml.'],
+                  ['prefixed WAR', $prefixed, $new_log4j, '']) {
+        my ($label, $target, $jars, $diagnostic) = @{$case};
+        print "Checking: $label\n";
+        my (undef, $stderr) = make_run(2, 'install.mgmt', 'ARCHAPPL_WARS_TARGET_PATH=' . abs_path($target),
+                                     'ARCHAPPL_TOMCAT_LOG4J_PATH=' . abs_path($jars));
+        check(index($stderr, $diagnostic) >= 0, "Missing diagnostic after $label: $diagnostic") if $diagnostic ne '';
         check(snapshot($install) eq $before, "Existing payload changed after $label");
         my @leaked = bsd_glob("$install/mgmt/.payload.*");
         check(!@leaked, "Staging directory leaked after $label");
         print "PASS: $label rejected; existing payload preserved.\n";
     }
+
+    # The Make command prefix only redirects stdout; every original command still executes.
+    spew("$root/scripts/full-output.pl", q{use strict;
+use warnings;
+if (@ARGV >= 3 && $ARGV[0] eq 'bash' && $ARGV[1] eq '-p' && $ARGV[2] eq 'scripts/install-payload.bash') {
+    open(STDOUT, '>', '/dev/full') or die "open /dev/full: $!\n";
+}
+exec { $ARGV[0] } @ARGV or die "exec $ARGV[0]: $!\n";
+});
+    print "Checking: rollback after final output failure\n";
+    my (undef, $rollback_stderr) = make_run(2, 'install.mgmt', "SUDO=$^X scripts/full-output.pl",
+                                          'ARCHAPPL_WARS_TARGET_PATH=' . abs_path($old_target),
+                                          'ARCHAPPL_TOMCAT_LOG4J_PATH=' . abs_path($old_log4j));
+    check($rollback_stderr =~ /install-payload[.]bash: line [0-9]+: printf: write error:/,
+          'The payload installer did not reach its final write to /dev/full');
+    check(snapshot($install) eq $before, 'Existing payload was not restored after final output failure');
+    my @rollback_stages = bsd_glob("$install/mgmt/.payload.*");
+    check(!@rollback_stages, 'Staging directory leaked after final output failure');
+    print "PASS: final output failure restored the previous WAR and JAR contents.\n";
 
     my $link = "$WORKSPACE/linked-instance";
     symlink("$install/mgmt", $link) or die "symlink: $!\n";

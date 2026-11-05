@@ -32,9 +32,15 @@ than its real observation) and wrong-pv (data of another PV). Each run must end 
 requires, with the PASS line only when the samples are valid, and with the test IOC stopped, and the retrieval
 requests must carry the expected samples and PV name.
 
-Only the HTTP transport is replaced: this file runs again as the C<curl> of the verifier's PATH. As that C<curl> it
-answers archive, status, pause and data requests from the real IOC (it reads the process variable with the caget of the
-supplied Base) and records its observations under the evidence folder of the run. The same file is the time-range
+Four additional cases check a sample below the lower bound, one second plus one nanosecond before its real CA
+observation, nonzero alarm severity, and valid JSON returned with a nonzero transport status. Before-range advances
+only the initial clock read by five seconds and retains both times; CA timestamps and later clock reads remain
+native. The real CA observation selected for the lower-bound sample must be within one second of that sample.
+
+The HTTP transport is replaced: this file runs again as the C<curl> of the verifier's PATH. It reads the real IOC with
+the supplied caget for status requests. Data responses use the actual CA records persisted by the verifier, with only
+the named fault applied. Upper-edge samples differ by one nanosecond and must stay within one second of the actual
+CA observation; the test retains the selected records and query bounds. The same file is the time-range
 fixture of tests/local-install-pv-menu.pl. The runs work in a folder local-pv-range.* below TMPDIR,
 else below work/scratch/tmp of the checkout, which the test creates when it is missing. A passing run removes it and the
 evidence folders of the verifier; a failed run, or KEEP_WORKSPACE=1, keeps them and prints their path.
@@ -56,7 +62,8 @@ Print this text and exit 0.
 =head1 EXIT STATUS
 
 0 when every run passed, 1 when a check failed, 2 for a usage error or an environment error. As the C<curl> fixture:
-0 when the request was answered, 7 for a request it does not know, 1 when the IOC cannot be read.
+0 when the request was answered, 7 for an unsupported request or an unexposed query edge, 1 when required CA evidence
+cannot be read, and 18 for the deliberate transport failure after a valid JSON response.
 
 =cut
 
@@ -165,7 +172,9 @@ sub read_ca {
     waitpid($pid, 0);
     die "caget of $pv failed with status " . ($? >> 8) . "\n" if $?;
     my @fields = split ' ', $line;
-    return { secs => epoch("$fields[1]T$fields[2]"), val => $fields[3] + 0 };
+    my ($fraction) = $fields[2] =~ /[.](\d+)/;
+    my $nanos = substr(($fraction // '') . '000000000', 0, 9) + 0;
+    return { secs => epoch("$fields[1]T$fields[2]"), nanos => $nanos, val => $fields[3] + 0 };
 }
 
 sub answer {
@@ -198,6 +207,7 @@ sub curl_fixture {
     if ($url =~ m{/archivePV\z}) {
         my ($request) = map { $args[$_ + 1] } grep { $args[$_] eq '--data-binary' } 0 .. $#args;
         my $pv = $JSON->decode(slurp(substr($request, 1)))->[0]{pv};
+        spew("$root/verifier-evidence", dirname(substr($request, 1)));
         $payload = [ { pvName => $pv, status => 'Archive request submitted' } ];
     }
     elsif ($url =~ m{/getPVStatus\z}) {
@@ -209,22 +219,52 @@ sub curl_fixture {
         $payload = { status => 'ok' };
     }
     elsif ($url =~ m{/getData\.json\z}) {
-        my @observed = map { $JSON->decode($_) } split /\n/, slurp("$root/observations.jsonl");
+        my $folder = slurp("$root/verifier-evidence");
+        my @observed = map {
+            my ($secs, $value, $nanos) = split /\t/;
+            { secs => $secs + 0, val => $value + 0, nanos => $nanos + 0 }
+        } split /\n/, slurp("$folder/ca.tsv");
+        die "two distinct real CA observations are required\n"
+            unless @observed >= 2 && $observed[0]{val} != $observed[-1]{val};
         my $first = $observed[0];
-        my $last = read_ca($query{pv});
+        my $last = $observed[-1];
         my $end = epoch($query{to});
+        # Both the exact upper edge and the next nanosecond must match the real CA timestamp within one second.
+        # Returning a transport failure lets the verifier collect another actual sample before retrying.
+        my $near_edge = $last->{secs} == $end
+            || ($last->{secs} == $end - 1 && $last->{nanos} >= 1);
+        if (($mode eq 'boundary' || $mode eq 'outside') && !$near_edge) {
+            append("$root/edge-not-exposed", "$last->{secs} $end\n");
+            return 7;
+        }
+        spew("$root/response-observations.json", $JSON->encode(\@observed));
         my $bad = $mode eq 'outside';
-        # The last sample carries the live value of the IOC, read after the verifier fixed the query range: its time is
-        # never later than the upper bound, and only the outside mode places it past that bound by its fraction.
+        # Values and timestamps come from the real caget records persisted by the verifier. The HTTP boundary applies
+        # only the named timestamp, identity, alarm or transport fault to those records.
         my @data = (
             { %{$first}, nanos => 0, severity => 0, status => 0 },
             { %{$last}, secs => ($mode eq 'boundary' || $mode eq 'outside' || $last->{secs} > $end ? $end : $last->{secs}),
-                nanos => ($bad ? 999999999 : 0), severity => 0, status => 0 },
+                nanos => ($bad ? 1 : 0), severity => 0, status => 0 },
         );
         if ($mode eq 'time-skew') {
             $data[0]{secs} += 1;
             $data[0]{nanos} = 999999999;
         }
+        if ($mode eq 'before-range') {
+            my ($candidate) = grep { $_->{secs} == epoch($query{from}) || $_->{secs} == epoch($query{from}) - 1 } @observed;
+            die "no real CA sample exposed the advanced query start\n" unless $candidate;
+            spew("$root/lower-observation.json", $JSON->encode($candidate));
+            $data[0] = { %{$candidate}, severity => 0, status => 0 };
+            $data[0]{secs} = epoch($query{from}) - 1;
+            $data[0]{nanos} = 999999999;
+        }
+        if ($mode eq 'lower-skew') {
+            my $observed = $observed[-1];
+            die "the real CA timestamp has no fraction for the borrow case\n" unless $observed->{nanos} > 0;
+            $data[1] = { %{$observed}, secs => $observed->{secs} - 1,
+                nanos => $observed->{nanos} - 1, severity => 0, status => 0 };
+        }
+        $data[0]{severity} = 1 if $mode eq 'alarm';
         my $name = $mode eq 'wrong-pv' ? "$query{pv}:Wrong" : $query{pv};
         $payload = [ { meta => { name => $name }, data => \@data } ];
         spew("$root/query.json", $JSON->encode(\%query));
@@ -233,7 +273,12 @@ sub curl_fixture {
     else {
         return 7;
     }
-    return answer($payload, @args);
+    my $status = answer($payload, @args);
+    if ($mode eq 'transport-failure' && $url =~ m{/getData\.json\z}) {
+        append("$root/transport-status", "18\n");
+        return 18;
+    }
+    return $status;
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -281,7 +326,7 @@ sub run_mode {
         'http://127.0.0.1:33665/mgmt/bpl', 'http://127.0.0.1:33668/retrieval', $source);
     my $status = run_verifier(\%env, "$evidence/log", @command);
     my $text = slurp("$evidence/log");
-    my $expected = ($mode eq 'outside' || $mode eq 'time-skew' || $mode eq 'wrong-pv') ? 1 : 0;
+    my $expected = ($mode eq 'inside' || $mode eq 'boundary') ? 0 : 1;
     check($status == $expected, "$mode: status $status, expected $expected: $text");
     check((index($text, 'PV acquisition, storage and retrieval: PASS') >= 0 ? 1 : 0) == ($expected == 0 ? 1 : 0),
         "$mode: the PASS line does not match the status: $text");
@@ -293,8 +338,25 @@ sub run_mode {
     my $query = $JSON->decode(slurp("$evidence/query.json"));
     my $response = $JSON->decode(slurp("$evidence/response.json"));
     my $upper = epoch($query->{to});
-    my @valid = grep { $_->{secs} < $upper || ($_->{secs} == $upper && $_->{nanos} == 0) } @{ $response->[0]{data} };
-    check(scalar(@valid) == ($mode eq 'outside' ? 1 : 2), "$mode: " . scalar(@valid) . ' valid samples');
+    my $lower = epoch($query->{from});
+    my @valid = grep { $_->{secs} >= $lower && ($_->{secs} < $upper || ($_->{secs} == $upper && $_->{nanos} == 0)) }
+        @{ $response->[0]{data} };
+    check(scalar(@valid) == ($mode eq 'outside' || $mode eq 'before-range' ? 1 : 2),
+        "$mode: " . scalar(@valid) . ' samples inside the query range');
+    my @observed = @{ $JSON->decode(slurp("$evidence/response-observations.json")) };
+    if ($mode eq 'before-range') {
+        my $observed = $JSON->decode(slurp("$evidence/lower-observation.json"));
+        check($observed->{secs} == $lower || $observed->{secs} == $lower - 1,
+            'before-range: no real CA sample exposed the lower bound');
+        check(-s "$evidence/clock-offset", 'before-range: the clock boundary was not applied');
+    }
+    if ($mode eq 'lower-skew') {
+        check($response->[0]{data}[1]{secs} == $observed[-1]{secs} - 1
+            && $response->[0]{data}[1]{nanos} == $observed[-1]{nanos} - 1,
+            'lower-skew: the HTTP sample was not one second plus one nanosecond before its real CA observation');
+    }
+    check(-s "$evidence/transport-status", 'transport-failure: the HTTP boundary did not return status 18')
+        if $mode eq 'transport-failure';
     if ($mode eq 'wrong-pv') {
         check($response->[0]{meta}{name} ne $query->{pv}, "$mode: the answer names the requested PV");
         my $logs = join '', map { slurp($_) } bsd_glob("$retained/extract-*.log");
@@ -321,8 +383,13 @@ sub main {
     make_path("$TOP/work");
     my $workspace = tempdir('local-pv-range.XXXXXXXX', DIR => temp_root());
     symlink(abs_path($0), "$workspace/curl") or die "symlink: $!\n";
+    my ($date) = grep { -x $_ } map { "$_/date" } split /:/, $ENV{PATH};
+    defined $date or die "date is required\n";
+    local $ENV{RANGE_DATE} = abs_path($date);
+    symlink(abs_path($0), "$workspace/date") or die "symlink date: $!\n";
     my $ok = eval {
-        run_mode($_, $workspace, $epics, $source) for qw(inside boundary outside time-skew wrong-pv);
+        run_mode($_, $workspace, $epics, $source)
+            for qw(inside boundary outside time-skew wrong-pv before-range lower-skew alarm transport-failure);
         1;
     };
     my $error = $@;
@@ -339,6 +406,17 @@ sub usage_error {
 }
 
 my $status;
+if (basename($0) eq 'date') {
+    # Only the initial wall-clock read advances. CA timestamps and later clock reads remain native.
+    my $marker = "$ENV{RANGE_EVIDENCE}/clock-offset";
+    if ($ENV{RANGE_MODE} eq 'before-range' && join(' ', @ARGV) eq '-u +%s' && !-e $marker) {
+        my $actual = time();
+        spew($marker, "$actual " . ($actual + 5) . "\n");
+        print $actual + 5, "\n";
+        exit 0;
+    }
+    exec { $ENV{RANGE_DATE} } $ENV{RANGE_DATE}, @ARGV or die "exec date: $!\n";
+}
 if (basename($0) eq 'curl') {
     $status = eval { curl_fixture(@ARGV) };
     if (!defined $status) {

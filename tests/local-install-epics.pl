@@ -4,6 +4,8 @@ use 5.010;    # defined-or operator
 use strict;
 use warnings;
 use Cwd qw(abs_path);
+use Fcntl qw(:flock);
+use File::Copy qw(copy);
 use File::Path qw(make_path);
 use File::Basename qw(basename dirname);
 use File::Temp qw(tempdir);
@@ -158,14 +160,14 @@ sub run_command {
 sub preflight {
     my ($env, @options) = @_;
     return run_command(['bash', "$TOP/scripts/verify-local-pv.bash", '--check-epics', @options],
-        env => $env, timeout => 15);
+        env => $env, cwd => $capture_dir, timeout => 15);
 }
 
 # Starts one installer on a pseudo-terminal from script(1), answers its question with y and returns its status and
 # the terminal output with carriage returns removed.
 sub installer_on_terminal {
-    my ($env, $backend) = @_;
-    my $entry = "$TOP/scripts/install-local-$backend.bash";
+    my ($env, $backend, $checkout) = @_;
+    my $entry = "$checkout/scripts/install-local-$backend.bash";
     my $run = run_command(['script', '-q', '-e', '-c', 'bash ' . shell_quote($entry), '/dev/null'],
         env => $env, cwd => $TOP, input => "y\n", timeout => 20);
     (my $output = $run->{stdout} . $run->{stderr}) =~ s/\r//g;
@@ -194,15 +196,42 @@ sub main {
         check($result->{status} == 1 && index($result->{stderr}, 'existing absolute Base directory') >= 0,
             "EPICS_BASE=$base was not refused: status $result->{status}: $result->{stderr}");
     }
+    make_path("$capture_dir/relative-base");
+    $result = preflight({ %env, EPICS_BASE => 'relative-base' });
+    check($result->{status} == 1 && index($result->{stderr}, 'existing absolute Base directory') >= 0,
+        "An existing relative Base directory was not rejected by the absolute-path check: $result->{stderr}");
+
+    # A held real checkout lock stops a normal unattended run before any installation step.
+    my $locked = "$capture_dir/locked-checkout";
+    make_path("$locked/work");
+    for my $name (qw(configure site-template scripts Makefile)) {
+        my $copied = run_command(['cp', '-R', "$TOP/$name", "$locked/$name"], timeout => 30);
+        $copied->{status} == 0 or die "copy $name: $copied->{stderr}\n";
+    }
+    open(my $lock, '>>', "$locked/work/.local-install.lock") or die "open installer lock: $!\n";
+    flock($lock, LOCK_EX | LOCK_NB) or die "hold installer lock: $!\n";
 
     for my $backend (qw(sqlite mariadb-uds mariadb-tcp)) {
-        my ($status, $output) = installer_on_terminal(\%env, $backend);
+        my ($status, $output) = installer_on_terminal(\%env, $backend, $locked);
         check($status == 1, "install-local-$backend.bash exited $status: $output");
         check(index($output, 'No installation changes have been made') >= 0, "$backend made no such statement: $output");
         check(index($output, 'Source your EPICS environment setup file') >= 0, "$backend gave no setup message: $output");
         check(index($output, 'Install packages, build') < 0, "$backend reached the installation step: $output");
         check(index($output, '+ sudo') < 0 && index($output, '+ make') < 0, "$backend ran a sudo or make step: $output");
     }
+
+    for my $backend (qw(sqlite mariadb-uds mariadb-tcp)) {
+        my $run = run_command(['bash', "$locked/scripts/install-local-$backend.bash", '--skip-packages'],
+            env => \%env, input => "y\n", timeout => 20);
+        my $output = $run->{stdout} . $run->{stderr};
+        check($run->{status} == 1 && index($output, 'Another appliance installer is running') >= 0,
+            "$backend: unattended execution did not stop at the held checkout lock: $output");
+        check(index($output, 'Optional soft IOC test skipped in unattended mode') >= 0,
+            "$backend: non-terminal input did not skip the optional test: $output");
+        check(index($output, 'Run the PV acquisition/storage/retrieval test?') < 0,
+            "$backend: non-terminal input was prompted for the optional test");
+    }
+    close($lock) or die "close installer lock: $!\n";
 
     my $epics_bin = $ENV{AA_TEST_EPICS_BIN};
     if ($epics_bin) {
@@ -220,6 +249,27 @@ sub main {
         $result = preflight({ %env, EPICS_BASE => $base, EPICS_HOST_ARCH => 'missing-architecture' });
         check($result->{status} == 1 && index($result->{stderr}, 'executable softIoc and caget') >= 0,
             "An unknown architecture was not refused: status $result->{status}: $result->{stderr}");
+        for my $invalid ('.', '..', "../bin/$arch") {
+            $result = preflight({ %env, EPICS_BASE => $base, EPICS_HOST_ARCH => $invalid });
+            check($result->{status} == 1 && index($result->{stderr}, 'Invalid EPICS_HOST_ARCH') >= 0,
+                "An unsafe architecture was not rejected: $invalid: $result->{stderr}");
+        }
+        my $ambiguous = "$capture_dir/ambiguous-base";
+        make_path("$ambiguous/bin");
+        for my $name (qw(first second)) {
+            symlink($epics_bin, "$ambiguous/bin/$name") or die "link real EPICS binaries: $!\n";
+        }
+        $result = preflight({ %env, EPICS_BASE => $ambiguous });
+        check($result->{status} == 1 && index($result->{stderr}, 'Cannot select a unique EPICS Base binary directory') >= 0,
+            "Two real binary directories were not rejected as ambiguous: $result->{stdout}$result->{stderr}");
+        my $nonexecutable = "$capture_dir/nonexecutable-caget";
+        make_path($nonexecutable);
+        symlink("$epics_bin/softIoc", "$nonexecutable/softIoc") or die "link softIoc: $!\n";
+        copy("$epics_bin/caget", "$nonexecutable/caget") or die "copy real caget: $!\n";
+        chmod(0644, "$nonexecutable/caget") or die "chmod caget: $!\n";
+        $result = preflight(\%env, '--epics-bin', $nonexecutable);
+        check($result->{status} == 1 && index($result->{stderr}, 'executable softIoc and caget') >= 0,
+            "A non-executable real caget was not rejected: $result->{stdout}$result->{stderr}");
         print "PASS: EPICS preflight resolves the supplied real Base binaries.\n";
     }
     else {

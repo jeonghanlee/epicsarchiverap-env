@@ -36,6 +36,8 @@ compares the environment and the command line of the four JVMs with the settings
 health and status actions read the threshold, edits a config.d file while the service runs (the running JVMs keep the
 old environment, health reads the new threshold) and restarts the service. Last, a config.d file with a syntax error
 must make the launcher and every generated wrapper fail and name the file, with and without bash -f.
+The installed loader must restore allexport, component assignments must reach the real JVM environment, and shutdown
+must remove stale PID files containing the PID of a real child that the test has already reaped.
 
 A failed run, or a run with KEEP_WORKSPACE=1, keeps the directory archappl-config-runtime-* below TMPDIR, else below
 work/scratch/tmp of the checkout, which the test creates when it is missing, and prints its path: installed files, source
@@ -45,7 +47,8 @@ SIGINT and SIGTERM stop the JVMs before the test ends with status 130 or 143.
 Required: Java of the version the WARs were compiled for (21 for the current source) first on the PATH, a readable and
 executable Tomcat 9 distribution, built appliance WARs with the folder tomcat-log4j beside them, journald, unused
 local ports (offsets 0 to 3 for HTTP, 5 for the cluster, 10 to 13 for shutdown; a port that a process listens on fails
-the check), and the programs bash, make, sqlite3 and unzip. Required Perl modules
+the check), and the programs bash, make, git, sqlite3 and unzip. AA_TEST_SOURCE_PATH must name the real Git source
+checkout; its default is the parent of the WAR directory. Required Perl modules
 beyond the core of Perl 5.26: none, but on Rocky Linux Digest::SHA is the separate package perl-Digest-SHA,
 IO::Uncompress::Unzip the package perl-IO-Compress and JSON::PP the package perl-JSON-PP.
 
@@ -331,6 +334,8 @@ sub prepare {
     my $java = which('java') // die "java was not found on the PATH\n";
     $state->{java} = abs_path($java);
     my $java_home = dirname(dirname($state->{java}));
+    my $source = $ENV{AA_TEST_SOURCE_PATH} // dirname($state->{war_dir});
+    command($state, ['git', '-C', $source, 'rev-parse', '--verify', 'HEAD']);
     my $store = "$state->{root}/store";
     mkdir($store) or die "mkdir $store: $!\n";
     for my $name (qw(sts mts lts)) {
@@ -342,13 +347,15 @@ sub prepare {
         "AA_INSTALL_LOCATION=$state->{installed}", "JAVA_HOME=$java_home", "TOMCAT_HOME=$state->{tomcat_home}",
         'DB_BACKEND=sqlite', "ARCHAPPL_SQLITE_FILE=$state->{root}/archappl.sqlite", "ARCHAPPL_STORAGE_TOP=$store",
         'ARCHAPPL_STORAGE_ALARM_PERCENT=100', "ARCHAPPL_WARS_TARGET_PATH=$state->{war_dir}",
+        "SRC_PATH=$source",
         'ARCHAPPL_HOST_IPADDR=127.0.0.1', 'ARCHAPPL_CLUSTER_INETPORT=127.0.0.1:' . ($first + 5));
     for my $offset (0 .. $#SERVICES) {
         my $upper = uc $SERVICES[$offset];
         push @make, "ARCHAPPL_${upper}_PORT=" . ($first + $offset), "ARCHAPPL_SHUTDOWN_${upper}_PORT=" . ($first + 10 + $offset);
     }
     $state->{make_args} = \@make;
-    make($state, 'conf.archapplproperties', 'services.install', 'serveroption.install');
+    make($state, 'conf.archapplproperties', 'conf.install');
+    make($state, 'services.install', 'serveroption.install');
     my @wars = bsd_glob("$state->{war_dir}/*-mgmt.war");
     check(@wars == 1, 'Expected one mgmt WAR in ' . $state->{war_dir} . ', found ' . scalar(@wars));
     my $zip = IO::Uncompress::Unzip->new($wars[0], Name => 'install/archappl_sqlite.sql')
@@ -365,7 +372,7 @@ sub prepare {
         . "EPICS_CA_ADDR_LIST=127.0.0.1\nEPICS_CA_AUTO_ADDR_LIST=NO\n"
         . q{CATALINA_OPTS='-Xms64m -Xmx256m -XX:ActiveProcessorCount=2 -Dconfig.common=present'} . "\n");
     spew("$state->{installed}/engine/conf/engine.conf",
-        "\n" . q{CATALINA_OPTS="$CATALINA_OPTS -Dconfig.component=engine"} . "\n", 'append');
+        "\n" . q{CATALINA_OPTS="$CATALINA_OPTS -Dconfig.component=engine"} . "\nCONFIG_TEST_COMPONENT=engine\n", 'append');
     edit($state, 'initial', 100);
     my @members = map { "$state->{installed}/$_" } qw(archappl.conf archappl.bash archappl-config.bash);
     for my $name (@SERVICES) {
@@ -465,6 +472,7 @@ sub observe {
         $observations{$name} = {
             pid => $pid + 0,
             environment => { map { $_ => $environ{$_} // '<missing>' } sort keys %wanted },
+            component_environment => $environ{CONFIG_TEST_COMPONENT} // '<missing>',
             path_prefix_count => scalar(grep { $_ eq $prefix } @path),
             arguments => \@arguments,
         };
@@ -484,6 +492,7 @@ sub observe {
             "$label: $name: missing -Dcatalina.base=$state->{installed}/$name");
         if ($name eq 'engine') {
             check((grep { $_ eq '-Dconfig.component=engine' } @arguments) > 0, "$label: engine: missing -Dconfig.component=engine");
+            check($observed->{component_environment} eq 'engine', "$label: engine: component configuration was not exported");
         }
     }
     for my $action (qw(health status)) {
@@ -558,6 +567,8 @@ sub check_invalid_syntax {
         for my $action (qw(startup service)) {
             my $run = command($state, ['bash', @{$options}, $state->{launcher}, $action], expected => 1);
             check(index($run->{stderr}, $invalid) >= 0, "launcher $action does not name $invalid");
+            check(index($run->{stderr}, 'configuration preflight failed; no instance was touched') >= 0,
+                "launcher $action did not reject invalid configuration at its preflight");
             for my $name (@SERVICES) {
                 check(!-e "$state->{installed}/$name/temp/$name.pid", "launcher $action left a PID file of $name");
             }
@@ -572,11 +583,40 @@ sub check_invalid_syntax {
     return;
 }
 
+sub check_installed_loader_options {
+    my ($state) = @_;
+    my $script = 'set +a; . "$1/archappl-config.bash"; archappl_load_configuration "$1" || exit 2; [[ $- != *a* ]]';
+    command($state, ['bash', '-c', $script, 'installed-loader', $state->{installed}]);
+    print "PASS: installed loader restores the caller export option\n";
+    return;
+}
+
+sub check_stale_pid_cleanup {
+    my ($state) = @_;
+    my $pid = fork();
+    defined $pid or die "fork: $!\n";
+    POSIX::_exit(0) unless $pid;
+    waitpid($pid, 0) == $pid or die "waitpid $pid: $!\n";
+    check(!-e "/proc/$pid", 'the stale PID belongs to a terminated and reaped child');
+    for my $name (@SERVICES) {
+        spew("$state->{installed}/$name/temp/$name.pid", "$pid\n");
+    }
+    my $run = command($state, ['bash', $state->{launcher}, 'shutdown'], timeout => 30);
+    check(index($run->{stdout}, 'PID file found but either no matching process was found') >= 0,
+        'real Tomcat shutdown observed the stale PID');
+    for my $name (@SERVICES) {
+        check(!-e "$state->{installed}/$name/temp/$name.pid", "shutdown retained the stale PID file of $name");
+    }
+    print "PASS: successful installed shutdown wrappers remove stale PID files\n";
+    return;
+}
+
 sub run_checks {
     my ($state) = @_;
     my $verdict = 'INCOMPLETE';
     my $ok = eval {
         prepare($state);
+        check_installed_loader_options($state);
         start($state, 'direct', 'direct-noglob');
         observe($state, 'direct-noglob', 'initial', 100);
         stop($state, 1);
@@ -593,6 +633,7 @@ sub run_checks {
         start($state, 'service', 'service-after-restart');
         observe($state, 'service-after-restart', 'changed', 99);
         stop($state, 1);
+        check_stale_pid_cleanup($state);
         check_invalid_syntax($state);
         $verdict = 'PASS';
         1;

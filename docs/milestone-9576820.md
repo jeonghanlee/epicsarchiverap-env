@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Select and assign the next item from `## Backlog` before further implementation. All eleven assigned items are Complete, with M17 closed against the correction and verification record at `5da67a8`; no row is Ready. Backlog items M5, M6 and M7 remain Deferred, and M10, M12 and M16 remain Open and unassigned. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md), including backup and recovery, and are not part of this closure.
+Next session entry point: M10 implementation and required verification are finished. All 161 mutations are accounted for: 156 are killed and five are equivalent for the documented entry paths; all nine tests pass unmutated locally and in the Rocky guest. Repository landing remains pending; no M10 commit or push has been authorized. The guest is shut off with its disks and evidence retained. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
-This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M11, M13, M14, M15 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, and M17 on 2026-11-03 by D34. Deferred work is ordered M5, M6 and M7 for later reconsideration; M10, M12 and M16 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M13, M14, M15 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, and M10 on 2026-11-05 by D37. Deferred work is ordered M5, M6 and M7 for later reconsideration; M12 and M16 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -32,8 +32,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M9 | Keep the last sample of the PV time-range test inside the query range | Carry-forward | Complete | No | M3, D23, D30, D31 | The unmutated time-range test passes in all 30 runs of a series, and its stable mutation verdicts stay as before; T1-T2 passed; landed at e39252e; [detail](#m9---keep-the-last-sample-of-the-pv-time-range-test-inside-the-query-range) |
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Complete | No | D33, D34 | T1-T9 satisfy the completion criteria within their recorded input and environment limits; read-failure correction and verification record landed at 5da67a8; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
+| Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | In progress | No | M3, D24, D37, D38 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 11 Complete. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 11 Complete, 1 In progress. No row is Ready.
 
 ### Decisions
 
@@ -75,6 +76,8 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D34 | Assign M17 on 2026-11-03 after the owner accepted its plan and authorized the implementation: the installer scripts inspect the installed appliance and run only the layers that differ. Its status changes from Open to In progress. | 2026-11-03 |
 | D35 | Revise the plan of M17 before its step 3: the comparison of the installed appliance with the checkout is a helper script `scripts/inspect-local-install.bash`, so that a test can run it alone against a temporary tree; the checkout update and the printed comparison are the new option `--inspect` of the installer scripts; `--plan` keeps its meaning, prints the commands and executes nothing, because the tests and the install pages treat it as free of side effects; a normal run inspects first and asks its confirmation after the inspection, naming the layers that will change. The owner accepted the revision and, after the review of the revised text ended, renewed the implementation authorization for its steps 3 to 6. | 2026-11-03 |
 | D36 | Keep the optional soft IOC question of the installer scripts first, before the lock and the checkout update, and narrow the rule of D35 that a run which changes nothing asks nothing to "asks no confirmation": the test of the EPICS preflight requires that an unprepared EPICS environment stops the installer before any `make` or `sudo` step, and moving the question behind the inspection made that test fetch the source and render the working checkout, so that it needed the network and left the checkout rendered for the last backend. The owner chose this over rewriting the test (2026-11-03). | 2026-11-03 |
+| D37 | Assign M10 and authorize its first implementation batch: correct the four reproduced gaps in `tests/install-payload.pl`, verify the real installation path and rerun its fourteen recorded mutations. The remaining forty-four survivors are outside this batch; M10 remains In progress until its full completion criteria are met. | 2026-11-05 |
+| D38 | Extend the accepted M10 implementation plan and authorization to the remaining eight tests, all forty-four original survivors, and outstanding verification. Add checks through the shipped paths or record demonstrated equivalent mutations with their reasons; shipped product code remains outside the scope. | 2026-11-05 |
 
 ### ID Migration
 
@@ -104,6 +107,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M9 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D30 | this synchronization commit | this synchronization commit |
 | 9576820 / M8 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned and closed 2026-11-03 by D32 | this synchronization commit | this synchronization commit |
 | 9576820 / M17 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D34 | this synchronization commit | this synchronization commit |
+| 9576820 / M10 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-05 by D37 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1468,9 +1472,132 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M10 - Close the gaps that the Python tests left in the Perl tests
+
+Origin: 9576820 / M10
+Identity History: created as M10 on 2026-11-02 by D24; assigned on 2026-11-05 by D37
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+At the M3 conversion, the Perl and Python tests both left the same 48 scratch mutations alive (conversion record of M3). The corrected nine tests kill 43 of those mutations; five have matching native results and source-level equivalence reasons below. All 113 former kills remain killed. The complete set is 161 mutations: 156 killed and five equivalent for the recorded entry paths. The original survivors per file were: `tests/install-payload.pl` 4, `tests/health-local.pl` 5, `tests/database-config.pl` 11 (nine configuration cases and two integration cases), `tests/config-d.pl` 6, `tests/local-install-epics.pl` 5, `tests/local-install-pv-menu.pl` 6, `tests/local-install-pv-range.pl` 4, `tests/local-install-pv-signals.pl` 3 and `tests/config-d-runtime.pl` 4. The signal test also checks the unconfirmed-pause warning when the verifier's pause evidence is missing. Implementation and required verification are finished; repository landing remains pending.
+
+##### Scope
+
+- For each survivor, add an observation to the Perl test that fails on the mutation, or record with its reason that the line has no observable effect and keep the mutation as known to be equivalent.
+- Run every mutation of the changed file again, with repeats for the timing-dependent ones of `tests/local-install-pv-menu.pl` and `tests/local-install-pv-range.pl`.
+
+Out of scope: the conversion of the tests (M3); the last sample of the time-range test (M9); changes to the shipped code.
+
+##### Completion Criteria
+
+- Every survivor listed in the conversion record of M3 is killed by its Perl test or recorded as equivalent with the reason.
+- The mutations that the tests kill after M3 stay killed.
+
+##### Dependencies And Decisions
+
+- D24 creates this item on 2026-11-02.
+- M3 converts the tests first; M10 changes the converted files.
+- D37 accepts and authorizes the installation-test batch on 2026-11-05.
+- D38 extends acceptance and implementation authorization to all remaining M10 work on 2026-11-05.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-05, installation-test batch by D37 and remaining work by D38
+Implementation Authorization: 2026-11-05, installation-test corrections by D37 and all remaining corrections and verification by D38
+Superseded Plan Artifacts: none
+
+The implementation covers all nine Perl tests named in Scope and their test documentation, without changing shipped product code. The tests retain Perl 5.10-compatible syntax; the oldest target interpreter is Perl 5.26.3 on Rocky Linux 8.10. Test prerequisites include a C compiler and libc headers for the menu filesystem boundary, Linux ptrace access and syscall.ph for the real IOC exit barrier, and the documented core Perl modules. These are test dependencies only. The `zip` command prepares a damaged copy of a real built WAR; no application payload is synthesized.
+
+1. Require the specific missing-JAR diagnostic, so a later command failure cannot satisfy that case.
+2. Remove `WEB-INF/web.xml` from a copy of a real WAR and verify rejection without changing the installed payload.
+3. Prefix a real WAR with invalid bytes, first establish that real `unzip` reports a warning after extracting `web.xml`, then verify that the installer refuses that input without changing the installed payload.
+4. Run the shipped Make target with its command prefix redirecting only the real payload installer's stdout to `/dev/full`. Require the final write error and exact restoration of the installed WAR and JAR contents after replacement.
+5. Run the unchanged case and all fourteen recorded mutations on the corrected test, recording intended assertion failures rather than treating any nonzero status as a kill. Run the unmutated test on the local host and the oldest available Rocky Linux environment; keep any missing guest coverage explicit.
+
+6. Address the configuration-loader and EPICS preflight gaps with actual filesystem inputs, inherited shell settings, exact diagnostics and an unattended installer stopped by its real checkout lock.
+7. Address health and runtime gaps through the real launcher, process identities, storage observations and installed wrappers. Classify a redundant guard only after comparing the actual original and mutated paths.
+8. Address database configuration and backup gaps using the shipped helpers and real disposable databases; retain native errors separately from assertion failures.
+9. Address PV menu, range and signal gaps using real soft IOC processes, real CA observations and the existing HTTP boundary fixtures. Include missing verifier evidence, actual cleanup exposure and the preserved time bounds. Repeat unmutated and mutated menu/range cases at least three times.
+10. Run all recorded mutations for every changed file; retain source hashes, exact commands, native output and the intended failing assertion. Run each changed test unmutated locally and in the Rocky guest; complete M10 only after all original survivors and required checks are accounted for.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Local | Run the recorded mutations of each changed test and compare their verdicts with the recorded ones | A host with a real EPICS Base, Java and Tomcat | Each former survivor is killed or recorded as equivalent; the former kills stay |
+| T2 | Local and guest | Run each changed test unmutated | The same host and the Rocky Linux guest | Every run passes, as before the change |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-05 UTC | Debian 13, Perl 5.40.1; real WARs, Tomcat and soft IOC; private databases in Rocky | Pass: 43 of 48 former survivors are killed and five are equivalent; all 113 former kills remain. All 24 menu/range mutations fail at the intended assertions in each of three runs, and their unmutated controls pass | `work/m10-remaining/mutation-verdicts.json`; `work/m10-remaining/evidence-audit.json`; `work/m10-remaining/fault-exposure.json`; `work/m10-remaining/equivalent-native-comparison.json`; `work/m10-remaining/backup-equivalent-native-comparison-final.json`; `work/m10-payload-fix-kq1vfi8u/mutations/results.json` |
+| T2 | 2026-11-05 UTC | Debian 13 host and Rocky Linux 8.10 guest, Perl 5.26.3 | Pass: all nine changed tests pass unmutated on both targets. The Rocky guest also passes the real SQLite and private MariaDB socket/TCP integration paths. Syntax, POD, help and required modules pass on both interpreters | Guest controls: `work/m10-remaining/rocky-48vkqhgt`, `rocky-2ile111j`, `rocky-36660q7v` (runtime), and `rocky-im0636ee` (PV and database integration); exact successful cases are recorded in each `results.json`. Static results: `work/m10-remaining/static-final/`; guest input recheck and terminal facts: `work/m10-remaining/rocky-final/` |
+
+The guest required the test-only packages `zip` and `perl-Pod-Checker`; their actual installation logs are retained. Its source remained at `e0a8e66ed09e840ab8ed67dae81b25474605db08`, all transferred input checksums remained valid, and no M10 JVM, IOC or database process remained before shutdown. Shutdown completed on 2026-11-05 UTC; `work/m10-remaining/rocky-lifecycle.jsonl` retains the native result and shut-off observation. Earlier missing prerequisites, shared-CA-port collisions, blocked runtime ports and superseded fixture failures are excluded from mutation kills.
+
+The source audit covers 208 selected local runs, each with the complete 299-member Git inventory and a native post-run checksum check. The payload's fourteen mutation copies also pass native checksum checks; guest manifests agree with the transferred source and the exact single mutation. The executed test files equal the final executable code; any later difference is limited to POD or the initial comment and is listed with both hashes. Forty-two retained PV fault observations independently confirm the CA samples, query edges, process-file faults, native signals and kernel exit events used by the failing assertions. Static syntax, POD, help and module checks all pass on both interpreters against the final test hashes.
+
+The deliberately broken `run-no-exec` and `ioc-start-record` copies can leave their real JVMs or IOCs running. Those processes were recorded before external cleanup; the cleanup is not credited to the tested launcher. `work/m10-remaining/runtime-mutation-leftovers.json` and `work/m10-remaining/final-process-cleanup.json` retain their exact command lines, PID/start-time identities and observed termination. The final scan found seven owned processes before cleanup and none afterward.
+
+| Test | Original Survivors | Newly Killed | Equivalent | Total Killed |
+| --- | --- | --- | --- | --- |
+| `install-payload.pl` | 4 | 4 | 0 | 14 |
+| `health-local.pl` | 5 | 5 | 0 | 27 |
+| `database-config.pl`, including integration | 11 | 8 | 3 | 33 |
+| `config-d.pl` | 6 | 4 | 2 | 19 |
+| `local-install-epics.pl` | 5 | 5 | 0 | 12 |
+| `local-install-pv-menu.pl` | 6 | 6 | 0 | 14 |
+| `local-install-pv-range.pl` | 4 | 4 | 0 | 10 |
+| `local-install-pv-signals.pl` | 3 | 3 | 0 | 11 |
+| `config-d-runtime.pl` | 4 | 4 | 0 | 16 |
+| Total | 48 | 43 | 5 | 156 |
+
+##### Equivalent Mutations
+
+Equivalence is limited to the recorded entry paths and stable input files. Each normal and mutated run exits 0 with identical assertions and diagnostics after normalizing only generated workspace paths, backup minutes and the private database's assigned TCP port.
+
+| Test | Mutation | Reason And Actual Comparison |
+| --- | --- | --- |
+| Configuration | `nullglob` | The following regular-file check discards an unmatched literal glob, the enumeration returns 0, and the subshell confines shell options. Both real runs agree |
+| Configuration | `file-readable-check` | The next real `bash -n` reads the same file and returns the same refusal for an unreadable stable file. Both real runs agree |
+| Database configuration | `helper-sqlite-account-refusal` | `database_error` returns 2 under the helper's top-level `set -e`, before the mutated explicit exit is reached. Both real CLI runs agree |
+| Database configuration | `helper-backend-guard` | The preceding `database_error` similarly ends the real CLI with 2 before the mutated exit. Both real runs agree |
+| Database backup | `backup-pipefail` | The helper already enables `pipefail` at entry. Removing the redundant inner assignment preserves failure propagation; actual denied dumps still fail and leave no archive in both socket and TCP cases |
+
+##### Installation-Test Batch Evidence
+
+The test SHA-256 is `4dffc710a1039aa6065596de68ee4c9f5013fb37f7773cb8eead312bea0a5f06`. The corrected test passes syntax and POD checks on both measured interpreters. The Rocky container image is `sha256:507b995d50e4fee989c55b3fcbbfd7da3d9dc57a469ec771739cd6f399f967c9`; its recorded probe finds every existing Perl dependency and the newly required `zip` command. The real build artifacts match the hashes in `work/m10-payload-fix-kq1vfi8u/mutations/inputs.json`.
+
+| Former Survivor | Observed Failure Of The Corrected Test |
+| --- | --- |
+| `jars-required` | The later `install` failure does not supply the required missing-JAR diagnostic |
+| `webxml-check` | The Make target returns 0 for a real WAR with `WEB-INF/web.xml` removed, instead of the required 2 |
+| `restore-webapp-on-failure` | The installed payload differs after the final write fails; the expected restore is missing |
+| `unzip-failure-tolerated` | The Make target returns 0 after the real extraction warning, instead of the required 2 |
+
+On both normal runs, the prefixed real WAR causes native `unzip` status 1 after extracting the original `web.xml`, and `/dev/full` causes the payload installer's final `printf` to fail. The full Make path restores the previous WAR and JAR contents and removes its staging directory. Per-run `run.log` files, retained workspaces and the mutation source manifests preserve those observations. No shipped installer code changed. The later payload installation guest check passed. M10 remains In progress pending repository landing.
+
+##### Closure Evidence
+
+- Implementation and required verification: finished on 2026-11-05. T1 and T2 are Pass; all 48 original survivors are resolved, all former kills are retained, and shipped product code is unchanged.
+- The Rocky guest is shut off; its disks and earlier/new evidence are preserved. Owned local mutation processes were observed and stopped, with the original outcomes retained.
+- Repository landing: pending. No M10 commit or push is authorized by the current implementation request.
+
+##### GitHub Projection
+
+Title: Close the gaps that the Python tests left in the Perl tests
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M10, M12 and M16 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M12 and M16 are unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -1479,7 +1606,6 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12 | Measured retrieval benefit and disk cost support a dated decision on LTS pre-processing; [detail](#m5---lts-retrieval-pre-processing-pp) |
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
-| Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Open | No | M3, D24 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 | Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32 | The owner assigns it; then one real case of each OS and backend passes on a fresh guest through the real local installer script, a mutation of the installer fails the test, and the three Python files are removed; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
 
@@ -1759,71 +1885,6 @@ Observed State: OPEN
 Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-10-29 22:52 PDT via `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-10-05T17:33:17Z. The issue body still gives an illustrative 100/500/1000/2000 PV matrix; the accepted canonical plan uses 100/500/903 PVs. The remote body requires reconciliation before measurement execution.
-
-#### M10 - Close the gaps that the Python tests left in the Perl tests
-
-Origin: 9576820 / M10
-Identity History: created as M10 on 2026-11-02 by D24
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The Perl tests that M3 converted leave 48 of their scratch mutations alive, and the Python tests left the same ones alive (conversion record of M3). Each survivor is a line of the shipped code on which no check of the test depends: either a check is missing, or the line has no observable effect. The survivors per file are: `tests/install-payload.pl` 4, `tests/health-local.pl` 5, `tests/database-config.pl` 11 (nine configuration cases and two integration cases), `tests/config-d.pl` 6, `tests/local-install-epics.pl` 5, `tests/local-install-pv-menu.pl` 6, `tests/local-install-pv-range.pl` 4, `tests/local-install-pv-signals.pl` 3 and `tests/config-d-runtime.pl` 4. The signal test also has no check of how it ends when the evidence file of the verifier is missing.
-
-##### Scope
-
-- For each survivor, add an observation to the Perl test that fails on the mutation, or record with its reason that the line has no observable effect and keep the mutation as known to be equivalent.
-- Run every mutation of the changed file again, with repeats for the timing-dependent ones of `tests/local-install-pv-menu.pl` and `tests/local-install-pv-range.pl`.
-
-Out of scope: the conversion of the tests (M3); the last sample of the time-range test (M9); changes to the shipped code.
-
-##### Completion Criteria
-
-- Every survivor listed in the conversion record of M3 is killed by its Perl test or recorded as equivalent with the reason.
-- The mutations that the tests kill after M3 stay killed.
-
-##### Dependencies And Decisions
-
-- D24 creates this item on 2026-11-02.
-- M3 converts the tests first; M10 changes the converted files.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. List the survivors per file from the conversion record and, for each, decide by reading the shipped line whether an observation can see it.
-2. Add the observations file by file and run the file against its mutations, one file at a time.
-3. Record the survivors that stay, with their reasons.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Run the recorded mutations of each changed test and compare their verdicts with the recorded ones | A host with a real EPICS Base, Java and Tomcat | Each former survivor is killed or recorded as equivalent; the former kills stay |
-| T2 | Local and guest | Run each changed test unmutated | The same host and the Rocky Linux guest | Every run passes, as before the change |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | A host with a real EPICS Base, Java and Tomcat | Pending | none |
-| T2 | Pending | The same host and the Rocky Linux guest | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Close the gaps that the Python tests left in the Perl tests
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
 
 #### M12 - Share the helper code of the Perl tests
 
