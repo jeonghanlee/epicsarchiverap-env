@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Prepare the M12 implementation commit when requested. The shared module, nine callers and direct helper check are implemented. The R1 import correction passes the helper check, all nine real entry points on both targets, and the local Phase 1 suite; the earlier T1-T4 extraction evidence includes the 161 mutation outcomes, whose source scope is recorded below. Raw evidence is preserved in `work/m12-helpers/` and `work/m12-r1-gda201qr/`. M12 remains In progress until the changes have repository landing evidence under separate commit and push authority. The other twelve assigned items are Complete. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: Select any further work from Backlog through a new dated assignment decision. All thirteen assigned items are Complete; M12 landed at cb7a041 with the verification scope recorded below. M5, M6 and M7 remain Deferred, and M16 remains unassigned and Open. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
@@ -33,9 +33,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Complete | No | D33, D34 | T1-T9 satisfy the completion criteria within their recorded input and environment limits; read-failure correction and verification record landed at 5da67a8; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Complete | No | M3, D24, D37, D38 | T1-T2 passed: 156 mutations killed and five equivalent for the recorded entry paths; all 113 former kills retained; landed at 37ba14f; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
-| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | In progress | No | M3, M10, M14, D24, D27, D39, D40 | T1-T4 extraction evidence and the R1 import-correction checks are retained; repository landing pending; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
+| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Complete | No | M3, M10, M14, D24, D27, D39, D40 | T1-T4 extraction evidence and the R1 import-correction checks are retained with their recorded limits; landed at cb7a041; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 12 Complete, 1 In progress. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 13 Complete. No row is Ready.
 
 ### Decisions
 
@@ -1604,7 +1604,7 @@ Last Compared: none
 Origin: 9576820 / M12
 Identity History: created as M12 on 2026-11-02 by D24; assigned on 2026-11-05 by D39
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -1679,10 +1679,10 @@ R1 verification: all nine local entry points pass, with stdout, stderr and statu
 
 ##### Closure Evidence
 
-- Initial extraction verification and the R1 follow-up are recorded above for 2026-11-06 UTC; no shipped product code changed. The shared-module SHA-256 is `0f6565d9b120bb1cdaa1bab4fc95022555d68aeecdcf42fe70d6c157ae1c9e95`.
+- Implementation and verification: complete on 2026-11-06 within the source and environment limits of the extraction results and R1 follow-up recorded above; no shipped product code changed. The shared-module SHA-256 is `0f6565d9b120bb1cdaa1bab4fc95022555d68aeecdcf42fe70d6c157ae1c9e95`.
 - The retained Rocky guest is shut off, with its disks and earlier evidence preserved. The authorized baseline deletion followed a complete host archive and hash check. Raw captures, final process observations, input hashes and VM lifecycle records remain under `work/m12-helpers/`.
 - After the R1 checks, no owned test process remains and the same Rocky guest is shut off. Its volatile R1 workspace was archived on the host with all 3,891 regular-file hashes verified; `work/m12-r1-gda201qr/guest-archive/verified.json` and `vm-final.json` retain the archive and lifecycle observations.
-- Repository landing: pending separate commit and push authority; M12 remains In progress.
+- Repository landing: observed at 2026-11-06T08:40:53Z after fetching `origin`. Both `HEAD` and `origin/maven` resolved to `cb7a0413559e26daad1a1d2eb74213bc5baf2b89`; comparing all fourteen paths changed by that commit against `origin/maven` exited 0 with no differences. All eleven Perl source hashes match the R1 verification record.
 
 ##### GitHub Projection
 
