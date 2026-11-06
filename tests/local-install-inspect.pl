@@ -35,7 +35,9 @@ conf.archapplproperties, conf.install, services.install, serveroption.install, i
 all destinations below that workspace and the current user/group. The four real WARs and logging JARs come from the
 supplied Maven target directory. No systemd reload, service start, schema load, package install or sudo runs.
 
-Invokes the complete inspection script with --skip-runtime and --no-sudo. Cases cover an unchanged installation,
+The copied server.xml template is restricted to mode 0600 before the real installation; installed server.xml files
+must have mode 0644 so the checkout owner can inspect them after ownership changes to the service account.
+Invokes the complete inspection script with --skip-runtime and --no-sudo. Cases cover installed permissions, an unchanged installation,
 missing version.txt, absent WARs, changed source, configuration, classpath selection, systemd files, source schema,
 storage, the skipped runtime observation, refusals and usage errors. Schema cases create commits only in the temporary
 source clone. They test classification and acceptance, not database loading. Runtime checks establish only the
@@ -213,6 +215,7 @@ sub prepare {
         copy_input("$TOP/$relative", "$CHECKOUT/$relative");
         push @hashes, sha256_hex(slurp("$TOP/$relative")) . "  $relative\n";
     }
+    chmod(0600, "$RENDERED/skel/conf/server.xml") or die "chmod $RENDERED/skel/conf/server.xml: $!\n";
     push @hashes, sha256_hex(slurp(abs_path($0))) . "  tests/local-install-inspect.pl\n";
     spew("$WORK/source.sha256", join('', @hashes));
     copy_input($HELPER, "$WORK/helper.bash");
@@ -340,6 +343,13 @@ sub source_change {
 }
 
 my @CASES = (
+    ['installed_permissions', sub {
+        is((stat("$RENDERED/skel/conf/server.xml"))[2] & 07777, 0600, 'source server.xml has restrictive checkout permissions');
+        for my $service (@SERVICES) {
+            is((stat("$INSTALL/$service/conf/server.xml"))[2] & 07777, 0644,
+                "$service server.xml is installed with explicit read permissions");
+        }
+    }],
     ['unchanged', sub {
         my $before = snapshot();
         spew("$WORK/unchanged-before.json", $JSON->encode($before));

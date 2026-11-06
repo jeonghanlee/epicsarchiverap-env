@@ -7,13 +7,13 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Finish review and acceptance of the revised M16 installation test plan. M16 remains unassigned and Open; assignment and implementation authorization are still required before execution. All thirteen assigned items are Complete; M12 landed at cb7a041 with the verification scope recorded below. M5, M6 and M7 remain Deferred. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: Review the M16 server.xml permission correction and its completed regression evidence before commit preparation. The Debian 13 SQLite direct baseline passed T1-T5; D43 corrected the separate restrictive-checkout failure, with original failure evidence retained. Replacement Perl automation, the remaining five cases and T6 are Pending and need separate authorization. M5, M6 and M7 remain Deferred. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
-This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M12, M13, M14, M15 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, M10 on 2026-11-05 by D37, and M12 on 2026-11-05 by D39. Deferred work is ordered M5, M6 and M7 for later reconsideration; M16 is unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M12, M13, M14, M15, M16 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, M10 on 2026-11-05 by D37, M12 on 2026-11-05 by D39, and M16 on 2026-11-06 by D42. Deferred work is ordered M5, M6 and M7 for later reconsideration. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
-Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
+Current M16 execution follows D42 and the installed-file permission correction authorized by D43. Replacement automation, the remaining installation cases, a new numbered release, and GitHub mutations require separate authorization.
 
 ## Milestone
 
@@ -34,8 +34,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Complete | No | D33, D34 | T1-T9 satisfy the completion criteria within their recorded input and environment limits; read-failure correction and verification record landed at 5da67a8; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Complete | No | M3, D24, D37, D38 | T1-T2 passed: 156 mutations killed and five equivalent for the recorded entry paths; all 113 former kills retained; landed at 37ba14f; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Complete | No | M3, M10, M14, D24, D27, D39, D40 | T1-T4 extraction evidence and the R1 import-correction checks are retained with their recorded limits; landed at cb7a041; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
+| Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | In progress | No | D16, D32, D41, D42, D43 | Direct Debian 13 SQLite baseline: T1-T5 passed. The restrictive-checkout permission correction passed local and affected-guest checks; its original failure remains recorded. Five other cases, fault controls and replacement automation remain Pending; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 13 Complete. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 13 Complete, 1 In progress. No row is Ready.
 
 ### Decisions
 
@@ -82,6 +83,8 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D39 | Assign M12 as the next work item and prepare its shared-helper plan against the completed M10 and M14 tests. Preserve existing test behavior and mutation verdicts. Plan acceptance and implementation authorization remain separate. | 2026-11-05 |
 | D40 | Accept the reviewed shared-helper plan at c30be1d and authorize M12 implementation and verification. Reuse the retained Rocky test guest, preserve earlier evidence, run in a new directory and shut it down after testing. | 2026-11-05 |
 | D41 | Revise M16 around observable installation results: installation from documented prerequisites, intended runtime configuration, real PV acquisition and retrieval, preservation across restart and unchanged re-application, and detection of actual database or storage faults. Use the existing installer and PV verifier before automating repeated operations. Replace the skipped-Make-step criterion with the relevant failed outcome. Keep the six selected OS/backend cases and separate M17 upgrade evidence. This authorizes plan revision and review, not assignment, implementation or VM operations. | 2026-11-06 |
+| D42 | Assign M16, accept the reviewed plan at 02a79f5 and authorize its first direct Debian 13 SQLite T1-T5 execution, including a fresh test VM request and shutdown with disk and evidence retained. Replacement automation, the remaining matrix, T6 faults and product corrections are not authorized by this first-case execution decision. | 2026-11-06 |
+| D43 | Authorize correction of the installed server.xml readability failure observed during M16, with regression verification through the shipped installation rules and the affected guest. Establish mode 0644 during server.xml installation independently of checkout permissions; keep genuine inspection read failures as refusals. Preserve the original failed evidence and record corrective results separately. | 2026-11-06 |
 
 ### ID Migration
 
@@ -113,6 +116,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M17 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D34 | this synchronization commit | this synchronization commit |
 | 9576820 / M10 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-05 by D37 | this synchronization commit | this synchronization commit |
 | 9576820 / M12 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-05 by D39 | this synchronization commit | this synchronization commit |
+| 9576820 / M16 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-06 by D42 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1693,9 +1697,136 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M16 - Build the VM installation test on the local installer scripts
+
+Origin: 9576820 / M16
+Identity History: created as M16 on 2026-11-03 by D32
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+The test establishes that an operator can install a usable Archiver Appliance through the existing local installer: the intended program and database configuration are active, changing CA observations are stored and retrieved, and the same PV registration and historical samples remain usable after a service restart and an unchanged installation request. Installer exit status and HTTP readiness alone do not establish this result.
+
+The installation entry points are `scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash` and `scripts/install-local-mariadb-tcp.bash`. `scripts/verify-local-pv.bash` already checks initial acquisition and retrieval against independently observed CA values and timestamps. The test invokes these shipped tools; it does not reproduce their installation, IOC creation or initial sample-matching logic. Automation follows a real execution of the acceptance sequence with these tools.
+
+##### Scope
+
+- Execute T1-T5 on fresh Debian 13 and Rocky Linux 8.10 guests, each with SQLite, MariaDB over a socket and MariaDB over TCP. These six cases are the selected coverage, not a claim about every OS supported by the installer.
+- Use one Debian 13 MariaDB socket case and one Debian 13 SQLite case for the database and storage fault controls of T6, after their normal baselines pass. Fault controls are not multiplied across the whole OS/backend matrix.
+- Add only the repeated command execution and missing result checks in Perl under `tests/vm/` (D16). Required inputs are the environment checkout and appliance source revisions, OS/backend selection, site settings, service account, endpoints and a real EPICS Base. Keep command output, native status and the observations required by T1-T6.
+- cloud-provision supplies the guest and owns its lifecycle. After evidence is retained and the test IOC is stopped, send the completion notice through its request procedure. The test reports Passed, Failed or Incomplete per required outcome.
+- Remove `tests/vm/driver.py`, `tests/vm/guest.py` and `tests/vm/local.py`, and update `docs/README.vmtests.md` and `tests/README.md`, only after the replacement establishes the declared results. File removal is delivery cleanup, not proof that installation works.
+
+Out of scope: verifying guest creation, freshness, ownership or removal (D32); running Ansible; reimplementing Make sequencing; a general run-record framework with locks and digest proofs; Python implementation; changed-source or schema upgrades owned by M17; production deployment; host reboot, long-duration reliability and storage-tier migration. Service restart does not establish reboot recovery, and short-term stored samples do not establish STS-to-MTS-to-LTS transfer.
+
+##### Completion Criteria
+
+- T1-T5 pass through the shipped entry points for all six selected cases, with the exact commands, inputs and required observations retained. No required outcome is inferred from another outcome's PASS message.
+- Initial PV verification succeeds independently of installer status. Restart and unchanged re-application preserve the same registered PV and a fixed historical query; new samples from that PV also match new CA observations.
+- Both T6 controls fail their designated database or stored-sample check on the real installed path. An unrelated prerequisite failure does not count as detection. Restoration returns the relevant checks to their normal passing result.
+- The replacement automation runs the same acceptance sequence. The three Python files are then removed and the two documents describe its actual inputs, assertions, evidence and limits.
+
+##### Dependencies And Decisions
+
+- D32 creates this item on 2026-11-03 and leaves it Open until the owner assigns it.
+- D16 names Perl for replacement tests.
+- D41 revises the draft around installation outcomes on 2026-11-06. This plan revision does not assign the item or authorize implementation.
+- D42 accepts the reviewed plan and authorizes only the first direct Debian 13 SQLite T1-T5 case, including its guest request and retained shutdown.
+- D43 authorizes the installed server.xml permission correction and its regression verification. The Perl test keeps its existing 5.26.3 baseline and adds no module dependencies.
+- cloud-provision supplies the guests; each case needs a guest request under the procedure of that session, which this register does not authorize.
+- M17 results are separate evidence for their recorded source transitions and environments. They neither replace a fresh-installation case nor require repeating the entire upgrade suite in M16.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-06, reviewed plan at 02a79f5, D42
+Implementation Authorization: D42, first direct Debian 13 SQLite T1-T5 execution and its fresh VM request; D43, installed server.xml permission correction and verification; automation, remaining cases and T6 require separate authorization
+Superseded Plan Artifacts: the M16 draft at 905b8cd, replaced under D41
+
+1. Before implementation, complete review and acceptance of this contract. Before execution, obtain assignment, implementation authorization and the required guest approval. Record the exact inputs and finite installation/build deadline for each case; startup and each data observation use a 180-second limit. Missing test prerequisites stop the case as Incomplete.
+2. On the first authorized Debian 13 SQLite guest, execute T1-T5 directly with the existing installer, verifier, service controls and pinned CSV client. Establish the actual commands and results before writing automation. Do not work around an installer defect with manual installation commands; retain the failure and resolve it through a separately authorized correction.
+3. Add minimal Perl orchestration under `tests/vm/` for that same sequence, including same-PV history and continuing-acquisition checks absent from `verify-local-pv.bash`. Run the real automated sequence from a fresh starting state, then extend it to the remaining five selected cases. A direct run is baseline evidence, not proof that the later automation ran.
+4. Run the two T6 controls against the actual checks, with the fault, expected failing assertion and restoration recorded before injection. Keep failure evidence and restore the isolated guest before evaluating recovery.
+5. After the required results pass, remove the three obsolete Python files and update the two test documents. Preserve useful claims from `tests/vm/guest.py` through T1-T6, not a line-for-line port of its checks or another test of the retired VM driver.
+
+##### Test Inputs And Evidence
+
+- Start from the documented host prerequisites with no appliance installation or copied WAR/build outputs. Use the checkout owner with sudo, a pinned environment checkout and pinned appliance source, and the intended site settings. Run the matching installer with `--yes`, without `--skip-packages` or `--existing-db`, so package installation and database preparation remain inside the tested path. Record any prerequisites already supplied by the guest image; do not claim their installation was exercised. EPICS Base is a separately supplied test prerequisite, checked with the verifier's `--check-epics --epics-bin` entry point.
+- Use the supplied configuration as the expected value and compare it with the installed configuration and runtime. Check SQLite's actual file or MariaDB's actual socket/TCP endpoint with the application credentials, including the required schema and the test PV registration. Database metadata and archive sample files are distinct; a table or registration row is not evidence of stored samples.
+- Run `verify-local-pv.bash` separately with the installed local management/retrieval URLs, the selected source checkout, `--epics-bin`, `--cleanup keep` and `--timeout 180`. Require native exit 0 and its successful CA-to-CSV comparison. The installer's optional PV branch is not the acceptance result: `--yes` skips it, and an optional PV failure does not become an installer failure.
+- Retain the verifier's PV name, IOC identity, CA observations, retrieval response and CSV. Before restart, use the pinned `getDataToCsv.bash` to capture a fixed, already completed interval containing at least two of the matched changing samples. Save its exact FROM/TO arguments and returned rows as the historical baseline. Later comparisons use this same PV and interval, preserving sample timestamps, values, severity, status and occurrence counts. Do not replace it with a newly generated PV or a moving time window.
+- Keep the same IOC and PV active across restart and re-application. For each new-data check, record CA observations and query a new interval after the action; require at least two distinct matching values, timestamp agreement within the existing verifier's one-second allowance, and successful sample status. A new registration request is forbidden for these continuation checks. Stop only the recorded test IOC after checking its process identity, pause its PV and retain the registration, samples and evidence on every outcome before guest handoff.
+- Preserve installer and verification stdout/stderr, native statuses, effective settings without credentials, version/API observations, service/process identities, query arguments and CSV results under a case-specific `work/` directory. Copy required guest evidence before the completion notice. Evidence size is bounded by one PV and short observation windows; load, long-duration and evidence-replay frameworks are not part of this contract.
+- Passed requires every applicable result and its evidence. Failed requires an observed violation; missing prerequisites, interrupted execution or unavailable evidence are Incomplete, never PASS. Preserve any confirmed failure even if later observations are incomplete. An expected fault makes the tested appliance check fail; T6 passes only when that specific failure and subsequent restoration are observed. Do not retry an uncertain installation until its actual process/service state is known.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Installation | Run the selected shipped installer from the declared prerequisites, with package/database preparation enabled and no prebuilt WARs; retain its native result | All six selected fresh guests | Installation completes within the declared deadline with exit 0; intended program and configuration are installed without manual repair |
+| T2 | Installed state | Compare installed component versions and appliance identity with the pinned inputs; inspect effective units, four JVM identities/owners, storage paths, actual database transport/schema, four startup APIs and the shipped health command as the service account | Each T1 installation | The selected configuration is actually in use; all four APIs report STARTUP_COMPLETE within 180 seconds; service and health timer are enabled and active; health exits 0 |
+| T3 | Data path | Execute the existing PV verifier independently; check the PV row through the actual configured database; capture the fixed historical query with the pinned CSV client | Each ready installation, real loopback soft IOC and CA | Verifier exits 0 with at least two distinct stored values matching independently observed CA values/times; registration persists in the selected database; the fixed query contains the matched samples |
+| T4 | Restart persistence | Record process identities, restart through the shipped service control, repeat T2, re-query the saved interval and observe new samples from the same running IOC/PV | Each T3 installation | All four JVM lifetimes change and readiness returns within 180 seconds; the same registration and historical rows remain; new data match new CA observations within 180 seconds without re-registration |
+| T5 | Unchanged re-application | Record healthy service/JVM lifetimes and configuration; repeat the identical installer command with unchanged source/site inputs; compare those identities, repeat T2 and the old/new data checks | Each T4 installation | Installer exits 0 without a build or service/JVM replacement; installed configuration, PV registration and historical samples remain; continuing acquisition still passes |
+| T6 | Fault detection | On passing disposable baselines, apply separately a wrong installed MariaDB socket endpoint and service-account write denial on the actual short-term store; run the real acceptance checks, retain the intended failed assertion and restore each fault | Debian 13 MariaDB socket and Debian 13 SQLite cases respectively | The database control fails the actual connection/configuration check; the storage control reaches real changing CA input and the write/retrieval path but fails the stored-sample assertion; neither is reported as overall installation acceptance; restoration passes the affected checks |
+
+For T6, capture the original configuration/permissions, apply each fault only to the isolated installation and prove it is effective for the actual service account. Close any pre-existing database connections or writable store handles before relying on the fault. The storage control must reach its declared data-path check with the IOC producing changing CA observations; an earlier startup refusal is not proof that the stored-sample check detects lost data. If the intended exposure cannot be established, retain Incomplete for that control rather than counting an unrelated nonzero exit. Required new comparison assertions also need the smallest real-path fault that exposes their own mismatch; these checks remain limited to the declared installation outcomes.
+
+D43 correction verification uses the real installation targets with a mode-0600 server.xml template and requires all four installed files to be mode 0644. The uncorrected rules must fail this permission assertion; the corrected rules must pass the complete inspection suite on the development host and Perl 5.26.3. On the retained affected guest, reproduce the original refusal, apply the corrected serverxml.install target and repeat the original installer command. Require successful re-application, unchanged service/JVM lifetimes and configuration contents, preserved PV registration and fixed historical samples, and a successful independent PV verifier run. This bounded correction check does not repeat the complete fresh-installation or same-PV continuation sequence.
+
+##### Verification Results
+
+The first direct case used environment commit `02a79f559a3213f6eaa0cae1170bfeceed8a9d87` and appliance commit `e0a8e66ed09e840ab8ed67dae81b25474605db08`, on Debian 13 with SQLite, 2 vCPU, 4 GiB RAM and a 30 GiB disk. The installation deadline was 3600 seconds; startup and each data window were limited to 180 seconds. Packages were enabled, no WAR or build output was supplied, and no manual product repair was applied. The five other cases, fault controls and replacement automation remain Pending.
+
+Input qualification: the first retained setup command used `umask 077` for the clone as well as evidence. Its `site-template/skel/conf/server.xml` was mode 600. At `02a79f5`, the installation copied the template and changed its owner to the service account without establishing read permission for the checkout owner; all four installed `server.xml` files remained mode 600. T5 establishes failure under this restrictive checkout condition, not under the guest login's default umask. The separate fresh baseline below preserves the login's umask 0002 during checkout creation. No permission workaround or corrected-product run replaces the restrictive-case failure.
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-06T09:56:13Z | First direct Debian 13 SQLite case, restricted checkout permissions | Passed for this case | Installer exit 0 in 427.49 seconds, including package installation, source build and installation; startup passed in 43 seconds. `work/m16-first-install-20261106T094315Z/guest-final/t1/`; image packages and setup commands retained |
+| T2 | 2026-11-06 UTC, after installation and after each action | Same case | Passed for this case | Intended source/component versions, identity, four service-account JVMs, effective units, storage, actual SQLite file/schema, all four STARTUP_COMPLETE APIs, enabled/active service and timer, and health exit 0. `guest-final/t2/`, `t4-after/`, `t5-after/` under the same evidence root; the database file stat was repeated as the service account after an ordinary-user permission error |
+| T3 | 2026-11-06T09:58:48Z | Same case, real loopback IOC | Passed for this case | Independent shipped verifier exit 0 with three distinct stored values matching CA observations. The same PV row exists in SQLite. The fixed historical query retained six rows with values 100-105. `guest-final/t3/`, `history-baseline/`, and saved query arguments |
+| T4 | 2026-11-06T10:01:53Z | Same case and same IOC/PV | Passed for this case | Shipped service restart returned 0; all four JVM lifetimes changed; readiness returned in 43.10 seconds. The six historical rows and registration persisted. New CA values 277-279 matched stored sample times within one microsecond, with severity/status zero; the new-data collection completed in 12.75 seconds. `guest-final/t4-*` and `evidence/t4-history-comparison.json` |
+| T5 | 2026-11-06T10:05:25Z | Same case; unchanged source, site inputs and installer command | Failed | Installer exit 1 in 1.26 seconds: inspection refused unreadable mode-600 `server.xml` files. No build or service/JVM replacement occurred; installed configuration, six historical rows, PV registration and continued acquisition remained intact. New values 489-491 matched CA within one microsecond. `guest-final/t5/`, `t5-*`, `final/`, and `evidence/t5-history-comparison.json` |
+| T6 | Pending | Selected Debian 13 fault controls | Pending | Not authorized or executed in the first direct case |
+
+The normal baseline used the same source revisions, site inputs, resource sizes and deadlines on a separate fresh Debian 13 guest. The checkout template was mode 664 before installation, and all four installed `server.xml` files were mode 644. Both environment and appliance source trees remained clean. Commands, inputs and results are retained under `work/m16-baseline-20261106T101048Z/`; no product changes or manual installation repairs were applied.
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-06T10:25:28Z | Direct Debian 13 SQLite baseline, default checkout permissions | Passed | Identical shipped installer command with packages enabled; exit 0 in 425.37 seconds, including source build and installation. Startup passed in 45 seconds. `guest-final/t1/`, retained setup inputs and command hashes |
+| T2 | 2026-11-06 UTC, after installation and after each action | Same baseline | Passed | Pinned versions and appliance identity, service-account ownership of four JVMs and storage, effective units, actual SQLite file/schema, all four STARTUP_COMPLETE APIs, enabled/active service and timer, and health exit 0. `guest-final/t2/`, `t4-after/`, `t5-after/` |
+| T3 | 2026-11-06T10:27:43Z | Same baseline, real loopback IOC | Passed | Independent shipped verifier exit 0 with three distinct CA-to-CSV matches. SQLite retained the PV registration. The fixed query from 10:27:35Z to 10:27:43Z on this date contained seven rows, values 102-108, including the matched samples. `guest-final/t3/`, `history-baseline/` and saved FROM/TO arguments |
+| T4 | 2026-11-06T10:29:24Z | Same baseline and same IOC/PV | Passed | Shipped restart exit 0; all four JVM lifetimes changed; readiness returned in 43.49 seconds. The seven historical rows matched in all fields and occurrence counts; PV identity, creation time and archiving settings persisted. Twelve new CA values matched stored samples within one microsecond, severity/status zero, in a 12.67-second observation. `guest-final/t4-*`, `evidence/t4-history-comparison.json` and `t4-new-data-measurements.json` |
+| T5 | 2026-11-06T10:31:11Z | Same baseline; identical source, site inputs and installer command | Passed | Installer exit 0 in 1.55 seconds with no build. Service invocation, four JVM lifetimes, effective units and installed configuration remained unchanged. The seven historical rows and same PV registration persisted; twelve new CA values matched stored samples within one microsecond, severity/status zero, in 12.68 seconds. `guest-final/t5/`, `t5-*`, `evidence/t5-history-comparison.json` and `t5-new-data-measurements.json` |
+
+Registration comparison retained the original PV identity and creation time. The pinned appliance's `DefaultConfigService.upgradeTypeInfo` initialized `chunkKey` during restart; raw metadata bytes were therefore not an invariant. The same IOC lifetime continued through both actions, and neither continuation check registered another PV. The optional `lsof` diagnostic found no open SQLite handle after T5; the required service-account database query, registration query and data-path observations succeeded.
+
+D43 correction verification on 2026-11-06 used the same source revisions with only the server.xml installation rule changed. `serverxml.install` now establishes mode 0644 for the four port configuration files after rendering. Genuine read errors still cause inspection refusal. The tested RULES_INSTALL SHA-256 is `723bc5124d1bd43dbfb80e6cfdd5aa8d501acf77cd2b5ca2ae6f0bbefa47891a`; the inspection test SHA-256 is `42ee36df88a42451c894d143109cc07604fdd246d7003e145d93a695b520db30`. Evidence is retained under `work/m16-permissions-20261106/`.
+
+- Regression: the real Make installation with the original rules failed all four expected permission assertions, native exit 1. The corrected rules passed all 15 inspection cases on the development host and Rocky Linux 8.10 with Perl 5.26.3, native exit 0, including real unreadable-file refusals. The Rocky test image explicitly includes Java 21 and diffutils; its package versions, image identity, source hashes and full output are retained. See `evidence/before-old.stdout`, `final-local.stdout`, `rocky-complete.stdout` and their native-status files.
+- Affected guest: the original installer again refused the four mode-600 files at 18:00:02Z, native exit 1. The corrected shipped `serverxml.install` target returned 0 at 18:05:04Z and established mode 644 with service-account ownership. The original installer command then returned 0 at 18:05:16Z in 1.25 seconds, reporting every installed layer unchanged and no build needed. Service invocation, boot identity, all four JVM lifetimes, effective units and active configuration contents were unchanged. See `guest-final/before/`, `correction/`, `after/`, `healthy-before/`, `healthy-after/` and `evidence/state-comparison.json`.
+- Data: the original Paused PV registration and all six fixed historical rows matched before and after correction, including full fields and occurrence counts. A separate real PV verifier returned 0 at 18:07:48Z in 105.48 seconds, with three changing stored samples matching CA observations. See `evidence/history-comparison.json` and `guest-final/pv/`. This new-PV result proves the corrected installation's data path; it does not replace T5's same-PV continuation requirement or the original failed result.
+- Recovery boundary: an existing installation with unreadable server.xml files still requires the explicit corrected `serverxml.install` target before re-running the installer. The installer does not bypass a read refusal or silently repair permissions during inspection. A corrected fresh full T1-T5 VM sequence was not repeated; the permission regression executes real Make installation in a private prefix.
+
+##### Closure Evidence
+
+- The default-permission direct baseline passed T1-T5. The original restrictive-checkout case remains recorded as Failed; its permission defect is corrected and the separate D43 checks passed. The correction is not yet committed. These results do not complete the six-case matrix, T6 or replacement automation.
+- D43 final observation at 2026-11-06T18:08:51Z confirmed health exit 0, the new test IOC absent and both retained PVs Paused. The original 1,942 evidence files remained hash-identical. All 675 regular correction-evidence files were copied to `work/m16-permissions-20261106/guest-final/` and verified against the independent guest hash list; the materialized curl-adapter symlink also matches its recorded shipped source hash. cloud-provision confirmed normal shutdown with disk, definition, reservation and evidence retained; an independent read-only hypervisor query confirmed shut off. The exact lifecycle response is in the private `provider-closure.txt` under the correction evidence root.
+- The restrictive-case IOC was absent and its retained PV was Paused at 2026-11-06T10:06:32Z. Registration and samples remain. All 1,942 regular guest evidence files were copied to `work/m16-first-install-20261106T094315Z/guest-final/` and verified against the guest hash list. cloud-provision confirmed normal shutdown with disk, definition, reservation and evidence retained.
+- The normal-baseline IOC identity was checked before stopping it; the IOC was absent and the retained PV was Paused at 2026-11-06T10:31:27Z. All 1,941 regular guest evidence files were copied to `work/m16-baseline-20261106T101048Z/guest-final/` and verified against the independent guest hash list. The copied curl-adapter symlink became one additional regular file, whose hash matches the recorded shipped source. cloud-provision confirmed normal shutdown, retained VM state and unchanged evidence; a read-only hypervisor query also confirmed the guest was shut off. The private provider record retains the exact identity and lifecycle response.
+
+##### GitHub Projection
+
+Title: Build the VM installation test on the local installer scripts
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M16 is unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. All rows are excluded from the release tally.
 
 ### Work
 
@@ -1704,7 +1835,6 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12 | Measured retrieval benefit and disk cost support a dated decision on LTS pre-processing; [detail](#m5---lts-retrieval-pre-processing-pp) |
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
-| Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32, D41 | After assignment and plan authorization, the six selected cases establish installation, intended configuration, real PV data, restart persistence and unchanged re-application; database and storage faults fail the relevant checks; the replacement then retires the three Python files; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
 
 ### Backlog Details
 
@@ -1982,103 +2112,6 @@ Observed State: OPEN
 Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-10-29 22:52 PDT via `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-10-05T17:33:17Z. The issue body still gives an illustrative 100/500/1000/2000 PV matrix; the accepted canonical plan uses 100/500/903 PVs. The remote body requires reconciliation before measurement execution.
-
-#### M16 - Build the VM installation test on the local installer scripts
-
-Origin: 9576820 / M16
-Identity History: created as M16 on 2026-11-03 by D32
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-The test establishes that an operator can install a usable Archiver Appliance through the existing local installer: the intended program and database configuration are active, changing CA observations are stored and retrieved, and the same PV registration and historical samples remain usable after a service restart and an unchanged installation request. Installer exit status and HTTP readiness alone do not establish this result.
-
-The installation entry points are `scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash` and `scripts/install-local-mariadb-tcp.bash`. `scripts/verify-local-pv.bash` already checks initial acquisition and retrieval against independently observed CA values and timestamps. The test invokes these shipped tools; it does not reproduce their installation, IOC creation or initial sample-matching logic. Automation follows a real execution of the acceptance sequence with these tools.
-
-##### Scope
-
-- Execute T1-T5 on fresh Debian 13 and Rocky Linux 8.10 guests, each with SQLite, MariaDB over a socket and MariaDB over TCP. These six cases are the selected coverage, not a claim about every OS supported by the installer.
-- Use one Debian 13 MariaDB socket case and one Debian 13 SQLite case for the database and storage fault controls of T6, after their normal baselines pass. Fault controls are not multiplied across the whole OS/backend matrix.
-- Add only the repeated command execution and missing result checks in Perl under `tests/vm/` (D16). Required inputs are the environment checkout and appliance source revisions, OS/backend selection, site settings, service account, endpoints and a real EPICS Base. Keep command output, native status and the observations required by T1-T6.
-- cloud-provision supplies the guest and owns its lifecycle. After evidence is retained and the test IOC is stopped, send the completion notice through its request procedure. The test reports Passed, Failed or Incomplete per required outcome.
-- Remove `tests/vm/driver.py`, `tests/vm/guest.py` and `tests/vm/local.py`, and update `docs/README.vmtests.md` and `tests/README.md`, only after the replacement establishes the declared results. File removal is delivery cleanup, not proof that installation works.
-
-Out of scope: verifying guest creation, freshness, ownership or removal (D32); running Ansible; reimplementing Make sequencing; a general run-record framework with locks and digest proofs; Python implementation; changed-source or schema upgrades owned by M17; production deployment; host reboot, long-duration reliability and storage-tier migration. Service restart does not establish reboot recovery, and short-term stored samples do not establish STS-to-MTS-to-LTS transfer.
-
-##### Completion Criteria
-
-- T1-T5 pass through the shipped entry points for all six selected cases, with the exact commands, inputs and required observations retained. No required outcome is inferred from another outcome's PASS message.
-- Initial PV verification succeeds independently of installer status. Restart and unchanged re-application preserve the same registered PV and a fixed historical query; new samples from that PV also match new CA observations.
-- Both T6 controls fail their designated database or stored-sample check on the real installed path. An unrelated prerequisite failure does not count as detection. Restoration returns the relevant checks to their normal passing result.
-- The replacement automation runs the same acceptance sequence. The three Python files are then removed and the two documents describe its actual inputs, assertions, evidence and limits.
-
-##### Dependencies And Decisions
-
-- D32 creates this item on 2026-11-03 and leaves it Open until the owner assigns it.
-- D16 names Perl for replacement tests.
-- D41 revises the draft around installation outcomes on 2026-11-06. This plan revision does not assign the item or authorize implementation.
-- cloud-provision supplies the guests; each case needs a guest request under the procedure of that session, which this register does not authorize.
-- M17 results are separate evidence for their recorded source transitions and environments. They neither replace a fresh-installation case nor require repeating the entire upgrade suite in M16.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: the M16 draft at 905b8cd, replaced under D41
-
-1. Before implementation, complete review and acceptance of this contract. Before execution, obtain assignment, implementation authorization and the required guest approval. Record the exact inputs and finite installation/build deadline for each case; startup and each data observation use a 180-second limit. Missing test prerequisites stop the case as Incomplete.
-2. On the first authorized Debian 13 SQLite guest, execute T1-T5 directly with the existing installer, verifier, service controls and pinned CSV client. Establish the actual commands and results before writing automation. Do not work around an installer defect with manual installation commands; retain the failure and resolve it through a separately authorized correction.
-3. Add minimal Perl orchestration under `tests/vm/` for that same sequence, including same-PV history and continuing-acquisition checks absent from `verify-local-pv.bash`. Run the real automated sequence from a fresh starting state, then extend it to the remaining five selected cases. A direct run is baseline evidence, not proof that the later automation ran.
-4. Run the two T6 controls against the actual checks, with the fault, expected failing assertion and restoration recorded before injection. Keep failure evidence and restore the isolated guest before evaluating recovery.
-5. After the required results pass, remove the three obsolete Python files and update the two test documents. Preserve useful claims from `tests/vm/guest.py` through T1-T6, not a line-for-line port of its checks or another test of the retired VM driver.
-
-##### Test Inputs And Evidence
-
-- Start from the documented host prerequisites with no appliance installation or copied WAR/build outputs. Use the checkout owner with sudo, a pinned environment checkout and pinned appliance source, and the intended site settings. Run the matching installer with `--yes`, without `--skip-packages` or `--existing-db`, so package installation and database preparation remain inside the tested path. Record any prerequisites already supplied by the guest image; do not claim their installation was exercised. EPICS Base is a separately supplied test prerequisite, checked with the verifier's `--check-epics --epics-bin` entry point.
-- Use the supplied configuration as the expected value and compare it with the installed configuration and runtime. Check SQLite's actual file or MariaDB's actual socket/TCP endpoint with the application credentials, including the required schema and the test PV registration. Database metadata and archive sample files are distinct; a table or registration row is not evidence of stored samples.
-- Run `verify-local-pv.bash` separately with the installed local management/retrieval URLs, the selected source checkout, `--epics-bin`, `--cleanup keep` and `--timeout 180`. Require native exit 0 and its successful CA-to-CSV comparison. The installer's optional PV branch is not the acceptance result: `--yes` skips it, and an optional PV failure does not become an installer failure.
-- Retain the verifier's PV name, IOC identity, CA observations, retrieval response and CSV. Before restart, use the pinned `getDataToCsv.bash` to capture a fixed, already completed interval containing at least two of the matched changing samples. Save its exact FROM/TO arguments and returned rows as the historical baseline. Later comparisons use this same PV and interval, preserving sample timestamps, values, severity, status and occurrence counts. Do not replace it with a newly generated PV or a moving time window.
-- Keep the same IOC and PV active across restart and re-application. For each new-data check, record CA observations and query a new interval after the action; require at least two distinct matching values, timestamp agreement within the existing verifier's one-second allowance, and successful sample status. A new registration request is forbidden for these continuation checks. Stop only the recorded test IOC after checking its process identity, pause its PV and retain the registration, samples and evidence on every outcome before guest handoff.
-- Preserve installer and verification stdout/stderr, native statuses, effective settings without credentials, version/API observations, service/process identities, query arguments and CSV results under a case-specific `work/` directory. Copy required guest evidence before the completion notice. Evidence size is bounded by one PV and short observation windows; load, long-duration and evidence-replay frameworks are not part of this contract.
-- Passed requires every applicable result and its evidence. Failed requires an observed violation; missing prerequisites, interrupted execution or unavailable evidence are Incomplete, never PASS. Preserve any confirmed failure even if later observations are incomplete. An expected fault makes the tested appliance check fail; T6 passes only when that specific failure and subsequent restoration are observed. Do not retry an uncertain installation until its actual process/service state is known.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Installation | Run the selected shipped installer from the declared prerequisites, with package/database preparation enabled and no prebuilt WARs; retain its native result | All six selected fresh guests | Installation completes within the declared deadline with exit 0; intended program and configuration are installed without manual repair |
-| T2 | Installed state | Compare installed component versions and appliance identity with the pinned inputs; inspect effective units, four JVM identities/owners, storage paths, actual database transport/schema, four startup APIs and the shipped health command as the service account | Each T1 installation | The selected configuration is actually in use; all four APIs report STARTUP_COMPLETE within 180 seconds; service and health timer are enabled and active; health exits 0 |
-| T3 | Data path | Execute the existing PV verifier independently; check the PV row through the actual configured database; capture the fixed historical query with the pinned CSV client | Each ready installation, real loopback soft IOC and CA | Verifier exits 0 with at least two distinct stored values matching independently observed CA values/times; registration persists in the selected database; the fixed query contains the matched samples |
-| T4 | Restart persistence | Record process identities, restart through the shipped service control, repeat T2, re-query the saved interval and observe new samples from the same running IOC/PV | Each T3 installation | All four JVM lifetimes change and readiness returns within 180 seconds; the same registration and historical rows remain; new data match new CA observations within 180 seconds without re-registration |
-| T5 | Unchanged re-application | Record healthy service/JVM lifetimes and configuration; repeat the identical installer command with unchanged source/site inputs; compare those identities, repeat T2 and the old/new data checks | Each T4 installation | Installer exits 0 without a build or service/JVM replacement; installed configuration, PV registration and historical samples remain; continuing acquisition still passes |
-| T6 | Fault detection | On passing disposable baselines, apply separately a wrong installed MariaDB socket endpoint and service-account write denial on the actual short-term store; run the real acceptance checks, retain the intended failed assertion and restore each fault | Debian 13 MariaDB socket and Debian 13 SQLite cases respectively | The database control fails the actual connection/configuration check; the storage control reaches real changing CA input and the write/retrieval path but fails the stored-sample assertion; neither is reported as overall installation acceptance; restoration passes the affected checks |
-
-For T6, capture the original configuration/permissions, apply each fault only to the isolated installation and prove it is effective for the actual service account. Close any pre-existing database connections or writable store handles before relying on the fault. The storage control must reach its declared data-path check with the IOC producing changing CA observations; an earlier startup refusal is not proof that the stored-sample check detects lost data. If the intended exposure cannot be established, retain Incomplete for that control rather than counting an unrelated nonzero exit. Required new comparison assertions also need the smallest real-path fault that exposes their own mismatch; these checks remain limited to the declared installation outcomes.
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | Six selected fresh guests | Pending | none |
-| T2 | Pending | T1 installations | Pending | none |
-| T3 | Pending | T2 installations and real CA | Pending | none |
-| T4 | Pending | T3 installations | Pending | none |
-| T5 | Pending | T4 installations | Pending | none |
-| T6 | Pending | Selected Debian 13 fault controls | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Build the VM installation test on the local installer scripts
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
 
 ## History
 
