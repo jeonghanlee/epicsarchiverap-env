@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Select any further work from Backlog through a new dated assignment decision. All thirteen assigned items are Complete; M12 landed at cb7a041 with the verification scope recorded below. M5, M6 and M7 remain Deferred, and M16 remains unassigned and Open. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: Finish review and acceptance of the revised M16 installation test plan. M16 remains unassigned and Open; assignment and implementation authorization are still required before execution. All thirteen assigned items are Complete; M12 landed at cb7a041 with the verification scope recorded below. M5, M6 and M7 remain Deferred. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
@@ -81,6 +81,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D38 | Extend the accepted M10 implementation plan and authorization to the remaining eight tests, all forty-four original survivors, and outstanding verification. Add checks through the shipped paths or record demonstrated equivalent mutations with their reasons; shipped product code remains outside the scope. | 2026-11-05 |
 | D39 | Assign M12 as the next work item and prepare its shared-helper plan against the completed M10 and M14 tests. Preserve existing test behavior and mutation verdicts. Plan acceptance and implementation authorization remain separate. | 2026-11-05 |
 | D40 | Accept the reviewed shared-helper plan at c30be1d and authorize M12 implementation and verification. Reuse the retained Rocky test guest, preserve earlier evidence, run in a new directory and shut it down after testing. | 2026-11-05 |
+| D41 | Revise M16 around observable installation results: installation from documented prerequisites, intended runtime configuration, real PV acquisition and retrieval, preservation across restart and unchanged re-application, and detection of actual database or storage faults. Use the existing installer and PV verifier before automating repeated operations. Replace the skipped-Make-step criterion with the relevant failed outcome. Keep the six selected OS/backend cases and separate M17 upgrade evidence. This authorizes plan revision and review, not assignment, implementation or VM operations. | 2026-11-06 |
 
 ### ID Migration
 
@@ -1703,7 +1704,7 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12 | Measured retrieval benefit and disk cost support a dated decision on LTS pre-processing; [detail](#m5---lts-retrieval-pre-processing-pp) |
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
-| Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32 | The owner assigns it; then one real case of each OS and backend passes on a fresh guest through the real local installer script, a mutation of the installer fails the test, and the three Python files are removed; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
+| Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32, D41 | After assignment and plan authorization, the six selected cases establish installation, intended configuration, real PV data, restart persistence and unchanged re-application; database and storage faults fail the relevant checks; the replacement then retires the three Python files; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
 
 ### Backlog Details
 
@@ -1991,53 +1992,81 @@ Status: Open
 
 ##### Summary
 
-The VM installation test has one purpose: on a fresh guest of each supported OS, this repository's local installer script installs the Archiver Appliance from the beginning to the end, and the installed appliance stores and retrieves PVs. The current `tests/vm/driver.py` carries that installation through Ansible and verifies again what cloud-provision answers for (the creation, freshness and removal of the guest), and `tests/vm/local.py` tests that driver. D32 rebuilds the test on the existing tools: cloud-provision supplies and removes the guest, `scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash` and `scripts/install-local-mariadb-tcp.bash` install, and the test only runs them and checks the result. The checks that `tests/vm/guest.py` makes on the installed appliance are the candidate list for the checks of the new test.
+The test establishes that an operator can install a usable Archiver Appliance through the existing local installer: the intended program and database configuration are active, changing CA observations are stored and retrieved, and the same PV registration and historical samples remain usable after a service restart and an unchanged installation request. Installer exit status and HTTP readiness alone do not establish this result.
+
+The installation entry points are `scripts/install-local-sqlite.bash`, `scripts/install-local-mariadb-uds.bash` and `scripts/install-local-mariadb-tcp.bash`. `scripts/verify-local-pv.bash` already checks initial acquisition and retrieval against independently observed CA values and timestamps. The test invokes these shipped tools; it does not reproduce their installation, IOC creation or initial sample-matching logic. Automation follows a real execution of the acceptance sequence with these tools.
 
 ##### Scope
 
-- A test in Perl (D16) under `tests/vm/` that, for one case (an OS and a backend), requests a fresh guest through the request procedure of cloud-provision, runs the matching local installer script on the guest from a copy of this checkout, keeps the output and the exit status of the installer, checks the installed appliance (units, HTTP answers, a test IOC whose PV is archived and retrieved), sends the finished notice to cloud-provision and reports pass or fail.
-- The cases: Debian 13 and Rocky Linux 8.10, each with SQLite, MariaDB over a socket and MariaDB over TCP.
-- Removal of `tests/vm/driver.py`, `tests/vm/guest.py` and `tests/vm/local.py`, and the update of `docs/README.vmtests.md` and `tests/README.md`, when the new test replaces them.
+- Execute T1-T5 on fresh Debian 13 and Rocky Linux 8.10 guests, each with SQLite, MariaDB over a socket and MariaDB over TCP. These six cases are the selected coverage, not a claim about every OS supported by the installer.
+- Use one Debian 13 MariaDB socket case and one Debian 13 SQLite case for the database and storage fault controls of T6, after their normal baselines pass. Fault controls are not multiplied across the whole OS/backend matrix.
+- Add only the repeated command execution and missing result checks in Perl under `tests/vm/` (D16). Required inputs are the environment checkout and appliance source revisions, OS/backend selection, site settings, service account, endpoints and a real EPICS Base. Keep command output, native status and the observations required by T1-T6.
+- cloud-provision supplies the guest and owns its lifecycle. After evidence is retained and the test IOC is stopped, send the completion notice through its request procedure. The test reports Passed, Failed or Incomplete per required outcome.
+- Remove `tests/vm/driver.py`, `tests/vm/guest.py` and `tests/vm/local.py`, and update `docs/README.vmtests.md` and `tests/README.md`, only after the replacement establishes the declared results. File removal is delivery cleanup, not proof that installation works.
 
-Out of scope: verifying the creation, freshness, ownership or removal of the guest, which cloud-provision answers for (D32); running Ansible; a run record with lock, baseline and digest proofs; Python.
+Out of scope: verifying guest creation, freshness, ownership or removal (D32); running Ansible; reimplementing Make sequencing; a general run-record framework with locks and digest proofs; Python implementation; changed-source or schema upgrades owned by M17; production deployment; host reboot, long-duration reliability and storage-tier migration. Service restart does not establish reboot recovery, and short-term stored samples do not establish STS-to-MTS-to-LTS transfer.
 
 ##### Completion Criteria
 
-- One real case of each OS and backend passes on a fresh guest through the real local installer script, with the installer output kept.
-- A scratch mutation of the installer script that skips one Make step fails the test with the step named.
-- The three Python files are removed and the two documents describe the new test.
+- T1-T5 pass through the shipped entry points for all six selected cases, with the exact commands, inputs and required observations retained. No required outcome is inferred from another outcome's PASS message.
+- Initial PV verification succeeds independently of installer status. Restart and unchanged re-application preserve the same registered PV and a fixed historical query; new samples from that PV also match new CA observations.
+- Both T6 controls fail their designated database or stored-sample check on the real installed path. An unrelated prerequisite failure does not count as detection. Restoration returns the relevant checks to their normal passing result.
+- The replacement automation runs the same acceptance sequence. The three Python files are then removed and the two documents describe its actual inputs, assertions, evidence and limits.
 
 ##### Dependencies And Decisions
 
 - D32 creates this item on 2026-11-03 and leaves it Open until the owner assigns it.
 - D16 names Perl for replacement tests.
+- D41 revises the draft around installation outcomes on 2026-11-06. This plan revision does not assign the item or authorize implementation.
 - cloud-provision supplies the guests; each case needs a guest request under the procedure of that session, which this register does not authorize.
+- M17 results are separate evidence for their recorded source transitions and environments. They neither replace a fresh-installation case nor require repeating the entire upgrade suite in M16.
 
 ##### Implementation Plan
 
 Plan Status: draft
 Plan Acceptance: none
 Implementation Authorization: none
-Superseded Plan Artifacts: none
+Superseded Plan Artifacts: the M16 draft at 905b8cd, replaced under D41
 
-1. After assignment, list the checks of `tests/vm/guest.py` and select with the owner which of them the new test keeps.
-2. Write the test for one case and run it on one fresh Debian 13 guest with SQLite.
-3. Extend it to the six cases and run each once.
-4. Remove the three Python files and update the two documents.
+1. Before implementation, complete review and acceptance of this contract. Before execution, obtain assignment, implementation authorization and the required guest approval. Record the exact inputs and finite installation/build deadline for each case; startup and each data observation use a 180-second limit. Missing test prerequisites stop the case as Incomplete.
+2. On the first authorized Debian 13 SQLite guest, execute T1-T5 directly with the existing installer, verifier, service controls and pinned CSV client. Establish the actual commands and results before writing automation. Do not work around an installer defect with manual installation commands; retain the failure and resolve it through a separately authorized correction.
+3. Add minimal Perl orchestration under `tests/vm/` for that same sequence, including same-PV history and continuing-acquisition checks absent from `verify-local-pv.bash`. Run the real automated sequence from a fresh starting state, then extend it to the remaining five selected cases. A direct run is baseline evidence, not proof that the later automation ran.
+4. Run the two T6 controls against the actual checks, with the fault, expected failing assertion and restoration recorded before injection. Keep failure evidence and restore the isolated guest before evaluating recovery.
+5. After the required results pass, remove the three obsolete Python files and update the two test documents. Preserve useful claims from `tests/vm/guest.py` through T1-T6, not a line-for-line port of its checks or another test of the retired VM driver.
+
+##### Test Inputs And Evidence
+
+- Start from the documented host prerequisites with no appliance installation or copied WAR/build outputs. Use the checkout owner with sudo, a pinned environment checkout and pinned appliance source, and the intended site settings. Run the matching installer with `--yes`, without `--skip-packages` or `--existing-db`, so package installation and database preparation remain inside the tested path. Record any prerequisites already supplied by the guest image; do not claim their installation was exercised. EPICS Base is a separately supplied test prerequisite, checked with the verifier's `--check-epics --epics-bin` entry point.
+- Use the supplied configuration as the expected value and compare it with the installed configuration and runtime. Check SQLite's actual file or MariaDB's actual socket/TCP endpoint with the application credentials, including the required schema and the test PV registration. Database metadata and archive sample files are distinct; a table or registration row is not evidence of stored samples.
+- Run `verify-local-pv.bash` separately with the installed local management/retrieval URLs, the selected source checkout, `--epics-bin`, `--cleanup keep` and `--timeout 180`. Require native exit 0 and its successful CA-to-CSV comparison. The installer's optional PV branch is not the acceptance result: `--yes` skips it, and an optional PV failure does not become an installer failure.
+- Retain the verifier's PV name, IOC identity, CA observations, retrieval response and CSV. Before restart, use the pinned `getDataToCsv.bash` to capture a fixed, already completed interval containing at least two of the matched changing samples. Save its exact FROM/TO arguments and returned rows as the historical baseline. Later comparisons use this same PV and interval, preserving sample timestamps, values, severity, status and occurrence counts. Do not replace it with a newly generated PV or a moving time window.
+- Keep the same IOC and PV active across restart and re-application. For each new-data check, record CA observations and query a new interval after the action; require at least two distinct matching values, timestamp agreement within the existing verifier's one-second allowance, and successful sample status. A new registration request is forbidden for these continuation checks. Stop only the recorded test IOC after checking its process identity, pause its PV and retain the registration, samples and evidence on every outcome before guest handoff.
+- Preserve installer and verification stdout/stderr, native statuses, effective settings without credentials, version/API observations, service/process identities, query arguments and CSV results under a case-specific `work/` directory. Copy required guest evidence before the completion notice. Evidence size is bounded by one PV and short observation windows; load, long-duration and evidence-replay frameworks are not part of this contract.
+- Passed requires every applicable result and its evidence. Failed requires an observed violation; missing prerequisites, interrupted execution or unavailable evidence are Incomplete, never PASS. Preserve any confirmed failure even if later observations are incomplete. An expected fault makes the tested appliance check fail; T6 passes only when that specific failure and subsequent restoration are observed. Do not retry an uncertain installation until its actual process/service state is known.
 
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | System | Run the test for each OS and backend on a fresh guest through the real local installer script | Fresh guests of cloud-provision | Each case passes and keeps the installer output |
-| T2 | System | Run the test against a scratch mutation of the installer script that skips one Make step | One fresh guest | The test fails and names the skipped step |
+| T1 | Installation | Run the selected shipped installer from the declared prerequisites, with package/database preparation enabled and no prebuilt WARs; retain its native result | All six selected fresh guests | Installation completes within the declared deadline with exit 0; intended program and configuration are installed without manual repair |
+| T2 | Installed state | Compare installed component versions and appliance identity with the pinned inputs; inspect effective units, four JVM identities/owners, storage paths, actual database transport/schema, four startup APIs and the shipped health command as the service account | Each T1 installation | The selected configuration is actually in use; all four APIs report STARTUP_COMPLETE within 180 seconds; service and health timer are enabled and active; health exits 0 |
+| T3 | Data path | Execute the existing PV verifier independently; check the PV row through the actual configured database; capture the fixed historical query with the pinned CSV client | Each ready installation, real loopback soft IOC and CA | Verifier exits 0 with at least two distinct stored values matching independently observed CA values/times; registration persists in the selected database; the fixed query contains the matched samples |
+| T4 | Restart persistence | Record process identities, restart through the shipped service control, repeat T2, re-query the saved interval and observe new samples from the same running IOC/PV | Each T3 installation | All four JVM lifetimes change and readiness returns within 180 seconds; the same registration and historical rows remain; new data match new CA observations within 180 seconds without re-registration |
+| T5 | Unchanged re-application | Record healthy service/JVM lifetimes and configuration; repeat the identical installer command with unchanged source/site inputs; compare those identities, repeat T2 and the old/new data checks | Each T4 installation | Installer exits 0 without a build or service/JVM replacement; installed configuration, PV registration and historical samples remain; continuing acquisition still passes |
+| T6 | Fault detection | On passing disposable baselines, apply separately a wrong installed MariaDB socket endpoint and service-account write denial on the actual short-term store; run the real acceptance checks, retain the intended failed assertion and restore each fault | Debian 13 MariaDB socket and Debian 13 SQLite cases respectively | The database control fails the actual connection/configuration check; the storage control reaches real changing CA input and the write/retrieval path but fails the stored-sample assertion; neither is reported as overall installation acceptance; restoration passes the affected checks |
+
+For T6, capture the original configuration/permissions, apply each fault only to the isolated installation and prove it is effective for the actual service account. Close any pre-existing database connections or writable store handles before relying on the fault. The storage control must reach its declared data-path check with the IOC producing changing CA observations; an earlier startup refusal is not proof that the stored-sample check detects lost data. If the intended exposure cannot be established, retain Incomplete for that control rather than counting an unrelated nonzero exit. Required new comparison assertions also need the smallest real-path fault that exposes their own mismatch; these checks remain limited to the declared installation outcomes.
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Fresh guests of cloud-provision | Pending | none |
-| T2 | Pending | One fresh guest | Pending | none |
+| T1 | Pending | Six selected fresh guests | Pending | none |
+| T2 | Pending | T1 installations | Pending | none |
+| T3 | Pending | T2 installations and real CA | Pending | none |
+| T4 | Pending | T3 installations | Pending | none |
+| T5 | Pending | T4 installations | Pending | none |
+| T6 | Pending | Selected Debian 13 fault controls | Pending | none |
 
 ##### Closure Evidence
 
