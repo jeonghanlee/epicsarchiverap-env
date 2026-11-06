@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: All twelve assigned work items are Complete; M10 landed at 37ba14f with T1 and T2 passed. No row is Ready. Before further implementation, select and assign Backlog work under its recorded conditions. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: M12 is assigned and Not started, with Ready Yes. Review its draft shared-helper plan, then record plan acceptance and implementation authorization before changing tests. The plan preserves the existing helper behavior, CLI output and all 161 mutation verdicts established by M10. The other twelve assigned items are Complete. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
-This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M13, M14, M15 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, and M10 on 2026-11-05 by D37. Deferred work is ordered M5, M6 and M7 for later reconsideration; M12 and M16 are unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M12, M13, M14, M15 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, M10 on 2026-11-05 by D37, and M12 on 2026-11-05 by D39. Deferred work is ordered M5, M6 and M7 for later reconsideration; M16 is unassigned and Open. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 Out of scope for this assignment update: product implementation, VM provisioning, a new numbered release, and changes to GitHub issues or milestones.
 
@@ -33,8 +33,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Complete | No | D33, D34 | T1-T9 satisfy the completion criteria within their recorded input and environment limits; read-failure correction and verification record landed at 5da67a8; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Complete | No | M3, D24, D37, D38 | T1-T2 passed: 156 mutations killed and five equivalent for the recorded entry paths; all 113 former kills retained; landed at 37ba14f; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
+| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Not started | Yes | M3, M10, M14, D24, D27, D39 | The nine Perl tests load the shared helpers with unchanged output and mutation verdicts; plan acceptance and implementation authorization pending; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 12 Complete. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 12 Complete, 1 Not started. M12 is Ready; its draft plan is not yet accepted or authorized for implementation.
 
 ### Decisions
 
@@ -78,6 +79,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D36 | Keep the optional soft IOC question of the installer scripts first, before the lock and the checkout update, and narrow the rule of D35 that a run which changes nothing asks nothing to "asks no confirmation": the test of the EPICS preflight requires that an unprepared EPICS environment stops the installer before any `make` or `sudo` step, and moving the question behind the inspection made that test fetch the source and render the working checkout, so that it needed the network and left the checkout rendered for the last backend. The owner chose this over rewriting the test (2026-11-03). | 2026-11-03 |
 | D37 | Assign M10 and authorize its first implementation batch: correct the four reproduced gaps in `tests/install-payload.pl`, verify the real installation path and rerun its fourteen recorded mutations. The remaining forty-four survivors are outside this batch; M10 remains In progress until its full completion criteria are met. | 2026-11-05 |
 | D38 | Extend the accepted M10 implementation plan and authorization to the remaining eight tests, all forty-four original survivors, and outstanding verification. Add checks through the shipped paths or record demonstrated equivalent mutations with their reasons; shipped product code remains outside the scope. | 2026-11-05 |
+| D39 | Assign M12 as the next work item and prepare its shared-helper plan against the completed M10 and M14 tests. Preserve existing test behavior and mutation verdicts. Plan acceptance and implementation authorization remain separate. | 2026-11-05 |
 
 ### ID Migration
 
@@ -108,6 +110,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M8 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned and closed 2026-11-03 by D32 | this synchronization commit | this synchronization commit |
 | 9576820 / M17 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-03 by D34 | this synchronization commit | this synchronization commit |
 | 9576820 / M10 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-05 by D37 | this synchronization commit | this synchronization commit |
+| 9576820 / M12 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-05 by D39 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -1595,9 +1598,91 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M12 - Share the helper code of the Perl tests
+
+Origin: 9576820 / M12
+Identity History: created as M12 on 2026-11-02 by D24; assigned on 2026-11-05 by D39
+GitHub Issue: none
+Status: Not started
+
+##### Summary
+
+The nine Perl tests repeat eight helper families: `slurp`, `spew` and `usage_error` in all nine files, `which` in seven, `shell_quote` and the pair `fail` and `check` in six, and `pause_for` in three. M14 already supplied the scalar prototypes of `fail` and `check`; M10 established 156 killed mutations and five equivalent mutations. This work shares the helpers while preserving those results and each caller's existing output and error handling.
+
+##### Scope
+
+- Provide these eight helper families in one module below `tests/lib/`, loaded explicitly by each of the nine tests. Preserve the existing two-argument `spew` calls and the runtime test's append mode, both shell-quoting formats, and each script's usage diagnostic prefix and POD.
+- Keep every test runnable from a copied checkout and from a working directory outside it, including the `curl` and `date` symlink entry points used by the real PV fixtures.
+- Preserve the scalar prototypes `fail($)` and `check($$)` at import time. Import only the requested helpers; the three tests using `Test::More` retain its assertions.
+- Add a direct test of the shared module to `tests/phase1-logic.bash`, which the existing local-suite entry point runs, and describe the module and its test in `tests/README.md`.
+
+Out of scope: changing test assertions, fixtures, process supervision or cleanup; sharing other repeated helpers; changing shipped product code or the shell helpers in `tests/lib/`; VM provisioning.
+
+##### Completion Criteria
+
+- All nine tests load the shared module and no longer define their own copies of the eight named helper families.
+- Each test's output and exit status match the pre-change implementation for the same inputs under the comparison rules below. Database integration is compared before and after the refactor on the authorized disposable guest. The 161 M10 mutation verdicts remain 156 killed and five equivalent, with the same intended failing checks and equivalence limits.
+- The shared-module check runs through the local suite and demonstrates that an imported `check` rejects a failed pattern match. File operations, both shell-quoting formats, usage output and import behavior have direct checks.
+- The changed tests and shared module pass syntax, POD, help and module-availability checks, and all nine tests pass on the local host and Rocky Linux 8.10 with Perl 5.26.3.
+
+##### Dependencies And Decisions
+
+- D24 creates this item on 2026-11-02; D27 moves the scalar-prototype correction to M14.
+- M3 supplied the Perl tests, M14 completed their scalar prototypes, and M10 supplies the current mutation baseline. These completed changes are the inputs whose behavior this work preserves.
+- D39 assigns M12 on 2026-11-05 for plan preparation. The plan remains draft; implementation is not yet authorized.
+- A guest run requires a separately authorized guest request or reuse under the existing VM procedure. Selecting this work does not start or provision a VM.
+
+##### Implementation Plan
+
+Plan Status: draft
+Plan Acceptance: none
+Implementation Authorization: none
+Superseded Plan Artifacts: the earlier three-step draft in this detail, retained at commit 743be01c69351ac614c328aeeea5cae036fbfc36
+
+The proposed module is `tests/lib/ArchiverTest.pm`, with explicit exports and no default imports or process exit. Preserve the current language level (`use 5.010`) and test on the oldest supported interpreter, Perl 5.26.3. Use only modules available after the targets' test-package preparation; measure availability before relying on a new import. The source comparison at commit `743be01` finds identical `slurp`, `which`, `fail`, `check` and `pause_for` bodies. `spew` has the runtime-only append argument, `shell_quote` has always-quoted and shlex-compatible forms, and `usage_error` differs by script name. These differences are preserved explicitly rather than silently selecting one caller's behavior for all callers.
+
+Comparison rules: retain the raw stdout, stderr and exit status, together with each run's normalization map. Only generated workspace paths, generated run or backup timestamps, and the actual OS-assigned TCP port of the private test database may differ. Replace that port only in the corresponding database connection argument, using the value recorded for that run; never replace arbitrary numbers. Preserve all assertions, diagnostics, test data and exit statuses. A skip, missing prerequisite or exit 77 is incomplete verification, not a passing comparison.
+
+1. Capture the pre-change results of the real nine test entry points from commit `743be01`, including help and invalid arguments, in the environments specified by T2 and T4. Keep exact commands, input hashes, exit status, stdout and stderr; use the same real EPICS, Tomcat and WAR inputs, and equivalent fresh private databases for comparisons. Capture the database integration baseline on the authorized guest before running the refactored version there. Reuse recorded M10 mutations as inputs, not as proof that the refactored tests pass.
+2. Add the shared module. Preserve raw byte reads and writes, optional append mode, PATH search behavior, assertion diagnostics and prototypes, and pause behavior. Expose both existing quote formats explicitly. Pass the caller's script identity and POD path to shared usage handling so the module returns 2 without exiting or rendering its own documentation.
+3. Replace the local helper definitions one test at a time. Resolve the library directory from the actual script location at compile time, so imports preserve prototypes and work through the PV fixtures' symlinks. Include the module in copied checkouts used for mutation and guest runs; never load it from the author's original checkout as a fallback.
+4. Add `tests/perl-helpers.pl` and wire it into `tests/phase1-logic.bash`. Exercise the real exported functions with raw bytes, empty files, append writes, missing paths, executable and non-executable PATH entries, both quote formats through a real shell, and usage rendering for the real test scripts. Check the scalar prototypes and an actual failed regex at the imported call site. Use the existing local-suite entry point to verify the wiring; keep Test::More imports separate.
+5. Run the real test entry points before and after the move, including the complete copied-checkout and symlink fixture paths. Repeat all 161 recorded mutations on the refactored tests, requiring the intended assertion for each killed mutation and retained native evidence for the five equivalents. Repeat menu/range controls and mutations at least three times. Missing inputs, import errors or unrelated command failures do not count as kills.
+6. Run the shared-module check and all nine tests on the local host and the separately authorized Rocky guest. On the local host, run `database-config.pl` in its configuration mode. On the guest, run both the pre-change and refactored `database-config.pl --integration` as root with `AA_TEST_DISPOSABLE_HOST=YES`, covering real SQLite and private MariaDB socket/TCP paths, then compare their outputs and statuses under the comparison rules. Record interpreter/module versions, static checks, exact test and module hashes, outputs, mutation verdicts and cleanup outcomes. Update the test guide and record completion only after every required result is observed.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Module and CLI | Run syntax, POD, help and module checks; execute `tests/perl-helpers.pl` through the real local-suite entry point; check the actual imported regex call, quote modes, usage output and file operations | Local host and Rocky Linux 8.10, Perl 5.26.3 | The module's public behavior is preserved, a failed regex fails its assertion, help exits 0 and invalid usage exits 2; no module or prototype warning |
+| T2 | Local integration | Run all nine pre-change and refactored test entry points with the same real inputs, using configuration mode for `database-config.pl`; compare exit status, stdout and stderr; run from outside a copied checkout and exercise the real PV symlink fixtures | Local host with real EPICS Base, Java, Tomcat and WARs; database integration comparison belongs to T4 | Outputs and statuses agree under the comparison rules; every test uses the module from its own checkout |
+| T3 | Mutation | Run all 161 recorded M10 mutations through the refactored tests; repeat menu/range controls and mutations at least three times; retain the native failure and input hashes | Local host with the baseline's real fixtures; authorized Rocky guest for database integration mutations | All 156 mutations fail at the intended checks; the five equivalents retain their documented behavior; unmutated controls pass |
+| T4 | Guest integration | Run the shared-module check and all nine refactored tests; compare pre-change and refactored `database-config.pl --integration` for SQLite and private MariaDB socket/TCP, as root with `AA_TEST_DISPOSABLE_HOST=YES` | Separately authorized Rocky Linux 8.10 guest, Perl 5.26.3, real EPICS, Java, Tomcat and WARs; equivalent fresh databases for each version | Every test passes using its transferred module; database outputs and statuses agree under the comparison rules; raw evidence and cleanup outcomes are retained; exit 77 is not a pass |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | Pending | Local host and Rocky Linux 8.10 | Pending | none |
+| T2 | Pending | Local host; database configuration mode | Pending | none |
+| T3 | Pending | Local host and authorized Rocky guest for database integration | Pending | none |
+| T4 | Pending | Rocky Linux 8.10 guest | Pending | none |
+
+##### Closure Evidence
+
+- none
+
+##### GitHub Projection
+
+Title: Share the helper code of the Perl tests
+Labels: none
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M12 and M16 are unassigned and Open. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. M16 is unassigned and Open. All rows are excluded from the release tally.
 
 ### Work
 
@@ -1606,7 +1691,6 @@ M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5,
 | Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12 | Measured retrieval benefit and disk cost support a dated decision on LTS pre-processing; [detail](#m5---lts-retrieval-pre-processing-pp) |
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
-| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Open | No | M3, D24, D27 | The nine Perl tests load one shared module instead of their own copies, with unchanged output and mutation verdicts; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 | Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Open | No | D16, D32 | The owner assigns it; then one real case of each OS and backend passes on a fresh guest through the real local installer script, a mutation of the installer fails the test, and the three Python files are removed; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
 
 ### Backlog Details
@@ -1885,74 +1969,6 @@ Observed State: OPEN
 Observed Labels: enhancement
 Observed Milestone: none
 Last Compared: 2026-10-29 22:52 PDT via `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-10-05T17:33:17Z. The issue body still gives an illustrative 100/500/1000/2000 PV matrix; the accepted canonical plan uses 100/500/903 PVs. The remote body requires reconciliation before measurement execution.
-
-#### M12 - Share the helper code of the Perl tests
-
-Origin: 9576820 / M12
-Identity History: created as M12 on 2026-11-02 by D24
-GitHub Issue: none
-Status: Open
-
-##### Summary
-
-Each of the nine Perl tests carries its own copy of its helpers: `slurp`, `spew` and `usage_error` in all nine files, `which` in seven, `shell_quote` and the pair `fail` and `check` in six, and `pause_for` in three. A fix in one copy has to be repeated by hand in the others, and the copies already differ in small details. The copies of `check` and `fail` have no prototype in six tests, which M14 repairs by declaring scalar prototypes (D27).
-
-##### Scope
-
-- Put the common helpers in one module below `tests/` that each test loads from its own location, using only the modules of the Perl core and keeping Perl 5.26 working.
-- Keep every test runnable alone, from a copy of the tree, as the scratch trees of the mutation runs use it.
-- Keep the scalar prototypes of `check` and `fail` that M14 adds, in the shared module.
-
-Out of scope: changing what a test checks (M3, M10, M11); the shell helpers in `tests/lib/`.
-
-##### Completion Criteria
-
-- Every Perl test loads the shared module instead of its own copy, and the copies are gone.
-- The output of each test on the shipped code and the verdicts of its recorded mutations are unchanged.
-- The module has a check of its own that runs in the local suite, and it shows that a check with a failed pattern match fails.
-
-##### Dependencies And Decisions
-
-- D24 creates this item on 2026-11-02.
-- D27 moves the scalar prototypes of `check` and `fail` to M14 on 2026-11-02.
-- M3 converts the tests first; M12 changes the converted files.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. Compare the copies of each helper and fix one behavior for each, noting where the copies differ.
-2. Write the module and its check, then move the tests to it one at a time.
-3. Run each moved test on the shipped code and against its recorded mutations.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Local | Run each moved test on the shipped code and compare its output with the output before the move | A host with a real EPICS Base | The output is identical apart from paths and times |
-| T2 | Guest | Run the moved tests that run on a guest | The Rocky Linux guest, Perl 5.26 | Every run passes |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | A host with a real EPICS Base | Pending | none |
-| T2 | Pending | The Rocky Linux guest | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Share the helper code of the Perl tests
-Labels: none
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
 
 #### M16 - Build the VM installation test on the local installer scripts
 
