@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: M10 implementation and required verification are finished. All 161 mutations are accounted for: 156 are killed and five are equivalent for the documented entry paths; all nine tests pass unmutated locally and in the Rocky guest. Repository landing remains pending; no M10 commit or push has been authorized. The guest is shut off with its disks and evidence retained. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: All twelve assigned work items are Complete; M10 landed at 37ba14f with T1 and T2 passed. No row is Ready. Before further implementation, select and assign Backlog work under its recorded conditions. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
@@ -32,9 +32,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M9 | Keep the last sample of the PV time-range test inside the query range | Carry-forward | Complete | No | M3, D23, D30, D31 | The unmutated time-range test passes in all 30 runs of a series, and its stable mutation verdicts stay as before; T1-T2 passed; landed at e39252e; [detail](#m9---keep-the-last-sample-of-the-pv-time-range-test-inside-the-query-range) |
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Complete | No | D33, D34 | T1-T9 satisfy the completion criteria within their recorded input and environment limits; read-failure correction and verification record landed at 5da67a8; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
-| Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | In progress | No | M3, D24, D37, D38 | Every one of the 48 mutations that the converted tests leave alive is killed by its test or recorded as equivalent with the reason, and the killed ones stay killed; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
+| Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Complete | No | M3, D24, D37, D38 | T1-T2 passed: 156 mutations killed and five equivalent for the recorded entry paths; all 113 former kills retained; landed at 37ba14f; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 11 Complete, 1 In progress. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 12 Complete. No row is Ready.
 
 ### Decisions
 
@@ -1477,11 +1477,11 @@ Last Compared: none
 Origin: 9576820 / M10
 Identity History: created as M10 on 2026-11-02 by D24; assigned on 2026-11-05 by D37
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
-At the M3 conversion, the Perl and Python tests both left the same 48 scratch mutations alive (conversion record of M3). The corrected nine tests kill 43 of those mutations; five have matching native results and source-level equivalence reasons below. All 113 former kills remain killed. The complete set is 161 mutations: 156 killed and five equivalent for the recorded entry paths. The original survivors per file were: `tests/install-payload.pl` 4, `tests/health-local.pl` 5, `tests/database-config.pl` 11 (nine configuration cases and two integration cases), `tests/config-d.pl` 6, `tests/local-install-epics.pl` 5, `tests/local-install-pv-menu.pl` 6, `tests/local-install-pv-range.pl` 4, `tests/local-install-pv-signals.pl` 3 and `tests/config-d-runtime.pl` 4. The signal test also checks the unconfirmed-pause warning when the verifier's pause evidence is missing. Implementation and required verification are finished; repository landing remains pending.
+At the M3 conversion, the Perl and Python tests both left the same 48 scratch mutations alive (conversion record of M3). The corrected nine tests kill 43 of those mutations; five have matching native results and source-level equivalence reasons below. All 113 former kills remain killed. The complete set is 161 mutations: 156 killed and five equivalent for the recorded entry paths. The original survivors per file were: `tests/install-payload.pl` 4, `tests/health-local.pl` 5, `tests/database-config.pl` 11 (nine configuration cases and two integration cases), `tests/config-d.pl` 6, `tests/local-install-epics.pl` 5, `tests/local-install-pv-menu.pl` 6, `tests/local-install-pv-range.pl` 4, `tests/local-install-pv-signals.pl` 3 and `tests/config-d-runtime.pl` 4. The signal test also checks the unconfirmed-pause warning when the verifier's pause evidence is missing. Implementation, required verification and repository landing are complete.
 
 ##### Scope
 
@@ -1579,13 +1579,13 @@ The test SHA-256 is `4dffc710a1039aa6065596de68ee4c9f5013fb37f7773cb8eead312bea0
 | `restore-webapp-on-failure` | The installed payload differs after the final write fails; the expected restore is missing |
 | `unzip-failure-tolerated` | The Make target returns 0 after the real extraction warning, instead of the required 2 |
 
-On both normal runs, the prefixed real WAR causes native `unzip` status 1 after extracting the original `web.xml`, and `/dev/full` causes the payload installer's final `printf` to fail. The full Make path restores the previous WAR and JAR contents and removes its staging directory. Per-run `run.log` files, retained workspaces and the mutation source manifests preserve those observations. No shipped installer code changed. The later payload installation guest check passed. M10 remains In progress pending repository landing.
+On both normal runs, the prefixed real WAR causes native `unzip` status 1 after extracting the original `web.xml`, and `/dev/full` causes the payload installer's final `printf` to fail. The full Make path restores the previous WAR and JAR contents and removes its staging directory. Per-run `run.log` files, retained workspaces and the mutation source manifests preserve those observations. No shipped installer code changed. The later payload installation guest check passed.
 
 ##### Closure Evidence
 
 - Implementation and required verification: finished on 2026-11-05. T1 and T2 are Pass; all 48 original survivors are resolved, all former kills are retained, and shipped product code is unchanged.
 - The Rocky guest is shut off; its disks and earlier/new evidence are preserved. Owned local mutation processes were observed and stopped, with the original outcomes retained.
-- Repository landing: pending. No M10 commit or push is authorized by the current implementation request.
+- Repository landing: observed at 2026-11-05T23:59:03Z after fetching `origin`. Both `HEAD` and `origin/maven` resolved to `37ba14f713f758c0aebfe7ec26340a5a830d2e6b`; comparing all eleven paths changed by that commit against `origin/maven` exited 0 with no differences.
 
 ##### GitHub Projection
 
