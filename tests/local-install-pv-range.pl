@@ -14,6 +14,11 @@ use Pod::Usage qw(pod2usage);
 use POSIX ();
 use Time::Local qw(timegm);
 
+BEGIN {
+    require(dirname(abs_path($0)) . '/lib/ArchiverTest.pm');
+    ArchiverTest->import(qw(slurp spew usage_error fail check));
+}
+
 =head1 NAME
 
 local-install-pv-range.pl - check the inclusive CSV time bounds through the PV verifier and a real soft IOC
@@ -103,34 +108,6 @@ sub finish_workspace {
 my $JSON = JSON::PP->new->canonical;
 
 $| = 1;
-
-sub fail($) {
-    my ($message) = @_;
-    die "ASSERTION: $message\n";
-}
-
-sub check($$) {
-    my ($condition, $message) = @_;
-    $condition or fail($message);
-    return;
-}
-
-sub slurp {
-    my ($path) = @_;
-    open(my $handle, '<:raw', $path) or die "open $path: $!\n";
-    local $/;
-    my $data = <$handle>;
-    close($handle) or die "close $path: $!\n";
-    return $data // '';
-}
-
-sub spew {
-    my ($path, $data) = @_;
-    open(my $handle, '>:raw', $path) or die "open $path: $!\n";
-    print {$handle} $data or die "write $path: $!\n";
-    close($handle) or die "close $path: $!\n";
-    return;
-}
 
 sub append {
     my ($path, $data) = @_;
@@ -371,12 +348,12 @@ sub run_mode {
 sub main {
     my (@arguments) = @_;
     my $help;
-    GetOptionsFromArray(\@arguments, 'help' => \$help) or return usage_error();
+    GetOptionsFromArray(\@arguments, 'help' => \$help) or return usage_error('local-install-pv-range.pl', __FILE__);
     if ($help) {
         pod2usage(-verbose => 1, -exitval => 'NOEXIT', -output => \*STDOUT);
         return 0;
     }
-    return usage_error('unexpected argument: ' . $arguments[0]) if @arguments;
+    return usage_error('local-install-pv-range.pl', __FILE__, 'unexpected argument: ' . $arguments[0]) if @arguments;
     my $epics = $ENV{AA_TEST_EPICS_BIN};
     die "AA_TEST_EPICS_BIN is required\n" unless defined $epics && $epics ne '';
     my $source = $ENV{AA_TEST_SOURCE_PATH} || "$TOP/epicsarchiverap-maven-src";
@@ -396,13 +373,6 @@ sub main {
     finish_workspace($workspace, $ok);
     die $error unless $ok;
     return 0;
-}
-
-sub usage_error {
-    my ($message) = @_;
-    print STDERR "local-install-pv-range.pl: $message\n" if defined $message;
-    pod2usage(-verbose => 0, -exitval => 'NOEXIT', -output => \*STDERR);
-    return 2;
 }
 
 my $status;

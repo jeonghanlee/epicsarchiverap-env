@@ -18,6 +18,11 @@ use Pod::Usage qw(pod2usage);
 use POSIX ();
 use Socket qw(PF_INET SOCK_STREAM SOL_SOCKET SO_REUSEADDR inet_aton sockaddr_in);
 
+BEGIN {
+    require(dirname(abs_path($0)) . '/lib/ArchiverTest.pm');
+    ArchiverTest->import(qw(slurp spew usage_error which shell_quote_shlex fail check pause_for));
+}
+
 =head1 NAME
 
 config-d-runtime.pl - check the config.d layer of an installed appliance with real Tomcat, Java and WAR files
@@ -119,62 +124,9 @@ my $INTERRUPT;
 
 $| = 1;
 
-sub fail($) {
-    my ($message) = @_;
-    die "ASSERTION: $message\n";
-}
-
-sub check($$) {
-    my ($condition, $message) = @_;
-    $condition or fail($message);
-    return;
-}
-
-sub slurp {
-    my ($path) = @_;
-    open(my $handle, '<:raw', $path) or die "open $path: $!\n";
-    local $/;
-    my $data = <$handle>;
-    close($handle) or die "close $path: $!\n";
-    return $data // '';
-}
-
-sub spew {
-    my ($path, $data, $mode) = @_;
-    my $flags = $mode && $mode eq 'append' ? '>>:raw' : '>:raw';
-    open(my $handle, $flags, $path) or die "open $path: $!\n";
-    print {$handle} $data or die "write $path: $!\n";
-    close($handle) or die "close $path: $!\n";
-    return;
-}
-
-# Quotes a word for a shell the way Python shlex.quote does.
-sub shell_quote {
-    my ($text) = @_;
-    return "''" if $text eq '';
-    return $text unless $text =~ m{[^A-Za-z0-9_@%+=:,./-]};
-    $text =~ s/'/'"'"'/g;
-    return "'$text'";
-}
-
 sub json_text {
     my ($data) = @_;
     return JSON::PP->new->canonical->pretty->indent_length(2)->encode($data);
-}
-
-sub which {
-    my ($name) = @_;
-    for my $directory (split /:/, $ENV{PATH} // '') {
-        next if $directory eq '';
-        return "$directory/$name" if -f "$directory/$name" && -x _;
-    }
-    return;
-}
-
-sub pause_for {
-    my ($seconds) = @_;
-    select(undef, undef, undef, $seconds);
-    return;
 }
 
 # State letter of a process; empty when the process is gone.
@@ -251,7 +203,7 @@ sub command {
             if (time() >= $deadline) {
                 kill('KILL', $pid);
                 waitpid($pid, 0);
-                fail('Command timed out after ' . $timeout . ' seconds: ' . join(' ', map { shell_quote($_) } @{$arguments}));
+                fail('Command timed out after ' . $timeout . ' seconds: ' . join(' ', map { shell_quote_shlex($_) } @{$arguments}));
             }
             pause_for(0.05);
         }
@@ -269,9 +221,9 @@ sub command {
     my $out = slurp($stdout);
     my $err = slurp($stderr);
     spew("$state->{root}/commands.log",
-        'command=' . join(' ', map { shell_quote($_) } @{$arguments}) . "\nexit=$code\n$out$err\n", 'append');
+        'command=' . join(' ', map { shell_quote_shlex($_) } @{$arguments}) . "\nexit=$code\n$out$err\n", 'append');
     check($code == $expected, 'Command exited ' . $code . ', expected ' . $expected . ': '
-        . join(' ', map { shell_quote($_) } @{$arguments}) . "\n$out$err");
+        . join(' ', map { shell_quote_shlex($_) } @{$arguments}) . "\n$out$err");
     return { code => $code, stdout => $out, stderr => $err };
 }
 
@@ -306,7 +258,7 @@ sub http_get {
 sub edit {
     my ($state, $value, $threshold) = @_;
     spew("$state->{installed}/config.d/90-site.conf",
-        'CONFIG_TEST_LIVE=' . shell_quote($value) . "\nCONFIG_TEST_EMPTY=''\nARCHAPPL_STORAGE_ALARM_PERCENT=$threshold\n");
+        'CONFIG_TEST_LIVE=' . shell_quote_shlex($value) . "\nCONFIG_TEST_EMPTY=''\nARCHAPPL_STORAGE_ALARM_PERCENT=$threshold\n");
     return;
 }
 
@@ -368,7 +320,7 @@ sub prepare {
     check($load->{stderr} eq '', "sqlite3 reported: $load->{stderr}");
     spew("$state->{installed}/config.d/10-common.conf",
         q{CONFIG_TEST_NEW='quoted value * $literal'} . "\nCONFIG_TEST_EMPTY=nonempty\n"
-        . 'PATH=' . shell_quote("$state->{root}/path-prefix") . q{:"$PATH"} . "\n"
+        . 'PATH=' . shell_quote_shlex("$state->{root}/path-prefix") . q{:"$PATH"} . "\n"
         . "EPICS_CA_ADDR_LIST=127.0.0.1\nEPICS_CA_AUTO_ADDR_LIST=NO\n"
         . q{CATALINA_OPTS='-Xms64m -Xmx256m -XX:ActiveProcessorCount=2 -Dconfig.common=present'} . "\n");
     spew("$state->{installed}/engine/conf/engine.conf",
@@ -651,13 +603,6 @@ sub run_checks {
     return;
 }
 
-sub usage_error {
-    my ($message) = @_;
-    print STDERR "config-d-runtime.pl: $message\n" if defined $message;
-    pod2usage(-verbose => 0, -exitval => 'NOEXIT', -output => \*STDERR);
-    return 2;
-}
-
 sub resolve_directory {
     my ($path, $what) = @_;
     my $resolved = abs_path($path);
@@ -670,14 +615,14 @@ sub main {
     my ($help, $tomcat_home, $war_dir);
     my $port_base = 29665;
     GetOptionsFromArray(\@arguments, 'help' => \$help, 'tomcat-home=s' => \$tomcat_home, 'war-dir=s' => \$war_dir,
-        'port-base=i' => \$port_base) or return usage_error();
+        'port-base=i' => \$port_base) or return usage_error('config-d-runtime.pl', __FILE__);
     if ($help) {
         pod2usage(-verbose => 1, -exitval => 'NOEXIT', -output => \*STDOUT);
         return 0;
     }
-    return usage_error('unexpected argument: ' . $arguments[0]) if @arguments;
-    return usage_error('--tomcat-home is required') if !defined $tomcat_home;
-    return usage_error('--war-dir is required') if !defined $war_dir;
+    return usage_error('config-d-runtime.pl', __FILE__, 'unexpected argument: ' . $arguments[0]) if @arguments;
+    return usage_error('config-d-runtime.pl', __FILE__, '--tomcat-home is required') if !defined $tomcat_home;
+    return usage_error('config-d-runtime.pl', __FILE__, '--war-dir is required') if !defined $war_dir;
     $tomcat_home = resolve_directory($tomcat_home, '--tomcat-home');
     $war_dir = resolve_directory($war_dir, '--war-dir');
     my $root = tempdir('archappl-config-runtime-XXXXXXXX', DIR => temp_root());

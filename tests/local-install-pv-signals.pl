@@ -13,6 +13,11 @@ use Pod::Usage qw(pod2usage);
 use POSIX ();
 require 'syscall.ph';
 
+BEGIN {
+    require(dirname(abs_path($0)) . '/lib/ArchiverTest.pm');
+    ArchiverTest->import(qw(slurp spew usage_error which shell_quote fail check pause_for));
+}
+
 =head1 NAME
 
 local-install-pv-signals.pl - check the clean-up of the PV verifier when it is interrupted, with a real soft IOC
@@ -107,55 +112,6 @@ sub finish_workspace {
 
 
 $| = 1;
-
-sub fail($) {
-    my ($message) = @_;
-    die "ASSERTION: $message\n";
-}
-
-sub check($$) {
-    my ($condition, $message) = @_;
-    $condition or fail($message);
-    return;
-}
-
-sub slurp {
-    my ($path) = @_;
-    open(my $handle, '<:raw', $path) or die "open $path: $!\n";
-    local $/;
-    my $data = <$handle>;
-    close($handle) or die "close $path: $!\n";
-    return $data // '';
-}
-
-sub spew {
-    my ($path, $data) = @_;
-    open(my $handle, '>:raw', $path) or die "open $path: $!\n";
-    print {$handle} $data or die "write $path: $!\n";
-    close($handle) or die "close $path: $!\n";
-    return;
-}
-
-sub shell_quote {
-    my ($text) = @_;
-    $text =~ s/'/'\\''/g;
-    return "'$text'";
-}
-
-sub which {
-    my ($name) = @_;
-    for my $directory (split /:/, $ENV{PATH} // '') {
-        next if $directory eq '';
-        return "$directory/$name" if -f "$directory/$name" && -x _;
-    }
-    return;
-}
-
-sub pause_for {
-    my ($seconds) = @_;
-    select(undef, undef, undef, $seconds);
-    return;
-}
 
 # State letter and start time of a process; empty when the process is gone. A PID alone does not prove ownership.
 sub process_identity {
@@ -401,12 +357,12 @@ sub run_case {
 sub main {
     my (@arguments) = @_;
     my $help;
-    GetOptionsFromArray(\@arguments, 'help' => \$help) or return usage_error();
+    GetOptionsFromArray(\@arguments, 'help' => \$help) or return usage_error('local-install-pv-signals.pl', __FILE__);
     if ($help) {
         pod2usage(-verbose => 1, -exitval => 'NOEXIT', -output => \*STDOUT);
         return 0;
     }
-    return usage_error('unexpected argument: ' . $arguments[0]) if @arguments;
+    return usage_error('local-install-pv-signals.pl', __FILE__, 'unexpected argument: ' . $arguments[0]) if @arguments;
     my $epics = $ENV{AA_TEST_EPICS_BIN};
     die "AA_TEST_EPICS_BIN is required\n" unless defined $epics && $epics ne '';
     defined which('script') or die "the program script of util-linux is required for the terminal cases\n";
@@ -468,13 +424,6 @@ STUB
     finish_workspace($workspace, $ok);
     die $error unless $ok;
     return 0;
-}
-
-sub usage_error {
-    my ($message) = @_;
-    print STDERR "local-install-pv-signals.pl: $message\n" if defined $message;
-    pod2usage(-verbose => 0, -exitval => 'NOEXIT', -output => \*STDERR);
-    return 2;
 }
 
 my $status;

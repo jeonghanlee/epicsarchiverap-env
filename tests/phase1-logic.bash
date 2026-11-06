@@ -1207,6 +1207,9 @@ fi
 
 phase_pass "Phase 1: Logic"
 
+# The exported Perl helpers run against real files, shell arguments and caller POD.
+perl "${TOP}/tests/perl-helpers.pl"
+
 # Real launcher negatives and isolated unit installation; no systemd mutation.
 perl "${TOP}/tests/health-local.pl"
 perl "${TOP}/tests/config-d.pl"

@@ -13,6 +13,11 @@ use Getopt::Long qw(GetOptionsFromArray);
 use Pod::Usage qw(pod2usage);
 use POSIX ();
 
+BEGIN {
+    require(dirname(abs_path($0)) . '/lib/ArchiverTest.pm');
+    ArchiverTest->import(qw(slurp spew usage_error which shell_quote fail check));
+}
+
 =head1 NAME
 
 local-install-epics.pl - check the EPICS preflight of the local installers without installing anything
@@ -68,49 +73,6 @@ my $capture_dir;
 my $capture_count = 0;
 
 $| = 1;
-
-sub fail($) {
-    my ($message) = @_;
-    die "ASSERTION: $message\n";
-}
-
-sub check($$) {
-    my ($condition, $message) = @_;
-    $condition or fail($message);
-    return;
-}
-
-sub slurp {
-    my ($path) = @_;
-    open(my $handle, '<:raw', $path) or die "open $path: $!\n";
-    local $/;
-    my $data = <$handle>;
-    close($handle) or die "close $path: $!\n";
-    return $data // '';
-}
-
-sub spew {
-    my ($path, $data) = @_;
-    open(my $handle, '>:raw', $path) or die "open $path: $!\n";
-    print {$handle} $data or die "write $path: $!\n";
-    close($handle) or die "close $path: $!\n";
-    return;
-}
-
-sub which {
-    my ($name) = @_;
-    for my $directory (split /:/, $ENV{PATH} // '') {
-        next if $directory eq '';
-        return "$directory/$name" if -f "$directory/$name" && -x _;
-    }
-    return;
-}
-
-sub shell_quote {
-    my ($text) = @_;
-    $text =~ s/'/'\\''/g;
-    return "'$text'";
-}
 
 # Runs one command without a shell. Options: env (a hash reference replacing the environment), cwd, input (standard
 # input text) and timeout (seconds). Returns a hash with status (a signal reads as 128 plus its number), stdout and
@@ -177,12 +139,12 @@ sub installer_on_terminal {
 sub main {
     my (@arguments) = @_;
     my $help;
-    GetOptionsFromArray(\@arguments, 'help' => \$help) or return usage_error();
+    GetOptionsFromArray(\@arguments, 'help' => \$help) or return usage_error('local-install-epics.pl', __FILE__);
     if ($help) {
         pod2usage(-verbose => 1, -exitval => 'NOEXIT', -output => \*STDOUT);
         return 0;
     }
-    return usage_error('unexpected argument: ' . $arguments[0]) if @arguments;
+    return usage_error('local-install-epics.pl', __FILE__, 'unexpected argument: ' . $arguments[0]) if @arguments;
     defined which('script') or die "the program script of util-linux is required for the pseudo-terminal of the installers\n";
     $capture_dir = tempdir('aa-local-install-epics-XXXXXX', DIR => temp_root(), CLEANUP => 1);
     my %env = %ENV;
@@ -277,13 +239,6 @@ sub main {
     }
     print "PASS: all three installers require EPICS preparation before installation when PV verification is selected.\n";
     return 0;
-}
-
-sub usage_error {
-    my ($message) = @_;
-    print STDERR "local-install-epics.pl: $message\n" if defined $message;
-    pod2usage(-verbose => 0, -exitval => 'NOEXIT', -output => \*STDERR);
-    return 2;
 }
 
 my $status;

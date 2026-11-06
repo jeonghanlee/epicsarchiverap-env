@@ -16,6 +16,11 @@ use IO::Uncompress::Unzip qw($UnzipError);
 use Pod::Usage qw(pod2usage);
 use POSIX ();
 
+BEGIN {
+    require(dirname(abs_path($0)) . '/lib/ArchiverTest.pm');
+    ArchiverTest->import(qw(slurp spew usage_error fail check));
+}
+
 =head1 NAME
 
 install-payload.pl - compare the real install target against two supplied build artifact sets
@@ -99,34 +104,6 @@ my $WORKSPACE;
 my @MAKE;
 
 $| = 1;
-
-sub fail($) {
-    my ($message) = @_;
-    die "ASSERTION: $message\n";
-}
-
-sub check($$) {
-    my ($condition, $message) = @_;
-    $condition or fail($message);
-    return;
-}
-
-sub slurp {
-    my ($path) = @_;
-    open(my $handle, '<:raw', $path) or die "open $path: $!\n";
-    local $/;
-    my $data = <$handle>;
-    close($handle) or die "close $path: $!\n";
-    return $data // '';
-}
-
-sub spew {
-    my ($path, $data) = @_;
-    open(my $handle, '>:raw', $path) or die "open $path: $!\n";
-    print {$handle} $data or die "write $path: $!\n";
-    close($handle) or die "close $path: $!\n";
-    return;
-}
 
 sub digest_file {
     my ($path) = @_;
@@ -256,13 +233,13 @@ sub main {
     my @arguments = @_;
     local $ENV{LC_ALL} = 'C';
     my ($old_log4j_option, $help);
-    GetOptionsFromArray(\@arguments, 'old-log4j=s' => \$old_log4j_option, 'help|h' => \$help) or return usage_error();
+    GetOptionsFromArray(\@arguments, 'old-log4j=s' => \$old_log4j_option, 'help|h' => \$help) or return usage_error('install-payload.pl', __FILE__);
     if ($help) {
         pod2usage(-verbose => 1, -exitval => 'NOEXIT', -output => \*STDOUT);
         return 0;
     }
-    return usage_error('Expected OLD_TARGET and NEW_TARGET') unless @arguments == 2;
-    return usage_error('--old-log4j is required') unless defined $old_log4j_option;
+    return usage_error('install-payload.pl', __FILE__, 'Expected OLD_TARGET and NEW_TARGET') unless @arguments == 2;
+    return usage_error('install-payload.pl', __FILE__, '--old-log4j is required') unless defined $old_log4j_option;
     my ($old_target, $new_target) = @arguments;
     my $old_log4j_source = $old_log4j_option;
     for my $directory ($old_target, $new_target, $old_log4j_source) {
@@ -448,13 +425,6 @@ exec { $ARGV[0] } @ARGV or die "exec $ARGV[0]: $!\n";
     print "PASS: all four installed WARs and JAR sets match; operator state survived; invalid input preserved the payload.\n";
     finish_workspace($WORKSPACE, 1);
     return 0;
-}
-
-sub usage_error {
-    my ($message) = @_;
-    print STDERR "install-payload.pl: $message\n" if defined $message;
-    pod2usage(-verbose => 0, -exitval => 'NOEXIT', -output => \*STDERR);
-    return 2;
 }
 
 my $status;

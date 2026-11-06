@@ -14,6 +14,11 @@ use Pod::Usage qw(pod2usage);
 use POSIX ();
 use Test::More;
 
+BEGIN {
+    require(dirname(abs_path($0)) . '/lib/ArchiverTest.pm');
+    ArchiverTest->import(qw(slurp spew usage_error which shell_quote));
+}
+
 =head1 NAME
 
 health-local.pl - run the shipped health, storage and systemd Make paths in isolated workspaces
@@ -107,23 +112,6 @@ my @cleanup;
 
 $| = 1;
 
-sub slurp {
-    my ($path) = @_;
-    open(my $handle, '<:raw', $path) or die "open $path: $!\n";
-    local $/;
-    my $data = <$handle>;
-    close($handle) or die "close $path: $!\n";
-    return $data // '';
-}
-
-sub spew {
-    my ($path, $data) = @_;
-    open(my $handle, '>:raw', $path) or die "open $path: $!\n";
-    print {$handle} $data or die "write $path: $!\n";
-    close($handle) or die "close $path: $!\n";
-    return;
-}
-
 sub append_log {
     my ($path, $text) = @_;
     open(my $handle, '>>', $path) or die "open $path: $!\n";
@@ -143,21 +131,6 @@ sub trim {
     $text =~ s/\A\s+//;
     $text =~ s/\s+\z//;
     return $text;
-}
-
-sub which {
-    my ($name) = @_;
-    for my $directory (split /:/, $ENV{PATH} // '') {
-        next if $directory eq '';
-        return "$directory/$name" if -f "$directory/$name" && -x _;
-    }
-    return;
-}
-
-sub shell_quote {
-    my ($text) = @_;
-    $text =~ s/'/'\\''/g;
-    return "'$text'";
 }
 
 sub count_substring {
@@ -1043,25 +1016,18 @@ my @CASES = (
     ['full_install_and_monitor_removal_command_order', 'full install and monitor removal command order', \&case_full_install_and_monitor_removal_command_order],
 );
 
-sub usage_error {
-    my ($message) = @_;
-    print STDERR "health-local.pl: $message\n" if defined $message;
-    pod2usage(-verbose => 0, -exitval => 'NOEXIT', -output => \*STDERR);
-    return 2;
-}
-
 sub main {
     my (@arguments) = @_;
     my ($help, @wanted);
-    GetOptionsFromArray(\@arguments, 'help' => \$help, 'case=s' => \@wanted) or return usage_error();
+    GetOptionsFromArray(\@arguments, 'help' => \$help, 'case=s' => \@wanted) or return usage_error('health-local.pl', __FILE__);
     if ($help) {
         pod2usage(-verbose => 1, -exitval => 'NOEXIT', -output => \*STDOUT);
         return 0;
     }
-    return usage_error('unexpected argument: ' . $arguments[0]) if @arguments;
+    return usage_error('health-local.pl', __FILE__, 'unexpected argument: ' . $arguments[0]) if @arguments;
     my %known = map { $_->[0] => 1 } @CASES;
     for my $name (@wanted) {
-        return usage_error("unknown case: $name") unless $known{$name};
+        return usage_error('health-local.pl', __FILE__, "unknown case: $name") unless $known{$name};
     }
     my %chosen = map { $_ => 1 } @wanted;
     my @selected = grep { !@wanted || $chosen{ $_->[0] } } @CASES;

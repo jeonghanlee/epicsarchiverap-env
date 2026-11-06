@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: M12 is assigned and Not started, with Ready Yes. Review its draft shared-helper plan, then record plan acceptance and implementation authorization before changing tests. The plan preserves the existing helper behavior, CLI output and all 161 mutation verdicts established by M10. The other twelve assigned items are Complete. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: Prepare the M12 implementation commit when requested. The shared module, nine callers and direct helper check are implemented. The R1 import correction passes the helper check, all nine real entry points on both targets, and the local Phase 1 suite; the earlier T1-T4 extraction evidence includes the 161 mutation outcomes, whose source scope is recorded below. Raw evidence is preserved in `work/m12-helpers/` and `work/m12-r1-gda201qr/`. M12 remains In progress until the changes have repository landing evidence under separate commit and push authority. The other twelve assigned items are Complete. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
@@ -33,9 +33,9 @@ Out of scope for this assignment update: product implementation, VM provisioning
 | Tests | M8 | Decide the replacement of the VM driver and guest verifier | Carry-forward | Complete | No | D6, D16, D17, D32 | Decided by D32 on 2026-11-03: none of the three Python files is kept, and a new Perl test on the local installer scripts replaces them (M16); [detail](#m8---decide-the-replacement-of-the-vm-driver-and-guest-verifier) |
 | Install | M17 | Upgrade an installed appliance by comparing its state with the checkout | Milestone | Complete | No | D33, D34 | T1-T9 satisfy the completion criteria within their recorded input and environment limits; read-failure correction and verification record landed at 5da67a8; [detail](#m17---upgrade-an-installed-appliance-by-comparing-its-state-with-the-checkout) |
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Complete | No | M3, D24, D37, D38 | T1-T2 passed: 156 mutations killed and five equivalent for the recorded entry paths; all 113 former kills retained; landed at 37ba14f; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
-| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Not started | Yes | M3, M10, M14, D24, D27, D39 | The nine Perl tests load the shared helpers with unchanged output and mutation verdicts; plan acceptance and implementation authorization pending; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
+| Tests | M12 | Share the helper code of the Perl tests | Carry-forward | In progress | No | M3, M10, M14, D24, D27, D39, D40 | T1-T4 extraction evidence and the R1 import-correction checks are retained; repository landing pending; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 12 Complete, 1 Not started. M12 is Ready; its draft plan is not yet accepted or authorized for implementation.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 12 Complete, 1 In progress. No row is Ready.
 
 ### Decisions
 
@@ -80,6 +80,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D37 | Assign M10 and authorize its first implementation batch: correct the four reproduced gaps in `tests/install-payload.pl`, verify the real installation path and rerun its fourteen recorded mutations. The remaining forty-four survivors are outside this batch; M10 remains In progress until its full completion criteria are met. | 2026-11-05 |
 | D38 | Extend the accepted M10 implementation plan and authorization to the remaining eight tests, all forty-four original survivors, and outstanding verification. Add checks through the shipped paths or record demonstrated equivalent mutations with their reasons; shipped product code remains outside the scope. | 2026-11-05 |
 | D39 | Assign M12 as the next work item and prepare its shared-helper plan against the completed M10 and M14 tests. Preserve existing test behavior and mutation verdicts. Plan acceptance and implementation authorization remain separate. | 2026-11-05 |
+| D40 | Accept the reviewed shared-helper plan at c30be1d and authorize M12 implementation and verification. Reuse the retained Rocky test guest, preserve earlier evidence, run in a new directory and shut it down after testing. | 2026-11-05 |
 
 ### ID Migration
 
@@ -1603,7 +1604,7 @@ Last Compared: none
 Origin: 9576820 / M12
 Identity History: created as M12 on 2026-11-02 by D24; assigned on 2026-11-05 by D39
 GitHub Issue: none
-Status: Not started
+Status: In progress
 
 ##### Summary
 
@@ -1629,14 +1630,14 @@ Out of scope: changing test assertions, fixtures, process supervision or cleanup
 
 - D24 creates this item on 2026-11-02; D27 moves the scalar-prototype correction to M14.
 - M3 supplied the Perl tests, M14 completed their scalar prototypes, and M10 supplies the current mutation baseline. These completed changes are the inputs whose behavior this work preserves.
-- D39 assigns M12 on 2026-11-05 for plan preparation. The plan remains draft; implementation is not yet authorized.
-- A guest run requires a separately authorized guest request or reuse under the existing VM procedure. Selecting this work does not start or provision a VM.
+- D39 assigns M12 on 2026-11-05 for plan preparation.
+- D40 accepts the reviewed plan and authorizes implementation and verification on 2026-11-05. Reuse of the retained Rocky test guest is separately authorized for this work, with earlier evidence preserved, a new working directory and shutdown afterward.
 
 ##### Implementation Plan
 
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
+Plan Status: accepted
+Plan Acceptance: 2026-11-05, reviewed plan at c30be1d1f042758e2d792f93b49ccdf259cc1a4c, by D40
+Implementation Authorization: 2026-11-05, shared-helper extraction and verification, including retained Rocky guest reuse, by D40
 Superseded Plan Artifacts: the earlier three-step draft in this detail, retained at commit 743be01c69351ac614c328aeeea5cae036fbfc36
 
 The proposed module is `tests/lib/ArchiverTest.pm`, with explicit exports and no default imports or process exit. Preserve the current language level (`use 5.010`) and test on the oldest supported interpreter, Perl 5.26.3. Use only modules available after the targets' test-package preparation; measure availability before relying on a new import. The source comparison at commit `743be01` finds identical `slurp`, `which`, `fail`, `check` and `pause_for` bodies. `spew` has the runtime-only append argument, `shell_quote` has always-quoted and shlex-compatible forms, and `usage_error` differs by script name. These differences are preserved explicitly rather than silently selecting one caller's behavior for all callers.
@@ -1663,14 +1664,25 @@ Comparison rules: retain the raw stdout, stderr and exit status, together with e
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Pending | Local host and Rocky Linux 8.10 | Pending | none |
-| T2 | Pending | Local host; database configuration mode | Pending | none |
-| T3 | Pending | Local host and authorized Rocky guest for database integration | Pending | none |
-| T4 | Pending | Rocky Linux 8.10 guest | Pending | none |
+| T1 | 2026-11-06 UTC | Debian 13, Perl 5.40.1; Rocky Linux 8.10, Perl 5.26.3 | Pass: syntax and POD checks for all eleven files; help and invalid usage; all 22 imported modules available. The 78 helper assertions pass on both systems and through the actual local Phase 1 entry point; Phase 1 exits 0 without skips. The Perl skill's 47 system-pattern checks pass on both interpreters | `work/m12-helpers/static-local/`, `final-runtime-static/`, `static-guest-final/`, `usage-and-modules/`, `phase1-local/`, `perl-patterns/`; exact commands, statuses, file hashes and raw output retained |
+| T2 | 2026-11-06 UTC | Debian 13; real EPICS Base, Tomcat, WARs and database configuration mode | Pass: all nine baseline and final refactored entry points pass from outside copied checkouts. Control stdout, stderr and statuses match after mapping only generated workspace paths. Help, invalid options and invalid arguments match byte for byte. Source and input hashes remain unchanged | `work/m12-helpers/baseline-local/`, `final-runtime-local/`, `comparisons/`, `usage-and-modules/`; raw captures and each normalization map retained |
+| T3 | 2026-11-06 UTC | Debian host; Rocky guest for root database integration | Pass: all 161 M10 verdicts remain, with 156 killed at the intended checks and five equivalent within the recorded input limits. Each menu/range control and mutation ran three times. All 15 selected controls pass; 42 retained PV fault observations verify the actual boundary inputs | `work/m12-helpers/verification-summary.json`, `mutation-audit.json`, `guest-mutation-audit.json`, `fault-exposure.json`, `equivalent-comparisons/`; actual commands, native failures, source hashes, comparisons and external cleanup records retained |
+| T4 | 2026-11-06 UTC | Rocky Linux 8.10, Perl 5.26.3; real EPICS, Java, Tomcat, SQLite and private MariaDB | Pass: the helper, all nine refactored tests and root database integration pass. Baseline and refactored database outputs agree under the accepted workspace, backup-time and private-port rules. Input hashes remain unchanged; no test process remains; normal boot readiness and final shut-off state were observed | `work/m12-helpers/baseline-guest/`, `refactored-guest/`, `refactored-guest-retry/`, `comparisons/guest-database-integration/`, `rocky-final/`, `perl-patterns/`; the archived baseline verifies 17,076 file hashes and the volatile final DB workspace verifies 612 files on the host |
+
+The mutation evidence selects 215 local runs, eight guest runs and one additional runtime retry control. Incomplete setup, occupied-port prerequisites and a capture without a saved exit status are excluded. The local recording label error is resolved by each actual command, case path and complete source hash inventory; raw records remain unchanged. `verification-summary.json` identifies every selected run and exclusion. Source comparison in `extraction-scope.json` confirms that all nine callers preserve their assertions, fixtures and cleanup bodies; the only runtime difference after the initial captures is removal of an orphan comment, checked through native Perl compiler output and final-file controls.
+
+The three `menu-prompt` repeats reached the actual changed `Choose` prompt and failed the unchanged prompt check on its deadline; the M10 captures failed its output-ended branch. One `owner-zombie-check` repeat failed earlier at the same owned-IOC liveness check during `resume-exit`, with the actual SIGTERM and matching PID recorded. These branch differences are retained explicitly. The five equivalent mutations have matching native statuses, assertions and diagnostics under the accepted normalization rules; their limits remain those recorded under M10.
+
+The R1 correction on 2026-11-06 UTC binds each import to the absolute module path beside the real script. The nine existing tests change only their import blocks; their assertions, fixtures and cleanup bodies are unchanged. The helper check includes all ten real entry points with a missing local module and a foreign `PERL5LIB`, plus complete copies reached through symlinks. The missing-module checks fail before the correction and all 128 assertions pass afterward on Debian 13 and Rocky Linux 8.10. Helper help renders without an external `perldoc`.
+
+R1 verification: all nine local entry points pass, with stdout, stderr and status equal to the pre-extraction baseline after the accepted workspace-path normalization. The real local Phase 1 suite passes without skips. On Rocky, the helper, all nine entry points, root database integration and 65 syntax, POD, CLI and module checks pass. Source and input hashes remain unchanged during the runs. Commands, statuses, hashes, raw output and comparison maps are under `work/m12-r1-gda201qr/`. The 161 mutation outcomes above belong to the pre-R1 extraction snapshots; the import-only correction did not repeat the full mutation set.
 
 ##### Closure Evidence
 
-- none
+- Initial extraction verification and the R1 follow-up are recorded above for 2026-11-06 UTC; no shipped product code changed. The shared-module SHA-256 is `0f6565d9b120bb1cdaa1bab4fc95022555d68aeecdcf42fe70d6c157ae1c9e95`.
+- The retained Rocky guest is shut off, with its disks and earlier evidence preserved. The authorized baseline deletion followed a complete host archive and hash check. Raw captures, final process observations, input hashes and VM lifecycle records remain under `work/m12-helpers/`.
+- After the R1 checks, no owned test process remains and the same Rocky guest is shut off. Its volatile R1 workspace was archived on the host with all 3,891 regular-file hashes verified; `work/m12-r1-gda201qr/guest-archive/verified.json` and `vm-final.json` retain the archive and lifecycle observations.
+- Repository landing: pending separate commit and push authority; M12 remains In progress.
 
 ##### GitHub Projection
 

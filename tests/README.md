@@ -188,6 +188,30 @@ an incomplete run. A refused handoff leaves the run record unchanged. A recorded
 failure remains a failure after cleanup, and the run then accepts no further
 case. Changed verifier bytes invalidate an existing run.
 
+### Shared Perl test helpers
+
+`tests/lib/ArchiverTest.pm` supplies the helpers used by `install-payload.pl`, `health-local.pl`, `database-config.pl`,
+`config-d.pl`, `local-install-epics.pl`, the three `local-install-pv-*.pl` tests and `config-d-runtime.pl`.
+Each test imports the module at compile time using an absolute path derived from its real script location,
+including entry through the PV fixtures' symlinks. Copied checkouts must include `tests/lib/ArchiverTest.pm`.
+If that file is missing, compilation stops, including for `--help`; `PERL5LIB` cannot supply a fallback.
+
+Imports are explicit. `slurp` and `spew` handle raw bytes; `spew` accepts an optional `append` mode. `shell_quote`
+always quotes, while the runtime test uses `shell_quote_shlex` to preserve its shell-safe and apostrophe formats.
+`fail($)` and `check($$)` retain scalar prototypes at compile time. Tests using `Test::More` retain its assertions.
+`usage_error` receives the caller's script name and POD path, writes usage to stderr and returns 2 without exiting.
+`which` searches nonempty PATH entries for a regular executable file, and `pause_for` waits with select.
+
+`perl-helpers.pl` checks these contracts directly through actual files, a POSIX shell, imports and caller POD. It runs
+from `phase1-logic.bash`, reached by `run-all-tests.bash --phase=1` and `--local`. It requires `Test::More`, `Time::HiRes`,
+`/bin/sh` and `/dev/full`; the module uses `Exporter` and `Pod::Usage`, with no additional appliance dependency.
+The helper check also copies the ten real entry points and runs them with `PERL5LIB` pointing to the original
+library: incomplete copies must stop, and complete copies must load through symlinks without warnings.
+
+```bash
+perl tests/perl-helpers.pl
+```
+
 ### Running `health-local.pl` alone
 
 ```bash

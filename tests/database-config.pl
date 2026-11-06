@@ -17,6 +17,11 @@ use POSIX ();
 use Test::More;
 use Time::HiRes ();
 
+BEGIN {
+    require(dirname(abs_path($0)) . '/lib/ArchiverTest.pm');
+    ArchiverTest->import(qw(slurp spew usage_error which));
+}
+
 =head1 NAME
 
 database-config.pl - run the shipped database configuration targets and shell consumers in isolated workspaces
@@ -99,23 +104,6 @@ my @cleanup;
 
 $| = 1;
 
-sub slurp {
-    my ($path) = @_;
-    open(my $handle, '<:raw', $path) or die "open $path: $!\n";
-    local $/;
-    my $data = <$handle>;
-    close($handle) or die "close $path: $!\n";
-    return $data // '';
-}
-
-sub spew {
-    my ($path, $data) = @_;
-    open(my $handle, '>:raw', $path) or die "open $path: $!\n";
-    print {$handle} $data or die "write $path: $!\n";
-    close($handle) or die "close $path: $!\n";
-    return;
-}
-
 sub append {
     my ($path, $data) = @_;
     open(my $handle, '>>:raw', $path) or die "open $path: $!\n";
@@ -135,15 +123,6 @@ sub trim {
     $text =~ s/\A\s+//;
     $text =~ s/\s+\z//;
     return $text;
-}
-
-sub which {
-    my ($name) = @_;
-    for my $directory (split /:/, $ENV{PATH} // '') {
-        next if $directory eq '';
-        return "$directory/$name" if -f "$directory/$name" && -x _;
-    }
-    return;
 }
 
 sub count_substring {
@@ -1163,29 +1142,22 @@ my @INTEGRATION_CASES = (
     ['real_database_credentials_and_account_identity', 'real database credentials and account identity', \&case_real_database_credentials_and_account_identity],
 );
 
-sub usage_error {
-    my ($message) = @_;
-    print STDERR "database-config.pl: $message\n" if defined $message;
-    pod2usage(-verbose => 0, -exitval => 'NOEXIT', -output => \*STDERR);
-    return 2;
-}
-
 sub main {
     my (@arguments) = @_;
     my ($help, $integration, @wanted);
     GetOptionsFromArray(\@arguments, 'help' => \$help, 'integration' => \$integration, 'case=s' => \@wanted)
-        or return usage_error();
+        or return usage_error('database-config.pl', __FILE__);
     if ($help) {
         pod2usage(-verbose => 1, -exitval => 'NOEXIT', -output => \*STDOUT);
         print "\nConfiguration cases:\n", map({ "  $_->[0]\n" } @CASES);
         print "\nIntegration cases (with --integration):\n", map({ "  $_->[0]\n" } @INTEGRATION_CASES);
         return 0;
     }
-    return usage_error('unexpected argument: ' . $arguments[0]) if @arguments;
+    return usage_error('database-config.pl', __FILE__, 'unexpected argument: ' . $arguments[0]) if @arguments;
     my @set = $integration ? @INTEGRATION_CASES : @CASES;
     my %known = map { $_->[0] => 1 } @set;
     for my $name (@wanted) {
-        return usage_error("unknown case: $name") unless $known{$name};
+        return usage_error('database-config.pl', __FILE__, "unknown case: $name") unless $known{$name};
     }
     if ($integration && ($> != 0 || ($ENV{AA_TEST_DISPOSABLE_HOST} // '') ne 'YES')) {
         print STDERR "INCOMPLETE: --integration requires root and AA_TEST_DISPOSABLE_HOST=YES on a disposable "
