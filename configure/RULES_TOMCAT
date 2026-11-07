@@ -16,10 +16,10 @@ tomcat.action: tomcat.get tomcat.installaction tomcat.update
 ## Install Tomcat with systemd service enabled
 tomcat.all: tomcat.get tomcat.installall tomcat.update
 
-## Download Tomcat tarball from archive.apache.org
+## Download Tomcat tarball from Maven Central
 tomcat.get:
 	$(QUIET)echo "\n>>> Preparing $(TOMCAT_URL) .... "
-	$(QUIET)wget -c $(TOMCAT_URL)
+	$(QUIET)wget -c -O "$(TOMCAT_SRC)" $(TOMCAT_URL)
 
 tomcat.uninstall: tomcat.postrm
 	$(QUIET)echo "Removing $(TOMCAT_INSTALL_LOCATION)..."

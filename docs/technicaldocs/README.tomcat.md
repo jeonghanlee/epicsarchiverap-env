@@ -19,7 +19,7 @@ TOMCAT_INSTALL_LOCATION = /opt/tomcat9
 TOMCAT_MAJOR_VER = 9
 TOMCAT_MINOR_VER = 0.121
 TOMCAT_SRC = apache-tomcat-9.0.121.tar.gz
-TOMCAT_URL = "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.121/bin/apache-tomcat-9.0.121.tar.gz"
+TOMCAT_URL = "https://repo.maven.apache.org/maven2/org/apache/tomcat/tomcat/9.0.121/tomcat-9.0.121.tar.gz"
 TOMCAT_VER = 9.0.121
 ```
 

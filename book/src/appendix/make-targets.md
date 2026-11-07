@@ -139,7 +139,7 @@ This page lists every target that `make` knows in this repository, the prerequis
 | `tomcat.action` | `tomcat.get tomcat.installaction tomcat.update` | Install Tomcat for GitHub Action runners |
 | `tomcat.all` | `tomcat.get tomcat.installall tomcat.update` | Install Tomcat with systemd service enabled |
 | `tomcat.exist` |  |  |
-| `tomcat.get` |  | Download Tomcat tarball from archive.apache.org |
+| `tomcat.get` |  | Download Tomcat tarball from Maven Central |
 | `tomcat.install` | `tomcat.preinst tomcat.src_install tomcat.update` |  |
 | `tomcat.installaction` | `tomcat.src_install tomcat.update` |  |
 | `tomcat.installall` | `tomcat.preinst tomcat.src_install tomcat.update tomcat.sd_install tomcat.sd_enable` |  |

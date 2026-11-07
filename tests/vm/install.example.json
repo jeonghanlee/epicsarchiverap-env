@@ -1,0 +1,34 @@
+{
+  "repository": "/path/to/epicsarchiverap-env",
+  "environment_revision": "4a7829e9378be3daea8c900c4903ff5f4b16d53c",
+  "appliance_revision": "e0a8e66ed09e840ab8ed67dae81b25474605db08",
+  "os": "debian13",
+  "backend": "sqlite",
+  "source": "epicsarchiverap-maven-src",
+  "epics_bin": "/path/to/epics/base/bin/linux-x86_64",
+  "install": "/opt/epicsarchiverap-maven",
+  "service": "epicsarchiverap-maven.service",
+  "timer": "epicsarchiverap-maven-health.timer",
+  "health_service": "epicsarchiverap-maven-health.service",
+  "user": "tomcat",
+  "group": "tomcat",
+  "identity": "appliance0",
+  "database": "/arch/config/archappl.sqlite",
+  "storage": ["/arch", "/arch/sts/ArchiverStore", "/arch/mts/ArchiverStore", "/arch/lts/ArchiverStore"],
+  "urls": {
+    "mgmt": "http://localhost:17665/mgmt/bpl",
+    "engine": "http://localhost:17666/engine/bpl",
+    "etl": "http://localhost:17667/etl/bpl",
+    "retrieval": "http://localhost:17668/retrieval/bpl"
+  },
+  "retrieval": "http://localhost:17668/retrieval",
+  "install_timeout": 3600,
+  "configuration": {
+    "ARCHAPPL_MYIDENTITY": "appliance0",
+    "ARCHAPPL_MGMT_PORT": "17665",
+    "ARCHAPPL_STORAGE_TOP": "/arch",
+    "ARCHAPPL_SHORT_TERM_FOLDER": "/arch/sts/ArchiverStore",
+    "ARCHAPPL_MEDIUM_TERM_FOLDER": "/arch/mts/ArchiverStore",
+    "ARCHAPPL_LONG_TERM_FOLDER": "/arch/lts/ArchiverStore"
+  }
+}
