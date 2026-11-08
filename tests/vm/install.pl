@@ -3,6 +3,7 @@ use 5.010;    # defined-or operator
 use strict;
 use warnings;
 use Cwd qw(abs_path);
+use Errno qw(ENOENT);
 use File::Basename qw(dirname);
 use File::Path qw(make_path);
 use Getopt::Long qw(GetOptionsFromArray);
@@ -17,6 +18,7 @@ my @COMPONENTS = qw(mgmt engine etl retrieval);
 my $HERE = dirname(abs_path(__FILE__));
 my $JSON = JSON::PP->new->canonical->pretty;
 my ($C, $WORK, $PV, $IOC, $VERIFIER);
+my $VERIFIER_ATTEMPTED = 0;
 my $STAGE = 'prerequisites';
 my $LIMIT = 180;
 my $FAILURE = '';
@@ -264,9 +266,19 @@ sub compare {
 }
 
 sub pv_action {
-    my ($phase, $action) = @_;
+    my ($phase, $action, $accept_paused) = @_;
     my $response = object(require_result(curl($phase, "$C->{urls}{mgmt}/${action}ArchivingPV",
         '--get', '--data-urlencode', "pv=$PV"), "$action PV", 1), "$action PV");
+    if ($accept_paused && $action eq 'pause'
+        && ($response->{validation} // '') eq "PV $PV is already paused") {
+        my $state = $JSON->decode(require_result(curl("$phase-state", "$C->{urls}{mgmt}/getPVStatus",
+            '--get', '--data-urlencode', "pv=$PV"), 'paused PV state', 1));
+        ref($state) eq 'ARRAY' && @$state == 1 && ref($state->[0]) eq 'HASH'
+            or die "paused PV state: expected one status object\n";
+        check(($state->[0]{pvName} // '') eq $PV && ($state->[0]{status} // '') eq 'Paused',
+            'already-paused response matches the same Paused PV');
+        return;
+    }
     check(($response->{status} // '') eq 'ok', "$action PV succeeds");
     return;
 }
@@ -309,6 +321,60 @@ sub same_ioc {
     return;
 }
 
+sub ioc_stat {
+    my ($pid) = @_;
+    my $path = "/proc/$pid/stat";
+    if (!open(my $probe, '<:raw', $path)) {
+        return '' if $! == ENOENT;
+        die "open $path: $!\n";
+    } else {
+        my $text = do { local $/; <$probe> };
+        close($probe) or die "close $path: $!\n";
+        defined($text) && $text =~ /^\d+ \(.*\) [A-Z] / or die "invalid IOC stat: $path\n";
+        return $text;
+    }
+}
+
+sub verifier_ioc {
+    my ($phase, $pid) = @_;
+    my $identity = process_identity($phase, $pid, 0);
+    my $prefix = $PV;
+    $prefix =~ s/Value$//;
+    check(index($identity->{command}, "$C->{epics_bin}/softIoc\0") == 0
+        && index($identity->{command}, "\0-m\0P=$prefix\0") >= 0
+        && index($identity->{command}, "\0-d\0$C->{repository}/scripts/fixtures/local-install-pv.db\0") >= 0,
+        'retained IOC belongs to this verifier PV and fixture');
+    return $identity;
+}
+
+sub recover_verifier {
+    my () = @_;
+    return if $IOC;
+    return unless $VERIFIER_ATTEMPTED;
+    opendir(my $directory, "$WORK/pv") or die "open verifier directory: $!\n";
+    my @entries = grep { /^archiver-local-pv\.[A-Za-z0-9]{8}$/ } readdir($directory);
+    closedir($directory) or die "close verifier directory: $!\n";
+    return unless @entries;
+    @entries == 1 or die "verifier evidence directory is ambiguous\n";
+    $VERIFIER = "$WORK/pv/$entries[0]";
+    !-l $VERIFIER && -d $VERIFIER or die "verifier evidence is not a directory\n";
+    my ($suffix) = $entries[0] =~ /\.([A-Za-z0-9]{8})$/;
+    my $pv = slurp("$VERIFIER/pvs.txt"); chomp $pv;
+    $pv eq "LocalInstall:$suffix:Value" or die "verifier PV does not match its private directory\n";
+    !defined($PV) || $PV eq $pv or die "verifier PV differs from the recorded PV\n";
+    $PV = $pv;
+    my $pid = slurp("$VERIFIER/ioc.pid"); chomp $pid;
+    $pid =~ /^[1-9][0-9]*$/ or die "invalid verifier IOC PID\n";
+    my $stat = ioc_stat($pid);
+    if ($stat eq '' || $stat =~ /^\d+ \(.*\) [ZX] /) {
+        $IOC = {pid => $pid, stopped_before_recovery => JSON::PP::true};
+    } else {
+        $IOC = verifier_ioc('final/recovered-ioc', $pid);
+    }
+    save_json("$WORK/final/recovered-verifier.json", {pv => $PV, ioc => $IOC, stat => $stat});
+    return;
+}
+
 sub new_data {
     my ($phase) = @_;
     same_ioc("$phase/ioc");
@@ -339,22 +405,26 @@ sub new_data {
 
 sub finish {
     my () = @_;
-    return unless defined $PV;
     local $SIG{INT} = 'IGNORE';
     local $SIG{TERM} = 'IGNORE';
     my @errors;
-    eval { pv_action('final/pause', 'pause'); 1 } or push @errors, $@;
+    make_path("$WORK/final", {mode => 0700});
+    eval { recover_verifier(); 1 } or push @errors, $@;
+    die join('', @errors) if !defined($PV) && @errors;
+    return unless defined $PV;
+    eval { pv_action('final/pause', 'pause', 1); 1 } or push @errors, $@;
     eval {
         $IOC or die "retained IOC identity is unavailable\n";
-        same_ioc('final/ioc-before');
-        kill('TERM', $IOC->{pid}) or die "terminate test IOC: $!\n";
-        my $end = clock_gettime(CLOCK_MONOTONIC) + 10;
-        while (-e "/proc/$IOC->{pid}/stat" && clock_gettime(CLOCK_MONOTONIC) < $end) {
-            my $stat = slurp("/proc/$IOC->{pid}/stat");
-            last if $stat =~ /^\d+ \(.*\) [ZX] /;
-            pause_for(0.2);
+        my $remaining = ioc_stat($IOC->{pid});
+        if (!$IOC->{stopped_before_recovery} && $remaining ne '' && $remaining !~ /^\d+ \(.*\) [ZX] /) {
+            same_ioc('final/ioc-before');
+            kill('TERM', $IOC->{pid}) or die "terminate test IOC: $!\n";
         }
-        my $remaining = -e "/proc/$IOC->{pid}/stat" ? slurp("/proc/$IOC->{pid}/stat") : '';
+        my $end = clock_gettime(CLOCK_MONOTONIC) + 10;
+        while ($remaining ne '' && $remaining !~ /^\d+ \(.*\) [ZX] / && clock_gettime(CLOCK_MONOTONIC) < $end) {
+            pause_for(0.2);
+            $remaining = ioc_stat($IOC->{pid});
+        }
         check($remaining eq '' || $remaining =~ /^\d+ \(.*\) [ZX] /, 'recorded test IOC stopped');
         spew("$WORK/final/ioc-after.txt", $remaining eq '' ? "absent\n" : $remaining);
         1;
@@ -398,6 +468,7 @@ sub sequence {
     snapshot('t2');
     $STAGE = 'T3'; print "T3: running the shipped PV verifier\n";
     make_path("$WORK/pv", {mode => 0700});
+    $VERIFIER_ATTEMPTED = 1;
     local $ENV{TMPDIR} = "$WORK/pv";
     my $verification = capture('t3/verifier', $LIMIT + 30, 'bash', "$C->{repository}/scripts/verify-local-pv.bash",
         '--epics-bin', $C->{epics_bin}, '--cleanup', 'keep', '--timeout', $LIMIT,
@@ -408,10 +479,7 @@ sub sequence {
         or die "verifier evidence path missing\n";
     $PV = slurp("$VERIFIER/pvs.txt"); chomp $PV;
     my $pid = slurp("$VERIFIER/ioc.pid"); chomp $pid;
-    $IOC = process_identity('t3/ioc', $pid, 0);
-    check(index($IOC->{command}, "$C->{epics_bin}/softIoc\0") == 0
-        && index($IOC->{command}, "$C->{repository}/scripts/fixtures/local-install-pv.db\0") >= 0,
-        'retained IOC belongs to the shipped verifier');
+    $IOC = verifier_ioc('t3/ioc', $pid);
     save_json("$WORK/ioc.json", $IOC);
     my ($initial) = $verification->{stdout} =~ /^CSV: (.+)$/m;
     defined($initial) && index($initial, "$VERIFIER/") == 0 or die "initial CSV missing\n";
@@ -562,6 +630,12 @@ PV and twelve CA observations per continuation window bound data volume.
 CSV values, timestamps, severity, status and occurrence counts are retained.
 Process lifetimes use boot ID, PID and start ticks. The final PV pause and
 identified IOC stop retain registration, samples and evidence on every outcome.
+If interruption precedes the normal IOC handoff, cleanup reads the unique private
+verifier directory, validates its PV and checks the live IOC command before
+recording its identity. A verifier-stopped IOC is recorded as absent or zombie;
+unreadable or ambiguous ownership evidence is reported as a cleanup error.
+Final cleanup accepts an already-paused response only after the status API
+confirms the same PV is Paused; the final database registration check still runs.
 After copying evidence, the caller sends cloud-provision its finished notice.
 
 The six-case matrix, MariaDB transports, Rocky execution and T6 fault controls
