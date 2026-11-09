@@ -1,192 +1,149 @@
-# EPICS Archiver Appliance Environment — Automated Tests
+# EPICS Archiver Appliance Environment - Automated Tests
 
-Phased install test suite that validates the Makefile system and build-wrapper
-command generation and explicit VM installation/runtime acceptance.
+Local tests verify configuration and command generation. Guest installation
+tests run the actual shipped installers and verify stored data independently.
 
 ## Phased SOP
 
-Tests execute in strict order, from least to most privilege:
+| Phase | Validates | Prerequisites |
+| --- | --- | --- |
+| 1. Logic | Configuration structure, Make parsing, documentation, health negatives and unit installation | Python 3; Perl 5.26.3 or newer with `Test::More` and `Time::HiRes`; `xmllint`; util-linux `script`; Java and a JDK compiler for JVM cases; optional real EPICS binaries |
+| 2. Build wrapper | Real `make -n build` configuration, overlay and Maven command ordering | No source checkout, JDK or network required |
+| 3. Installation | Shipped local installer, actual package/database preparation and source build | Fresh Debian 13 or Rocky 8.10 guest; checkout owner with sudo; pinned source inputs; test prerequisites below |
+| 4. Runtime | Installed configuration and JVMs, real CA-to-storage/retrieval, same-PV history and continuing acquisition | Same guest, real EPICS Base and selected database |
 
-| Phase | Validates | Setup cost |
-| :--- | :--- | :--- |
-| 1. Logic | configure/ structure, Makefile parsing, doc integrity, real health negatives and unit file installation | Python 3; Perl 5.26 or newer with `Test::More` and `Time::HiRes` (Rocky Linux: `perl-Test-Simple`, `perl-Time-HiRes`); `xmllint`; `script` of util-linux; installed Java for PID cases; JDK compiler for unrelated-JVM negative; optional real EPICS Base binaries, see [Real EPICS Base binaries](#real-epics-base-binaries) |
-| 2. Build wrapper | Real `make -n build`: configuration, site-overlay copy, Maven package command and ordering | none; no source checkout, JDK or network required |
-| 3. Installation | Handed-off fresh VM, actual Ansible/Make/Maven install and payload checks | Initialized run; cloud-provision guest and handoff; pinned ansible-provision checkout; libvirt, SSH |
-| 4. Runtime acceptance | Same VM: genuine JVMs, scheduled health, HTTP identity, CA acquisition/retrieval and persistence | The same case invocation; real systemd, EPICS IOC and selected database |
+Phases 3 and 4 are one invocation of `tests/vm/install.pl` inside the guest.
+`tests/run-all-tests.bash --case` forwards to that runner. The compatibility
+commands `tests/phase3-docker.bash` and `tests/phase4-vm.bash` each run that same
+complete sequence, rather than installation-only or runtime-only checks.
+Docker is not required. `--local` never creates or contacts a VM.
 
-Phases 3 and 4 run together as one case of the driver in `tests/vm/driver.py`.
-The design is in [VM installation and runtime tests](../docs/README.vmtests.md).
-Local modes never create or contact a VM. The runner modes `--system`,
-`--phase=3`, `--phase=4`, and `all` run no checks, name the VM operations, and
-exit 77; run local checks with `--local`. The compatibility entry points `phase3-docker.bash` and
-`phase4-vm.bash` exit 77 without arguments and pass arguments to `--case`;
-Docker is not a prerequisite.
+Without a case, `--system`, `--phase=3`, `--phase=4` and the default `all`
+report Incomplete and exit 77. The two compatibility commands also exit 77
+with no arguments. Retired `--init`, `--verify-cleanup` and `--verdict`
+operations reject with status 2; guest lifecycle belongs to cloud-provision.
 
-A Phase 1 check whose optional prerequisite is missing prints a skip line: the source clone (the interface files
-group), a real Java executable and the JDK compiler, the `mysql` client, a `/dev/shm` on its own file system, and
-`AA_TEST_EPICS_BIN` (see [Real EPICS Base binaries](#real-epics-base-binaries)). A skip is not verification. The
-driver of the VM acceptance run refuses the output of `--local` that holds any skip line (`local_suite_complete` in
-`tests/vm/driver.py`) and runs the suite in its own environment, so the host that starts the driver needs every item
-above, and `AA_TEST_EPICS_BIN` exported before the driver starts.
+Optional local prerequisites can produce skip lines: the source clone,
+Java/JDK, `mysql`, a separate `/dev/shm` filesystem and `AA_TEST_EPICS_BIN`.
+A skip is not verification. The guest runner does not run or certify the
+local suite. Local checks and full installation results are separate evidence.
 
 ## System Workflow
 
-[VM installation and runtime tests](../docs/README.vmtests.md) describes the
-components, the run and case model, the guest handoff, cleanup verification,
-and the verdict. The historical
-[VM installation and runtime plan](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md#m10---automate-vm-installation-and-runtime-tests)
-records acceptance criteria and observed results for release 2.0.1. Local checks cannot establish
-installation or runtime acceptance.
+[VM installation and runtime tests](../docs/README.vmtests.md) defines the
+components, inputs, sequence, evidence and verdict. The six selected cases
+combine Debian 13 and Rocky 8.10 with SQLite, MariaDB socket and MariaDB TCP.
+[M16](../docs/milestone-9576820.md#m16---build-the-vm-installation-test-on-the-local-installer-scripts)
+owns acceptance criteria and observed results, including separate fault and
+interruption checks. The
+[config.d scenario](../docs/PLAN.config-d-vm-tests.md) is a separate procedure;
+a normal runner invocation does not establish its reboot or reinstall claims.
 
 ## Execution Inputs
 
-The [Debian and Rocky config.d installation scenario](../docs/PLAN.config-d-vm-tests.md)
-defines a separate, planned six-case test of the local installers and actual
-systemd startup. It includes configuration faults, restart, reinstall, and
-reboot. The current VM driver does not automate that scenario.
+Request a fresh disposable guest from cloud-provision before installation.
+Use the ordinary checkout owner, never run the runner as root. Confirm
+non-interactive sudo, network access for the installer, and no existing
+appliance or source `target/` directory. Supply real EPICS Base separately;
+it must include `softIoc`, `caget` and their runtime libraries.
 
-Copy `tests/vm/config.example.json` into an ignored private working location
-and replace every placeholder. Zero candidate/tool refs, image digests, free-space thresholds and `/replace/` paths are
-examples only. Do not put credentials in clone URLs or commit private input
-files. The driver requires HTTPS origins, full 40-character commits, SHA256
-image/fixture identities, and a new evidence directory whose parent exists.
-It creates that directory with mode 0700 and refuses reuse or symlink contexts.
-Guest source/install/store roots must be literal absolute shell-safe paths.
-Select the cold-build free-space threshold explicitly for each image; zero is
-invalid. The driver records actual capacity/free space and refuses installation
-below that selected threshold. Full matrix execution must confirm sizing.
+The test needs Perl 5.26.3 or newer and its loaded core modules, Git and Make
+before the installer starts. Debian requires the full `perl` package, not
+only `perl-base`. Rocky requires `perl-interpreter`, `perl-JSON-PP`,
+`perl-Pod-Usage` and `perl-Time-HiRes`, with their dependencies. Record all
+prerequisites already installed on the image. The shipped installer remains
+responsible for its package and database preparation; do not add
+`--skip-packages` or `--existing-db` to acceptance runs.
 
-| Section | Required inputs |
+Copy `tests/vm/install.example.json` into private `work/vm-case.json`. Replace
+the example paths, revisions and expected values with the actual case inputs.
+The example is not an executable site configuration.
+
+| Fields | Required values |
 | --- | --- |
-| `cloud` | Clean initialized checkout and published commit that provides the inventory generator; existing `qemu:///system` connection and `lab` network; the VM prefix cloud-provision uses |
-| `ansible` | Clean initialized checkout and published commit; its maintained inventory path |
-| `candidate` | Published environment/source commits and credential-free HTTPS clone URLs |
-| `fixture` | Original committed `UnitTestPVs.db`: local repository and tracked path; preserve the fixed original commit and SHA256 in the example |
-| `images` | Both cached base image directories, exact filenames, SHA256 values, disk sizes and positive `minimum_build_free_bytes` thresholds for the cold build |
-| `guest` | Explicit source/install/store roots and service user/group; OS-specific colon-separated EPICS binary directories containing `softIocPVX`, `camonitor` and `caget` |
-| `ssh` | `vmadmin` and the private key corresponding to cloud-provision's first default public key (`id_ed25519.pub`, then `id_rsa.pub`) |
+| `repository`, `environment_revision` | Absolute guest checkout and its full 40-character HEAD commit. Optional `environment_patch` names the exact expected tracked diff. Retain new candidate files separately with their hashes. |
+| `appliance_revision`, `source` | Full expected source commit and checkout directory name. Set the same source commit as `SRC_TAG` in `../RELEASE.local`. |
+| `os`, `backend` | `debian13` or `rocky8`; `sqlite`, `mariadb-uds` or `mariadb-tcp`. |
+| `epics_bin` | Absolute directory containing the real `softIoc` and `caget`. |
+| `install`, `service`, `timer`, `health_service`, `user`, `group` | Expected installation path, systemd names and service account. |
+| `identity`, `urls`, `retrieval`, `configuration`, `storage` | Expected appliance identity, loopback endpoints, runtime values and four storage paths. Change related values together. |
+| `database` | SQLite absolute file path, or MariaDB database name. |
+| MariaDB fields | `database_user`; for socket, `database_socket`; for TCP, `database_host` equal to `127.0.0.1` and `database_port` from 1 to 65535. |
+| `install_timeout` | Finite total installation/build limit in seconds; recorded cases use 3600. Startup and data checks use 180 seconds. |
 
-`--init` clones both appliance candidates and confirms both tool commits are
-published before any case runs. The published environment candidate must contain
-exactly the executing driver, guest verifier, local regression and phase
-entrypoint bytes. An old remote commit cannot verify unpublished local code.
-The Ansible command uses its own configuration and maintained inventory plus
-the generated single-VM inventory, with `--limit` fixed to the handed-off VM.
-`--init` runs the published environment candidate's full `--local` suite once,
-before any case runs. Its actual
-command, exit status, output digest and candidate commit are retained in
-`local_suite`; the final verdict checks that evidence. The CLI-only regression
-result cannot replace this full-suite evidence.
+Keep installer site settings in `../CONFIG_SITE.local`, following
+[Override a setting for one host](../book/src/configure/override-setting.md).
+MariaDB cases set private `DB_ADMIN_PASS` and `DB_USER_PASS` there before
+installation. Database names, transport and all expected JSON values must
+agree with those settings. Do not put passwords in case JSON, clone URLs or
+published evidence. `configure/CONFIG_SITE.local` is reserved for the
+installer's generated OS include; do not put site overrides there.
 
-### SQLite Service Inventory
-
-The guest verifier reads the complete real service unit-file inventory and
-requires a successful command plus the installed appliance unit. It rejects
-MariaDB, MySQL and mysqld service names, including masked units and aliases.
-An empty inventory or failed query cannot establish database-service absence.
-The raw command result and parsed inventory are retained independently of the
-service-account schema and effective dependency checks.
-
-Local regressions use the shipped helper, real `systemctl --root` and isolated
-unit-file fixtures. They verify filesystem inventory behavior only; full SQLite
-installation and runtime acceptance require the published-candidate VM matrix.
+Configure loopback CA in `../CONFIG_EPICSENV.local` with
+`EPICS_CA_ADDR_LIST=127.0.0.1` and `EPICS_CA_AUTO_ADDR_LIST=NO`. This supplies
+the installed appliance's CA environment; the verifier also configures its
+own IOC and CA client environment. The normal test uses one PV created by the
+shipped `scripts/fixtures/local-install-pv.db` fixture.
 
 ## Test Execution
 
-Run these commands from the repository root after preparing inputs. The
-evidence directory must not already exist. The driver never creates, stops, or
-deletes a guest; cloud-provision does that on request.
-
-The following command runs the local phases only, without virtualization or
-network provisioning:
+Run local phases from the repository root:
 
 ```bash
 tests/run-all-tests.bash --local
 ```
 
-The stop time measurement in [stop-time/](stop-time/README.md) is a test for
-its own guest, and `--local` does not run it.
-
-The first check of Phase 1 compares the current branch with `EXPECTED_BRANCH`,
-whose default is `modernize`, and prints `[WARN]` on another branch; the run
-does not fail. Name the branch to remove the warning:
+The first local check warns when the branch differs from `EXPECTED_BRANCH`,
+whose default is `modernize`. The warning does not fail the suite:
 
 ```bash
-EXPECTED_BRANCH=release-2.0.1 tests/run-all-tests.bash --local
+EXPECTED_BRANCH=maven tests/run-all-tests.bash --local
 ```
 
-The local suite reaches no database that it did not start. It runs the
-configuration tests of `database-config.pl`; the private MariaDB server of the
-integration tests starts only with `database-config.pl --integration` (see
-[Native database and PV checks](#native-database-and-pv-checks)).
-A database target run by hand (`sql.*`, `db.*`, `queryFile` of
-`mariadb_setup.bash`) reaches the server that `DB_HOST_NAME`, `DB_HOST_PORT`
-and `DB_SOCKET` name, by default the database `archappl` on `127.0.0.1:3306`,
-also from an isolated copy of the checkout and with `SUDO=false`, which stops
-only `sudo` and not the database client. On a host whose MariaDB serves a real
-appliance, run such a target only for a case that stops at its check line (a
-missing or stale input) and run a case that passes its checks on a guest.
-Before any database target, read where those three variables point.
+The [stop-time procedure](stop-time/README.md) uses its own guest and is not
+part of `--local`. Local database configuration checks do not contact a server
+they did not start. The private MariaDB integration server starts only with
+`database-config.pl --integration`. Manual `sql.*`, `db.*` and `queryFile`
+targets use their configured `DB_HOST_NAME`, `DB_HOST_PORT` and `DB_SOCKET`,
+even in a copied checkout or with `SUDO=false`; inspect those settings before
+running such a target against a disposable guest.
 
-The following command opens a run. It runs the published candidate's local
-suite and records the baseline; it contacts no guest:
+Inside the fresh guest, from the pinned repository root, first check the
+actual EPICS binaries, using the `epics_bin` value of the case JSON:
 
 ```bash
-tests/run-all-tests.bash --init --config work/vm-config.json --evidence work/vm-run
+bash scripts/verify-local-pv.bash --check-epics --epics-bin /path/to/epics/base/bin/linux-x86_64
 ```
 
-Request from cloud-provision a fresh base guest that meets the
-[Acceptance matrix](../docs/README.vmtests.md#acceptance-matrix) for one case,
-and write its handoff file as
-[Guest handoff](../docs/README.vmtests.md#guest-handoff) describes.
-The following command runs that case; repeat it for all eight cases in any
-order, one guest per case:
+Then run the complete case. `case_work` must be a new absolute directory;
+the runner creates it and retains all available evidence:
 
 ```bash
-tests/run-all-tests.bash --case debian13-sqlite --handoff work/debian13-sqlite-handoff.json work/vm-run
+case_config=$PWD/work/vm-case.json
+case_work=$PWD/work/vm-result
+bash tests/run-all-tests.bash --case --config "$case_config" --work "$case_work"
 ```
 
-Keep each finished guest defined until cleanup; a shut-off guest stays owned.
-After all cases, request cleanup of the run's guests from cloud-provision. The
-`<case>-handoff.json` files in the run directory name exactly those guests. A
-guest whose handoff was refused is not part of the run, and
-`--verify-cleanup` does not inspect it; request its cleanup separately. The
-following commands verify the removal and evaluate the run:
+The direct entry point is equivalent:
 
 ```bash
-tests/run-all-tests.bash --verify-cleanup work/vm-run
-tests/run-all-tests.bash --verdict work/vm-run
+perl tests/vm/install.pl --config "$case_config" --work "$case_work"
 ```
 
-Start each `--case` invocation from a shell that outlives the case, such as an
-operator terminal or a user unit. A tool session that stops its background
-tasks at a time limit also stops the driver. The following command starts the
-case as a user unit; `--same-dir` keeps the repository root as its working
-directory, so the relative paths resolve:
+Choose one invocation; do not execute both against the same guest. Each
+compatibility entry point accepts the same `--config` and `--work` arguments.
+All invoke a fresh installation followed by runtime, restart and unchanged
+re-application checks. Keep the calling terminal or managed session alive
+until the command exits; retain both console streams and the native status.
 
-```bash
-systemd-run --user --same-dir --unit=vmtest-debian13-sqlite tests/run-all-tests.bash --case debian13-sqlite --handoff work/debian13-sqlite-handoff.json work/vm-run
-```
-
-The unit's output is in the user journal. A failed unit keeps its exit status,
-and its name must be reset before reuse. A successful unit is removed when it
-ends; the driver's `PASS` line in the journal records its success:
-
-```bash
-journalctl --user -u vmtest-debian13-sqlite --no-pager -o cat
-systemctl --user show vmtest-debian13-sqlite -p ActiveState -p ExecMainStatus
-systemctl --user reset-failed vmtest-debian13-sqlite
-```
-
-The user manager stops its units when the user's last session ends unless
-lingering is enabled with `loginctl enable-linger`.
-
-Exit 0 means the selected operation passed; only `--verdict` can establish
-full-matrix acceptance. Exit 1 is an observed failure, 2 is invalid input,
-refused ownership, or an unsafe context, and 77 is a missing prerequisite or
-an incomplete run. A refused handoff leaves the run record unchanged. A recorded
-failure remains a failure after cleanup, and the run then accepts no further
-case. Changed verifier bytes invalidate an existing run.
+Exit 0 means this case passed, 1 means an observed assertion failed, and 2
+means invalid input or incomplete execution. `result.json` records the last
+stage, verdict and cleanup errors when writable. A single case does not
+establish the six-case matrix, fault controls or interruption coverage.
+After execution, independently verify the recorded test IOC is absent and
+its PV is Paused, copy and verify the retained evidence, and send a finished
+notice to cloud-provision for shutdown with disk and evidence retained.
+Do not remove a VM or its stored samples as part of the test.
 
 ### Shared Perl test helpers
 
@@ -248,14 +205,16 @@ that the shipped database helper requires; on Rocky Linux `lsof` and `tree` are 
 
 ## VM Evidence
 
-[Run context and evidence](../docs/README.vmtests.md#run-context-and-evidence)
-lists the files in a run directory. Raw context, handoffs, inventory,
-variables, and diagnostics remain private; review and sanitize any excerpt
-before publishing it.
+[Evidence and cleanup](../docs/README.vmtests.md#evidence-and-cleanup) lists
+what the guest runner retains. Keep case inputs, raw command results, IOC
+identities, CA observations, retrieval responses, CSV and final checks private.
+Retain exact source revisions and candidate files with hashes. Copy the
+available evidence before requesting retained shutdown, and verify the copy
+against the guest's file list and hashes. Publish only a sanitized summary.
 
 ## Workspace and Logs
 
-Each implemented shell phase creates an `archappl-test.*` workspace under
+Each local shell phase creates an `archappl-test.*` workspace under
 `${TMPDIR:-/dev/shm}`. Its `run.log` contains commands captured by that phase;
 it does not contain every test result and may be empty.
 
@@ -265,13 +224,13 @@ missing). Their `run.log` files contain health diagnostics and Make output, resp
 workspace paths are printed to the console. Preserve both console streams and all printed workspace paths when
 collecting evidence; the shell phase log alone is insufficient.
 
-Every Perl test and `local-install-pv.bash` follow one rule. A passing run leaves only its output and exit status: it
+The local Perl tests and `local-install-pv.bash` follow one rule. A passing local run leaves only its output and exit status: it
 removes its workspace and the evidence folder of the verifier it started, only the ones of this run. A failed run, or
 a run with `KEEP_WORKSPACE=1`, keeps them and prints `Workspace retained: <path>` (the shell test prints `Integration
 evidence: <path>`). `scripts/verify-local-pv.bash` creates its evidence folder below `TMPDIR`, and below `/tmp` when
 `TMPDIR` is unset.
 
-Workspaces are normally removed after successful tests and retained on failure.
+Guest VM evidence is always retained. Local workspaces are normally removed after successful tests and retained on failure.
 Set `KEEP_WORKSPACE=1` to retain successful cases too. From the repository root,
 the following keeps console output and all local-test workspaces together:
 
@@ -712,18 +671,19 @@ the line `SKIP: real Base binary resolution; AA_TEST_EPICS_BIN is unset.` shows 
 
 ### Phase 3 - Installation assertions
 
-- cloud-provision prepares and ansible-provision installs only the handed-off fresh VM at the requested appliance commits.
-- All four exploded WAR trees, Tomcat logging JARs, generated inputs, effective units and ownership match the real guest build and selected backend/site.
-- The `WEB-INF/lib` folder of each WAR and of each installed tree holds exactly the two shipped JDBC drivers, `org.mariadb.jdbc.Driver` and `org.sqlite.JDBC`, each from one JAR, and no other JAR whose name looks like a database driver. The version of the MariaDB driver read from the installed JAR (`Bundle-Version`) equals the version in its file name and the version that `pom.xml` of the source declares. The version is retained in the `jdbc_drivers` evidence of the run.
-- The selected configuration database has the four application tables and is usable through the same account and transport as the appliance.
+- The matching shipped local installer runs on a fresh guest with package/database preparation and source build enabled.
+- Native installation status is 0 within the declared deadline; no supplied WARs or manual installation repairs replace the real path.
+- Installed component/API versions, identity, endpoints and expected configuration match the supplied inputs.
+- The actual SQLite file or MariaDB connection uses the intended database, application account and transport, with the four required tables and PV metadata columns.
 
 ### Phase 4 - Runtime assertions
 
-- The real installed appliance service and health pair operate with four verified JVM identities; three eligible scheduled health executions succeed.
-- `getApplianceInfo` returns valid matching JSON, independently of process-presence checks.
-- Original tracked IOC fixture values pass through real CA, engine, archive stores and raw `getData.json`; in-window timestamps and values match CA observations. A permitted preceding value cannot pass acquisition or IOC-loss checks.
-- PV configuration/history survive restart and explicit same-candidate reinstall; new data is collected afterwards.
-- Actual runtime/build faults produce non-success; stale data and skips cannot pass. The build fault uses a separate absent source ref after normal candidate preflight. Full acceptance also requires verified cleanup and final evaluation of retained evidence. Observed VM results are in the milestone register.
+- The appliance service and health timer are enabled and active, four distinct installed JVMs run as the supplied account, all four startup APIs report STARTUP_COMPLETE and direct health passes.
+- Storage paths have the supplied ownership and service-account write access.
+- The real shipped IOC fixture produces changing CA values that match persisted samples retrieved through the pinned source CSV client.
+- Service restart replaces all four JVM lifetimes while retaining the same PV registration and fixed historical rows; new samples from that same IOC/PV still match CA.
+- Identical installer re-application performs no build or service/JVM replacement. Configuration, registration, history and continuing acquisition remain valid.
+- Final cleanup pauses the test PV and stops its identified IOC. Separate M16 T6/T7 procedures establish only their recorded fault and interruption results.
 
 The source repository owns the documentation build. Planned changes to that
 build are tracked in its own work register rather than as epicsarchiverap-env test work.
@@ -732,14 +692,14 @@ build are tracked in its own work register rather than as epicsarchiverap-env te
 
 This procedure is for a selected disposable systemd VM with four real Tomcat
 instances. It provides a focused monitoring check separately from the full
-Phase 4 driver. Obtain the VM owner and an
+Phase 4 runner. Obtain the VM owner and an
 interruption window outside any uninterrupted heap-load observation before
 running faults, reboots or lifecycle changes. The operator records each case's
 exact action and expected outcome before execution. Default names below must
 be replaced together when the installation is customized. The T labels of the
 table below belong to this manual procedure only; the T labels of
-`tests/vm/guest.py` and `docs/README.vmtests.md` belong to the VM acceptance
-plan (T1 to T15).
+`docs/README.vmtests.md` belong to the M16 installation acceptance
+plan (T1 to T7).
 
 Retain the environment/source commit IDs, rendered configuration, systemd
 version, effective units including drop-ins, service account, MainPID, and four
@@ -789,14 +749,12 @@ in the [current work register](../docs/milestone-9576820.md), using the checks i
 
 ## Incomplete system test result
 
-The runner VM modes and the compatibility entry points return 77 without
-contacting a VM when their explicit inputs are missing. Local CLI regressions
-cover malformed normal refs, unknown and conflicting operations, missing and
-symlink contexts, handoff validation, case refusals that leave the run
-unchanged, the stored-origin check, the fresh-guest probe, order-independent
-and read-only verdicts, and retained failures. These checks invoke the shipped
-entry points; they do not establish VM installation, runtime, or cleanup
-acceptance.
+The no-input system modes and compatibility commands return 77 without
+contacting a VM. `--case` invokes the real guest runner and returns its status:
+0 Passed, 1 Failed, or 2 Incomplete. CLI checks of help, missing arguments and
+retired operations verify only command routing and input refusal; they do not
+establish installation, runtime, fault detection or cleanup acceptance.
+The current register identifies the actual executed cases and source versions.
 
 ## Configuration and database regression checks
 

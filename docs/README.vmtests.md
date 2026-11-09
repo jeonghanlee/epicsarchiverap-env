@@ -1,255 +1,136 @@
 # VM installation and runtime tests
 
-The VM tests install the Archiver Appliance on fresh virtual machines through
-the real provisioning tools and verify the installed system independently.
-This document describes the test architecture, the run and case model, the data
-each step consumes and produces, and the rules that decide a verdict.
+The VM test runs the shipped local installer on a fresh guest, verifies the
+installed configuration and runtime, and follows one changing PV through
+acquisition, storage, retrieval, service restart and unchanged re-application.
+Installer exit status and HTTP readiness do not establish successful storage.
 
-## Scope
+## Responsibilities
 
-This document covers the design of the system test driver in `tests/vm/`: its
-inputs, the guest handoff contract, the case sequence, the run context, cleanup
-verification, and the verdict.
-
-**Out of scope:** VM image and cloud-init internals, which cloud-provision owns;
-Ansible roles and operators, which ansible-provision owns; Make targets, which
-`configure/` and `Makefile` define. Commands for running the tests are in
-`tests/README.md`. Acceptance criteria, the T1-T15 labels, and observed results
-are preserved in the [release 2.0.1 VM acceptance record](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md#m10---automate-vm-installation-and-runtime-tests).
-
-## Component responsibilities
-
-Three repositories cooperate. Each one keeps its own implementation; the driver
-calls only their public entry points.
-
-| Repository | Responsibility in a run |
+| Component | Responsibility |
 | --- | --- |
-| cloud-provision | Creates each fresh guest, reports its identity in a handoff, shuts guests down, and removes owned resources on request |
-| ansible-provision | Provisions EPICS, JDK, Tomcat, and the selected database, then runs this repository's ordered Make targets with explicit commits |
-| epicsarchiverap-env | Verifies guest ownership and freshness, runs the installation, checks the installed system, and decides the verdict |
+| cloud-provision | Supplies each guest and owns creation, access and retained shutdown. |
+| `tests/vm/install.pl` | Runs one guest-side installation case and records the required observations. |
+| `scripts/install-local-*.bash` | Prepares packages and the selected database, builds and installs the appliance, and starts its services. |
+| `scripts/verify-local-pv.bash` | Starts the real soft IOC, observes CA and compares initial stored samples with CA values and timestamps. |
+| Pinned source CSV client and `scripts/verify-local-pv-curl.bash` | Retrieve persisted samples through the installed retrieval API. |
+| `tests/vm/compare.pl` | Compares actual process state, registration, historical rows and new CA-to-CSV samples. |
+| `tests/vm/database.pl` | Reads installed MariaDB resources and queries the selected database with the installed application credentials as the service account. |
 
-The driver never creates, stops, or deletes a guest. It reads libvirt state and
-the guest over SSH, and it runs Ansible against exactly one guest at a time.
+The test does not create or delete VMs, inspect hypervisor ownership, run
+Ansible or reproduce the installer's Make sequence. EPICS Base is a separate
+test prerequisite. The guest image's existing packages are recorded; their
+installation is not claimed as installer coverage.
 
-## Acceptance matrix
+## Selected cases
 
-A complete run holds eight cases. Each case uses its own fresh guest with two
-vCPUs, 4 GiB of memory, and a 20 GiB disk.
+Each case requires a fresh guest with no appliance installation or source
+`target/` directory, a checkout owned by an ordinary user with non-interactive
+sudo, and real EPICS Base executables. The selected environments have 2 vCPU,
+4 GiB RAM and a 30 GiB disk.
 
-| Case | OS | Backend and transport | Ansible species | Required checks |
-| --- | --- | --- | --- | --- |
-| `debian13-socket` | Debian 13 | MariaDB, local socket | `archiver_dev_uds` | T3-T12 |
-| `debian13-tcp` | Debian 13 | MariaDB, local TCP | `archiver_dev_tcp` | T3-T12 |
-| `debian13-sqlite` | Debian 13 | SQLite | `archiver_dev_sqlite` | T3-T13 |
-| `rocky8-socket` | Rocky 8.10 | MariaDB, local socket | `archiver_dev_uds` | T3-T12 |
-| `rocky8-tcp` | Rocky 8.10 | MariaDB, local TCP | `archiver_dev_tcp` | T3-T12 |
-| `rocky8-sqlite` | Rocky 8.10 | SQLite | `archiver_dev_sqlite` | T3-T13 |
-| `debian13-build-failure` | Debian 13 | SQLite | `archiver_dev_sqlite` | T3, T14 |
-| `rocky8-build-failure` | Rocky 8.10 | SQLite | `archiver_dev_sqlite` | T3, T14 |
-
-T1 and T15 apply to the run as a whole.
-
-## Run model
-
-A run is one private directory that accumulates the results of all eight cases.
-The driver opens it once, adds one case per invocation, and evaluates it at the
-end. Each invocation that changes the run holds an exclusive lock on the
-directory; `--verdict` reads the run without the lock.
-
-```
-  --init        preflight, baseline, local-suite proof   -> run.json created
-  --case X      one handed-off guest, one case           -> case X appended
-  ...           repeated for the remaining cases
-  (cleanup)     cloud-provision removes owned resources  -> outside the driver
-  --verify-cleanup  independent removal and preservation -> cleanup.json
-  --verdict     read-only evaluation                     -> exit 0, 1, or 77
-```
-
-A case invocation covers one guest, so an interruption loses at most that case.
-A case that fails stays failed in the run; a later invocation cannot replace it,
-and the run refuses further cases. Full acceptance then requires a separate
-run.
-
-### Run initialization
-
-`--init` validates the configuration and refuses an existing evidence path. It
-clones both appliance candidates and both tool repositories over HTTPS, and it
-requires every pinned commit to exist in its published repository. The executing
-`tests/vm/driver.py`, `tests/vm/guest.py`, `tests/vm/local.py`,
-`tests/phase3-docker.bash`, `tests/phase4-vm.bash`, and
-`tests/run-all-tests.bash` must equal their bytes in the published environment
-candidate. The driver then runs that candidate's full `--local` suite once and
-retains its command, exit status, and output digest.
-
-Initialization records the run-start baseline: every libvirt domain and every
-live and persistent DHCP reservation on the configured network. A guest present
-in the baseline can never become a case guest, and cleanup verification must
-find every baseline domain and reservation unchanged. The baseline is recorded
-after the local suite of the candidate has passed, so request the guests only
-after `--init` has finished; a guest created earlier is refused at its handoff.
-
-The tool origin check reads the stored `remote.origin.url` of each tool
-checkout. It does not use `git remote get-url`, because a user's `insteadOf`
-rule rewrites that output. Publication is proven by the clones, not by the URL
-text. They run without global or system git configuration, so a rewrite rule
-cannot turn them into authenticated SSH clones.
-
-### Case execution
-
-`--case <case> --handoff <file> <run>` adopts the guest that the handoff
-describes and runs one case on it. Steps 1-6 read libvirt and guest state
-without changing it. A failure in those steps, or in the absent source commit
-check of a build-failure case, refuses the handoff with status 2 and leaves
-`run.json` unchanged. The command logs, generated inventory, and host key file
-of the refused attempt remain as evidence. After step 7 records the case, any
-error, including a changed ownership, is a recorded failure of the run.
-
-1. Validate the handoff fields and derive the VM, disk, seed, and creation
-   record names from the prefix, OS selector, node, and creation ID.
-2. Require that the domain UUID is absent from the baseline and from every
-   earlier case of the run.
-3. Read the domain, its single interface on the configured network, its
-   attached disk and seed, the creation record, both reservations, and the
-   lease. Every value must match the handoff, and the domain must have two
-   vCPUs, 4 GiB of memory, and a disk of the configured `disk_size`.
-4. Generate a single-host inventory with the cloud-provision generator and
-   require that it names only that guest.
-5. Copy the host key that cloud-provision stored for the guest address in
-   `~/.ssh/known_hosts` into the guest's own known-hosts file, and refuse the
-   handoff when no key is stored. Every SSH and Ansible connection to the
-   guest accepts only that key; Ansible runs with host key checking enabled
-   even when the ansible-provision configuration disables it.
-   Collect guest facts with the shell-only facts command and require the case
-   OS release, two CPUs, the hostname from cloud-init metadata, the reserved
-   address on the owned interface, and the configured free disk space.
-6. Require a fresh guest through one `sudo -n sh -c` probe: cloud-init done
-   without errors; none of `guest.source_parent`,
-   `<guest.install_parent>/epicsarchiverap-maven`, `guest.store_top`,
-   `/usr/local/sbin/archiver-build.sh`, and `/var/tmp/archiver-build.done`
-   present; a successful service unit-file listing; and no unit whose name
-   starts with `epicsarchiverap`, `archiver-build`, `mariadb`, or `mysql`.
-7. Record the case with T3 passed and the earlier guests that remain owned and
-   present. Run the case's species with explicit environment and source
-   commits, limited to the guest. For a build-failure case, pass a source
-   commit that the published source repository does not contain.
-8. For a positive case, prove the detached build, transfer the verifier and
-   fixture, and run the guest verifier actions. For a build-failure case,
-   observe the real checkout failure and the missing success sentinel.
-9. Stop the owned test IOC and mark the case verified. After any failure, the
-   driver records it and stops every helper unit it owns on unfinished cases.
-
-The driver performs the interruption and cleanup-refusal checks once per run,
-on the first positive case, while its guest is live.
-
-### Cleanup verification
-
-Cleanup happens in cloud-provision on an explicit request after all cases have
-run. `--verify-cleanup <run>` then reads libvirt and the image directory
-independently. It requires each owned domain, disk, seed, and creation record
-to be absent, and each owned MAC address and IPv4 address to be absent from both
-live and persistent reservations. Every baseline domain and reservation must
-keep its identity.
-
-Verification refuses with status 2 when ownership is incomplete, overlaps the
-baseline, or a domain carries an owned name with another UUID. A changed
-baseline entry is a failure. While an owned resource remains, verification
-returns 77 and can run again after cloud-provision completes the cleanup. An
-inspection error never counts as absence: verification returns 77, records
-nothing, and can run again.
-
-### Verdict
-
-`--verdict <run>` reads the run without changing it. It returns 0 only when all
-of these hold:
-
-- Each of the eight cases is present exactly once, in any order, and every
-  required check passed.
-- At least one case started while an earlier case's guest remained owned and
-  present.
-- The lifecycle checks and cleanup verification passed.
-- The local-suite proof matches the candidate.
-- Every recorded evidence file matches its recorded digest.
-
-A recorded failure returns 1. Anything missing returns 77.
-
-## Guest handoff
-
-The driver reads one handoff JSON file for each guest. When cloud-provision
-supplies that file, use it as received; otherwise the operator writes it from
-the private markdown handoff that cloud-provision reports for the guest. The
-driver rechecks each value against live state. `schema` is the JSON integer `1`;
-every other value is a JSON string. `tool_ref` is the full commit that the
-`Tool tree` line of the markdown handoff names.
-
-| Field | Content | cloud-provision handoff line |
+| OS input | Backend input | Shipped installer |
 | --- | --- | --- |
-| `schema` | `1` | none |
-| `os_selector` | `debian13-archiver-dev` or `rocky8-archiver-dev` | `OS selector` |
-| `prefix` | VM name prefix | `Prefix selector` |
-| `node` | Node selector | `Node selector` |
-| `creation_id` | Run ID used at creation | `IMAGE_WORKFLOW_RUN_ID` |
-| `uuid` | Domain UUID | `Actual domain UUID` |
-| `vm_name` | Domain name | `Domain name` |
-| `mac` | Interface MAC address on the configured network | `Actual interface MAC` |
-| `address` | Reserved and leased IPv4 address | `Reservation and lease IP` |
-| `disk` | Absolute path of the independent disk | `Independent disk` |
-| `seed` | Absolute path of the seed ISO | `Seed` |
-| `record` | Absolute path of the creation record | `Creation record` |
-| `tool_ref` | cloud-provision commit that created the guest | `Tool tree` |
+| `debian13` or `rocky8` | `sqlite` | `scripts/install-local-sqlite.bash` |
+| `debian13` or `rocky8` | `mariadb-uds` | `scripts/install-local-mariadb-uds.bash` |
+| `debian13` or `rocky8` | `mariadb-tcp` | `scripts/install-local-mariadb-tcp.bash` |
 
-## Guest verifier actions
+`rocky8` requires Rocky Linux 8.10; `debian13` requires Debian 13. These six
+cases are the selected coverage, not a claim about every supported platform.
+Observed results and their exact source versions are in
+[M16](milestone-9576820.md#m16---build-the-vm-installation-test-on-the-local-installer-scripts).
 
-The driver runs `tests/vm/guest.py` on the guest as root inside a transient
-systemd unit. Each action returns structured evidence for the case.
+## Inputs and sequence
 
-| Action | Checks | Labels |
-| --- | --- | --- |
-| `installation` | Guest commits, WAR, JAR, and configuration bytes, the JDBC drivers and the MariaDB driver version of each WAR and installed tree, site assets, ports, units, ownership, database schema and transport | T5, T6 |
-| `runtime` | JVM identities, launcher health, three scheduled health runs, HTTP identity, IOC load, CA-to-retrieval data, restart persistence | T7-T11 |
-| `snapshot` | Stored history and current JVM identities before reapply | T12 |
-| `unchanged` | Unchanged JVM identities and history after an unchanged Ansible apply | T12 |
-| `reinstalled` | Payload including the JDBC drivers, schema, health, history, and fresh data after a forced reinstall | T5-T9, T12 |
-| `negative` | Wrong-instance PID detection and IOC-loss detection with recovery | T13 |
-| `stop` | Stops the owned test IOC | none |
+Run `install.pl --config FILE --work NEW_DIRECTORY` inside the guest as the
+checkout owner. `tests/vm/install.example.json` defines the input shape;
+[the test instructions](../tests/README.md) describe preparation and commands.
+The JSON names absolute repository, installation, EPICS and evidence paths,
+full environment/appliance revisions, expected service accounts, units,
+storage paths and local API endpoints. SQLite names its database file.
+MariaDB names its database and application user, plus an absolute socket path
+or `127.0.0.1` and a TCP port. Passwords belong in the installer's private site
+configuration, never the case JSON.
 
-## Run context and evidence
+The checkout must match the supplied environment revision. An optional
+`environment_patch` names the exact expected tracked diff. Candidate runs
+must also retain separately any new files used by the test and their hashes.
+The source revision selected by the installer's configuration must match
+`appliance_revision`; the runner verifies the result rather than silently
+overriding the operator's site configuration.
 
-The run directory has mode 0700 and contains only private evidence.
-
-| File | Content |
+| Step | Required result |
 | --- | --- |
-| `run.json` | Configuration, baseline, local-suite proof, cases with ownership and results, lifecycle and cleanup state, failures |
-| `report.json` | Candidate commits, per-case results, and the current verdict |
-| `command-<n>.json` | Each external command with its arguments, exit status, output, and duration |
-| `<case>-handoff.json` | The handoff as received |
-| `<case>-<action>.json` | Guest verifier evidence for each action |
-| `lifecycle.json`, `interruption.json` | Interruption and cleanup-refusal evidence |
-| `cleanup.json` | Observations before and after cleanup |
-| `<case>.ini` | Generated single-host inventory |
-| `<case>-variables.json` | Ansible variables of the latest apply |
-| `<case>-guest.json` | Verifier input transferred to the guest as `case.json` |
-| `<creation_id>.known_hosts` | The guest's stored host key, used by SSH and Ansible |
-| `UnitTestPVs.db` | Original fixture extracted from its recorded commit |
-| `candidate-env/`, `candidate-source/` | Published candidate clones |
-| `tool-cloud/`, `tool-ansible/` | Publication proof clones of the pinned tools |
-| `refusal-missing/`, `refusal-mismatched/` | Contexts used by the cleanup-refusal checks |
-| `interruption-child.json`, `interruption-command-<n>.json` | Interruption check child output and commands |
+| T1 | The selected installer runs with `--yes`, packages/database preparation enabled and no prebuilt WARs; native exit is 0 within `install_timeout`. |
+| T2 | Pinned versions, identity, endpoints, installed configuration, units, four JVM lifetimes and owners, storage access, actual database/schema, all four startup APIs and service-account health match the inputs. |
+| T3 | The standalone shipped verifier matches at least two distinct changing CA values to persisted samples. The configured database contains that PV, and a fixed closed historical query contains the initial rows. |
+| T4 | A shipped service restart changes all four JVM lifetimes. The same registration and fixed historical rows remain, and new data from the same IOC/PV match new CA observations. |
+| T5 | The identical installer request exits 0 without a build or service/JVM replacement. Configuration, registration and history remain, and continuing acquisition still matches CA. |
 
-## Exit status
+Startup and data checks have 180-second limits. The initial verifier uses
+`--cleanup keep` so T4 and T5 retain the same IOC and PV. Each new-data check
+records twelve actual CA observations before pausing to query persisted data.
+Historical comparison preserves timestamps, values, status, severity and row
+occurrence counts; it does not compare only a sample count.
 
-| Status | Meaning |
+## Evidence and cleanup
+
+`--work` must be a new absolute directory. The runner records `inputs.json`,
+per-command arguments, cwd, timeout, stdout, stderr, native status and timing,
+installed-state snapshots, verifier evidence, `ioc.json`,
+`history-window.json`, comparisons and `result.json`. Database resources are
+read through the real installed path; MariaDB credentials use a private
+temporary client file and are excluded from output. Database registration
+metadata and archive sample files are checked separately.
+
+Normal completion pauses the test PV and stops the identified IOC. Failure
+or interruption attempts the same cleanup and retains available evidence.
+When the verifier has released its IOC but the runner has not recorded it,
+cleanup recovers ownership from the unique private verifier record and
+checks the live command before signalling. A cleanup error remains visible
+in `result.json`; it never turns an unsuccessful case into Passed.
+
+The operator independently checks final PV/IOC state, copies and verifies
+evidence, then sends a finished notice to cloud-provision. Definitions,
+disks, registrations and stored samples remain retained. The runner does not
+issue a shutdown or erase the evidence directory.
+
+## Fault and interruption checks
+
+T6 is a separate controlled check on passing disposable baselines. The
+database control closes existing application connections, changes the
+installed MariaDB socket and requires a new actual connection to fail at the
+database assertion. The storage control requires no pre-existing writable STS
+handles, denies the service account write access to the actual STS and runs
+the shipped verifier. With changing real CA input and a same-PV storage error,
+rejection during actual append/flush or stored-sample verification establishes
+detection. An unrelated startup or input failure is Incomplete. A flush failure
+does not establish execution of the later stored-sample comparison. Record any
+manual PV recovery separately; the control does not certify automatic recovery. Original configuration or permissions are
+restored, and the affected normal checks must pass again.
+
+T7 separately exercises the seven interruption and evidence-write boundaries
+defined in the M16 procedure. These controls use the shipped entry points;
+they are not automatic branches of a normal `install.pl` run. Their results
+apply only to the recorded versions and boundaries.
+
+## Verdict and limits
+
+| Native status | Meaning |
 | --- | --- |
-| 0 | The selected operation passed; only `--verdict` 0 establishes acceptance |
-| 1 | An observed build, runtime, assertion, ownership, or cleanup failure |
-| 2 | Invalid input, invalid context, or refused ownership |
-| 77 | A missing prerequisite or an incomplete run |
+| 0 | All required outcomes of this case passed and cleanup succeeded. |
+| 1 | An observed installation, runtime, data or comparison assertion failed. |
+| 2 | Missing or invalid inputs, unavailable evidence, interruption or another incomplete execution. |
 
-## Execution environment
+`result.json` records `Passed`, `Failed` or `Incomplete`, the last stage,
+primary error and cleanup error when its path remains writable. A confirmed
+assertion failure is retained even when cleanup also fails. Missing command
+evidence cannot be inferred from another PASS message.
 
-The driver reads but does not edit `~/.ssh/known_hosts`; it keeps each guest's
-host key in the run directory. A guest recreated at an address that already has
-a stored key needs cloud-provision to refresh that key at creation. The driver needs no exclusive use of the network, because it
-creates nothing; cloud-provision avoids address collisions when it creates a
-guest. Each waiting step of a case invocation has its own deadline in
-`DEFAULT_BOUNDS` (the keys `vm` and `shutdown` are not read, because cloud-provision
-creates and shuts down the guests); the shell that starts an invocation must outlive all of them.
+The Bash compatibility entry points keep their no-input status 77; a real
+case forwards the Perl runner's native status. Each invocation covers one
+case, not the whole six-case matrix. A complete M16 result also needs its
+separate T6 and T7 evidence. Service restart does not establish host reboot
+recovery. Short-term stored samples do not establish STS-to-MTS-to-LTS
+transfer, sustained load or long-duration reliability. Source/schema upgrade
+coverage belongs to M17.

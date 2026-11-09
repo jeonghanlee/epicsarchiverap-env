@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Cumulative local checks and the VM driver operations.
+# Cumulative local checks and guest-side installation verification.
 set -euo pipefail
 TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly TOP
 
 function usage {
-    printf '%s\n' 'Usage: run-all-tests.bash [--local|--phase=1|--phase=2] or a VM operation'
-    printf '%s\n' 'VM operations: --init --config FILE --evidence NEW_DIRECTORY'
-    printf '%s\n' '               --case CASE --handoff FILE RUN'
-    printf '%s\n' '               --verify-cleanup RUN | --verdict RUN'
+    printf '%s\n' 'Usage: run-all-tests.bash [--local|--phase=1|--phase=2]'
+    printf '%s\n' 'Guest installation: --case --config FILE --work NEW_DIRECTORY'
+    printf '%s\n' 'Run --case --help for prerequisites, checks and native exit statuses.'
+    printf '%s\n' 'VM creation and lifecycle belong to cloud-provision.'
 }
 
 function main {
@@ -24,12 +24,16 @@ function main {
         --phase=3|--phase3|--phase=4|--phase4|--system|all)
             # Local checks run through --local; these modes report and stop without a verdict.
             if [[ $# -ne 0 ]]; then printf '%s\n' 'INVALID: this mode accepts no VM inputs.' >&2; exit 2; fi
-            printf '%s\n' 'Phase 3: Installation; Phase 4: Runtime (one handed-off VM per case)'
-            printf '%s\n' 'INCOMPLETE: VM verification runs as explicit operations; no system action ran.' >&2
+            printf '%s\n' 'Phase 3: Installation; Phase 4: Runtime (one fresh guest per case)'
+            printf '%s\n' 'INCOMPLETE: use --case with explicit guest inputs; no system action ran.' >&2
             usage >&2
             exit 77 ;;
-        --init|--case|--verify-cleanup|--verdict)
-            exec python3 "${TOP}/tests/vm/driver.py" "${mode}" "$@" ;;
+        --case)
+            exec perl "${TOP}/tests/vm/install.pl" "$@" ;;
+        --init|--verify-cleanup|--verdict)
+            printf '%s\n' 'INVALID: retired VM driver operation; use --case on a prepared fresh guest.' >&2
+            usage >&2
+            exit 2 ;;
         --help|-h) usage ;;
         *) printf 'INVALID: unknown mode: %s\n' "${mode}" >&2; usage; exit 2 ;;
     esac

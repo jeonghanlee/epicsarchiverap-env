@@ -23,6 +23,8 @@ my $STAGE = 'prerequisites';
 my $LIMIT = 180;
 my $FAILURE = '';
 my @INSTALL;
+my %SYSTEMS = (debian13 => ['debian', '13', 'dpkg-query', '-W'],
+    rocky8 => ['rocky', '8.10', 'rpm', '-qa']);
 
 sub utc {
     my ($seconds) = @_;
@@ -215,10 +217,14 @@ sub snapshot {
         $processes{$component} = "$pid:$identity->{ticks}";
         my $version = observe("$phase/$component/version", 'sudo', '-n', 'cat', "$root/webapps/$component/ui/comm/version.txt");
         check(index($version, substr($C->{appliance_revision}, 0, 8)) >= 0, "$component version is pinned");
-        my $context = observe("$phase/$component/context", 'sudo', '-n', 'cat', "$root/conf/context.xml");
-        check(index($context, 'driverClassName="org.sqlite.JDBC"') >= 0
-            && index($context, "url=\"jdbc:sqlite:$C->{database}?journal_mode=WAL\"") >= 0,
-            "$component uses the supplied SQLite file");
+        if ($C->{backend} eq 'sqlite') {
+            my $context = observe("$phase/$component/context", 'sudo', '-n', 'cat', "$root/conf/context.xml");
+            check(index($context, 'driverClassName="org.sqlite.JDBC"') >= 0
+                && index($context, "url=\"jdbc:sqlite:$C->{database}?journal_mode=WAL\"") >= 0,
+                "$component uses the supplied SQLite file");
+        } else {
+            mariadb("$phase/$component/context", 'context', '--component', $component);
+        }
         push @files, "$root/conf/server.xml", "$root/conf/context.xml", "$root/bin/setenv.sh";
     }
     my %distinct = map { $processes{$_} => 1 } @COMPONENTS;
@@ -232,13 +238,17 @@ sub snapshot {
         require_result(capture("$phase/storage-access-$index", 10, 'sudo', '-n', '-u', $C->{user}, '--',
             'test', '-w', $path), "service-account storage access: $path", 1);
     }
-    my $database = observe("$phase/database", 'sudo', '-n', '-u', $C->{user}, '--', 'sqlite3', '-readonly',
-        $C->{database}, 'PRAGMA database_list; SELECT name FROM sqlite_master WHERE type="table" ORDER BY name; PRAGMA table_info(PVTypeInfo);');
-    check(index($database, "0|main|$C->{database}\n") == 0, 'database query uses the supplied SQLite file');
-    for my $table (qw(ArchivePVRequests ExternalDataServers PVAliases PVTypeInfo)) {
-        check($database =~ /^\Q$table\E$/m, "required database table $table");
+    if ($C->{backend} eq 'sqlite') {
+        my $database = observe("$phase/database", 'sudo', '-n', '-u', $C->{user}, '--', 'sqlite3', '-readonly',
+            $C->{database}, 'PRAGMA database_list; SELECT name FROM sqlite_master WHERE type="table" ORDER BY name; PRAGMA table_info(PVTypeInfo);');
+        check(index($database, "0|main|$C->{database}\n") == 0, 'database query uses the supplied SQLite file');
+        for my $table (qw(ArchivePVRequests ExternalDataServers PVAliases PVTypeInfo)) {
+            check($database =~ /^\Q$table\E$/m, "required database table $table");
+        }
+        check($database =~ /\|pvName\|/ && $database =~ /\|typeInfoJSON\|/, 'PV metadata schema exists');
+    } else {
+        mariadb("$phase/database", 'schema');
     }
-    check($database =~ /\|pvName\|/ && $database =~ /\|typeInfoJSON\|/, 'PV metadata schema exists');
     my $hashes = observe("$phase/configuration-hashes", 'sudo', '-n', 'sha256sum', @files);
     my $units = observe("$phase/effective-units", 'systemctl', 'cat', $C->{service}, $C->{timer}, $C->{health_service});
     my $war_dir = "$C->{repository}/$C->{source}/target";
@@ -283,11 +293,20 @@ sub pv_action {
     return;
 }
 
+sub mariadb {
+    my ($phase, $mode, @arguments) = @_;
+    my $result = capture($phase, 30, 'sudo', '-n', $^X, "$HERE/database.pl",
+        '--config', "$WORK/inputs.json", '--mode', $mode, @arguments);
+    return require_result($result, "installed MariaDB $mode", $result->{exit} == 1);
+}
+
 sub registration {
     my ($phase) = @_;
     $PV =~ /^LocalInstall:[A-Za-z0-9]+:Value$/ or die "unexpected test PV name\n";
-    my $text = observe($phase, 'sudo', '-n', '-u', $C->{user}, '--', 'sqlite3', '-readonly', $C->{database},
-        "SELECT typeInfoJSON FROM PVTypeInfo WHERE pvName='$PV';");
+    my $text = $C->{backend} eq 'sqlite'
+        ? observe($phase, 'sudo', '-n', '-u', $C->{user}, '--', 'sqlite3', '-readonly', $C->{database},
+            "SELECT typeInfoJSON FROM PVTypeInfo WHERE pvName='$PV';")
+        : mariadb($phase, 'registration', '--pv', $PV);
     check(length($text) > 0, 'test PV registration exists in the configured database');
     my $data = object($text, 'PV registration');
     check(($data->{pvName} // '') eq $PV, 'database registration names the same test PV');
@@ -453,15 +472,16 @@ sub sequence {
     -e $C->{install} and die "an appliance already exists; supply a fresh guest\n";
     -e "$C->{repository}/$C->{source}/target" and die "prebuilt source target exists\n";
     my $os = properties(observe('prerequisites/os', 'cat', '/etc/os-release'));
-    ($os->{ID} // '') eq 'debian' && ($os->{VERSION_ID} // '') eq '13'
-        or die "the actual guest is not Debian 13\n";
+    ($os->{ID} // '') eq $SYSTEMS{$C->{os}}[0] && ($os->{VERSION_ID} // '') eq $SYSTEMS{$C->{os}}[1]
+        or die "the actual guest does not match the supplied OS\n";
     observe('prerequisites/epics', 'bash', "$C->{repository}/scripts/verify-local-pv.bash",
         '--check-epics', '--epics-bin', $C->{epics_bin});
-    observe('prerequisites/packages', 'dpkg-query', '-W');
-    observe('prerequisites/source-hashes', 'sha256sum', "$HERE/install.pl", "$HERE/compare.pl",
+    observe('prerequisites/packages', @{$SYSTEMS{$C->{os}}}[2, 3]);
+    observe('prerequisites/source-hashes', 'sha256sum', "$HERE/install.pl", "$HERE/compare.pl", "$HERE/database.pl",
         "$HERE/../lib/ArchiverTest.pm", "$C->{repository}/scripts/install-local-common.bash",
         "$C->{repository}/scripts/verify-local-pv.bash", "$C->{repository}/scripts/verify-local-pv-curl.bash");
-    @INSTALL = ('bash', "$C->{repository}/scripts/install-local-sqlite.bash", '--yes', '--timeout', $LIMIT);
+    @INSTALL = ('bash', "$C->{repository}/scripts/install-local-$C->{backend}.bash", '--yes', '--timeout', $LIMIT);
+    push @INSTALL, ('--socket', $C->{database_socket}) if $C->{backend} eq 'mariadb-uds';
     $STAGE = 'T1'; print "T1: running the shipped installer\n";
     require_result(capture('t1/install', $C->{install_timeout}, @INSTALL), 'fresh installation', 1);
     $STAGE = 'T2'; print "T2: checking installed state and runtime\n";
@@ -503,7 +523,8 @@ sub sequence {
         my $before = snapshot("$phase/before");
         if ($action eq 'restart') {
             require_result(capture("$phase/action", $LIMIT, 'make', '--no-print-directory', '-C',
-                $C->{repository}, 'ARCHAPPL_SITEID=als', 'DB_BACKEND=sqlite', 'sd_restart'), 'service restart', 1);
+                $C->{repository}, 'ARCHAPPL_SITEID=als',
+                'DB_BACKEND=' . ($C->{backend} eq 'sqlite' ? 'sqlite' : 'mariadb'), 'sd_restart'), 'service restart', 1);
         } else {
             my $result = capture("$phase/action", $C->{install_timeout}, @INSTALL);
             require_result($result, 'unchanged installer re-application', 1);
@@ -530,13 +551,13 @@ sub main {
     $WORK =~ m{^/} && !-e $WORK or die "--work must be a new absolute directory\n";
     $C = object(slurp($config), $config);
     my %allowed = map {$_ => 1} qw(repository environment_revision appliance_revision os backend source epics_bin
-        install service timer health_service user group identity database retrieval install_timeout storage urls configuration environment_patch);
+        install service timer health_service user group identity database retrieval install_timeout storage urls configuration environment_patch database_user database_socket database_host database_port);
     for my $key (keys %$C) { $allowed{$key} or die "unknown configuration field: $key\n"; }
     for my $key (qw(repository environment_revision appliance_revision os backend source epics_bin install
         service timer health_service user group identity database retrieval install_timeout)) {
         defined($C->{$key}) && !ref($C->{$key}) or die "missing scalar configuration: $key\n";
     }
-    for my $key (qw(repository epics_bin install database)) {
+    for my $key (qw(repository epics_bin install)) {
         $C->{$key} =~ m{^/[^\r\n\0]+$} or die "$key must be an absolute path\n";
     }
     if (exists $C->{environment_patch}) {
@@ -545,8 +566,25 @@ sub main {
             or die "environment_patch must be an absolute file path\n";
     }
     $C->{source} =~ /^[A-Za-z0-9_-]+$/ or die "source must be a checkout directory name\n";
-    $C->{os} eq 'debian13' && $C->{backend} eq 'sqlite'
-        or die "this initial automation supports only Debian 13 SQLite\n";
+    exists($SYSTEMS{$C->{os}}) or die "supported OS values: debian13, rocky8\n";
+    $C->{backend} =~ /^(sqlite|mariadb-uds|mariadb-tcp)$/ or die "invalid backend\n";
+    if ($C->{backend} eq 'sqlite') {
+        $C->{database} =~ m{^/[^\r\n\0]+$} or die "database must be an absolute SQLite path\n";
+    } else {
+        for my $key (qw(database database_user)) {
+            defined($C->{$key}) && !ref($C->{$key}) && $C->{$key} =~ /^[A-Za-z0-9_]+$/
+                or die "invalid MariaDB $key\n";
+        }
+        if ($C->{backend} eq 'mariadb-uds') {
+            defined($C->{database_socket}) && !ref($C->{database_socket})
+                && $C->{database_socket} =~ m{^/[^\s?&]+$} or die "invalid MariaDB socket\n";
+        } else {
+            !ref($C->{database_host}) && ($C->{database_host} // '') eq '127.0.0.1'
+                && !ref($C->{database_port}) && ($C->{database_port} // '') =~ /^[0-9]+$/
+                && $C->{database_port} > 0 && $C->{database_port} <= 65535
+                or die "invalid local MariaDB TCP endpoint\n";
+        }
+    }
     $C->{install_timeout} =~ /^\d+$/ && $C->{install_timeout} > 0
         or die "install_timeout must be positive integer seconds\n";
     for my $key (qw(environment_revision appliance_revision)) {
@@ -569,7 +607,7 @@ sub main {
     }
     ($C->{retrieval} // '') =~ m{^http://(?:localhost|127\.0\.0\.1):\d+/retrieval$}
         or die "invalid local retrieval URL\n";
-    for my $tool (qw(timeout sudo git make curl date sha256sum stat systemctl dpkg-query)) {
+    for my $tool (qw(timeout sudo git make curl date sha256sum stat systemctl), $SYSTEMS{$C->{os}}[2]) {
         which($tool) or die "missing prerequisite: $tool\n";
     }
     umask 0077;
@@ -600,7 +638,7 @@ exit $status;
 
 =head1 NAME
 
-install.pl - execute the first real VM installation acceptance sequence
+install.pl - execute the real VM installation acceptance sequence
 
 =head1 SYNOPSIS
 
@@ -608,14 +646,17 @@ install.pl - execute the first real VM installation acceptance sequence
 
 =head1 DESCRIPTION
 
-Runs on an isolated fresh Debian 13 guest as its ordinary checkout owner with
+Runs on an isolated fresh Debian 13 or Rocky Linux 8.10 guest as its ordinary checkout owner with
 noninteractive sudo. The caller obtains the guest from cloud-provision and
 supplies a pinned checkout, site settings and real EPICS Base. This script
 does not provision guests or prepare an appliance outside the shipped installer.
 The example input is install.example.json. Perl 5.26.3 and JSON::PP are required;
-check their availability before the run. Debian's perl package supplies them.
+check their availability before the run. Debian's perl package supplies them;
+on Rocky the test prerequisites include perl-interpreter, perl-JSON-PP and
+perl-Pod-Usage. The installer supplies the selected database client.
 
-T1 calls install-local-sqlite.bash with packages enabled. T2 observes the
+T1 calls the selected install-local-{sqlite,mariadb-uds,mariadb-tcp}.bash with
+packages and database preparation enabled. T2 observes the
 installed version, configuration, units, JVMs, database and health. T3 runs
 verify-local-pv.bash independently with cleanup=keep. T4 restarts through the
 shipped Make control. T5 repeats the identical installer request. Both actions
@@ -638,8 +679,9 @@ Final cleanup accepts an already-paused response only after the status API
 confirms the same PV is Paused; the final database registration check still runs.
 After copying evidence, the caller sends cloud-provision its finished notice.
 
-The six-case matrix, MariaDB transports, Rocky execution and T6 fault controls
-remain outside this initial implementation. It proves neither host reboot
+MariaDB checks call database.pl with installed application credentials and the
+selected socket or TCP endpoint. T6 fault application and restoration are separate
+operations on disposable installations. The sequence proves neither host reboot
 recovery, long-duration reliability nor storage-tier migration. Retained input
 comparisons can be repeated with compare.pl; a replay is not a fresh installation.
 
@@ -654,7 +696,11 @@ The repository and its parent site inputs must be prepared before execution.
 Optional environment_patch names an absolute file containing the exact binary
 Git diff against environment_revision. Without it, tracked files must be clean.
 The observed diff is retained; staged changes are always refused.
-Credentials are not accepted in this SQLite input. A previous appliance or
+Credentials are not accepted in this input. MariaDB cases supply database as a
+name, database_user and database_socket (UDS) or database_host/database_port
+(TCP). Set DB_ADMIN_PASS and DB_USER_PASS in the private parent CONFIG_SITE.local
+before execution. Credentials are read from the installed context only for the
+actual client connection and are excluded from context observations. A previous appliance or
 source target directory refuses execution as Incomplete.
 
 =item --work DIRECTORY
