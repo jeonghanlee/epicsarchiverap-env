@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Commit the M16 completion record. All fourteen assigned work items are Complete; no assigned implementation remains. M5, M6 and M7 remain Deferred and need a separate decision before execution. M16 landed at 5feb60d; its original failed/incomplete observations and version limits remain retained. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: No assigned implementation remains. M5, M6 and M7 are Deferred and require a new dated decision before resumption. M5 retains its reviewed measurement-plan draft; expected use of pp is unknown and no runtime measurement or policy change has been authorized. M16 is Complete and its closure record landed at d8065a1. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
-This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M12, M13, M14, M15, M16 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, M10 on 2026-11-05 by D37, M12 on 2026-11-05 by D39, and M16 on 2026-11-06 by D42. Deferred work is ordered M5, M6 and M7 for later reconsideration. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M12, M13, M14, M15, M16 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, M10 on 2026-11-05 by D37, M12 on 2026-11-05 by D39, and M16 on 2026-11-06 by D42. D52 assigned M5 on 2026-11-09 for measurement-plan preparation and review; D53 returned it to Deferred and Backlog on the same date because expected pp usage is unknown. Deferred work is ordered M5, M6 and M7 for later reconsideration. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
 
 The recorded M16 execution follows D44 for minimal Perl automation and its first fresh Debian 13 SQLite T1-T5 case, and D45 for the equivalent Maven Central download, after D42's direct baseline and D43's installed-file correction. D46 authorizes the seven T7 cleanup cases. D47 authorizes the confirmed runner handoff correction and verification. D48 authorizes the subsequent already-paused cleanup correction, fresh Ctrl+C regression and remaining four T7 cases after that regression passes. D49 authorizes the private controller readiness correction and those last two expected-error cases. D50 authorizes the remaining installation matrix, both T6 controls and conditional removal of the retired Python VM tests. Other product corrections, a new numbered release and GitHub mutations require separate authorization.
 
@@ -93,6 +93,8 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D49 | Authorize the private T7 controller readiness correction and the last two expected-error cases. Wait for actual Being archived while retaining every API/database query and rechecking the same runner, owned IOC and open T4 new-data boundary; keep the 180-second limit and stop as Incomplete when the boundary closes. Repeat completion-record error on a fresh guest, then result-record error on another fresh guest if the first passes. Preserve previous attempts, the unchanged D48 runner patch and retained shutdown. Stop on any newly confirmed defect; all D48 exclusions remain. | 2026-11-07 |
 | D50 | Execute the remaining accepted M16 work: extend the Perl runner and run the five remaining OS/backend cases through the shipped installers, execute both T6 fault controls with restoration, then remove the three retired Python VM files and update the two test documents after required results pass. Include guest requests, evidence retention and shutdown. Preserve previous results and the Perl 5.26.3 baseline; do not change product behavior to bypass a failed installer. Keep the existing Bash VM entry points and connect them to the new Perl runner when retiring the Python tests. M5, M6, M7 and git/GitHub mutations remain outside this decision. | 2026-11-08 |
 | D51 | Accept actual storage append/flush failure as T6 detection when changing real CA input, effective service-account write denial and the same PV's storage error are observed; require the shipped verifier to reject that failure. Preserve the original stored-sample-only Incomplete record. Require original permissions, healthy acquisition/retrieval and consistent final PV/IOC state after documented recovery. Accept the retained actual evidence under this revised criterion and authorize D50 replacement cleanup and final validation. No claim of stored-sample comparison failure or automatic recovery is added. | 2026-11-09 |
+| D52 | Resume M5 from Deferred to Not started and assign it from Backlog to Milestone for measurement-plan preparation and review. Keep plan acceptance and implementation authorization separate; this decision does not authorize VM use, benchmark execution, source/policy changes or production access. M6 and M7 remain Deferred. | 2026-11-09 |
+| D53 | Return M5 to Deferred and Backlog because expected use of LTS pp is unknown. Retain the reviewed measurement-plan draft and required inputs. Further work requires a new dated resumption decision. No runtime measurement or policy change is authorized. M6 and M7 remain Deferred. | 2026-11-09 |
 
 ### ID Migration
 
@@ -125,6 +127,8 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M10 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-05 by D37 | this synchronization commit | this synchronization commit |
 | 9576820 / M12 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-05 by D39 | this synchronization commit | this synchronization commit |
 | 9576820 / M16 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-06 by D42 | this synchronization commit | this synchronization commit |
+| 9576820 / M5 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; resumed for planning 2026-11-09 by D52 | this synchronization commit | this synchronization commit |
+| 9576820 / M5 | `docs/milestone-9576820.md`, Milestone, maven | `docs/milestone-9576820.md`, Backlog, maven; deferred 2026-11-09 by D53 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -2054,13 +2058,13 @@ Last Compared: none
 
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. All rows are excluded from the release tally.
+M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. The order does not resume a deferred item. All rows are excluded from the release tally.
 
 ### Work
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12 | Measured retrieval benefit and disk cost support a dated decision on LTS pre-processing; [detail](#m5---lts-retrieval-pre-processing-pp) |
+| Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12, D52, D53 | D53 defers this work on 2026-11-09 because actual pp usage is unknown. Reviewed draft retained; a new dated resumption decision is required; [detail](#m5---lts-retrieval-pre-processing-pp) |
 | Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
 
@@ -2094,7 +2098,9 @@ storage filesystem implementation and production storage architecture.
 
 ##### Dependencies And Decisions
 
-- D12 changes Open to Deferred on 2026-10-29. Reconsider this work after M4 and before M6; the order does not automatically resume it. A new dated resumption decision is required.
+- D12 changes Open to Deferred on 2026-10-29. Reconsider this work after M4 and before M6; the order does not automatically resume it. D52 supplies that dated resumption decision on 2026-11-09.
+- D52 assigns M5 from Backlog to Milestone, returns it to Not started, and authorizes measurement-plan preparation and review only. No appliance access, VM lifecycle, benchmark execution, policy/source modification or production change is authorized.
+- D53 returns M5 to Deferred and Backlog on 2026-11-09 because expected use of pp is unknown. The reviewed draft and its required inputs are retained. Further work requires a new dated resumption decision; no runtime test or policy change was executed.
 - D5 still requires an operating installation with measured disk growth and real retrieval patterns before deciding whether to use `pp`.
 - This work concerns policy selection in epicsarchiverap-env; the processing implementation belongs to epicsarchiverap-maven. No implementation plan has been accepted.
 
@@ -2105,17 +2111,45 @@ Plan Acceptance: none
 Implementation Authorization: none
 Superseded Plan Artifacts: none
 
+**Measured question.** Decide separately for Default and VerySlow whether the actual long-range processed queries justify LTS pre-calculation. Raw query speed is a control, not an expected benefit. The current policy template puts neither `pp` nor `reducedata` on these LTS URLs; other policies remain outside this work.
+
+**Source premise.** Recheck the exact tested appliance revision before execution. At inspected source `e0a8e66ed09e840ab8ed67dae81b25474605db08`, `PlainPBStoragePlugin.getDataForPV()` selects the extension of the requested operator, falls back to processing raw files when no matching cached paths exist, and assumes available caches cover the requested partitions. `runPostProcessors()` generates missing/stale files from real raw partitions through ETL. HTTP success, a `pp` parameter or one generated file alone therefore cannot establish use or completeness. These are source observations, not executed performance results.
+
+**Inputs required before plan acceptance and execution.**
+
+- An approved representative query set for each policy: PV class and actual sample rate, operator with its exact interval, fixed closed UTC ranges, PVs per request, observed request frequency/concurrency and endpoint/format. Include normal requests that do not match the proposed `pp` operator. Keep exact operational identifiers in private evidence.
+- A real archived baseline covering those ranges and all intersecting partitions, including gaps/boundaries present in actual data. Record source/configuration revisions, raw file membership/hashes, event counts, logical and allocated bytes, observation duration and measured raw growth per day. Short IOC installation evidence cannot substitute for representative long-range LTS data.
+- Agreed numerical limits: acceptable retrieval latency and minimum useful improvement, maximum extra bytes/percentage and projected growth, permitted pp-generation time/resource cost, repeat count and the method for comparing statistical results. No policy recommendation is accepted from an invented percentage or a single fast response.
+- An isolated test installation and capacity window, with a concrete restoration method for identical data/configuration before each comparison. Record actual CPU/RAM, filesystem/storage, software, cache procedure and background load. Guest use/lifecycle and execution require separate authorization after this draft is accepted. Production data/configuration remains unchanged.
+
+**Implementation sequence after separate authorization.**
+
+1. Collect the representative inputs and proposed thresholds first. Freeze the actual query list, operators, data hashes, comparison tolerances, repetition/order schedule and cache conditions in the private run inputs before timing. Pin the real environment/appliance commits and use the shipped installer, policy rendering, ETL and retrieval API; never substitute a hand-built pp file or call an internal function in place of the appliance path.
+2. Establish a no-pp baseline and an isolated pp candidate with identical real raw partitions and metadata. Restore the same baseline before each condition; allow only the declared LTS pp parameter to differ. Generate the candidate files through real ETL, verify every required partition is current, and observe actual pp-file reads by the installed retrieval process. Keep raw data present and hash-identical in both conditions.
+3. Compare the same processed query results before interpreting timings: timestamps, values/statistics, gaps, alarm/status fields where returned, and boundary behavior. Compare raw queries too to establish raw-data preservation. Keep the exact normalization/tolerance rule fixed in advance. Include a candidate with one real pp partition temporarily unavailable on a separate test copy; require either complete equivalent results or an explicit unusable result, never accept silent partial data as a speed gain. Preserve the fault and restoration evidence.
+4. Measure end-to-end response time and returned size for the identical query schedule, alternating baseline/candidate order to limit drift. Report each raw observation plus median and p95, repeat count, variability and timeouts/errors. Report first-use and repeated-query results separately with the actual cache procedure; do not claim a cold cache without observing or controlling it. No concurrency, source, dataset or cache change may be hidden inside a comparison.
+5. Measure logical and allocated raw/pp bytes before and after real pp generation, elapsed generation time, CPU/I/O and raw/pp daily growth over the declared observation window. Include all generated operators/partitions and retained files. Project cost for the declared retention/PV population using the measured ratios; state extrapolation limits. Short-term sample retention is not evidence for LTS growth.
+6. Decide per policy using the agreed latency/resource/storage limits and actual workload mix: adopt a specified operator/interval, retain the current no-pp policy, or leave the decision unresolved with the missing observation named. A functional mismatch, incomplete pp coverage or unproven pp use invalidates a performance benefit. Only a separately accepted implementation decision changes `site-template/policies.py.in` and its guide; then verify real rendering and the installed policy against that decision.
+
+No runtime verification has been executed for M5. The query set, baseline archive, thresholds and isolated execution target are required inputs, not assumed facts. Planning review on 2026-11-09 checked the actual policy template, pinned source premises, assignment/identity, four consecutive pending test labels and separate execution authority. First-, third- and second-person self-review found no remaining correction to this draft; representative operational inputs remain unresolved. The canonical register check and whitespace check passed. Plan Acceptance and Implementation Authorization remain none.
+
 ##### Test Plan
 
 | Label | Layer | Method | Environment | Expected Result |
 | --- | --- | --- | --- | --- |
-| T1 | Function | Compare retrieval time and disk use for a long span with and without `pp` on LTS | operating installation | The difference is large enough, or not, to settle the decision |
+| T1 | Data correctness and exposure | Real ETL creates pp files from the frozen raw archive; query the same ranges with and without pp, observe file reads, compare processed/raw results and the missing-pp-partition control | Approved isolated installed appliance; identical real archive baseline | Complete current coverage and actual pp use are proven; equivalent results meet the fixed comparison rule; partial data is never accepted; raw files remain unchanged |
+| T2 | Retrieval performance | Replay the frozen representative query schedule in alternating order with fixed cache/load conditions; retain every result, timing, size and failure | Same installation and dataset; separate first-use and repeated-query conditions | Median/p95 and variability are supported by real observations; each policy is assessed against the pre-agreed latency/improvement limits only after T1 passes |
+| T3 | Storage and generation cost | Measure raw/pp logical and allocated bytes, actual pp-generation time/CPU/I/O and daily growth; project only to the declared retention/PV population | Same complete raw/pp partition set and agreed observation window | Extra disk and generation costs are explicit and meet, or fail, the agreed budgets; extrapolation limits are recorded |
+| T4 | Policy decision and conditional delivery | Evaluate T1-T3 per policy; retain no-pp or specify operator/interval; render and inspect the installed policy only after separate change authorization | Canonical decision and, if approved, isolated policy deployment | A dated evidence-based decision closes each policy; no adoption is inferred from timing alone or unresolved inputs |
 
 ##### Verification Results
 
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| T1 | Not run | operating installation | Pending | none |
+| T1 | Not run | Target not selected | Pending | none |
+| T2 | Not run | Target not selected | Pending | none |
+| T3 | Not run | Target not selected | Pending | none |
+| T4 | Not run | Decision inputs not supplied | Pending | none |
 
 ##### Closure Evidence
 
