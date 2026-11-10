@@ -7,11 +7,11 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: No assigned implementation remains. M5, M6 and M7 are Deferred and require a new dated decision before resumption. M5 retains its reviewed measurement-plan draft; expected use of pp is unknown and no runtime measurement or policy change has been authorized. M16 is Complete and its closure record landed at d8065a1. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: M6's common verification checklist and document checks are ready for separate commit/push authority. Record repository landing before marking M6 Complete. Its historical diagnostic-method gap is explicit and does not authorize restoring or waiving that claim. M5 and M7 remain Deferred; M5 retains its measurement-plan draft because expected pp use is unknown. No numbered release, VM execution or production change is assigned. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
-This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M8, M9, M10, M11, M12, M13, M14, M15, M16 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, M10 on 2026-11-05 by D37, M12 on 2026-11-05 by D39, and M16 on 2026-11-06 by D42. D52 assigned M5 on 2026-11-09 for measurement-plan preparation and review; D53 returned it to Deferred and Backlog on the same date because expected pp usage is unknown. Deferred work is ordered M5, M6 and M7 for later reconsideration. Assignment authorizes preparation of the existing scope; implementation-plan acceptance and implementation authorization remain separate. Historical results remain evidence for their recorded inputs.
+This generation owns seventeen work items on the default development branch. The assigned work is M1, M2, M3, M4, M6, M8, M9, M10, M11, M12, M13, M14, M15, M16 and M17; M11, M13, M14 and M15 were assigned on 2026-11-02 by D26, D29, D27 and D28, M9 on 2026-11-03 by D30, M8 on 2026-11-03 by D32, which closes M8 by its decision and retires M4, M17 on 2026-11-03 by D34, M10 on 2026-11-05 by D37, M12 on 2026-11-05 by D39, and M16 on 2026-11-06 by D42. D52 assigned M5 on 2026-11-09 for measurement-plan preparation and review; D53 returned it to Deferred and Backlog on the same date because expected pp usage is unknown. D54 resumes M6 on 2026-11-09 for a current-test verification checklist, without opening a release. M5 and M7 remain Deferred. Assignment, plan acceptance and implementation authorization remain separate; D54 records both acceptance of the reviewed M6 direction and its documentation-only execution authority. Historical results remain evidence for their recorded inputs.
 
 The recorded M16 execution follows D44 for minimal Perl automation and its first fresh Debian 13 SQLite T1-T5 case, and D45 for the equivalent Maven Central download, after D42's direct baseline and D43's installed-file correction. D46 authorizes the seven T7 cleanup cases. D47 authorizes the confirmed runner handoff correction and verification. D48 authorizes the subsequent already-paused cleanup correction, fresh Ctrl+C regression and remaining four T7 cases after that regression passes. D49 authorizes the private controller readiness correction and those last two expected-error cases. D50 authorizes the remaining installation matrix, both T6 controls and conditional removal of the retired Python VM tests. Other product corrections, a new numbered release and GitHub mutations require separate authorization.
 
@@ -35,8 +35,9 @@ The recorded M16 execution follows D44 for minimal Perl automation and its first
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Complete | No | M3, D24, D37, D38 | T1-T2 passed: 156 mutations killed and five equivalent for the recorded entry paths; all 113 former kills retained; landed at 37ba14f; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Complete | No | M3, M10, M14, D24, D27, D39, D40 | T1-T4 extraction evidence and the R1 import-correction checks are retained with their recorded limits; landed at cb7a041; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 | Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Complete | No | D16, D32, D41, D42, D43, D44, D45, D46, D47, D48, D49, D50, D51 | Earlier results remain valid for their recorded versions, landed through 03cd731. The original T7 handoff Failed result is retained. Under D47, corrected handoff and standalone verifier TERM Passed; foreground Ctrl+C Failed on an already-paused response. D48 Ctrl+C regression, owned-IOC TERM and pause-error case Passed; D48 completion-error attempt remains Incomplete; D49 completion/result errors Passed. All seven T7 cases have Passed observations within their recorded version limits; both D49 guests shut off with evidence retained. All six T1-T5 cases have Passed observations within their recorded versions; the five D50 cases and database fault control Passed. D51 accepts the actual storage append/flush detection and restoration as Passed; the original stored-sample-only Incomplete observation is preserved. The three Python VM files are removed and both documents describe the replacement; final validation and review passed; completed 2026-11-09, landed at 5feb60d; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
+| Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | In progress | No | D9, D12, D54 | T1-T3 document/source checks and reader review passed; common checklist delivered, historical diagnostic-method gap explicit; repository landing pending; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 14 Complete, 0 In progress. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 14 Complete, 1 In progress. No row is Ready.
 
 ### Decisions
 
@@ -95,6 +96,7 @@ Ready indicates work-order eligibility; it does not accept a draft plan or autho
 | D51 | Accept actual storage append/flush failure as T6 detection when changing real CA input, effective service-account write denial and the same PV's storage error are observed; require the shipped verifier to reject that failure. Preserve the original stored-sample-only Incomplete record. Require original permissions, healthy acquisition/retrieval and consistent final PV/IOC state after documented recovery. Accept the retained actual evidence under this revised criterion and authorize D50 replacement cleanup and final validation. No claim of stored-sample comparison failure or automatic recovery is added. | 2026-11-09 |
 | D52 | Resume M5 from Deferred to Not started and assign it from Backlog to Milestone for measurement-plan preparation and review. Keep plan acceptance and implementation authorization separate; this decision does not authorize VM use, benchmark execution, source/policy changes or production access. M6 and M7 remain Deferred. | 2026-11-09 |
 | D53 | Return M5 to Deferred and Backlog because expected use of LTS pp is unknown. Retain the reviewed measurement-plan draft and required inputs. Further work requires a new dated resumption decision. No runtime measurement or policy change is authorized. M6 and M7 remain Deferred. | 2026-11-09 |
+| D54 | Resume M6 from Deferred to Not started and assign it from Backlog to Milestone, then authorize its documentation work as In progress. Accept the reviewed direction: deliver a common checklist against current shipped tests now, require a valid prior passing result and complete matching inputs before reuse, and retain distinct local/build, OS/backend and candidate/published-installation claims. The request to reflect all findings and proceed authorizes writing and checking that document. Replace the next-release-only completion target; no numbered release is opened. M5 and M7 remain Deferred. Test code/assertion changes, automatic skipping, VM or production execution and git/GitHub mutations are outside this decision. | 2026-11-09 |
 
 ### ID Migration
 
@@ -129,6 +131,7 @@ All seven IDs changed together on 2026-10-29 to match the selected work order. T
 | 9576820 / M16 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; assigned 2026-11-06 by D42 | this synchronization commit | this synchronization commit |
 | 9576820 / M5 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; resumed for planning 2026-11-09 by D52 | this synchronization commit | this synchronization commit |
 | 9576820 / M5 | `docs/milestone-9576820.md`, Milestone, maven | `docs/milestone-9576820.md`, Backlog, maven; deferred 2026-11-09 by D53 | this synchronization commit | this synchronization commit |
+| 9576820 / M6 | `docs/milestone-9576820.md`, Backlog, maven | `docs/milestone-9576820.md`, Milestone, maven; resumed for documentation 2026-11-09 by D54 | this synchronization commit | this synchronization commit |
 
 ### Milestone Details
 
@@ -2056,16 +2059,138 @@ GitHub Milestone: none
 Observed State: none; no issue exists yet
 Last Compared: none
 
+#### M6 - Reduce the repeated checks of the release verification plan
+
+Origin: 9576820 / M7
+Identity History: M7 -> M6 on 2026-10-29; renumbered to match the selected work order
+GitHub Issue: none
+Status: In progress
+
+##### Summary
+
+Deliver the common verification checklist below for the current shipped paths. A release planner selects required claims and records one execution owner for each claim and its complete inputs. Reuse needs an applicable passing observation; identical source bytes alone are insufficient. This is a documentation deliverable, not an automatic test-selection implementation or a new release plan.
+
+##### Scope
+
+- Account for all seven Release Verification checks and all four Integrated Verification rows of release 2.0.1 at `95768200a49e965ef2dd1949919e955af982aff6`.
+- Map those claims to current shipped entry points and retain the additional current installation, fault and upgrade boundaries where relevant to the selected change.
+- State complete inputs, valid-result requirements, repeat triggers and concrete opportunities to avoid scheduling the same path twice.
+- Keep the checklist and its observed document checks in this detail; a later release selects its cases and authority separately.
+
+Out of scope: changing or deleting tests/assertions, implementing a skip/cache mechanism, reopening old verification results, running a local/VM acceptance matrix, assigning a release number, provisioning guests, production access, M5 and M7.
+
+##### Completion Criteria
+
+- Every historical verification row maps to a retained claim, with no unexplained omission or claim of duplicated execution from source identity alone.
+- Current checks name their real path, relevant inputs and repeat conditions; no two planned executions with the same claim, full inputs and phase are required without a distinct purpose.
+- A failed, skipped, incomplete, unreadable or insufficiently identified observation never authorizes reuse. Phase-specific or live observations remain distinct.
+- Document checks and reader review pass, and the canonical change has repository-landing evidence. Opening the next release is not required.
+
+##### Dependencies And Decisions
+
+- D9 supplies the direction. D54 clarifies that unchanged inputs permit reuse only after a valid passing observation; unresolved or failed checks still require execution.
+- D12's order was scheduling, not a runtime dependency on pp or heap measurements. D54 supplies the dated resumption and supersedes that order for M6; M5 and M7 remain Deferred.
+- D54 replaces delivery in an unassigned next release with the common current-test checklist in this detail. Future release scope and execution approvals remain separate.
+- Historical input: `docs/milestone-2.0.1.md`, M44, at `95768200a49e965ef2dd1949919e955af982aff6`. Current source basis: environment `9b982c075907dd72b6448c0b66b2aa5a802f0d2e`; the paths below were inspected, not rerun as acceptance tests.
+
+##### Implementation Plan
+
+Plan Status: accepted
+Plan Acceptance: 2026-11-09; the current-test checklist deliverable and both plan-review corrections were accepted through D54
+Implementation Authorization: 2026-11-09; D54 authorizes this canonical document and its verification only
+Superseded Plan Artifacts: M6 draft at `9b982c075907dd72b6448c0b66b2aa5a802f0d2e`, whose completion required the unassigned next release
+
+1. Extract the seven historical release checks and four integrated mappings from the committed source. Preserve their distinct claims in the historical mapping below.
+2. Inspect the current public dispatchers, test guides and owning verification procedures; record current paths, actual boundaries and complete-input requirements without replaying runtime tests.
+3. Specify reuse and repeat rules, including failed/incomplete evidence and phase-specific observations. Select one representative invocation for identical dispatch paths, preserving their compatibility coverage separately.
+4. Check the complete mapping and every retained distinction against the actual files, then run the canonical checker, whitespace/link checks and third- and second-person review. Record document results separately from runtime evidence.
+5. Obtain separate commit/push authority. Record landing before marking M6 Complete. A future release copies the checklist into its own accepted scope and supplies actual run inputs/results.
+
+**Historical claim mapping.** The source is the committed M44 detail named above. This maps required purposes, not a claim that all recorded historical runs were redundant.
+
+| Historical row | Retained purpose | Current checklist owner |
+| --- | --- | --- |
+| Release Verification 1 | Reproducible pre-change baseline | Baseline and candidate identity |
+| Release Verification 2 | Integrated local, database and real site-build behavior | Local suite; database maintenance; site build and payload; source CI where required |
+| Release Verification 3 | Actual candidate deployment and runtime | Candidate installation and data; selected fault/upgrade procedures |
+| Release Verification 4 | Consistent candidate versions and declared defaults | Baseline and candidate identity, post-change observation |
+| Release Verification 5 | Published refs and release metadata identify the authorized candidate | Published objects |
+| Release Verification 6 | Documented installation from the immutable published tag | Released installation |
+| Release Verification 7 | Canonical scope, external state and next entry agree | Closure |
+| Integrated M43 / T1, M43 / T2 | Backend routing/rejection and supported real database operations | Local suite plus database maintenance |
+| Integrated M14 / T1, M14 / T3 | Actual site build/payload and obsolete site build.xml rejection | Site build and payload; local no-Ant checks alone do not prove compilation |
+| Integrated M45 / T2, M46 / T1, M46 / T2 | Launcher starting/health negatives and classified journal/CA failure evidence | Local suite for starting/health; legacy failure diagnostics remains a separate claim without an established current replacement |
+| Integrated M10 / T1 | The documented installer works on its selected platform/backend | Candidate installation and data |
+
+**Reuse rule.** Record each selected check's claim, command and options, expected native outcome, environment/source revisions and exact candidate bytes, tests/helpers/fixtures, effective settings, toolchain/packages, OS/backend, initial state, observation phase and evidence locator. Include schema, input data, query windows, workload and time-sensitive external state when the claim uses them. Record effective values privately without publishing secrets. A hash or unchanged Git tree that omits these inputs is insufficient.
+
+An earlier observation is reusable only when its final verdict is passing, all required assertions actually ran, expected native statuses match, no required check was skipped, and the retained evidence is readable and establishes the same claim with all relevant inputs and phase matched. Reuse cites the original result and its limits; it does not create a new observed run. Failed, incomplete, unavailable or ambiguously identified evidence requires the missing check to run after its prerequisites are resolved, even when source bytes are unchanged.
+
+Repeat a check when any relevant input or expected result changes, when failure recovery changes its initial state, or when the required observation belongs to a new publication/lifecycle phase. For live refs, services or data, collect the observation at the required phase rather than assuming old state persists. Narrow a rerun only with an established dependency boundary; when the affected boundary is uncertain, rerun the complete affected check. A document-only change avoids unrelated runtime checks only after confirming those checks do not consume the changed text or generated output. No script currently enforces these reuse rules.
+
+**Current checklist.** These are execution boundaries available to the next accepted verification plan, not an instruction to run every specialized procedure on every change. Each selected claim retains its own inputs and result; grouping paths in one cell does not merge their assertions.
+
+| Check | Claim and real path | Additional input boundary | Repeat or retain condition |
+| --- | --- | --- | --- |
+| Local suite | `tests/run-all-tests.bash --local` calls Phase 1 and the Phase 2 build-command checks | Actual files read by the phases and their child tests, fixtures/helpers, source inputs, Make overrides and optional prerequisites | One complete applicable result per declared input set; native success with required skips is insufficient |
+| Site build and payload | `make build.mvn` builds actual site WARs; `tests/install-payload.pl` checks real old/new payloads and rejection/rollback cases; historical M14 names the real site build.xml rejection procedure | Source pin, generated site overlay, Maven/JDK/dependencies, old/new WARs and JARs, permissions and mutation fixture | Dry-run command ordering and source-only CI cannot replace actual site/payload claims; a normal installation build covers only what its recorded assertions establish |
+| Database maintenance | `tests/database-operations.bash` and `tests/database-config.pl --integration` exercise their distinct real command, account/schema, backup/restore and failure boundaries | Selected schemas, application/admin identities, backend/transport, disposable database and systemd state, locale, tools and fault inputs | Real integration is distinct from local rendering/rejection; transport or starting database state changes invalidate reuse |
+| Candidate installation and data | `tests/vm/install.pl` through `tests/run-all-tests.bash --case`: M16 T1-T5, including same-PV restart and unchanged re-application | Full case JSON, actual fresh guest/image/packages, OS/backend, installed configuration, EPICS/IOC, raw observations and fixed history window | Preserve all six selected Debian/Rocky and SQLite/socket/TCP cases; within a case, T1-T5 prove distinct transitions, not duplicate health checks |
+| Selected fault, upgrade and configuration procedures | M16 T6/T7, M17's installed-state upgrade checks, and `docs/PLAN.config-d-vm-tests.md` retain their own accepted methods | Specific injected fault/interruption point, prior installation/schema, effective config.d files, retained data and restoration/cleanup state | A healthy fresh install does not establish fault detection, source/schema upgrade, config precedence or reboot; select relevant procedures separately without inventing coverage |
+| Legacy failure diagnostics | Historical M45 / T2 required health journal entries plus copied journal files, or engine UDP sockets plus PV/disconnected status, with retention errors preserving the original failure | Exact historical diagnostic claim and fault category; current collector, files and error behavior must be established before selection | No current replacement is established by this inventory. M16 command/result retention and T6/T7 are not proof of this specific diagnostic claim; if selected, define and authorize its real current method rather than omit it as a duplicate |
+| Source CI | Read the producing repository's actual workflow result at the required appliance source revision | Exact source/workflow/toolchain and required jobs | A different pin or missing required result needs new evidence; source CI does not establish the environment site's installed behavior |
+| Book generation and rendering | `.github/workflows/book.yml` defines `book/scripts/check-generated.bash` and `mdbook build book` as distinct checks | Book inputs, generation scripts/templates, effective source/configuration, mdBook version and workflow | Recheck affected generated text/rendering; generated-file equality alone does not establish a successful rendered book or deployed site |
+| Baseline and candidate identity | Historical Release Verification 1 and 4: resolve committed/effective versions, baseline refs, declared configuration/defaults and release text | Pre-change versus final candidate, effective pin/settings, changelog and proposed released scope | Keep both phase observations; unchanged application source does not establish a correct final version/changelog |
+| Published objects | Historical Release Verification 5: observe actual remote tag object/peeled commit and release flags/notes | Authorized candidate, published tag/release and observation time | Observe after publication; a local candidate check cannot replace this live remote observation |
+| Released installation | Historical Release Verification 6: follow the guide from the immutable published tag on the selected fresh systems | Actual published checkout, guide/options, fresh image/toolchain/packages and selected backend | Retain separately from candidate installation; record the published entry path and actual installation evidence, without reusing prebuilt WARs to bypass its build |
+| Closure | Historical Release Verification 7: reconcile canonical row/detail/evidence, required tracker/release state and next entry | Final repository landing and live external observations required by the accepted release | Recheck at closure; neither passing runtime tests nor earlier published-object observations alone establish final scope closure |
+
+**Concrete scheduling decisions.**
+
+- Use `tests/run-all-tests.bash --local` once for the declared local-suite input set. The current `--phase=2` dispatcher also invokes Phase 1 and Phase 2; do not schedule it as an additional independent build after that result. `tests/phase2-compile.bash` uses real `make -n build`, not Maven compilation.
+- Choose `tests/run-all-tests.bash --case` as the representative normal guest entry. `tests/phase3-docker.bash` and `tests/phase4-vm.bash` both forward supplied inputs to the same complete `tests/vm/install.pl` sequence. Do not perform three full installations of one OS/backend solely to cover these aliases. Their help/refusal/forwarding contract remains a separate CLI claim when those entry points change.
+- Preserve each OS/backend and each before/after transition. Do not share WARs between fresh installation cases to eliminate builds that are part of the shipped installer path. Do not merge candidate and published-tag installation, actual database maintenance and local checks, or normal and controlled-failure evidence.
+- Existing M1, M16 and M17 observations keep their original versions and limits. This inventory does not promote any of them to a result for the next release, and leaves all shipped test code unchanged.
+- The retired verifier's classified journal/CA diagnostic collection remains visible as a method gap for future scope selection. This is not a newly observed M16 failure and does not reopen its accepted completion criteria. Restoring that collector or waiving the historical claim requires a separate decision; this documentation work does neither.
+
+##### Test Plan
+
+| Label | Layer | Method | Environment | Expected Result |
+| --- | --- | --- | --- | --- |
+| T1 | Historical coverage | Extract the real committed M44 release and integrated tables and compare their complete row set with the historical mapping | Local Git object at the declared historical commit and this detail | All seven release rows and four integrated rows retain their purposes; no unsupported historical duplicate claim |
+| T2 | Current paths and reuse boundaries | Inspect the shipped dispatchers, build wrapper/rules, current test guides and owning M16/M17/config.d procedures; trace every checklist path and each retained distinction | Current tracked source at the declared basis; document/source inspection only | Dispatch reuse opportunities are explicit; failure/incomplete evidence, complete inputs, six platform/backend cases and publication phases remain distinct; no runtime equivalence or new runtime pass is inferred |
+| T3 | Register and reader | Run the canonical checker and whitespace/local-link checks, then read the whole changed detail from the next release planner's seat | Changed canonical document | Row/detail, authority, tally and next entry agree; a reader can select checks and judge reuse without the chat; repository landing still required |
+
+##### Verification Results
+
+| Label | Observed At | Environment | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| T1 | 2026-11-09T21:51:27Z | Local historical Git object and changed canonical detail | Pass | Extracted the actual committed M44 tables with Git and a read-only parser; the new mapping matches all seven release labels and all four integrated source-check labels in order. Their purposes were read against the source tables; none is declared redundant from source identity alone. |
+| T2 | 2026-11-09T21:51:27Z | Tracked current source at `9b982c0`; document/source inspection | Pass | Twelve distinct checklist boundaries. Public dispatcher, build wrapper/rules, test guides and M16/M17/config.d methods were inspected; nine explicit current file paths matched committed bytes. The legacy journal/CA diagnostic claim is not inferred from M16 T6/T7 and remains an explicit method gap. No runtime acceptance was executed or inferred. |
+| T3 | 2026-11-09T21:52:14Z | Changed canonical document | Pass | Canonical checker returned OK and whitespace checks returned 0. Both local Markdown file targets exist; M5/M7 complete detail bytes match HEAD; M6 prose is English with ASCII punctuation. Third-person and second-person self-review found no remaining in-scope correction after the two accepted plan findings. Row/detail and tally agree at 14 Complete and one In progress; landing is still pending. |
+
+##### Closure Evidence
+
+- Documentation deliverable and T1-T3 passed on 2026-11-09. The available review records contain four direct passes: the initial third-person plan pass with two findings, then the first-person, third-person and second-person delivery passes. D54 changes the target after the initial pass; the corrected delivery has no remaining finding above the floor. No delegated pass was run.
+- Repository landing is pending, so M6 remains In progress. No local suite, build, database integration or VM acceptance run was executed for M6. The diagnostic-method gap is retained for a future scope decision, not silently waived or implemented.
+
+##### GitHub Projection
+
+Title: Reduce the repeated checks of the release verification plan
+Labels: enhancement
+GitHub Milestone: none
+Observed State: none; no issue exists yet
+Last Compared: none
+
 ## Backlog
 
-M5, M6 and M7 remain unassigned and Deferred, with the reconsideration order M5, M6 and M7. The order does not resume a deferred item. All rows are excluded from the release tally.
+M5 and M7 remain unassigned and Deferred. M6 is assigned under D54 and is no longer part of this Backlog. The remaining order does not resume a deferred item. All Backlog rows are excluded from the release tally.
 
 ### Work
 
 | Group | ID | Work unit | Type | Status | Ready | Deps | Done when / Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Storage | M5 | LTS retrieval pre-processing (`pp`) | Milestone | Deferred | No | D5, D12, D52, D53 | D53 defers this work on 2026-11-09 because actual pp usage is unknown. Reviewed draft retained; a new dated resumption decision is required; [detail](#m5---lts-retrieval-pre-processing-pp) |
-| Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Deferred | No | D9, D12 | The next release plan maps each check to one claim, its inputs and a re-run trigger; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 | Runtime | M7 | Measure per-component heap needs by archiving load | Carry-forward | Deferred | No | D2, D3, D12 | Measured GC events and validated candidate heaps support load-specific guidance; dedicated storage and a new resumption decision required; [detail](#m7---measure-per-component-heap-needs-by-archiving-load) |
 
 ### Backlog Details
@@ -2164,72 +2289,6 @@ Observed State: none
 Observed Labels: none
 Observed Milestone: none
 Last Compared: never
-
-#### M6 - Reduce the repeated checks of the release verification plan
-
-Origin: 9576820 / M7
-Identity History: M7 -> M6 on 2026-10-29; renumbered to match the selected work order
-GitHub Issue: none
-Status: Deferred
-
-##### Summary
-
-D9 sets the direction. In the cycle of release 2.0.1 the sources were built and the local suite ran several times for one tree: the suite before each commit, the real build with the site overlay in Release Verification 2, and a build inside every installation of Release Verification 3 and 6.
-
-D12 defers this work for reconsideration after M5 and before M7. The direction remains set; the detailed scope and plan acceptance remain pending.
-
-##### Scope
-
-- List each check of the release verification plan of release 2.0.1 with the claim it proves and the inputs it reads (files, sources, hosts).
-- Find the checks that prove the same claim from the same inputs, and propose which one stays.
-- State the rule for a re-run: a check runs again only when one of its inputs changed; a change to a file that no test reads does not run the suite.
-
-Out of scope: removing a check that proves a different claim; changing what a test asserts; the VM driver (M4 and M8).
-
-##### Completion Criteria
-
-- The plan of the next release lists each check once with its claim, its inputs and its re-run trigger.
-- No two checks of that plan prove the same claim from the same inputs.
-
-##### Dependencies And Decisions
-
-- D12 changes Open to Deferred on 2026-10-29. Reconsider this work after M5 and before M7; the order does not automatically resume it. A new dated resumption decision is required.
-- D9's direction remains in force; detailed scope and plan acceptance remain unresolved.
-- The [release 2.0.1 verification plan and results](https://github.com/jeonghanlee/epicsarchiverap-env/blob/95768200a49e965ef2dd1949919e955af982aff6/docs/milestone-2.0.1.md#m44---verify-and-publish-release-201) are the historical inputs for identifying repeated checks.
-
-##### Implementation Plan
-
-Plan Status: draft
-Plan Acceptance: none
-Implementation Authorization: none
-Superseded Plan Artifacts: none
-
-1. After the owner decision, build the list of checks of release 2.0.1 from the Release Verification Plan and the Integrated Verification table.
-2. Mark each overlap and propose the check that stays.
-
-##### Test Plan
-
-| Label | Layer | Method | Environment | Expected Result |
-| --- | --- | --- | --- | --- |
-| T1 | Review | Derive for each check of the drafted plan the claim it proves and the inputs it reads, then compare every pair | The register of the next release | No two checks prove the same claim from the same inputs |
-
-##### Verification Results
-
-| Label | Observed At | Environment | Result | Evidence |
-| --- | --- | --- | --- | --- |
-| T1 | Pending | The register of the next release | Pending | none |
-
-##### Closure Evidence
-
-- none
-
-##### GitHub Projection
-
-Title: Reduce the repeated checks of the release verification plan
-Labels: enhancement
-GitHub Milestone: none
-Observed State: none; no issue exists yet
-Last Compared: none
 
 #### M7 - Measure per-component heap needs by archiving load
 
