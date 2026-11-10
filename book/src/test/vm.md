@@ -1,33 +1,73 @@
 # VM verification operations
 
-The virtual machine (VM) operations prove the installation and the runtime behavior on fresh guests. The VM driver `tests/vm/driver.py` coordinates the provisioning tools that the configuration names and keeps independent evidence for each case. This page lists the inputs, the operations and the cases.
+The virtual machine (VM) test runs the shipped installer and verifies the installed appliance on a fresh guest. `tests/vm/install.pl` follows one changing process variable (PV) through acquisition, storage, retrieval, service restart, and unchanged installer re-application.
 
-## Inputs of a run
+The shipped verifier starts a soft input/output controller (IOC) and compares stored samples with independent Channel Access (CA) observations. Installer success and responding management endpoints alone do not establish successful data storage.
 
-| Input | Where it is set |
+## Guest prerequisites and ownership
+
+cloud-provision supplies the guest and owns its lifecycle. The runner executes inside the guest as the ordinary checkout owner with non-interactive sudo. It does not create VMs, invoke Ansible, or reproduce the installer's Make sequence.
+
+Each case requires a prepared checkout, the Perl prerequisites, and real Experimental Physics and Industrial Control System (EPICS) Base executables, including `softIoc` and `caget`. The guest must have neither an appliance installation nor a source `target/` directory. The installer prepares its packages and selected database; supplied web application archive (WAR) files do not replace its source build.
+
+The [guest-test instructions](https://github.com/jeonghanlee/epicsarchiverap-env/blob/maven/tests/README.md#execution-inputs) define package prerequisites, private site settings, and the complete execution command. Each guest and its execution need separate authorization.
+
+## Case inputs and entry points
+
+The input shape is `tests/vm/install.example.json`. Replace its example paths and revisions with actual guest values. The configuration uses JavaScript Object Notation (JSON); it contains expected values, not commands or provisioning instructions.
+
+| Input | Required value |
 | :--- | :--- |
-| The cloud provisioning tool and the Ansible provisioning tool, at the references that the configuration pins | `cloud` and `ansible` in the configuration file |
-| The candidate references of this repository and of the source repository | `candidate.env_ref` and `candidate.source_ref` |
-| Disk images for the operating systems, with their SHA-256 values | `images` |
-| The test PV database file `src/resources/test/UnitTestPVs.db` of the source repository, with its repository, its reference and its SHA-256 value | `fixture` |
-| The paths, the account and the EPICS binary directories of each operating system inside the guest | `guest` (`source_parent`, `install_parent`, `store_top`, `user`, `group`, `epics_bin`) |
-| The account and the private key that log in to the guest | `ssh` (`user`, `key`) |
+| `--config` | A private JSON file naming the repository, full environment and appliance revisions, source directory, operating system, backend, EPICS binaries, installation paths, service identities, database, endpoints, storage paths, and expected configuration |
+| `--work` | A new absolute evidence directory; an existing directory is refused |
+| `environment_patch` | Optional absolute file containing the exact tracked candidate diff; staged changes are refused, and additional candidate files require separate retention |
+| MariaDB settings | A database name and application account, with the selected socket or TCP endpoint; credentials belong in private installer site settings |
 
-A run uses a copy of `tests/vm/config.example.json` with real values. The example uses placeholders such as `/replace/images`.
+`tests/run-all-tests.bash` selects the guest runner through `--case`. The compatibility entry points `tests/phase3-docker.bash` and `tests/phase4-vm.bash` forward the same configuration and work options to the complete Perl sequence. Each invocation covers one case.
 
-## Operations of the VM driver
+From the repository root, inspect the runner's options without contacting a guest:
 
-| Operation | Command form | What the VM driver does |
+```bash
+bash tests/run-all-tests.bash --case --help
+```
+
+The selected matrix has six cases:
+
+| Operating system input | Backend input | Shipped installer |
 | :--- | :--- | :--- |
-| Initialize a run | `bash tests/run-all-tests.bash --init --config <config_file> --evidence <new_directory>` | Validates the configuration, refuses an evidence directory that exists, writes `run.json` with the configuration and the checksums of `driver.py` and `guest.py`, and prints `PASS: run initialized; no guest was contacted` |
-| Run one case | `bash tests/run-all-tests.bash --case <case> --handoff <handoff_file> <run>` | Adopts the guest named in the handoff file, runs the runtime checks and the lifecycle checks for the case, and prints `PASS: case <case> recorded; only --verdict establishes acceptance` |
-| Verify cleanup | `bash tests/run-all-tests.bash --verify-cleanup <run>` | Checks the owned resources and prints `PASS: owned resources are absent and the baseline is preserved` |
-| Verdict | `bash tests/run-all-tests.bash --verdict <run>` | Prints `PASS`, `FAIL` or `INCOMPLETE` with exit status `0`, `1` or another value |
+| `debian13` or `rocky8` | `sqlite` | `scripts/install-local-sqlite.bash` |
+| `debian13` or `rocky8` | `mariadb-uds` | `scripts/install-local-mariadb-uds.bash` |
+| `debian13` or `rocky8` | `mariadb-tcp` | `scripts/install-local-mariadb-tcp.bash` |
 
-Only the verdict establishes acceptance of a run. A case that ends with `PASS` is recorded, not accepted. The VM driver holds a lock on the run directory, so another operation on the same run is refused.
+`debian13` requires Debian 13; `rocky8` requires Rocky Linux 8.10. The socket and Transmission Control Protocol (TCP) inputs select different MariaDB connection paths. The selected guests have two virtual processors, 4 GiB of memory, and a 30 GiB disk.
 
-## Cases and exit statuses
+## Installation and data observations
 
-The cases are `debian13-socket`, `debian13-tcp`, `debian13-sqlite`, `rocky8-socket`, `rocky8-tcp`, `rocky8-sqlite`, `debian13-build-failure` and `rocky8-build-failure`. A mode without VM inputs, such as `--phase=3` or `all`, prints that VM verification runs as explicit operations and exits with `77`; no system action runs.
+| Stage | Required observation |
+| :--- | :--- |
+| T1 | The selected installer completes with package/database preparation and source build enabled |
+| T2 | Installed versions, settings, units, database, storage, four Java virtual machines (JVMs), startup responses, and service-account health match the inputs |
+| T3 | Changing CA values match persisted samples; the same PV has a database registration and a fixed historical query containing its initial samples |
+| T4 | A service restart replaces the four JVM lifetimes; the same registration and historical rows remain, and new samples match observations from the same IOC/PV |
+| T5 | Identical installer re-application performs no build or JVM replacement; configuration, registration, history, and continuing acquisition remain valid |
 
-Any exit status other than `0` and `1` of the verdict operation prints `INCOMPLETE`, and the plain modes exit with `77` without a verdict. The command forms come from `tests/run-all-tests.bash` and the help of `tests/vm/driver.py` (`python3 tests/vm/driver.py --help`).
+The independent verifier supplies the initial CA-to-CSV comparison, where CSV means comma-separated values. Later comparisons retain timestamps, values, status, severity, and row occurrence counts. A fresh PV cannot substitute for the same-PV continuation checks.
+
+## Evidence, cleanup, and verdicts
+
+The work directory retains inputs, command arguments and outputs, native statuses, durations, installed-state snapshots, CA observations, retrieval responses, CSV files, IOC identity, and `result.json`. Keep exact guest identifiers and private configuration out of public summaries.
+
+Normal completion pauses the test PV and stops its identified IOC. Failure and interruption attempt the same cleanup and retain available evidence. Registrations and stored samples remain; cleanup errors remain visible and prevent a successful verdict.
+
+| Native status | Meaning |
+| :--- | :--- |
+| `0` | All required outcomes of this case and final cleanup passed |
+| `1` | An installation, runtime, data, or comparison assertion failed |
+| `2` | Inputs, prerequisites, evidence, interruption, or cleanup left the execution incomplete |
+| `77` | A no-input system mode or compatibility entry point reports Incomplete without running an installation |
+
+`result.json` retains `Passed`, `Failed`, or `Incomplete` and the last stage when its path remains writable. A confirmed assertion failure remains Failed when cleanup also fails. Help and input-refusal checks establish command behavior, not installation acceptance.
+
+After copying and verifying the evidence, the operator checks final PV/IOC state and asks cloud-provision to retain and shut down the guest. The runner does not shut down the guest or erase its evidence.
+
+Separate procedures cover controlled database/storage faults and interruption boundaries. A normal case does not establish host reboot recovery, source/schema upgrade, sustained load, or transfer through all storage tiers. The [recorded installation results](https://github.com/jeonghanlee/epicsarchiverap-env/blob/8d0494e3c47d553f29aa7b6bb62bb86533252677/docs/milestone-9576820.md#m16---build-the-vm-installation-test-on-the-local-installer-scripts) state the executed versions and limits.

@@ -10,6 +10,7 @@ The terms below are the names that the repository and the source use. Each defin
 | archive root | The folder `ARCHAPPL_STORAGE_TOP`, default `/arch`, below which the three store folders lie by default |
 | arrive | A file arrives in a store when its first sample, or its first part, is written to that store |
 | BPL | The set of management actions that a component serves under `<component>/bpl`; `mgmt` registers them in its `BPLServlet` |
+| CA | Channel Access; the EPICS protocol used to observe the changing test PV independently of stored samples |
 | cadence | The length of the source partition of a transition, at most 8 hours; the pass start times are multiples of it |
 | caget | The EPICS command that reads the value of a PV once; the soft IOC test of the installers needs it |
 | candidate | A file that a pass considers: its partition starts before the partition that contains the processing time |
@@ -17,6 +18,7 @@ The terms below are the names that the repository and the source use. Each defin
 | completed | An STS file whose partition is over, or an MTS file that is full |
 | component | One of the four web applications of the appliance: `mgmt`, `engine`, `etl`, `retrieval` |
 | consolidate | Move the data of a store into the next store when the application stops (`consolidateOnShutdown`) or on request |
+| CSV | Comma-separated values; the retrieval format whose sample rows the VM test compares |
 | driver | The unit of the ETL scheduler for one pair of transition and cadence; its passes run the jobs of all PVs of that pair |
 | drop-in | A systemd file in a `<unit>.service.d/` folder that adds settings to a unit; the installer writes `override.conf` for `tomcat9.service` |
 | eligible | A candidate that the pass moves: its first sample is at or before the gather boundary and the oldest candidate that holds a sample has passed the hold boundary |
@@ -36,6 +38,7 @@ The terms below are the names that the repository and the source use. Each defin
 | instance | One of the four Tomcat instances of the appliance, the same as a component: `mgmt`, `engine`, `etl` or `retrieval`; each has its own folder under `AA_INSTALL_LOCATION` |
 | IOC | Input/output controller: a process that serves process variables to the control system; a soft IOC does so without hardware |
 | JDK | Java Development Kit; the repository requires version 21, named by `JAVA_HOME` |
+| JSON | JavaScript Object Notation; the format of the VM case inputs and result records |
 | JVM | Java virtual machine; each of the four instances runs in its own |
 | LTS | The long term store, the last store of the chain |
 | mgmt | The component that accepts management requests, runs the archive request workflow and serves the management pages |
@@ -70,5 +73,5 @@ The terms below are the names that the repository and the source use. Each defin
 | transition | The move from one store to the next: STS to MTS, and MTS to LTS |
 | URL | Uniform resource locator; the `pb://` form of a store is such a locator |
 | VM | Virtual machine; the fresh guest on which the VM verification operations run |
-| VM driver | The script `tests/vm/driver.py`; it runs the operations of a VM test run: initialize, case, cleanup verification and verdict |
+| VM test runner | The script `tests/vm/install.pl`; it runs one guest-side installation and data-verification case through the shipped installer, PV verifier, and evidence comparisons |
 | WAR | The web application archive that the source build produces for each component |

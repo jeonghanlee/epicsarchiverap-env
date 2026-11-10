@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: Commit the M6 completion record. All fifteen assigned items are Complete; M6's common verification checklist landed at ac331a1. Its historical diagnostic-method gap remains explicit and requires a separate scope decision; no collector restoration or waiver is assigned. M5 and M7 remain Deferred; M5 retains its measurement-plan draft because expected pp use is unknown. No numbered release, VM execution or production change is assigned. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: No assigned implementation remains. All fifteen assigned items are Complete; M6's checklist landed at ac331a1 and its completion record at 8d0494e. The linked heap issue matches M7's accepted technical scope after reconciliation observed on 2026-11-10 UTC. M5 and M7 remain Deferred and require dated resumption decisions; issue reconciliation does not authorize measurement. M6's historical diagnostic-method gap requires a separate scope decision; no collector restoration or waiver is assigned. No numbered release, VM execution or production change is assigned. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
@@ -2433,7 +2433,7 @@ GitHub Milestone: none
 Observed State: OPEN
 Observed Labels: enhancement
 Observed Milestone: none
-Last Compared: 2026-10-29 22:52 PDT via `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-10-05T17:33:17Z. The issue body still gives an illustrative 100/500/1000/2000 PV matrix; the accepted canonical plan uses 100/500/903 PVs. The remote body requires reconciliation before measurement execution.
+Last Compared: 2026-11-10T03:23:41Z via `gh issue view 53 --repo jeonghanlee/epicsarchiverap-env`; OPEN, enhancement, no milestone, assignee jeonghanlee, updatedAt 2026-11-10T03:23:22Z. The remotely read body exactly matches the prepared projection (SHA256 `525a5eac67c6682c532995f941af285dc134ebe6e9b399505978d7c52ad12bed`): the 100/500/903 PV schedule, resource limits, complete validation repeat and analysis conditions. This observation does not change Deferred or authorize a run.
 
 ## History
 

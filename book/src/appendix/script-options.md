@@ -107,10 +107,10 @@ bash tests/run-all-tests.bash --help
 The command prints:
 
 ```text
-Usage: run-all-tests.bash [--local|--phase=1|--phase=2] or a VM operation
-VM operations: --init --config FILE --evidence NEW_DIRECTORY
-               --case CASE --handoff FILE RUN
-               --verify-cleanup RUN | --verdict RUN
+Usage: run-all-tests.bash [--local|--phase=1|--phase=2]
+Guest installation: --case --config FILE --work NEW_DIRECTORY
+Run --case --help for prerequisites, checks and native exit statuses.
+VM creation and lifecycle belong to cloud-provision.
 ```
 
 ## The appliance control script
