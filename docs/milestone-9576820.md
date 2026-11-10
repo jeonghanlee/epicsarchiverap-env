@@ -7,7 +7,7 @@ Canonical branch or ref: maven
 Git upstream: origin/maven
 Remote tracker: jeonghanlee/epicsarchiverap-env; no open release milestone (observed 2026-10-29 via `gh api repos/jeonghanlee/epicsarchiverap-env/milestones`)
 
-Next session entry point: M6's common verification checklist and document checks are ready for separate commit/push authority. Record repository landing before marking M6 Complete. Its historical diagnostic-method gap is explicit and does not authorize restoring or waiving that claim. M5 and M7 remain Deferred; M5 retains its measurement-plan draft because expected pp use is unknown. No numbered release, VM execution or production change is assigned. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
+Next session entry point: Commit the M6 completion record. All fifteen assigned items are Complete; M6's common verification checklist landed at ac331a1. Its historical diagnostic-method gap remains explicit and requires a separate scope decision; no collector restoration or waiver is assigned. M5 and M7 remain Deferred; M5 retains its measurement-plan draft because expected pp use is unknown. No numbered release, VM execution or production change is assigned. Production upgrades follow [Upgrade an appliance during a maintenance window](../book/src/install/upgrade-maintenance.md).
 
 ## Scope
 
@@ -35,9 +35,9 @@ The recorded M16 execution follows D44 for minimal Perl automation and its first
 | Tests | M10 | Close the gaps that the Python tests left in the Perl tests | Carry-forward | Complete | No | M3, D24, D37, D38 | T1-T2 passed: 156 mutations killed and five equivalent for the recorded entry paths; all 113 former kills retained; landed at 37ba14f; [detail](#m10---close-the-gaps-that-the-python-tests-left-in-the-perl-tests) |
 | Tests | M12 | Share the helper code of the Perl tests | Carry-forward | Complete | No | M3, M10, M14, D24, D27, D39, D40 | T1-T4 extraction evidence and the R1 import-correction checks are retained with their recorded limits; landed at cb7a041; [detail](#m12---share-the-helper-code-of-the-perl-tests) |
 | Tests | M16 | Build the VM installation test on the local installer scripts | Milestone | Complete | No | D16, D32, D41, D42, D43, D44, D45, D46, D47, D48, D49, D50, D51 | Earlier results remain valid for their recorded versions, landed through 03cd731. The original T7 handoff Failed result is retained. Under D47, corrected handoff and standalone verifier TERM Passed; foreground Ctrl+C Failed on an already-paused response. D48 Ctrl+C regression, owned-IOC TERM and pause-error case Passed; D48 completion-error attempt remains Incomplete; D49 completion/result errors Passed. All seven T7 cases have Passed observations within their recorded version limits; both D49 guests shut off with evidence retained. All six T1-T5 cases have Passed observations within their recorded versions; the five D50 cases and database fault control Passed. D51 accepts the actual storage append/flush detection and restoration as Passed; the original stored-sample-only Incomplete observation is preserved. The three Python VM files are removed and both documents describe the replacement; final validation and review passed; completed 2026-11-09, landed at 5feb60d; [detail](#m16---build-the-vm-installation-test-on-the-local-installer-scripts) |
-| Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | In progress | No | D9, D12, D54 | T1-T3 document/source checks and reader review passed; common checklist delivered, historical diagnostic-method gap explicit; repository landing pending; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
+| Tests | M6 | Reduce the repeated checks of the release verification plan | Carry-forward | Complete | No | D9, D12, D54 | T1-T3 document/source checks and reader review passed; checklist landed at ac331a1, completed 2026-11-09; historical diagnostic-method gap remains explicit; [detail](#m6---reduce-the-repeated-checks-of-the-release-verification-plan) |
 
-Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 14 Complete, 1 In progress. No row is Ready.
+Ready indicates work-order eligibility; it does not accept a draft plan or authorize implementation. Assigned work: 15 Complete, 0 In progress. No row is Ready.
 
 ### Decisions
 
@@ -2064,7 +2064,7 @@ Last Compared: none
 Origin: 9576820 / M7
 Identity History: M7 -> M6 on 2026-10-29; renumbered to match the selected work order
 GitHub Issue: none
-Status: In progress
+Status: Complete
 
 ##### Summary
 
@@ -2172,7 +2172,8 @@ Repeat a check when any relevant input or expected result changes, when failure 
 ##### Closure Evidence
 
 - Documentation deliverable and T1-T3 passed on 2026-11-09. The available review records contain four direct passes: the initial third-person plan pass with two findings, then the first-person, third-person and second-person delivery passes. D54 changes the target after the initial pass; the corrected delivery has no remaining finding above the floor. No delegated pass was run.
-- Repository landing is pending, so M6 remains In progress. No local suite, build, database integration or VM acceptance run was executed for M6. The diagnostic-method gap is retained for a future scope decision, not silently waived or implemented.
+- Repository landing observed at `2026-11-10T00:34:46Z` after a successful fetch of origin: HEAD and upstream `origin/maven` both resolve to `ac331a1b14540cb35c006ef7cf98c9bd11b490f1`, and the committed canonical document has no diff against that upstream. The checkout was clean before this completion-record edit. Recheck with an origin fetch, ref comparison and the canonical-path diff.
+- Complete on 2026-11-09 (Pacific time): the documentation deliverable, T1-T3, reader review and repository landing meet D54's scope. No local suite, build, database integration or VM acceptance run was executed for M6. The diagnostic-method gap is retained for a future scope decision, not silently waived or implemented.
 
 ##### GitHub Projection
 
