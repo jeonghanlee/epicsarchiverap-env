@@ -5,6 +5,11 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 The source repository's POM defines build artifact names; this changelog records
 changes to the environment repository.
 
+## [Unreleased]
+
+### Changed
+- `ARCHAPPL_SAMPLE_BUFFER_MARGIN_SECONDS` defaults to 10.0 (it was 1.0). The engine sizes the sample buffer of a PV as round(write period / sampling period) plus ceil(margin / sampling period) cells, so a larger margin gives every PV more cells. An appliance that is already installed keeps its value in `archappl.properties` until `make conf.archapplproperties` renders the file again and the appliance is reinstalled.
+
 ## [2.0.1] - 2026-10-28
 
 Upgrading from 2.0.0: the order of the steps (move the source, build, render the units, stop, install, start, check) is in "Reinstall and upgrade" in `docs/README.install.md#reinstall-and-upgrade`. The installer scripts of "Local systemd installation" in the same file, `scripts/install-local-sqlite.bash`, `install-local-mariadb-uds.bash` and `install-local-mariadb-tcp.bash`, do the same steps for your database backend. For a site that already has its database and accounts, add `--existing-db` to a MariaDB script: without it the script creates a missing `DB_ADMIN` account with `GRANT ALL ON *.* ... WITH GRANT OPTION` and gives an existing account of the same user and host the configured password, which defaults to the public values `admin` and `archappl` unless `../CONFIG_SITE.local` sets `DB_ADMIN_PASS` and `DB_USER_PASS`; with the flag the application account must exist and accept `DB_USER_PASS` over the transport, or the schema step fails after the appliance was stopped. For an unattended run (`--yes`) configure `sudo` without a password prompt. The scripts always use `ARCHAPPL_SITEID=als` and do not remember `--socket`; the guide gives the details. What changes for a 2.0.0 site:
