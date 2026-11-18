@@ -1,0 +1,10 @@
+# Two PVs for the Channel Access observer test: a counter that grows by one every 0.1 s and a constant.
+record(calc, "$(P)tick") {
+    field(INPA, "$(P)tick NPP")
+    field(CALC, "A+1")
+    field(SCAN, ".1 second")
+}
+record(ao, "$(P)fixed") {
+    field(VAL, "42")
+    field(PINI, "YES")
+}
