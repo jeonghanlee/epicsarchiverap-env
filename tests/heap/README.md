@@ -65,7 +65,7 @@ perl tests/heap-inspect-inputs.pl
 
 ## Measurement Tools
 
-Four more tools in this directory support the measurement. Each prints
+Five more tools in this directory support the measurement. Each prints
 its synopsis and options with `--help`, and its POD ends with an EXIT STATUS
 section (`pod2text tests/heap/<tool>.pl` shows it); all need Perl 5.26 or newer and core modules
 only.
@@ -76,15 +76,18 @@ only.
 | `sample-resources.pl` | Appends host memory, process and filesystem figures to one CSV file at a fixed interval until a count, a duration or a signal ends it | 0, 1, 2, 77 |
 | `observe-ca.pl` | Runs `camonitor` for a PV list, keeps its output unmodified and writes a run record (command line, working directory, UTC and monotonic start and end, exit status or signal, file sizes) | 0, 1, 2, 77 |
 | `query-archive.pl` | One client of the retrieval load: reads random PVs through the retrieval service, stores each full response with its SHA256 and writes one CSV row per request | 0, 1, 2, 77 |
+| `copy-block.pl` | Copies the evidence files of one block into a cumulative tree, appends only the new bytes after proving that the earlier bytes are unchanged, and writes a manifest with each file's length, SHA256 and last newline | 0, 1, 2, 3, 77 |
 
 Exit status 2 is invalid usage, 77 a missing or unusable input, and 1 a failure
-to write the collected data.
+to write the collected data. `copy-block.pl` also returns 3 when its manifest is
+written but a file failed the check of earlier content.
 
 ```bash
 perl tests/heap/analyze-gc.pl --help
 perl tests/heap/sample-resources.pl --help
 perl tests/heap/observe-ca.pl --help
 perl tests/heap/query-archive.pl --help
+perl tests/heap/copy-block.pl --help
 ```
 
 ### Tool Tests
@@ -99,6 +102,7 @@ df, date, caget), and the processes and logs are real.
 | `tests/heap-sample-resources.pl` | A real process, a real zombie, real signals | `perl tests/heap-sample-resources.pl` |
 | `tests/heap-observe-ca.pl` | A real soft IOC (`fixtures/observe.db`) and the real `camonitor` | `AA_TEST_EPICS_BIN=<bin/host_arch folder of a real EPICS Base> perl tests/heap-observe-ca.pl` |
 | `tests/heap-query-archive.pl` | `python3 -m http.server` serving real files; only the HTTP server stands in for the retrieval service | `perl tests/heap-query-archive.pl` |
+| `tests/heap-copy-block.pl` | Real files, a real process that appends to a log while it is copied, and real changes to the source and destination files | `perl tests/heap-copy-block.pl` |
 
 Without `AA_TEST_EPICS_BIN` the observer test runs its usage and missing-input
 cases and reports that the soft IOC cases were skipped.
