@@ -1,0 +1,40 @@
+== mgmt.war: bundle entries=926 built entries=929; bundle size=107748801 built size=107769942
+  configuration files: 3
+   only in built: WEB-INF/classes/appliances.xml  bundle=None built=[(2753987995, 639)]
+   CRC or size differs: WEB-INF/classes/archappl.properties  bundle=[(1226538745, 13918)] built=[(3298069706, 8211)]
+   CRC or size differs: WEB-INF/classes/policies.py  bundle=[(202898785, 6597)] built=[(2342994747, 9617)]
+  UI files and logos: 9
+   CRC or size differs: ui/archive.html  bundle=[(2886401751, 6335)] built=[(3188701193, 6402)]
+   only in built: ui/comm/img/LBNLLogo.png  bundle=None built=[(1744903365, 24325)]
+   only in built: ui/comm/img/als.ico  bundle=None built=[(839246339, 1150)]
+   CRC or size differs: ui/external.html  bundle=[(143006999, 4125)] built=[(3726189601, 4192)]
+   CRC or size differs: ui/help.html  bundle=[(2158127188, 19942)] built=[(4076062431, 20009)]
+   CRC or size differs: ui/index.html  bundle=[(3510318435, 12848)] built=[(2498230495, 12915)]
+   CRC or size differs: ui/operations.html  bundle=[(4036234816, 7616)] built=[(1119540590, 7683)]
+   CRC or size differs: ui/retrieval.html  bundle=[(2532899073, 4899)] built=[(3755232860, 4966)]
+   CRC or size differs: ui/system.html  bundle=[(120625011, 3439)] built=[(110059624, 3506)]
+  everything else: 0
+== engine.war: bundle entries=825 built entries=826; bundle size=107376731 built size=107375273
+  configuration files: 3
+   only in built: WEB-INF/classes/appliances.xml  bundle=None built=[(2753987995, 639)]
+   CRC or size differs: WEB-INF/classes/archappl.properties  bundle=[(1226538745, 13918)] built=[(3298069706, 8211)]
+   CRC or size differs: WEB-INF/classes/policies.py  bundle=[(202898785, 6597)] built=[(2342994747, 9617)]
+  UI files and logos: 0
+  everything else: 0
+== etl.war: bundle entries=825 built entries=826; bundle size=107376765 built size=107375307
+  configuration files: 3
+   only in built: WEB-INF/classes/appliances.xml  bundle=None built=[(2753987995, 639)]
+   CRC or size differs: WEB-INF/classes/archappl.properties  bundle=[(1226538745, 13918)] built=[(3298069706, 8211)]
+   CRC or size differs: WEB-INF/classes/policies.py  bundle=[(202898785, 6597)] built=[(2342994747, 9617)]
+  UI files and logos: 0
+  everything else: 0
+== retrieval.war: bundle entries=894 built entries=897; bundle size=107746980 built size=107767864
+  configuration files: 3
+   only in built: WEB-INF/classes/appliances.xml  bundle=None built=[(2753987995, 639)]
+   CRC or size differs: WEB-INF/classes/archappl.properties  bundle=[(1226538745, 13918)] built=[(3298069706, 8211)]
+   CRC or size differs: WEB-INF/classes/policies.py  bundle=[(202898785, 6597)] built=[(2342994747, 9617)]
+  UI files and logos: 3
+   only in built: ui/comm/img/LBNLLogo.png  bundle=None built=[(1744903365, 24325)]
+   only in built: ui/comm/img/als.ico  bundle=None built=[(839246339, 1150)]
+   CRC or size differs: ui/viewer/archViewer.html  bundle=[(980863526, 9675)] built=[(3292172654, 9745)]
+  everything else: 0

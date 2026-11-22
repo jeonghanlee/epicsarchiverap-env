@@ -1,0 +1,19 @@
+window: 2026-11-21T00:23:24Z .. 2026-11-21T23:43:24Z  cycles=141  cycles_with_error=0
+gaps over 900 s: 0; longest gap 600 s
+C1 appliance and IOC units active, four JVMs: evaluated=141 violations=0
+C2 all PVs Being archived: evaluated=141 violations=0
+C3 connected = expected, no new disconnect: evaluated=141 violations=0
+C5 dropped events 0: evaluated=141 violations=0
+C6 stale changing PVs 0: evaluated=141 violations=0
+C4 per cycle, six sample PVs at or above 99%: evaluated=141 violations=0
+  FAST:CH01: min=0.9998 mean=1.0002 max=1.0002
+  L1:CH001: min=1.0017 mean=1.0017 max=1.0017
+  L2:CH300: min=1.0017 mean=1.0017 max=1.0017
+  L2F:CH100: min=0.9997 mean=1.0002 max=1.0003
+  L2WF:CH01: min=1.0017 mean=1.0017 max=1.0017
+  SLOW:CH01: min=1.0167 mean=1.0167 max=1.0167
+appliance JVM RSS MB: start=1817 min=1817 peak=1913 mean=1888 end=1910
+IOC RSS MB: start=19 min=19 peak=19 mean=19 end=19
+event rate per second: start=1874 min=1874 peak=1874 mean=1874 end=1874
+disk: use start=10% end=24%; available GB start=52 end=43 drop=9
+reported data rate GB/day: last=8.3

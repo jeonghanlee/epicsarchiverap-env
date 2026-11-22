@@ -1,0 +1,48 @@
+observation start 2026-11-22T00:15:20Z
+versions: {"etl_version": "Archiver Appliance Version 105b1b10, built 2026-11-20", "mgmt_version": "Archiver Appliance Version 105b1b10, built 2026-11-20", "retrieval_version": "Archiver Appliance Version 105b1b10, built 2026-11-20", "engine_version": "Archiver Appliance Version 105b1b10, built 2026-11-20"}
+appliance: Archiver Appliance Version 105b1b10, built 2026-11-20
+retrieval RSS before: 435 MB at 2026-11-22T00:15:20Z
+--- (a) six sample PVs: window 2026-11-20T23:56:00Z .. 2026-11-21T23:55:00Z (86340 s)
+  2026-11-22T00:15:20Z AASOAK:L1:CH001 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=7.0 s=0.1 ok 
+  2026-11-22T00:15:20Z AASOAK:L2:CH300 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=7.0 s=0.1 ok 
+  2026-11-22T00:15:20Z AASOAK:FAST:CH01 status=200 complete=True events=863398 expected=863400 ratio=1.0000 MB=69.7 s=0.3 ok 
+  2026-11-22T00:15:21Z AASOAK:L2F:CH100 status=200 complete=True events=863398 expected=863400 ratio=1.0000 MB=69.7 s=0.3 ok 
+  2026-11-22T00:15:21Z AASOAK:SLOW:CH01 status=200 complete=True events=8635 expected=8634 ratio=1.0001 MB=0.7 s=0.0 ok 
+  2026-11-22T00:15:28Z AASOAK:L2WF:CH01 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=653.6 s=7.1 ok 
+--- (b) ten more PVs: window 2026-11-20T23:56:00Z .. 2026-11-21T23:55:00Z (86340 s)
+  2026-11-22T00:15:28Z AASOAK:L1:CH100 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=7.0 s=0.1 ok 
+  2026-11-22T00:15:28Z AASOAK:L1:CH400 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=7.0 s=0.0 ok 
+  2026-11-22T00:15:28Z AASOAK:L2:CH001 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=7.0 s=0.0 ok 
+  2026-11-22T00:15:28Z AASOAK:L2:CH150 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=7.0 s=0.0 ok 
+  2026-11-22T00:15:28Z AASOAK:L2F:CH001 status=200 complete=True events=863398 expected=863400 ratio=1.0000 MB=69.7 s=0.3 ok 
+  2026-11-22T00:15:28Z AASOAK:L2F:CH050 status=200 complete=True events=863398 expected=863400 ratio=1.0000 MB=69.7 s=0.3 ok 
+  2026-11-22T00:15:36Z AASOAK:L2WF:CH02 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=653.6 s=7.6 ok 
+  2026-11-22T00:15:44Z AASOAK:L2WF:CH03 status=200 complete=True events=86341 expected=86340 ratio=1.0000 MB=653.6 s=7.7 ok 
+  2026-11-22T00:15:44Z AASOAK:FAST:CH10 status=200 complete=True events=863398 expected=863400 ratio=1.0000 MB=69.7 s=0.3 ok 
+  2026-11-22T00:15:44Z AASOAK:SLOW:CH10 status=200 complete=True events=8635 expected=8634 ratio=1.0001 MB=0.7 s=0.0 ok 
+retrieval RSS after: 436 MB at 2026-11-22T00:15:44Z
+--- (c) store folders of the sample PVs (STS, MTS, LTS)
+  AASOAK:L1:CH001 STS: files=3 bytes=179206 CH001:2026_11_21_22.pb .. CH001:2026_11_22_00.pb
+  AASOAK:L1:CH001 MTS: files=2 bytes=1749636 CH001:2026_11_20.pb .. CH001:2026_11_21.pb
+  AASOAK:L1:CH001 LTS: not readable (FileNotFoundError)
+  AASOAK:L2:CH300 STS: files=3 bytes=179211 CH300:2026_11_21_22.pb .. CH300:2026_11_22_00.pb
+  AASOAK:L2:CH300 MTS: files=2 bytes=1749614 CH300:2026_11_20.pb .. CH300:2026_11_21.pb
+  AASOAK:L2:CH300 LTS: not readable (FileNotFoundError)
+  AASOAK:FAST:CH01 STS: files=3 bytes=1774090 CH01:2026_11_21_22.pb .. CH01:2026_11_22_00.pb
+  AASOAK:FAST:CH01 MTS: files=2 bytes=17331075 CH01:2026_11_20.pb .. CH01:2026_11_21.pb
+  AASOAK:FAST:CH01 LTS: not readable (FileNotFoundError)
+  AASOAK:L2F:CH100 STS: files=3 bytes=1773854 CH100:2026_11_21_22.pb .. CH100:2026_11_22_00.pb
+  AASOAK:L2F:CH100 MTS: files=2 bytes=17329056 CH100:2026_11_20.pb .. CH100:2026_11_21.pb
+  AASOAK:L2F:CH100 LTS: not readable (FileNotFoundError)
+  AASOAK:SLOW:CH01 STS: files=3 bytes=18099 CH01:2026_11_21_22.pb .. CH01:2026_11_22_00.pb
+  AASOAK:SLOW:CH01 MTS: files=2 bytes=175190 CH01:2026_11_20.pb .. CH01:2026_11_21.pb
+  AASOAK:SLOW:CH01 LTS: not readable (FileNotFoundError)
+  AASOAK:L2WF:CH01 STS: files=3 bytes=65314274 CH01:2026_11_21_22.pb .. CH01:2026_11_22_00.pb
+  AASOAK:L2WF:CH01 MTS: files=2 bytes=638232212 CH01:2026_11_20.pb .. CH01:2026_11_21.pb
+  AASOAK:L2WF:CH01 LTS: not readable (FileNotFoundError)
+  storage metrics: [{"available_space_percent": "72.59", "name": "STS", "total_space": "58.85", "time_copy_data_into_store": "NaN", "available_space": "42.72", "time_copy_data_into_store_percent": "NaN"}, {"available_space_percent": "72.59", "name": "MTS", "total_space": "58.85", "time_copy_data_into_store": "1.27", "available_space": "42.72", "time_copy_data_into_store_percent": "0"}, {"available_space_percent": "72.59", "name": "LTS", "total_space": "58.85", "time_copy_data_into_store": "0.17", "available_space": "42.72", "time_copy_data_into_store_percent": "0"}]
+--- (e) all 903 PVs, last closed hour 2026-11-21T23:00:00Z .. 2026-11-22T00:00:00Z observed from 2026-11-22T00:15:44Z
+  PVs below 99% (period rule): 0
+  deadband group (change-driven, no period rule): 10 PVs, events min=63 max=74
+observation end 2026-11-22T00:15:51Z
+exit=0
