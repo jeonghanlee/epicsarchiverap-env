@@ -1,0 +1,17 @@
+time_utc,uptime_s,event,detail
+2026-11-22T17:28:22.779Z,4570195.14,run_waiting,start time 2026-11-22T17:35:00Z
+2026-11-22T17:35:01.300Z,4570593.66,collectors_start,sampler 64M and CA observer 128M on the guest, 28800 s
+2026-11-22T17:35:11.500Z,4570603.86,collectors_running,active active 
+2026-11-22T21:35:00.494Z,4584992.85,deliberate_stop,sampler stopped by systemctl stop; main PID was 239039
+2026-11-22T21:45:06.341Z,4585598.70,deliberate_restart,sampler restarted for 13800 s; main PID is 313711; the output file is appended to
+2026-11-22T22:35:01.854Z,4588594.21,query_clients_start,four clients, 3600 s, MemoryMax 512M each
+2026-11-22T23:35:00.195Z,4592192.55,block1_pull_start,rsync of the guest files into the staging folder
+2026-11-22T23:35:38.304Z,4592230.66,block1_pull_end,staging complete
+2026-11-22T23:35:38.307Z,4592230.66,block1_copy_start,copy-block.pl block 1
+2026-11-22T23:37:38.188Z,4592350.55,block1_copy_end,exit status 0
+2026-11-23T01:37:00.952Z,4599513.31,collectors_state_at_end,inactive inactive 
+2026-11-23T01:37:00.954Z,4599513.31,block2_pull_start,rsync of the guest files into the staging folder
+2026-11-23T01:37:09.426Z,4599521.78,block2_pull_end,staging complete
+2026-11-23T01:37:09.428Z,4599521.79,block2_copy_start,copy-block.pl block 2
+2026-11-23T01:39:18.847Z,4599651.20,block2_copy_end,exit status 0
+2026-11-23T01:39:18.851Z,4599651.21,run_complete,blocks 1 and 2 copied

@@ -1,0 +1,9 @@
+requests 4732
+http {'200': 4732}
+errors 0 windows {'1h': 2986, '1d': 1746}
+ms min/median/p99/max 4 13.0 309 632
+bytes total GiB 7.56 max MiB 24.3
+  largest AASOAK:WF:CH04 1h 25495154 300 200
+  largest AASOAK:WF:CH05 1h 25495154 271 200
+  largest AASOAK:WF:CH03 1h 25495154 267 200
+first 2026-11-22T09:07:35.360Z last 2026-11-22T09:47:34.935Z

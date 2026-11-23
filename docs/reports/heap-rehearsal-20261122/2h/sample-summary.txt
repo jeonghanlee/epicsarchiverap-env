@@ -1,0 +1,12 @@
+sample rows 68264
+samples 1484
+sample gap min/max s 4.989 5.011
+alive values per process {'engine': ['1'], 'etl': ['1'], 'ioc': ['1'], 'mariadb': ['1'], 'mgmt': ['1'], 'retrieval': ['1']}
+start_ticks values per process {'engine': 1, 'etl': 1, 'ioc': 1, 'mariadb': 1, 'mgmt': 1, 'retrieval': 1}
+engine rss MiB first/min/max/last 384 384 438 438
+etl rss MiB first/min/max/last 391 391 404 404
+ioc rss MiB first/min/max/last 11 11 12 12
+mariadb rss MiB first/min/max/last 91 91 94 94
+mgmt rss MiB first/min/max/last 426 426 499 495
+retrieval rss MiB first/min/max/last 393 393 447 439
+host MemAvailable MiB min/max 1284 1479

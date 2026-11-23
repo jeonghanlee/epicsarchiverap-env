@@ -1,0 +1,731 @@
+{
+  "logs": {
+    "engine": {
+      "classes": {
+        "Cleanup": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Full": {
+          "after_mib": {
+            "count": 0
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 0,
+              "end_s": 58487,
+              "median_after_mib": null,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Mixed": {
+          "after_mib": {
+            "count": 0
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 0,
+              "end_s": 58487,
+              "median_after_mib": null,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Other": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Remark": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Young": {
+          "after_mib": {
+            "count": 36,
+            "max": 41,
+            "median": 40,
+            "min": 39
+          },
+          "bins": [
+            {
+              "count": 9,
+              "end_s": 57587,
+              "median_after_mib": 40,
+              "start_s": 56687
+            },
+            {
+              "count": 9,
+              "end_s": 58487,
+              "median_after_mib": 40,
+              "start_s": 57587
+            },
+            {
+              "count": 9,
+              "end_s": 59387,
+              "median_after_mib": 40,
+              "start_s": 58487
+            },
+            {
+              "count": 9,
+              "end_s": 60287,
+              "median_after_mib": 40,
+              "start_s": 59387
+            }
+          ],
+          "count": 36,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 36,
+            "max": 18.757,
+            "median": 1.8565,
+            "p99": 18.757,
+            "sum": 126.402
+          },
+          "trend": {
+            "growth": null,
+            "last_minus_first_median_mib": 0,
+            "slope_mib_per_hour": 0,
+            "status": "computed"
+          }
+        }
+      },
+      "events_total": 654,
+      "heap_precision_mib": 1,
+      "interval": {
+        "from_s": 56687,
+        "to_s": 60287
+      },
+      "lines": 10356,
+      "sha256": "1d60ebb54d1e28880d1105f980488f767c42b41b46df0aa46e15f02d79cc0ebe",
+      "uptime_last_s": 67603.442
+    },
+    "etl": {
+      "classes": {
+        "Cleanup": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Full": {
+          "after_mib": {
+            "count": 0
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 0,
+              "end_s": 58487,
+              "median_after_mib": null,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Mixed": {
+          "after_mib": {
+            "count": 0
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 0,
+              "end_s": 58487,
+              "median_after_mib": null,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Other": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Remark": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Young": {
+          "after_mib": {
+            "count": 4,
+            "max": 32,
+            "median": 32,
+            "min": 32
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 3,
+              "end_s": 58487,
+              "median_after_mib": 32,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 1,
+              "end_s": 60287,
+              "median_after_mib": 32,
+              "start_s": 59387
+            }
+          ],
+          "count": 4,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 4,
+            "max": 1.019,
+            "median": 1.017,
+            "p99": 1.019,
+            "sum": 3.904
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        }
+      },
+      "events_total": 93,
+      "heap_precision_mib": 1,
+      "interval": {
+        "from_s": 56687,
+        "to_s": 60287
+      },
+      "lines": 1933,
+      "sha256": "18874b4f6ee4283f54af5c32c7415545530e7f712850031ec0be01c3a4794684",
+      "uptime_last_s": 67117.445
+    },
+    "mgmt": {
+      "classes": {
+        "Cleanup": {
+          "after_mib": {
+            "count": 4,
+            "max": 65,
+            "median": 64.5,
+            "min": 64
+          },
+          "count": 4,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 4,
+            "max": 0.088,
+            "median": 0.079,
+            "p99": 0.088,
+            "sum": 0.309
+          }
+        },
+        "Full": {
+          "after_mib": {
+            "count": 0
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 0,
+              "end_s": 58487,
+              "median_after_mib": null,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Mixed": {
+          "after_mib": {
+            "count": 0
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 0,
+              "end_s": 58487,
+              "median_after_mib": null,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Other": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Remark": {
+          "after_mib": {
+            "count": 4,
+            "max": 65,
+            "median": 64,
+            "min": 64
+          },
+          "count": 4,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 4,
+            "max": 3.215,
+            "median": 2.742,
+            "p99": 3.215,
+            "sum": 11.043
+          }
+        },
+        "Young": {
+          "after_mib": {
+            "count": 8,
+            "max": 63,
+            "median": 63,
+            "min": 63
+          },
+          "bins": [
+            {
+              "count": 2,
+              "end_s": 57587,
+              "median_after_mib": 63,
+              "start_s": 56687
+            },
+            {
+              "count": 2,
+              "end_s": 58487,
+              "median_after_mib": 63,
+              "start_s": 57587
+            },
+            {
+              "count": 2,
+              "end_s": 59387,
+              "median_after_mib": 63,
+              "start_s": 58487
+            },
+            {
+              "count": 2,
+              "end_s": 60287,
+              "median_after_mib": 63,
+              "start_s": 59387
+            }
+          ],
+          "count": 8,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 8,
+            "max": 3.13,
+            "median": 1.724,
+            "p99": 3.13,
+            "sum": 15.013
+          },
+          "trend": {
+            "reason": "Bin 1 has 2 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        }
+      },
+      "events_total": 300,
+      "heap_precision_mib": 1,
+      "interval": {
+        "from_s": 56687,
+        "to_s": 60287
+      },
+      "lines": 4726,
+      "sha256": "5fe32fe7303f428b762e30e259bbddc0f2b70a81c40da5f50b439cdcd6d672cf",
+      "uptime_last_s": 67281.546
+    },
+    "retrieval": {
+      "classes": {
+        "Cleanup": {
+          "after_mib": {
+            "count": 330,
+            "max": 178,
+            "median": 69,
+            "min": 28
+          },
+          "count": 330,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 330,
+            "max": 2.491,
+            "median": 0.0465,
+            "p99": 1.916,
+            "sum": 33.669
+          }
+        },
+        "Full": {
+          "after_mib": {
+            "count": 0
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 0,
+              "end_s": 58487,
+              "median_after_mib": null,
+              "start_s": 57587
+            },
+            {
+              "count": 0,
+              "end_s": 59387,
+              "median_after_mib": null,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Mixed": {
+          "after_mib": {
+            "count": 22,
+            "max": 39,
+            "median": 29,
+            "min": 26
+          },
+          "bins": [
+            {
+              "count": 0,
+              "end_s": 57587,
+              "median_after_mib": null,
+              "start_s": 56687
+            },
+            {
+              "count": 21,
+              "end_s": 58487,
+              "median_after_mib": 29,
+              "start_s": 57587
+            },
+            {
+              "count": 1,
+              "end_s": 59387,
+              "median_after_mib": 29,
+              "start_s": 58487
+            },
+            {
+              "count": 0,
+              "end_s": 60287,
+              "median_after_mib": null,
+              "start_s": 59387
+            }
+          ],
+          "count": 22,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 22,
+            "max": 13.456,
+            "median": 1.9885,
+            "p99": 13.456,
+            "sum": 60.694
+          },
+          "trend": {
+            "reason": "Bin 1 has 0 events, the minimum is 5",
+            "status": "inconclusive"
+          }
+        },
+        "Other": {
+          "after_mib": {
+            "count": 0
+          },
+          "count": 0,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 0
+          }
+        },
+        "Remark": {
+          "after_mib": {
+            "count": 330,
+            "max": 165,
+            "median": 58,
+            "min": 28
+          },
+          "count": 330,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 330,
+            "max": 23.406,
+            "median": 2.945,
+            "p99": 14.558,
+            "sum": 1194.813
+          }
+        },
+        "Young": {
+          "after_mib": {
+            "count": 2241,
+            "max": 44,
+            "median": 29,
+            "min": 26
+          },
+          "bins": [
+            {
+              "count": 585,
+              "end_s": 57587,
+              "median_after_mib": 43,
+              "start_s": 56687
+            },
+            {
+              "count": 563,
+              "end_s": 58487,
+              "median_after_mib": 29,
+              "start_s": 57587
+            },
+            {
+              "count": 507,
+              "end_s": 59387,
+              "median_after_mib": 29,
+              "start_s": 58487
+            },
+            {
+              "count": 586,
+              "end_s": 60287,
+              "median_after_mib": 29,
+              "start_s": 59387
+            }
+          ],
+          "count": 2241,
+          "evacuation_failures": 0,
+          "pause_ms": {
+            "count": 2241,
+            "max": 22.065,
+            "median": 1.099,
+            "p99": 9.272,
+            "sum": 3762.556
+          },
+          "trend": {
+            "growth": null,
+            "last_minus_first_median_mib": -14,
+            "slope_mib_per_hour": -16.8,
+            "status": "computed"
+          }
+        }
+      },
+      "events_total": 4157,
+      "heap_precision_mib": 1,
+      "interval": {
+        "from_s": 56687,
+        "to_s": 60287
+      },
+      "lines": 61394,
+      "sha256": "e756001d3569099df84834c2d0a48a528d4ace3cfd165c2e709580bc840a2346",
+      "uptime_last_s": 66877.24
+    }
+  },
+  "schema": 1,
+  "settings": {
+    "bins": 4,
+    "min_events": 5,
+    "percentile": 99,
+    "tolerance_mib": null,
+    "tolerance_mib_per_hour": null
+  }
+}

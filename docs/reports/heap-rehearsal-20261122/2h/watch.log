@@ -1,0 +1,29 @@
+2026-11-22T07:49:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1352 disk=19% rows=2439 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T07:54:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1341 disk=19% rows=5199 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T07:59:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1343 disk=19% rows=7959 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:04:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1342 disk=19% rows=10719 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:09:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1339 disk=19% rows=13479 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:14:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1339 disk=19% rows=16285 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:19:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1337 disk=19% rows=19045 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:24:48Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1338 disk=20% rows=21805 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:29:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1338 disk=20% rows=24565 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:34:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1344 disk=20% rows=27325 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:39:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1344 disk=20% rows=30085 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:44:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1343 disk=20% rows=32845 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:49:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1345 disk=20% rows=35605 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:54:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1344 disk=20% rows=38365 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T08:59:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1344 disk=20% rows=41125 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T09:04:49Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1342 disk=20% rows=43885 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T09:04:49Z ALERT reh-camonitor_failcnt=2100 expected 0
+2026-11-22T09:06:08Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1344 disk=20% rows=44575 failcnt_sampler=0 failcnt_camonitor=2398 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=123101184 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T09:11:08Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1315 disk=20% rows=47381 failcnt_sampler=0 failcnt_camonitor=3189 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=112439296 q0=active q1=active q2=active q3=active
+2026-11-22T09:16:08Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1298 disk=20% rows=50141 failcnt_sampler=0 failcnt_camonitor=3296 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=123125760 q0=active q1=active q2=active q3=active
+2026-11-22T09:21:08Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1296 disk=20% rows=52901 failcnt_sampler=0 failcnt_camonitor=6026 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=123023360 q0=active q1=active q2=active q3=active
+2026-11-22T09:26:09Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1294 disk=21% rows=55661 failcnt_sampler=0 failcnt_camonitor=8759 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=123039744 q0=active q1=active q2=active q3=active
+2026-11-22T09:31:09Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1294 disk=21% rows=58421 failcnt_sampler=0 failcnt_camonitor=11484 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=123080704 q0=active q1=active q2=active q3=active
+2026-11-22T09:36:09Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1291 disk=21% rows=61181 failcnt_sampler=0 failcnt_camonitor=13293 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=122953728 q0=active q1=active q2=active q3=active
+2026-11-22T09:41:09Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1291 disk=21% rows=63941 failcnt_sampler=0 failcnt_camonitor=16029 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=122920960 q0=active q1=active q2=active q3=active
+2026-11-22T09:46:09Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1293 disk=21% rows=66701 failcnt_sampler=0 failcnt_camonitor=18754 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=122941440 q0=active q1=active q2=active q3=active
+2026-11-22T09:51:09Z check sampler=active camonitor=active app=active jvms_same=yes avail_mib=1298 disk=21% rows=69461 failcnt_sampler=0 failcnt_camonitor=20301 rss_sampler=8327168 rss_camonitor=10084352 cache_camonitor=113074176 q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T09:56:09Z check sampler=inactive camonitor=inactive app=active jvms_same=yes avail_mib=1313 disk=21% rows=71761 failcnt_sampler=? failcnt_camonitor=? rss_sampler=? rss_camonitor=? cache_camonitor=? q0=inactive q1=inactive q2=inactive q3=inactive
+2026-11-22T09:56:09Z ALERT reh-sampler_oom= expected 0 reh-camonitor_oom= expected 0

@@ -1,0 +1,15 @@
+time_utc,uptime_s,event,detail
+2026-11-22T07:45:42.534Z,4535234.89,sampler_and_ca_observer_running,started 2026-11-21T23:45 guest local; limits 64M and 128M
+2026-11-22T07:45:42.535Z,4535234.89,registration_request,100 PVs of pvs.csv, one archivePV request
+2026-11-22T07:45:42.588Z,4535234.95,registration_reply_received,see registered.csv
+2026-11-22T07:46:03.005Z,4535255.36,registration_not_sent,the two rows above describe an attempt that failed with No route to host (guest firewall); nothing reached the appliance
+2026-11-22T07:46:42.802Z,4535295.16,registration_request,100 PVs of pvs.csv in one archivePV request through the local port forward 18665
+2026-11-22T07:46:44.171Z,4535296.53,registration_reply_received,registered.csv
+2026-11-22T07:48:23.833Z,4535396.19,all_pvs_report_being_archived,poll_status.log
+2026-11-22T07:49:05.682Z,4535438.04,tunnel_and_query_timers_set,dedicated ssh port forward 18665 and 18668 under MemoryMax 64M; four query clients scheduled at 2026-11-22T09:06:42Z for 2400 s, MemoryMax 512M each
+2026-11-22T09:06:02.669Z,4540055.03,watchdog_alert_camonitor_failcnt,memory.failcnt of the CA observer cgroup 2100 at 09:04:49Z; usage 133.5 MiB of 128 MiB limit, rss 9.6 MiB, page cache 116.8 MiB, oom_kill 0; watch restarted logging failcnt and alerting on oom or anonymous memory at 90 percent
+2026-11-22T09:48:59.726Z,4542632.08,query_phase_ended,four clients ended; 4732 requests, all HTTP 200
+2026-11-22T09:48:59.729Z,4542632.09,block1_pull_start,rsync of the guest files into staging while sampler and CA observer still write
+2026-11-22T09:49:00.996Z,4542633.35,block1_pull_end,staging complete
+2026-11-22T09:49:01.012Z,4542633.37,block1_copy_start,copy-block.pl block 1
+2026-11-22T09:49:42.519Z,4542674.88,block1_copy_end,exit status above in the manifest
