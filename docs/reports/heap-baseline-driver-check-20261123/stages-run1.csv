@@ -1,0 +1,56 @@
+time_utc,uptime_s,event,detail
+2026-11-23T08:38:25.276Z,4624797.63,tunnel_up,port forward 28665 and 28668
+2026-11-23T08:38:25.509Z,4624797.87,collectors_start,"sampler 64M and CA observer 128M on the guest, 2910 s"
+2026-11-23T08:38:25.510Z,4624797.87,readiness_given,R 2026-11-23T08:39:24Z
+2026-11-23T08:38:25.510Z,4624797.87,plan_written,"R 2026-11-23T08:39:24Z, cutoff 2026-11-23T09:27:24Z"
+2026-11-23T08:45:24.581Z,4625216.94,warmup_end,"planned 2026-11-23T08:45:24Z, late by 0 s"
+2026-11-23T08:45:24.582Z,4625216.94,block_1,"planned 2026-11-23T08:45:24Z, late by 0 s"
+2026-11-23T08:45:24.582Z,4625216.94,block1_pull_start,rsync of the guest files into the staging folder
+2026-11-23T08:45:25.203Z,4625217.56,block1_pull_end,staging complete
+2026-11-23T08:45:25.204Z,4625217.56,block1_copy_start,copy-block.pl block 1
+2026-11-23T08:45:25.369Z,4625217.73,block1_copy_end,exit status 0
+2026-11-23T08:51:24.435Z,4625576.79,block_2,"planned 2026-11-23T08:51:24Z, late by 0 s"
+2026-11-23T08:51:24.436Z,4625576.79,block2_pull_start,rsync of the guest files into the staging folder
+2026-11-23T08:51:25.422Z,4625577.78,block2_pull_end,staging complete
+2026-11-23T08:51:25.422Z,4625577.78,block2_copy_start,copy-block.pl block 2
+2026-11-23T08:51:25.649Z,4625578.01,block2_copy_end,exit status 0
+2026-11-23T08:57:24.710Z,4625937.07,block_3,"planned 2026-11-23T08:57:24Z, late by 0 s"
+2026-11-23T08:57:24.710Z,4625937.07,block3_pull_start,rsync of the guest files into the staging folder
+2026-11-23T08:57:26.569Z,4625938.93,block3_pull_end,staging complete
+2026-11-23T08:57:26.569Z,4625938.93,block3_copy_start,copy-block.pl block 3
+2026-11-23T08:57:26.843Z,4625939.20,block3_copy_end,exit status 0
+2026-11-23T09:03:24.906Z,4626297.26,block_4,"planned 2026-11-23T09:03:24Z, late by 0 s"
+2026-11-23T09:03:24.907Z,4626297.26,block4_pull_start,rsync of the guest files into the staging folder
+2026-11-23T09:03:26.591Z,4626298.95,block4_pull_end,staging complete
+2026-11-23T09:03:26.591Z,4626298.95,block4_copy_start,copy-block.pl block 4
+2026-11-23T09:03:26.934Z,4626299.29,block4_copy_end,exit status 0
+2026-11-23T09:09:24.995Z,4626657.35,block_5,"planned 2026-11-23T09:09:24Z, late by 0 s"
+2026-11-23T09:09:24.995Z,4626657.35,block5_pull_start,rsync of the guest files into the staging folder
+2026-11-23T09:09:26.979Z,4626659.34,block5_pull_end,staging complete
+2026-11-23T09:09:26.979Z,4626659.34,block5_copy_start,copy-block.pl block 5
+2026-11-23T09:09:27.383Z,4626659.74,block5_copy_end,exit status 0
+2026-11-23T09:15:24.445Z,4627016.80,block_6,"planned 2026-11-23T09:15:24Z, late by 0 s"
+2026-11-23T09:15:24.446Z,4627016.80,block6_pull_start,rsync of the guest files into the staging folder
+2026-11-23T09:15:26.518Z,4627018.88,block6_pull_end,staging complete
+2026-11-23T09:15:26.518Z,4627018.88,block6_copy_start,copy-block.pl block 6
+2026-11-23T09:15:26.958Z,4627019.32,block6_copy_end,exit status 0
+2026-11-23T09:21:24.020Z,4627376.38,block_7,"planned 2026-11-23T09:21:24Z, late by 0 s"
+2026-11-23T09:21:24.021Z,4627376.38,block7_pull_start,rsync of the guest files into the staging folder
+2026-11-23T09:21:28.828Z,4627381.18,block7_pull_end,staging complete
+2026-11-23T09:21:28.828Z,4627381.19,block7_copy_start,copy-block.pl block 7
+2026-11-23T09:21:29.341Z,4627381.70,block7_copy_end,exit status 0
+2026-11-23T09:21:29.414Z,4627381.77,query_clients_start,"4 clients, 360 s, MemoryMax 512M each; planned 2026-11-23T09:21:24Z, late by 5 s"
+2026-11-23T09:26:55.471Z,4627707.83,collectors_end,"planned 2026-11-23T09:26:55Z, late by 0 s"
+2026-11-23T09:27:24.475Z,4627736.83,block_8,"planned 2026-11-23T09:27:24Z, late by 0 s"
+2026-11-23T09:27:24.475Z,4627736.83,block8_pull_start,rsync of the guest files into the staging folder
+2026-11-23T09:27:28.011Z,4627740.37,block8_pull_end,staging complete
+2026-11-23T09:27:28.011Z,4627740.37,block8_copy_start,copy-block.pl block 8
+2026-11-23T09:27:43.413Z,4627755.77,block8_copy_end,exit status 0
+2026-11-23T09:27:43.413Z,4627755.77,cutoff,"planned 2026-11-23T09:27:24Z, late by 19 s"
+2026-11-23T09:28:55.491Z,4627827.85,collectors_state_at_end,inactive inactive
+2026-11-23T09:28:55.491Z,4627827.85,final_block,"planned 2026-11-23T09:28:55Z, late by 0 s"
+2026-11-23T09:28:55.491Z,4627827.85,block9_pull_start,rsync of the guest files into the staging folder
+2026-11-23T09:28:59.471Z,4627831.83,block9_pull_end,staging complete
+2026-11-23T09:28:59.471Z,4627831.83,block9_copy_start,copy-block.pl block 9
+2026-11-23T09:29:18.059Z,4627850.42,block9_copy_end,exit status 0
+2026-11-23T09:29:18.059Z,4627850.42,run_complete,all blocks copied
