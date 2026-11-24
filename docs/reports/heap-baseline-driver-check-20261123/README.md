@@ -48,6 +48,10 @@ Five changes of a scratch copy of the driver were run once each on the final byt
 
 M1 to M4 also ran on earlier bytes (`ca7f90c8…` and `f6c77fe4…`) with the same failing checks. M5 was added with the check of the service account. Run 2 used `eb6d9456…`; the final bytes differ from it in the stop of the port forward (run 3), in the sentence of the documentation that names the requirements (`python3`), and in the service account, which has no default any more and is a required option of `prepare` and `run`; a `prepare` with the final bytes ran against the guest after that change, and `run` with the option given takes the same path as in run 3.
 
+## Leftover of mutant M5
+
+M5 lets `run` start without the service account. The check of that case then starts a real `run` against a placeholder host: the port forward fails at once and leaves a failed `base-tunnel.service` unit in the user manager, which blocks the next `run` of the same prefix (`Unit base-tunnel.service was already loaded or has a fragment file`). The first start of the 48-hour run hit this. The unit is cleared with `systemctl --user reset-failed base-tunnel.service`; nothing had started on the guest. A run of the mutant series is followed by that command.
+
 ## What these checks do not cover
 
 The registration was exercised by run 3 only on PVs that were already archived (all 100 reported `Being archived` 0.24 s after the request), so the wait loop with PVs that are not yet archived, and the registration on the empty guest, have not run; the real durations of the blocks (the copy of about 127 GiB of query responses and 7 GiB of CA output, and the re-reading of the earlier bytes of every file by `copy-block.pl`); the port forward and the collectors on the empty guest of the baseline; and a restart of a collector under the resume rule, which the driver leaves to the operator.
