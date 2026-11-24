@@ -40,12 +40,35 @@ The time bound of all array cases is 12 hours, including preparation and restart
 
 For each engine case the sampling period of the PV and the sample buffer margin are recorded, because the engine sizes its buffer from them.
 
-## Open items before the first case
+## Classification of outcomes (frozen before the matrices)
+
+The installed source (the commit of the appliance on both guests) has three memory checks (declared size 400, admission 503, pressure 503). `RetrievalMemoryProtection.Request.admit` declares a size only for the optimized and summarizing operators, and `DefaultRawPostProcessor` declares none, so a raw request of a few events that are arrays of millions of elements passes all three checks and can exhaust the heap (the book page of `epicsarchiverap-maven` says so, and the engine is not bounded either). No cell is therefore classified as an expected refusal; each outcome is recorded as observed. The criteria do not depend on the answer that is wanted.
+
+| Family | Outcome | Criterion |
+| :--- | :--- | :--- |
+| Raw retrieval | Delivered | HTTP 200 and a response whose SHA-256 equals that of the reference retrieval at the preparation heap for the same window |
+| Raw retrieval | Delivered, different | HTTP 200 and another SHA-256 or length: kept with both responses |
+| Raw retrieval | Refused by a memory check | HTTP 400 or 503 with the text of the check |
+| Raw retrieval | Failed | any other status, a broken connection or no answer within 300 seconds, with the retrieval JVM lifetime and the `OutOfMemoryError` lines of its log read before and after |
+| Engine subscription | Archived | the PV reaches `Being archived`, the JVM keeps its lifetime, and a read of its stored samples at the preparation configuration returns the pinned frame |
+| Engine subscription | Connected without storage | the PV is connected and no frame is stored within the bound |
+| Engine subscription | Not connected | the connection state stays false within 300 seconds |
+| Engine subscription | Failed | the engine JVM ends or logs an `OutOfMemoryError`, with its lifetime read before and after |
+
+Reading a stored frame: a response of `getData.json` has the form `[{"meta":…,"data":[{"secs":…,"val":[…]}]}]`, and `perl -MJSON::PP -MDigest::SHA=sha256_hex -e 'local $/; my $d = decode_json(<STDIN>); for my $ev (@{ $d->[0]{data} }) { my @v = @{ $ev->{val} }; print "secs=$ev->{secs} elements=", scalar(@v), " sha256=", sha256_hex(pack("v*", @v)), "\n" }' < RESPONSE.json` prints the element count and the SHA-256 of the elements of each event, packed as unsigned 16-bit little-endian values like the pin. A frame counts as stored (and a retrieval as complete) only when an event prints the element count and the SHA-256 of the pin. The command was run on a real response of a waveform PV of the first guest (events of 1,000 elements); its output for an integer array PV is confirmed in the first engine case.
+
+## Decisions to take
+
+1. The frame feeder: written (`tests/heap/feed-frames.py`, D81) and checked (`docs/reports/heap-array-tools-check-20261124`); it publishes the fixture frames as waveform PVs at the declared cadence and logs the frame hashes. It served `laser`, `airy` and `bound` together in a soft IOC on the first guest and the frames were read back over Channel Access (item 3).
+2. The preparation configuration of the retrieval cases: engine heap 512 MiB with `EPICS_CA_MAX_ARRAY_BYTES=24000000`, accepted only after the first engine case shows the frames stored.
+3. The classification above.
+
+## Items that were open before the first case, and their state
 
 1. The frame feeder: written (`tests/heap/feed-frames.py`, D81) and checked (`docs/reports/heap-array-tools-check-20261124`); it publishes the fixture frames as waveform PVs at the declared cadence and logs the frame hashes. It was run in a soft IOC with `laser` only; `airy` and `bound` have not been served by it yet.
-2. The IOC database with the three waveform records of the geometries above and the CA array limits of the IOC.
-3. The independent CA observation of the frames: the CA observer of the rehearsals reads with a 16,384 byte array limit and cannot carry these frames, so the observation of the frames needs its own method.
-4. The generated `bound` frame and its SHA-256, and the check that the PNG files of the declared hashes are the files in use.
-5. The classification of delivery and refusal for each family, which the plan freezes before each matrix: it depends on the retrieval code of the installed source and is read from it before the matrix; none of the cells is classified in advance in this draft.
-6. The check of the installed CA library's limit and actual transfer on the IOC and on the engine.
+2. The IOC records: closed by the feeder, which hosts them. `tests/heap/feed-frames.py serve` publishes `AASOAK:ARR:LASER`, `AASOAK:ARR:AIRY` and `AASOAK:ARR:BOUND` (the default prefix), field type USHORT, with 1,405,025, 4,915,200 and 5,529,600 elements; the IOC limit is `EPICS_CA_MAX_ARRAY_BYTES=24000000` in the environment of the feeder (at least 22,118,400 is needed). The engine finds PVs through `EPICS_CA_ADDR_LIST=localhost` on port 5064, which the soft IOC of the rehearsals holds, so that IOC must stop before the feeder serves on that port (decision 1).
+3. The independent observation of the frames over Channel Access: closed by a command, not a tool. `caget -t PV | perl -MDigest::SHA=sha256_hex -e 'my $l = <STDIN>; my ($c, @v) = split " ", $l; print "elements=$c values=", scalar(@v), " sha256=", sha256_hex(pack("v*", @v)), "\n"'` with `EPICS_CA_MAX_ARRAY_BYTES=24000000` read the three PVs of a running feeder on the first guest in 1, 1 and 2 seconds, with the element counts 1,405,025, 4,915,200 and 5,529,600 and the SHA-256 equal to the pins (`d05934e3…`, `7a065471…`, `b3d85b78…`); the native type is `DBF_LONG`. The case runs it before and after each case.
+4. The generated `bound` frame and the files in use: closed. The `bound` frame has the SHA-256 `b3d85b7834d78afefb875e8a6ef636aa7799ec07035674c4fbc9b58265aa0199` (the real Java agrees); the PNG files used on the analysis host and on the first guest have the SHA-256 declared in the table of the fixtures.
+5. The classification of delivery and refusal: frozen by the section above, from the installed source.
+6. The CA limit and the actual transfer: the IOC side is verified (item 3). The engine side is open: the environment of the engine JVM has no `EPICS_CA_MAX_ARRAY_BYTES` and `JCAConfigGen` then writes `max_array_bytes` as `30.0`; the array engine cells set 24,000,000 in `engine/conf/engine.conf`, which the launcher reads after the common configuration, and the first engine case reads the engine JVM environment (`/proc/<pid>/environ`) and the delivered element count of its stored samples before any cell is counted.
 7. The array request client: written (`tests/heap/request-array.pl`, D81) and checked (`docs/reports/heap-array-tools-check-20261124`); it sends the requests of a plan (PV and time window) with one to four overlapping clients and records time, status, bytes and SHA-256 per request. It has run against the real retrieval service only for a scalar and a waveform PV of one hour.
