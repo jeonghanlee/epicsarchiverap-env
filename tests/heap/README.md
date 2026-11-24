@@ -65,10 +65,10 @@ perl tests/heap-inspect-inputs.pl
 
 ## Measurement Tools
 
-Six more tools in this directory support the measurement. Each prints
-its synopsis and options with `--help`, and its POD ends with an EXIT STATUS
-section (`pod2text tests/heap/<tool>.pl` shows it); all need Perl 5.26 or newer and core modules
-only.
+Eight more tools in this directory support the measurement. The Perl tools print
+their synopsis and options with `--help`, end their POD with an EXIT STATUS
+section (`pod2text tests/heap/<tool>.pl` shows it) and need Perl 5.26 or newer and core modules
+only. `feed-frames.py` is Python: its usage, its fixtures and its exit statuses are in the docstring at the head of the file, and `--help` prints the first line of that text and the options.
 
 | Tool | Purpose | Exit statuses |
 | --- | --- | --- |
@@ -77,6 +77,8 @@ only.
 | `observe-ca.pl` | Runs `camonitor` for a PV list, keeps its output unmodified and writes a run record (command line, working directory, UTC and monotonic start and end, exit status or signal, file sizes) | 0, 1, 2, 77 |
 | `query-archive.pl` | One client of the retrieval load: reads random PVs through the retrieval service, stores each full response with its SHA256 and writes one CSV row per request | 0, 1, 2, 77 |
 | `copy-block.pl` | Copies the evidence files of one block into a cumulative tree, appends only the new bytes after proving that the earlier bytes are unchanged, and writes a manifest with each file's length, SHA256 and last newline | 0, 1, 2, 3, 77 |
+| `request-array.pl` | Sends the requests of a plan (PV and time window) to the retrieval service with one to four overlapping clients, in groups, and records the time, status, bytes and SHA-256 of every request with a time limit | 0, 1, 2, 77 |
+| `feed-frames.py` | Python. Makes the pinned fixture frames of the array cases (two PNG pictures and the seeded `bound` frame) and publishes them as waveform PVs of a soft IOC every period, with a log of every publication | 0, 1, 2, 77 |
 | `run-baseline.pl` | Drives and watches the 48-hour baseline observation of one guest: schedule, collectors, registration, query clients, evidence blocks with hard-linked staging, and a read-only watchdog (commands `plan`, `link-queries`, `prepare`, `run`, `watch`) | 0, 1, 2 |
 
 Exit status 2 is invalid usage, 77 a missing or unusable input, and 1 a failure
@@ -104,6 +106,8 @@ df, date, caget), and the processes and logs are real.
 | `tests/heap-sample-resources.pl` | A real process, a real zombie, real signals | `perl tests/heap-sample-resources.pl` |
 | `tests/heap-observe-ca.pl` | A real soft IOC (`fixtures/observe.db`) and the real `camonitor` | `AA_TEST_EPICS_BIN=<bin/host_arch folder of a real EPICS Base> perl tests/heap-observe-ca.pl` |
 | `tests/heap-query-archive.pl` | `python3 -m http.server` serving real files; only the HTTP server stands in for the retrieval service | `perl tests/heap-query-archive.pl` |
+| `tests/heap-request-array.pl` | The real client as a subprocess against `python3 -m http.server` serving a real file, a missing file and a server that never answers | `perl tests/heap-request-array.pl` |
+| `tests/heap-feed-frames.pl` | The real feeder as a subprocess: PNG decoding against ImageMagick, the `bound` frame and `java.util.Random` against the real Java, and a real soft IOC read back with `caget` and `camonitor` (the IOC cases need `AA_TEST_EPICS_BIN`, softioc and numpy, and run on the guest; pass `--laser-frame` with a frame file written elsewhere) | `perl tests/heap-feed-frames.pl --maven <epicsarchiverap-maven checkout> [--laser-frame FILE]` |
 | `tests/heap-run-baseline.pl` | The real driver as a subprocess: usage errors, the schedule against dates computed by `date -u -d`, and hard-linked staging checked by inode number | `perl tests/heap-run-baseline.pl` |
 | `tests/heap-copy-block.pl` | Real files, a real process that appends to a log while it is copied, and real changes to the source and destination files | `perl tests/heap-copy-block.pl` |
 
@@ -129,3 +133,16 @@ appliance installed and nothing else running. `R` is the time at which all 100 P
 A failed unit of an earlier attempt blocks the next `run` with the same prefix (`Unit base-tunnel.service was already loaded`); clear it with `systemctl --user reset-failed <prefix>-tunnel.service`. The driver does not restart a stopped collector: the resume rule (restart within 30 minutes, record both times) is applied by hand. The sampler is started again under the same unit name and appends to `samples/samples.csv`; `observe-ca.pl` refuses an output folder that already holds a `run.json`, so the CA observer is started again with a new folder (`ca/run2`, `ca/run3`, ...) under the same unit name, and the block copies take every folder below `ca`. A
 failed block copy is recorded and the run goes on; a failed step before it ends the run with status 1 and leaves the collectors running until their duration ends. The result of the check runs of the driver is in
 `docs/reports/heap-baseline-driver-check-20261123`.
+
+## Array Case Tools
+
+The two tools serve the large-array cases of the heap measurement (`docs/reports/heap-array-run-inputs-draft-20261123.md`).
+
+`feed-frames.py` makes the fixture frames and publishes them. `python3 tests/heap/feed-frames.py frame --name laser --images <folder of laser.png and airy.png> --output FILE` writes one frame as unsigned 16-bit little-endian values and prints its element count and SHA-256
+(the pin); `bound` needs no folder. The pins are `laser` 1,405,025 elements `d05934e30059117bdc1afa6dcf63f2b431c808cb33672e56e84289a00d215723`, `airy` 4,915,200 elements `7a06547103de3ca762ac66bfcf8a7ebeb7bb43bfa63d626522c472a6d90361e6` and `bound` 5,529,600 elements `b3d85b7834d78afefb875e8a6ef636aa7799ec07035674c4fbc9b58265aa0199`.
+`serve --names laser,airy,bound --period 30 --log FILE --images <folder> --prefix <device>:` hosts the waveform PVs `<device>:LASER`, `<device>:AIRY` and `<device>:BOUND` (the field type is USHORT, which Channel Access transfers as four bytes per element) and
+publishes each frame at once and then every period with a newly observed timestamp; `EPICS_CA_MAX_ARRAY_BYTES` must be at least four bytes per element of the largest frame (22,118,400 for `bound`; the plan's candidate value is 24,000,000), and the server port variables of the environment decide where it listens
+(a private port keeps it apart from another IOC on the host). It needs the Python modules softioc and numpy, which the IOC guest has in the user site; run it without `-I`. SIGTERM ends it at once, without another publication, and the log keeps the rows written up to then.
+
+`request-array.pl --plan FILE --output-dir DIR --url URL [--clients N] [--groups G]` sends the requests of a plan with the header `name,pv,from,to` (times as `2026-11-24T06:55:05.000Z`); a group is one pass over the plan by all clients at once.
+A request that fails or times out is a row of `requests.csv`, not an error of the tool.

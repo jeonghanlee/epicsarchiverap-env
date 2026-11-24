@@ -35,17 +35,17 @@ The time bound of all array cases is 12 hours, including preparation and restart
 | After each restart | read the four actual JVM command lines and lifetimes before the case proceeds |
 | Restore | the prior component configuration after the qualification, and a check of the four shared 256 MiB heaps before the new baseline |
 | Preparation of the retrieval cases | frames acquired through IOC, CA, engine and archive at a preparation heap and CA configuration that is observed to work; the proposal is an engine heap of 512 MiB and `EPICS_CA_MAX_ARRAY_BYTES` of 24,000,000, accepted only after the observation of the actual transfer; acquisition is then paused and the stored frames are compared with independent IOC and CA observations before the first retrieval cell |
-| Retrieval clients | one or four array request clients (open item 7) under the 512 MiB limit of the resource set, each recording request time, status, bytes and SHA-256 of the response; `tests/heap/query-archive.pl` is not used for these cases because it picks random scalar PVs with one-hour or one-day windows and cannot ask for the one-event window or the three-event window of a given PV |
+| Retrieval clients | one or four array request clients (`tests/heap/request-array.pl`, open item 7) under the 512 MiB limit of the resource set, each recording request time, status, bytes and SHA-256 of the response; `tests/heap/query-archive.pl` is not used for these cases because it picks random scalar PVs with one-hour or one-day windows and cannot ask for the one-event window or the three-event window of a given PV |
 | Stops | the stop rules of the resource set: guest `MemAvailable` below 200 MiB, root filesystem at 80 percent, free inodes below 10 percent, a collector with an out-of-memory kill |
 
 For each engine case the sampling period of the PV and the sample buffer margin are recorded, because the engine sizes its buffer from them.
 
 ## Open items before the first case
 
-1. The frame feeder: a tool that writes the fixture frames to the IOC records at the declared cadence and that records the frame hashes. No such tool exists; writing it is code work that needs its own authorization.
+1. The frame feeder: written (`tests/heap/feed-frames.py`, D81) and checked (`docs/reports/heap-array-tools-check-20261124`); it publishes the fixture frames as waveform PVs at the declared cadence and logs the frame hashes. It was run in a soft IOC with `laser` only; `airy` and `bound` have not been served by it yet.
 2. The IOC database with the three waveform records of the geometries above and the CA array limits of the IOC.
 3. The independent CA observation of the frames: the CA observer of the rehearsals reads with a 16,384 byte array limit and cannot carry these frames, so the observation of the frames needs its own method.
 4. The generated `bound` frame and its SHA-256, and the check that the PNG files of the declared hashes are the files in use.
 5. The classification of delivery and refusal for each family, which the plan freezes before each matrix: it depends on the retrieval code of the installed source and is read from it before the matrix; none of the cells is classified in advance in this draft.
 6. The check of the installed CA library's limit and actual transfer on the IOC and on the engine.
-7. The array request client: a tool that sends raw requests for a given PV and a given time window (the window of one frame, or of three frames), runs as one or four overlapping clients and records time, status, bytes and SHA-256 per request. No such tool exists; writing it is code work that needs its own authorization.
+7. The array request client: written (`tests/heap/request-array.pl`, D81) and checked (`docs/reports/heap-array-tools-check-20261124`); it sends the requests of a plan (PV and time window) with one to four overlapping clients and records time, status, bytes and SHA-256 per request. It has run against the real retrieval service only for a scalar and a waveform PV of one hour.
