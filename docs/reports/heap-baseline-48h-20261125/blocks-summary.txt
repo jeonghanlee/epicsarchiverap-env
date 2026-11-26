@@ -1,0 +1,9 @@
+block 0001 copied 2026-11-24T02:19:37.933Z ok=True files=7 {'ok': 7}
+block 0002 copied 2026-11-24T08:19:48.808Z ok=True files=7 {'ok': 7}
+block 0003 copied 2026-11-24T14:19:54.913Z ok=True files=7 {'ok': 7}
+block 0004 copied 2026-11-24T20:20:02.558Z ok=True files=7 {'ok': 7}
+block 0005 copied 2026-11-25T02:20:09.310Z ok=True files=7 {'ok': 7}
+block 0006 copied 2026-11-25T08:20:14.485Z ok=True files=7 {'ok': 7}
+block 0007 copied 2026-11-25T14:20:23.156Z ok=True files=102 {'ok': 102}
+block 0008 copied 2026-11-25T20:20:27.794Z ok=False files=42203 {'ok': 42202, 'prefix_mismatch': 1}
+block 0009 copied 2026-11-25T20:50:32.209Z ok=False files=42204 {'ok': 42203, 'prefix_mismatch': 1}

@@ -1,0 +1,59 @@
+time_utc,uptime_s,event,detail
+2026-11-23T20:16:47.789Z,4666700.15,run_failed,starting the port forward failed with status 1: Failed to start transient service unit: Unit base-tunnel.service was already loaded or has a fragment file.
+2026-11-23T20:17:51.727Z,4666764.08,tunnel_up,port forward 28665 and 28668
+2026-11-23T20:17:51.924Z,4666764.28,collectors_start,"sampler 64M and CA observer 128M on the guest, 174600 s"
+2026-11-23T20:17:51.924Z,4666764.28,registration_request,100 PVs of <evidence-dir>/baseline-48h/pvs.csv
+2026-11-23T20:19:34.762Z,4666867.12,readiness,"all PVs report Being archived, R 2026-11-23T20:19:34Z"
+2026-11-23T20:19:34.763Z,4666867.12,plan_written,"R 2026-11-23T20:19:34Z, cutoff 2026-11-25T20:19:34Z"
+2026-11-24T02:19:34.410Z,4688466.77,warmup_end,"planned 2026-11-24T02:19:34Z, late by 0 s"
+2026-11-24T02:19:34.410Z,4688466.77,block_1,"planned 2026-11-24T02:19:34Z, late by 0 s"
+2026-11-24T02:19:34.410Z,4688466.77,block1_pull_start,rsync of the guest files into the staging folder
+2026-11-24T02:19:37.890Z,4688470.25,block1_pull_end,staging complete
+2026-11-24T02:19:37.890Z,4688470.25,block1_copy_start,copy-block.pl block 1
+2026-11-24T02:19:41.637Z,4688473.99,block1_copy_end,exit status 0
+2026-11-24T08:19:34.272Z,4710066.63,block_2,"planned 2026-11-24T08:19:34Z, late by 0 s"
+2026-11-24T08:19:34.272Z,4710066.63,block2_pull_start,rsync of the guest files into the staging folder
+2026-11-24T08:19:48.767Z,4710081.12,block2_pull_end,staging complete
+2026-11-24T08:19:48.767Z,4710081.12,block2_copy_start,copy-block.pl block 2
+2026-11-24T08:19:55.944Z,4710088.30,block2_copy_end,exit status 0
+2026-11-24T14:19:34.610Z,4731666.97,block_3,"planned 2026-11-24T14:19:34Z, late by 0 s"
+2026-11-24T14:19:34.610Z,4731666.97,block3_pull_start,rsync of the guest files into the staging folder
+2026-11-24T14:19:54.871Z,4731687.23,block3_pull_end,staging complete
+2026-11-24T14:19:54.871Z,4731687.23,block3_copy_start,copy-block.pl block 3
+2026-11-24T14:20:06.631Z,4731698.99,block3_copy_end,exit status 0
+2026-11-24T20:19:34.271Z,4753266.63,block_4,"planned 2026-11-24T20:19:34Z, late by 0 s"
+2026-11-24T20:19:34.272Z,4753266.63,block4_pull_start,rsync of the guest files into the staging folder
+2026-11-24T20:20:02.514Z,4753294.87,block4_pull_end,staging complete
+2026-11-24T20:20:02.514Z,4753294.87,block4_copy_start,copy-block.pl block 4
+2026-11-24T20:20:18.716Z,4753311.07,block4_copy_end,exit status 0
+2026-11-25T02:19:34.343Z,4774866.70,block_5,"planned 2026-11-25T02:19:34Z, late by 0 s"
+2026-11-25T02:19:34.343Z,4774866.70,block5_pull_start,rsync of the guest files into the staging folder
+2026-11-25T02:20:09.255Z,4774901.61,block5_pull_end,staging complete
+2026-11-25T02:20:09.255Z,4774901.61,block5_copy_start,copy-block.pl block 5
+2026-11-25T02:20:30.513Z,4774922.87,block5_copy_end,exit status 0
+2026-11-25T08:19:34.196Z,4796466.55,block_6,"planned 2026-11-25T08:19:34Z, late by 0 s"
+2026-11-25T08:19:34.196Z,4796466.55,block6_pull_start,rsync of the guest files into the staging folder
+2026-11-25T08:20:14.432Z,4796506.79,block6_pull_end,staging complete
+2026-11-25T08:20:14.432Z,4796506.79,block6_copy_start,copy-block.pl block 6
+2026-11-25T08:20:40.291Z,4796532.65,block6_copy_end,exit status 0
+2026-11-25T14:19:35.035Z,4818067.39,query_clients_start,"4 clients, 21600 s, MemoryMax 512M each; planned 2026-11-25T14:19:34Z, late by 0 s"
+2026-11-25T14:19:35.035Z,4818067.39,block_7,"planned 2026-11-25T14:19:34Z, late by 1 s"
+2026-11-25T14:19:35.035Z,4818067.39,block7_pull_start,rsync of the guest files into the staging folder
+2026-11-25T14:20:23.108Z,4818115.47,block7_pull_end,staging complete
+2026-11-25T14:20:23.108Z,4818115.47,block7_copy_start,copy-block.pl block 7
+2026-11-25T14:20:56.900Z,4818149.26,block7_copy_end,exit status 0
+2026-11-25T20:19:34.608Z,4839666.97,cutoff,"planned 2026-11-25T20:19:34Z, late by 0 s"
+2026-11-25T20:19:34.608Z,4839666.97,block_8,"planned 2026-11-25T20:19:34Z, late by 0 s"
+2026-11-25T20:19:34.608Z,4839666.97,block8_pull_start,rsync of the guest files into the staging folder
+2026-11-25T20:20:27.569Z,4839719.93,block8_pull_end,staging complete
+2026-11-25T20:20:27.569Z,4839719.93,block8_copy_start,copy-block.pl block 8
+2026-11-25T20:38:08.133Z,4840780.49,block8_copy_end,exit status 3
+2026-11-25T20:47:51.232Z,4841363.59,collectors_end,"planned 2026-11-25T20:47:51Z, late by 0 s"
+2026-11-25T20:49:51.330Z,4841483.69,collectors_state_at_end,inactive inactive
+2026-11-25T20:49:51.330Z,4841483.69,final_block,"planned 2026-11-25T20:49:51Z, late by 0 s"
+2026-11-25T20:49:51.330Z,4841483.69,block9_pull_start,rsync of the guest files into the staging folder
+2026-11-25T20:50:29.384Z,4841521.74,block9_pull_end,staging complete
+2026-11-25T20:50:29.385Z,4841521.74,block9_copy_start,copy-block.pl block 9
+2026-11-25T21:09:44.340Z,4842676.70,block9_copy_end,exit status 3
+2026-11-25T21:09:44.342Z,4842676.70,run_complete,all blocks copied
+2026-11-25T21:09:44.371Z,4842676.73,tunnel_stopped,exit status 0
