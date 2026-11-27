@@ -1,0 +1,33 @@
+2026-11-27T07:31:06Z restart retrieval_heap=512 engine_heap=512 service=active
+mgmt pid=2118434 start=Thu Nov 26 23:30:06 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2118445 start=Thu Nov 26 23:30:06 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=2118456 start=Thu Nov 26 23:30:06 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2118465 start=Thu Nov 26 23:30:06 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-27T07:31:06Z reference group
+2026-11-27T07:31:07Z reference end exit=0
+classify-cells.pl: <guest-home>/array/logs/real3/G3/reference-512/requests.csv: the reference of laser1 has status 200 and 6 bytes, below 1000000
+2026-11-27T07:32:08Z restart retrieval_heap=256 engine_heap=512 service=active
+mgmt pid=2119075 start=Thu Nov 26 23:31:08 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2119085 start=Thu Nov 26 23:31:08 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=2119094 start=Thu Nov 26 23:31:08 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2119108 start=Thu Nov 26 23:31:08 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-27T07:32:09Z cell start heap=256 clients=1
+2026-11-27T07:32:20Z cell end heap=256 clients=1 exit=0
+2026-11-27T07:32:20Z oom_lines_since_restart=0
+engine pid=2119085 start=Thu Nov 26 23:31:08 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+retrieval pid=2119108 start=Thu Nov 26 23:31:08 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+r256-c1 laser1 Delivered=3
+r256-c1 airy1 Delivered=3
+r256-c1 airy3 Delivered=3
+r256-c1 bound1 Delivered=3
+r256-c1 total Delivered=12
+2026-11-27T07:32:20Z DONE retrieval cells
+2026-11-27T07:32:20Z configuration restored from <guest-home>/array/saved
+2026-11-27T07:33:22Z restart restore service=active
+mgmt pid=2119938 start=Thu Nov 26 23:32:22 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2119943 start=Thu Nov 26 23:32:22 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+etl pid=2119952 start=Thu Nov 26 23:32:22 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2119964 start=Thu Nov 26 23:32:22 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200

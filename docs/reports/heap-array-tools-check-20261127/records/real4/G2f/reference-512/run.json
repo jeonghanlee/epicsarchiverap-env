@@ -1,0 +1,22 @@
+{
+   "argv" : [
+      "--plan",
+      "<guest-home>/array/logs/real4/G2f/plan.csv",
+      "--output-dir",
+      "<guest-home>/array/logs/real4/G2f/reference-512",
+      "--url",
+      "http://localhost:17668/retrieval/data/getData.json",
+      "--clients",
+      "1",
+      "--groups",
+      "1"
+   ],
+   "clients" : 1,
+   "end_utc" : "2026-11-27T07:56:21.700Z",
+   "groups" : 1,
+   "plan_rows" : 4,
+   "plan_sha256" : "2c94ce3975e0af3956438fc69db57fcbeba40349b4137ef191a0a3a164bc254c",
+   "start_utc" : "2026-11-27T07:56:08.908Z",
+   "timeout_s" : 300,
+   "url" : "http://localhost:17668/retrieval/data/getData.json"
+}

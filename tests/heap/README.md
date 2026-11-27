@@ -80,6 +80,7 @@ only. `feed-frames.py` is Python: its usage, its fixtures and its exit statuses 
 | `request-array.pl` | Sends the requests of a plan (PV and time window) to the retrieval service with one to four overlapping clients, in groups, and records the time, status, bytes and SHA-256 of every request with a time limit | 0, 1, 2, 77 |
 | `feed-frames.py` | Python. Makes the pinned fixture frames of the array cases (two PNG pictures and the seeded `bound` frame) and publishes them as waveform PVs of a soft IOC every period, with a log of every publication | 0, 1, 2, 77 |
 | `run-baseline.pl` | Drives and watches the 48-hour baseline observation of one guest: schedule, collectors, registration, query clients, evidence blocks with hard-linked staging, and a read-only watchdog (commands `plan`, `link-queries`, `prepare`, `run`, `watch`) | 0, 1, 2 |
+| `array-cases/` | Drivers of the large-array cases on the guest (`prepare-frames.bash`, `run-retrieval-cells.bash`, `run-engine-cells.bash`), the reader `hash-events.pl` and the classifier `classify-cells.pl`; see `array-cases/README.md`; checked by `tests/heap-array-cases.pl` and by real runs | per tool, see its README |
 
 Exit status 2 is invalid usage, 77 a missing or unusable input, and 1 a failure
 to write the collected data. `run-baseline.pl` uses 0 (finished), 1 (a step of `run` failed or `watch` found a deviation) and 2 (invalid usage or an environment error). `copy-block.pl` also returns 3 when its manifest is

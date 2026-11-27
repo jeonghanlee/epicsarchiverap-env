@@ -1,0 +1,8 @@
+2026-11-27T07:24:29Z prepare frames
+2026-11-27T07:30:05Z prepare exit=0
+2026-11-27T07:30:05Z first_event=2026-11-27T07:26:42Z
+2026-11-27T07:33:22Z G3 exit=0 cells_run=2
+2026-11-27T07:36:56Z G2 exit=0 oom_lines_since_restart=0
+2026-11-27T07:37:02Z frames deleted; array PV files=0
+2026-11-27T07:42:32Z G1 exit=0 heap=256 cell=airy att=1 archived_s=101 stored_s=-1 status=AIRY=Being_archived/true; read=AIRY:events=5:pinned=5:http=200; pid=2123092/2123092 kills=1/1 oom=0 outcome=Archived
+2026-11-27T07:42:32Z DONE

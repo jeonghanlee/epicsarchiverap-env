@@ -1,0 +1,16 @@
+2026-11-27T07:54:05Z restart retrieval_heap=512 engine_heap=512 service=active
+mgmt pid=2131109 start=Thu Nov 26 23:53:05 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2131115 start=Thu Nov 26 23:53:05 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=2131126 start=Thu Nov 26 23:53:05 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2131138 start=Thu Nov 26 23:53:05 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-27T07:54:05Z reference group
+2026-11-27T07:54:06Z reference end exit=0
+2026-11-27T07:54:06Z the reference group is not usable: classify-cells.pl: <guest-home>/array/logs/real4/G3f/reference-512/requests.csv: the reference of laser1 has status 200 and 6 bytes, below 1000000
+2026-11-27T07:54:06Z configuration restored from <guest-home>/array/saved
+2026-11-27T07:55:07Z restart restore service=active
+mgmt pid=2131745 start=Thu Nov 26 23:54:07 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2131751 start=Thu Nov 26 23:54:07 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+etl pid=2131757 start=Thu Nov 26 23:54:07 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2131771 start=Thu Nov 26 23:54:07 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200

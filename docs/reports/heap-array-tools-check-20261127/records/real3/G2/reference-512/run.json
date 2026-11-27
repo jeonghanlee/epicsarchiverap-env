@@ -1,0 +1,22 @@
+{
+   "argv" : [
+      "--plan",
+      "<guest-home>/array/logs/real3/G2/plan.csv",
+      "--output-dir",
+      "<guest-home>/array/logs/real3/G2/reference-512",
+      "--url",
+      "http://localhost:17668/retrieval/data/getData.json",
+      "--clients",
+      "1",
+      "--groups",
+      "1"
+   ],
+   "clients" : 1,
+   "end_utc" : "2026-11-27T07:34:35.716Z",
+   "groups" : 1,
+   "plan_rows" : 4,
+   "plan_sha256" : "db1847dbb3ffe6ac623040864132736d953529a705aa0d4df3994c658e6600eb",
+   "start_utc" : "2026-11-27T07:34:23.755Z",
+   "timeout_s" : 300,
+   "url" : "http://localhost:17668/retrieval/data/getData.json"
+}

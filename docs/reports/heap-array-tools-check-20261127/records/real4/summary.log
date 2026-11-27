@@ -1,0 +1,7 @@
+2026-11-27T07:49:28Z prepare exit=0
+2026-11-27T07:49:28Z first_event=2026-11-27T07:46:12Z
+2026-11-27T07:53:04Z control exit=0 reference ok rows=4;oom_lines_since_restart=9;r256-c1 total Delivered=3 Failed-500=9;
+2026-11-27T07:55:07Z G3f exit=5 cells_run=0 the reference group is not usable: classify-cells.pl: <guest-home>/array/logs/real4/G3f/reference-512/requests.csv: the reference of laser1 has status 200 and 6 bytes, below 1000000
+2026-11-27T07:58:43Z G2f exit=0 oom_lines_since_restart=0;
+2026-11-27T07:58:48Z frames deleted; array PV files=0
+2026-11-27T07:58:48Z DONE

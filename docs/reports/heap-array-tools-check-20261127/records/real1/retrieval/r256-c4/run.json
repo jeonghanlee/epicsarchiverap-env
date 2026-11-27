@@ -1,0 +1,24 @@
+{
+   "argv" : [
+      "--plan",
+      "<guest-home>/array/logs/real1/retrieval/plan.csv",
+      "--output-dir",
+      "<guest-home>/array/logs/real1/retrieval/r256-c4",
+      "--url",
+      "http://localhost:17668/retrieval/data/getData.json",
+      "--clients",
+      "4",
+      "--groups",
+      "3",
+      "--pause",
+      "5"
+   ],
+   "clients" : 4,
+   "end_utc" : "2026-11-27T06:49:05.856Z",
+   "groups" : 3,
+   "plan_rows" : 4,
+   "plan_sha256" : "f0d250bf6476465beeab615a6a9279a3ac9f0c9df04faf8c9f50691d54cb78e8",
+   "start_utc" : "2026-11-27T06:48:44.997Z",
+   "timeout_s" : 300,
+   "url" : "http://localhost:17668/retrieval/data/getData.json"
+}

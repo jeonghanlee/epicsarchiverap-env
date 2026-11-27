@@ -1,0 +1,2 @@
+heap,cell,attempt,registered_utc,archived_s,stored_s,status,read_back,engine_pid,kernel_kills,oom_lines,outcome
+256,airy,1,2026-11-27T07:38:03.000Z,101,-1,AIRY=Being_archived/true;,AIRY:events=5:pinned=5:http=200;,2123092/2123092,1/1,0,Archived

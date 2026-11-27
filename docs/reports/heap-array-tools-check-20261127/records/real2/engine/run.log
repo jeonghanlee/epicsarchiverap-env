@@ -1,0 +1,21 @@
+2026-11-27T07:06:26Z existing array PVs deleted with their data; present=no
+2026-11-27T07:07:27Z restart engine_heap=256 retrieval_heap=512 service=active
+mgmt pid=2108411 start=Thu Nov 26 23:06:27 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2108419 start=Thu Nov 26 23:06:27 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=2108424 start=Thu Nov 26 23:06:27 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2108437 start=Thu Nov 26 23:06:27 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-27T07:10:06Z attempt heap=256 cell=airy att=1 archived_s=101 status=AIRY=Being_archived/true; read=AIRY:events=3:pinned=3:http=200; pid=2108419/2108419 kills=1/1 oom=0 outcome=Archived
+2026-11-27T07:10:11Z after delete stored_files=0
+2026-11-27T07:12:48Z attempt heap=256 cell=bound att=1 archived_s=101 status=BOUND=Being_archived/true; read=BOUND:events=2:pinned=2:http=200; pid=2108419/2108419 kills=1/1 oom=0 outcome=Archived
+2026-11-27T07:12:53Z after delete stored_files=0
+2026-11-27T07:18:51Z attempt heap=256 cell=airy+bound att=1 archived_s=-1 status=AIRY=Being_archived/true;BOUND=Not_being_archived/None; read=AIRY:events=9:pinned=9:http=200;BOUND:events=0:pinned=0:http=404; pid=2108419/2108419 kills=1/1 oom=3 outcome=Failed
+2026-11-27T07:18:57Z after delete stored_files=0
+2026-11-27T07:18:57Z DONE engine cells
+2026-11-27T07:18:57Z configuration restored from <guest-home>/array/saved
+2026-11-27T07:19:58Z restart restore service=active
+mgmt pid=2113906 start=Thu Nov 26 23:18:58 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2113913 start=Thu Nov 26 23:18:58 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+etl pid=2113918 start=Thu Nov 26 23:18:58 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2113929 start=Thu Nov 26 23:18:58 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200

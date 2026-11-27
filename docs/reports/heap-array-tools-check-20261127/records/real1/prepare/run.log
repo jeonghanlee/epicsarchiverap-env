@@ -1,0 +1,17 @@
+2026-11-27T06:36:55Z restart preparation heap=512 service=active
+mgmt pid=2092936 start=Thu Nov 26 22:35:55 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2092942 start=Thu Nov 26 22:35:55 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=2092952 start=Thu Nov 26 22:35:55 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2092965 start=Thu Nov 26 22:35:55 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-27T06:36:56Z registered at 2026-11-27T06:36:56Z
+2026-11-27T06:38:47Z stored_check=1 after 111 s
+2026-11-27T06:40:27Z paused
+2026-11-27T06:40:29Z first_event=2026-11-27T06:38:11Z
+2026-11-27T06:40:29Z configuration restored from <guest-home>/array/saved
+2026-11-27T06:41:30Z restart restore service=active
+mgmt pid=2094988 start=Thu Nov 26 22:40:30 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=2094994 start=Thu Nov 26 22:40:30 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+etl pid=2095004 start=Thu Nov 26 22:40:30 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=2095010 start=Thu Nov 26 22:40:30 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
