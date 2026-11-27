@@ -2446,7 +2446,7 @@ Evaluate each component and GC type separately within a constant workload and qu
 | Label | Observed At | Environment | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | T1 | 2026-11-22 UTC | Fresh Rocky 8.10 guest, 2 vCPU, 4 GiB | Passed (owner verdict) | Installer make status 0; four JVMs with 256M G1 heaps and GC logs from JVM start; frozen policy reproduced with the one line D67 changes; empty database and stores before the registration; details in the paragraph below |
-| T2 | Not run | Disposable VM | Pending | none |
+| T2 | 2026-11-22 to 2026-11-27 UTC | Fresh Rocky 8.10 guest, 2 vCPU, 4 GiB (array cases on the first guest, 3.6 GiB) | Passed (owner verdict) | The 2-hour and 8-hour rehearsals ran the collectors, the deliberate sampler stop, the block copies and the GC analysis on the installed appliance (`docs/reports/heap-rehearsal-20261122`); the GC analysis gave byte for byte identical outputs on two copies of the logs; the array cases recorded an actual outcome for every cell (`docs/reports/heap-array-cases-20261126`). Limit: the sampler CSV, CA output, query responses and copied blocks of the rehearsals were not kept, so the sampler and query summaries cannot be recomputed from retained files; only the GC tables can |
 | T3 | 2026-11-23 to 2026-11-25 UTC | Fresh Rocky 8.10 guest, 2 vCPU, 4 GiB | Passed (owner verdict) | The 48-hour observation ran as planned with no watchdog alert, no restart, no Full collection and no OutOfMemoryError; the GC analysis, the data move of the ETL and the query phase are recorded in `docs/reports/heap-baseline-48h-20261125`; details in the paragraph below |
 | T4 | Not run | Disposable VM | Pending | none |
 | T5 | Not run | Canonical results and install guide | Pending | none |
