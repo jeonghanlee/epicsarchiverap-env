@@ -1,0 +1,102 @@
+2026-11-26T23:36:05Z guard mem_available_mib=425 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:37:06Z restart heap=512 label=reference service=active
+mgmt pid=1968225 start=Thu Nov 26 15:36:06 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1968230 start=Thu Nov 26 15:36:06 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1968236 start=Thu Nov 26 15:36:06 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1968246 start=Thu Nov 26 15:36:06 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:37:06Z reference group
+2026-11-26T23:37:20Z reference end exit=0
+2026-11-26T23:37:20Z guard mem_available_mib=722 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:38:21Z restart heap=256 label=one-client service=active
+mgmt pid=1969090 start=Thu Nov 26 15:37:21 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1969095 start=Thu Nov 26 15:37:21 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1969110 start=Thu Nov 26 15:37:21 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1969121 start=Thu Nov 26 15:37:21 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:38:21Z guard mem_available_mib=1023 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:38:21Z cell start heap=256 clients=1
+2026-11-26T23:38:40Z cell end heap=256 clients=1 exit=0
+2026-11-26T23:38:40Z oom_lines_since_restart=9
+engine pid=1969095 start=Thu Nov 26 15:37:21 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+retrieval pid=1969121 start=Thu Nov 26 15:37:21 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+http=200 count=3
+http=500 count=9
+2026-11-26T23:38:40Z guard mem_available_mib=978 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:39:42Z restart heap=384 label=one-client service=active
+mgmt pid=1969960 start=Thu Nov 26 15:38:42 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1969972 start=Thu Nov 26 15:38:42 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1969980 start=Thu Nov 26 15:38:42 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1969994 start=Thu Nov 26 15:38:42 2026 heap=[-Xms256M -Xmx256M -Xms384M -Xmx384M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:39:42Z guard mem_available_mib=938 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:39:42Z cell start heap=384 clients=1
+2026-11-26T23:40:16Z cell end heap=384 clients=1 exit=0
+2026-11-26T23:40:16Z oom_lines_since_restart=3
+engine pid=1969972 start=Thu Nov 26 15:38:42 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+retrieval pid=1969994 start=Thu Nov 26 15:38:42 2026 heap=[-Xms256M -Xmx256M -Xms384M -Xmx384M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+http=200 count=9
+http=500 count=3
+2026-11-26T23:40:16Z guard mem_available_mib=845 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:41:17Z restart heap=512 label=one-client service=active
+mgmt pid=1970995 start=Thu Nov 26 15:40:17 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1971001 start=Thu Nov 26 15:40:17 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1971007 start=Thu Nov 26 15:40:17 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1971024 start=Thu Nov 26 15:40:17 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:41:17Z guard mem_available_mib=870 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:41:17Z cell start heap=512 clients=1
+2026-11-26T23:42:04Z cell end heap=512 clients=1 exit=0
+2026-11-26T23:42:04Z oom_lines_since_restart=1
+engine pid=1971001 start=Thu Nov 26 15:40:17 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+retrieval pid=1971024 start=Thu Nov 26 15:40:17 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+http=200 count=12
+2026-11-26T23:42:04Z guard mem_available_mib=713 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:43:05Z restart heap=256 label=four-clients service=active
+mgmt pid=1972164 start=Thu Nov 26 15:42:05 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1972170 start=Thu Nov 26 15:42:05 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1972180 start=Thu Nov 26 15:42:05 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1972194 start=Thu Nov 26 15:42:05 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:43:05Z guard mem_available_mib=1012 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:43:05Z cell start heap=256 clients=4
+2026-11-26T23:43:30Z cell end heap=256 clients=4 exit=0
+2026-11-26T23:43:30Z oom_lines_since_restart=16
+engine pid=1972170 start=Thu Nov 26 15:42:05 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+retrieval pid=1972194 start=Thu Nov 26 15:42:05 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+http=200 count=3
+http=500 count=15
+http=503 count=30
+2026-11-26T23:43:30Z guard mem_available_mib=973 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:44:32Z restart heap=384 label=four-clients service=active
+mgmt pid=1973208 start=Thu Nov 26 15:43:32 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1973214 start=Thu Nov 26 15:43:32 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1973227 start=Thu Nov 26 15:43:32 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1973239 start=Thu Nov 26 15:43:32 2026 heap=[-Xms256M -Xmx256M -Xms384M -Xmx384M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:44:32Z guard mem_available_mib=922 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:44:32Z cell start heap=384 clients=4
+2026-11-26T23:45:09Z cell end heap=384 clients=4 exit=0
+2026-11-26T23:45:09Z oom_lines_since_restart=18
+engine pid=1973214 start=Thu Nov 26 15:43:32 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+retrieval pid=1973239 start=Thu Nov 26 15:43:32 2026 heap=[-Xms256M -Xmx256M -Xms384M -Xmx384M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+http=200 count=10
+http=500 count=8
+http=503 count=30
+2026-11-26T23:45:09Z guard mem_available_mib=832 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:46:10Z restart heap=512 label=four-clients service=active
+mgmt pid=1974280 start=Thu Nov 26 15:45:10 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1974291 start=Thu Nov 26 15:45:10 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1974300 start=Thu Nov 26 15:45:10 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1974320 start=Thu Nov 26 15:45:10 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:46:10Z guard mem_available_mib=880 root_used_pct=70 inode_used_pct=1
+2026-11-26T23:46:10Z cell start heap=512 clients=4
+2026-11-26T23:46:57Z cell end heap=512 clients=4 exit=0
+2026-11-26T23:46:57Z oom_lines_since_restart=5
+engine pid=1974291 start=Thu Nov 26 15:45:10 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+retrieval pid=1974320 start=Thu Nov 26 15:45:10 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+http=200 count=14
+http=500 count=3
+http=503 count=31
+2026-11-26T23:46:57Z DONE retrieval cells; retrieval.conf left at 512

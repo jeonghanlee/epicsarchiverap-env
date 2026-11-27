@@ -1,0 +1,9 @@
+2026-11-26T23:05:23Z restart engine_heap=512 service=active kills_before=1
+engine pid=1954890 start=Thu Nov 26 15:04:23 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+2026-11-26T23:11:06Z rerun att=1 archived_s=101 status=AIRY=Being_archived/true,BOUND=Being_archived/true sizes=[AIRY= BOUND=] min_mem_available_mib=767 pid=1954890/1954890 kills=1/1 outcome=engine-alive
+2026-11-26T23:11:13Z after delete stored_files=0
+2026-11-26T23:16:55Z rerun att=2 archived_s=100 status=AIRY=Being_archived/true,BOUND=Being_archived/true sizes=[AIRY= BOUND=] min_mem_available_mib=647 pid=1954890/1954890 kills=1/1 outcome=engine-alive
+2026-11-26T23:17:01Z after delete stored_files=0
+2026-11-26T23:22:44Z rerun att=3 archived_s=101 status=AIRY=Being_archived/true,BOUND=Being_archived/true sizes=[AIRY= BOUND=] min_mem_available_mib=614 pid=1954890/1954890 kills=1/1 outcome=engine-alive
+2026-11-26T23:22:50Z after delete stored_files=0
+2026-11-26T23:22:50Z DONE rerun; engine.conf restored from the saved original (service not restarted)

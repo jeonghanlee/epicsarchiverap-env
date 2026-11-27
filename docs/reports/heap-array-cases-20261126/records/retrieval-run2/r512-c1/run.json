@@ -1,0 +1,24 @@
+{
+   "argv" : [
+      "--plan",
+      "<guest-home>/array/logs/cells2/plan.csv",
+      "--output-dir",
+      "<guest-home>/array/logs/cells2/r512-c1",
+      "--url",
+      "http://localhost:17668/retrieval/data/getData.json",
+      "--clients",
+      "1",
+      "--groups",
+      "3",
+      "--pause",
+      "5"
+   ],
+   "clients" : 1,
+   "end_utc" : "2026-11-26T23:42:04.316Z",
+   "groups" : 3,
+   "plan_rows" : 4,
+   "plan_sha256" : "1ee32b62880a96db10e5785c827a74e8326ca7924061e392c0fb92603f57cd44",
+   "start_utc" : "2026-11-26T23:41:17.881Z",
+   "timeout_s" : 300,
+   "url" : "http://localhost:17668/retrieval/data/getData.json"
+}

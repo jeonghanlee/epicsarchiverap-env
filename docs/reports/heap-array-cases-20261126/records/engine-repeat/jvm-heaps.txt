@@ -1,0 +1,4 @@
+mgmt      pid=1954882 [info][gc,init] Heap Max Capacity: 256M
+engine    pid=1954890 [info][gc,init] Heap Max Capacity: 512M
+etl       pid=1954900 [info][gc,init] Heap Max Capacity: 256M
+retrieval pid=1954913 [info][gc,init] Heap Max Capacity: 256M

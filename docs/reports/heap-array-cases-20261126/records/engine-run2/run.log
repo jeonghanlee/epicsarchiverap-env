@@ -1,0 +1,47 @@
+2026-11-26T23:48:44Z restart engine_heap=256 service=active
+mgmt pid=1975641 start=Thu Nov 26 15:47:44 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1975648 start=Thu Nov 26 15:47:44 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1975653 start=Thu Nov 26 15:47:44 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1975666 start=Thu Nov 26 15:47:44 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T23:51:19Z attempt heap=256 cell=airy att=1 archived_s=101 status=AIRY=Being_archived/true; stored=AIRY:events=3:http=200; pinned_ok=AIRY; pid=1975648/1975648 oom=0 outcome=Archived
+2026-11-26T23:51:24Z after delete stored_files=0 root_used=69
+2026-11-26T23:53:57Z attempt heap=256 cell=airy att=2 archived_s=100 status=AIRY=Being_archived/true; stored=AIRY:events=3:http=200; pinned_ok=AIRY; pid=1975648/1975648 oom=0 outcome=Archived
+2026-11-26T23:54:02Z after delete stored_files=0 root_used=69
+2026-11-26T23:56:35Z attempt heap=256 cell=airy att=3 archived_s=101 status=AIRY=Being_archived/true; stored=AIRY:events=3:http=200; pinned_ok=AIRY; pid=1975648/1975648 oom=0 outcome=Archived
+2026-11-26T23:56:40Z after delete stored_files=0 root_used=69
+2026-11-26T23:59:13Z attempt heap=256 cell=bound att=1 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=3:http=200; pinned_ok=BOUND; pid=1975648/1975648 oom=0 outcome=Archived
+2026-11-26T23:59:18Z after delete stored_files=0 root_used=69
+2026-11-27T00:01:51Z attempt heap=256 cell=bound att=2 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=2:http=200; pinned_ok=BOUND; pid=1975648/1975648 oom=1 outcome=Failed
+2026-11-27T00:01:56Z after delete stored_files=0 root_used=69
+2026-11-27T00:04:31Z attempt heap=256 cell=bound att=3 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=3:http=200; pinned_ok=BOUND; pid=1975648/1975648 oom=0 outcome=Archived
+2026-11-27T00:04:37Z after delete stored_files=0 root_used=69
+2026-11-27T00:10:32Z attempt heap=256 cell=airy+bound att=1 archived_s=-1 status=AIRY=Being_archived/true;BOUND=Not_being_archived/None; stored=AIRY:events=9:http=200;BOUND:events=0:http=404; pinned_ok=AIRY; pid=1975648/1975648 oom=3 outcome=Failed
+2026-11-27T00:10:39Z after delete stored_files=0 root_used=69
+2026-11-27T00:13:36Z attempt heap=256 cell=airy+bound att=2 archived_s=103 status=AIRY=Being_archived/true;BOUND=Being_archived/true; stored=AIRY:events=1:http=200;BOUND:events=1:http=200; pinned_ok=AIRY;BOUND; pid=1975648/1975648 oom=6 outcome=Failed
+2026-11-27T00:13:41Z after delete stored_files=0 root_used=69
+2026-11-27T00:19:46Z attempt heap=256 cell=airy+bound att=3 archived_s=102 status=AIRY=Being_archived/true;BOUND=Being_archived/true; stored=AIRY:events=5:http=200;BOUND:events=1:http=200; pinned_ok=AIRY;BOUND; pid=1975648/1975648 oom=15 outcome=Failed
+2026-11-27T00:19:52Z after delete stored_files=0 root_used=69
+2026-11-27T00:20:54Z restart engine_heap=512 service=active
+mgmt pid=1989092 start=Thu Nov 26 16:19:53 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1989098 start=Thu Nov 26 16:19:53 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1989107 start=Thu Nov 26 16:19:54 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1989114 start=Thu Nov 26 16:19:54 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-27T00:23:36Z attempt heap=512 cell=airy att=1 archived_s=107 status=AIRY=Being_archived/true; stored=AIRY:events=3:http=200; pinned_ok=AIRY; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:23:41Z after delete stored_files=0 root_used=69
+2026-11-27T00:26:25Z attempt heap=512 cell=airy att=2 archived_s=101 status=AIRY=Being_archived/true; stored=AIRY:events=3:http=200; pinned_ok=AIRY; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:26:31Z after delete stored_files=0 root_used=69
+2026-11-27T00:29:14Z attempt heap=512 cell=airy att=3 archived_s=102 status=AIRY=Being_archived/true; stored=AIRY:events=3:http=200; pinned_ok=AIRY; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:29:19Z after delete stored_files=0 root_used=69
+2026-11-27T00:32:05Z attempt heap=512 cell=bound att=1 archived_s=102 status=BOUND=Being_archived/true; stored=BOUND:events=3:http=200; pinned_ok=BOUND; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:32:12Z after delete stored_files=0 root_used=69
+2026-11-27T00:34:47Z attempt heap=512 cell=bound att=2 archived_s=102 status=BOUND=Being_archived/true; stored=BOUND:events=3:http=200; pinned_ok=BOUND; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:34:52Z after delete stored_files=0 root_used=69
+2026-11-27T00:37:27Z attempt heap=512 cell=bound att=3 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=3:http=200; pinned_ok=BOUND; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:37:33Z after delete stored_files=0 root_used=69
+2026-11-27T00:40:10Z attempt heap=512 cell=airy+bound att=1 archived_s=100 status=AIRY=Being_archived/true;BOUND=Being_archived/true; stored=AIRY:events=3:http=200;BOUND:events=3:http=200; pinned_ok=AIRY;BOUND; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:40:15Z after delete stored_files=0 root_used=69
+2026-11-27T00:42:53Z attempt heap=512 cell=airy+bound att=2 archived_s=101 status=AIRY=Being_archived/true;BOUND=Being_archived/true; stored=AIRY:events=3:http=200;BOUND:events=3:http=200; pinned_ok=AIRY;BOUND; pid=1989098/1989098 oom=0 outcome=Archived
+2026-11-27T00:43:00Z after delete stored_files=0 root_used=69
+2026-11-27T00:43:00Z STOP rule reached mem=194 use=69 inode=1

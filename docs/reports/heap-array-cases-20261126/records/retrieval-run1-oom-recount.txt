@@ -1,0 +1,7 @@
+r256-c1 | 2026-11-26 12:35:18 | oom=9 memtext=20
+r384-c1 | 2026-11-26 12:36:39 | oom=3 memtext=8
+r512-c1 | 2026-11-26 12:38:15 | oom=0 memtext=2
+r256-c4 | 2026-11-26 12:40:05 | oom=19 memtext=176
+r384-c4 | 2026-11-26 12:41:31 | oom=25 memtext=148
+r512-c4 | 2026-11-26 12:43:27 | oom=9 memtext=148
+--- retrieval lines mentioning refusal or memory in r512-c4 window:

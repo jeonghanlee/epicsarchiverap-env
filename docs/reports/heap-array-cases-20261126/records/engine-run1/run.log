@@ -1,0 +1,49 @@
+2026-11-26T20:50:28Z restart engine_heap=256 service=active
+mgmt pid=1908381 start=Thu Nov 26 12:49:28 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1908392 start=Thu Nov 26 12:49:28 2026 heap=[-Xms256M -Xmx256M -Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1908403 start=Thu Nov 26 12:49:28 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1908413 start=Thu Nov 26 12:49:28 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T20:56:17Z attempt heap=256 cell=airy att=1 archived_s=102 status=AIRY=Being_archived/true; stored=AIRY:events=9,http=200; pinned_ok=AIRY; pid=1908392/1908392 oom=0 outcome=Archived
+2026-11-26T20:56:23Z after delete stored_files=0 root_used=69
+2026-11-26T21:02:09Z attempt heap=256 cell=airy att=2 archived_s=100 status=AIRY=Being_archived/true; stored=AIRY:events=8,http=200; pinned_ok=AIRY; pid=1908392/1908392 oom=0 outcome=Archived
+2026-11-26T21:02:15Z after delete stored_files=0 root_used=69
+2026-11-26T21:08:02Z attempt heap=256 cell=airy att=3 archived_s=100 status=AIRY=Being_archived/true; stored=AIRY:events=10,http=200; pinned_ok=AIRY; pid=1908392/1908392 oom=0 outcome=Archived
+2026-11-26T21:08:07Z after delete stored_files=0 root_used=69
+2026-11-26T21:13:56Z attempt heap=256 cell=bound att=1 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=9,http=200; pinned_ok=BOUND; pid=1908392/1908392 oom=0 outcome=Archived
+2026-11-26T21:14:02Z after delete stored_files=0 root_used=69
+2026-11-26T21:19:51Z attempt heap=256 cell=bound att=2 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=9,http=200; pinned_ok=BOUND; pid=1908392/1908392 oom=0 outcome=Archived
+2026-11-26T21:19:56Z after delete stored_files=0 root_used=69
+2026-11-26T21:25:44Z attempt heap=256 cell=bound att=3 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=9,http=200; pinned_ok=BOUND; pid=1908392/1908392 oom=0 outcome=Archived
+2026-11-26T21:25:50Z after delete stored_files=0 root_used=69
+2026-11-26T21:31:40Z attempt heap=256 cell=airy+bound att=1 archived_s=91 status=AIRY=Being_archived/true;BOUND=Being_archived/true; stored=AIRY:events=6,http=200;BOUND:events=1,http=200; pinned_ok=AIRY;BOUND; pid=1908392/1908392 oom=17 outcome=Failed
+2026-11-26T21:31:46Z after delete stored_files=0 root_used=69
+2026-11-26T21:37:31Z attempt heap=256 cell=airy+bound att=2 archived_s=-1 status=AIRY=Initial_sampling/None;BOUND=Being_archived/true; stored=AIRY:events=0,http=404;BOUND:events=2,http=200; pinned_ok=BOUND; pid=1908392/1908392 oom=9 outcome=Failed
+2026-11-26T21:37:37Z after delete stored_files=0 root_used=69
+2026-11-26T21:43:27Z attempt heap=256 cell=airy+bound att=3 archived_s=-1 status=AIRY=Initial_sampling/None;BOUND=Being_archived/true; stored=AIRY:events=0,http=404;BOUND:events=9,http=200; pinned_ok=BOUND; pid=1908392/1908392 oom=0 outcome=Not-connected
+2026-11-26T21:43:33Z after delete stored_files=0 root_used=69
+2026-11-26T21:44:35Z restart engine_heap=512 service=active
+mgmt pid=1930522 start=Thu Nov 26 13:43:35 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+engine pid=1930527 start=Thu Nov 26 13:43:35 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=24000000
+etl pid=1930532 start=Thu Nov 26 13:43:35 2026 heap=[-Xms256M -Xmx256M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+retrieval pid=1930541 start=Thu Nov 26 13:43:35 2026 heap=[-Xms256M -Xmx256M -Xms512M -Xmx512M ] EPICS_CA_MAX_ARRAY_BYTES=16384
+mgmt http=200
+2026-11-26T21:50:23Z attempt heap=512 cell=airy att=1 archived_s=91 status=AIRY=Being_archived/true; stored=AIRY:events=9,http=200; pinned_ok=AIRY; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T21:50:28Z after delete stored_files=0 root_used=69
+2026-11-26T21:56:14Z attempt heap=512 cell=airy att=2 archived_s=101 status=AIRY=Being_archived/true; stored=AIRY:events=9,http=200; pinned_ok=AIRY; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T21:56:20Z after delete stored_files=0 root_used=69
+2026-11-26T22:02:07Z attempt heap=512 cell=airy att=3 archived_s=101 status=AIRY=Being_archived/true; stored=AIRY:events=8,http=200; pinned_ok=AIRY; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T22:02:12Z after delete stored_files=0 root_used=69
+2026-11-26T22:08:01Z attempt heap=512 cell=bound att=1 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=9,http=200; pinned_ok=BOUND; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T22:08:06Z after delete stored_files=0 root_used=69
+2026-11-26T22:13:54Z attempt heap=512 cell=bound att=2 archived_s=101 status=BOUND=Being_archived/true; stored=BOUND:events=9,http=200; pinned_ok=BOUND; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T22:14:00Z after delete stored_files=0 root_used=69
+2026-11-26T22:19:49Z attempt heap=512 cell=bound att=3 archived_s=100 status=BOUND=Being_archived/true; stored=BOUND:events=9,http=200; pinned_ok=BOUND; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T22:19:54Z after delete stored_files=0 root_used=69
+2026-11-26T22:25:48Z attempt heap=512 cell=airy+bound att=1 archived_s=101 status=AIRY=Being_archived/true;BOUND=Being_archived/true; stored=AIRY:events=9,http=200;BOUND:events=9,http=200; pinned_ok=AIRY;BOUND; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T22:25:55Z after delete stored_files=0 root_used=69
+2026-11-26T22:31:51Z attempt heap=512 cell=airy+bound att=2 archived_s=101 status=AIRY=Being_archived/true;BOUND=Being_archived/true; stored=AIRY:events=9,http=200;BOUND:events=9,http=200; pinned_ok=AIRY;BOUND; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T22:31:57Z after delete stored_files=0 root_used=69
+2026-11-26T22:37:53Z attempt heap=512 cell=airy+bound att=3 archived_s=101 status=AIRY=Appliance_Down/None;BOUND=Appliance_Down/None; stored=AIRY:events=9,http=200;BOUND:events=9,http=200; pinned_ok=AIRY;BOUND; pid=1930527/1930527 oom=0 outcome=Archived
+2026-11-26T22:37:58Z after delete stored_files=3 root_used=70
+2026-11-26T22:37:58Z DONE engine cells; engine.conf left at 512
