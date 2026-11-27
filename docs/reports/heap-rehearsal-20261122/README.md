@@ -1,6 +1,6 @@
 # Rehearsals of the heap measurement: results
 
-Two rehearsals of the measurement path on one guest (Rocky Linux 8.10, 2 vCPU, 4 GiB, the four appliance JVMs with GC logs from JVM start, a soft IOC with 100 PVs, MariaDB over a Unix domain socket). The procedure and the scripts are in `tests/heap/rehearsal`. All times are UTC. The full records (GC logs, sampler CSV, CA output, query responses) are in a private evidence folder; this folder holds the results only.
+Two rehearsals of the measurement path on one guest (Rocky Linux 8.10, 2 vCPU, 4 GiB, the four appliance JVMs with GC logs from JVM start, a soft IOC with 100 PVs, MariaDB over a Unix domain socket). The procedure and the scripts are in `tests/heap/rehearsal`. All times are UTC. The GC log copies used by the analysis and the small stage and watch records are in a private evidence folder; the sampler CSV, CA output, query responses and copied blocks were not kept. This folder holds the results only.
 
 ## Result in short
 
@@ -41,7 +41,7 @@ The 2-hour rehearsal ran 1,159 retrieval Young collections in the whole interval
 - Every tool of the path ran together on real data: appliance with GC logs from JVM start, soft IOC, sampler, CA observer, four query clients, rsync into staging, cumulative block copy, GC analysis, summaries.
 - The resume rule held: a sampler restarted after 10 minutes appended to the same file, the process identities were unchanged, and the analysis can use the continuous intervals around the gap.
 - The limits held: no out-of-memory kill, anonymous memory of the collectors at about 10 MB against 64 MiB and 128 MiB, the query clients within 512 MiB each, `MemAvailable` above 1,100 MiB.
-- Evidence volume: query responses 11.3 GiB per query hour in the 2-hour rehearsal (7.56 GiB in 40 minutes) and 21.2 GiB in the query hour of the 8-hour rehearsal (four clients, 100 PVs), CA output about 2.5 MB per minute; the 8-hour evidence folder is 67 GB.
+- Evidence volume: query responses 11.3 GiB per query hour in the 2-hour rehearsal (7.56 GiB in 40 minutes) and 21.2 GiB in the query hour of the 8-hour rehearsal (four clients, 100 PVs), CA output about 2.5 MB per minute; the 8-hour evidence folder held 67 GB when the run ended, and only a small part of it is kept (see the first paragraph).
 
 ## Not decided here
 
